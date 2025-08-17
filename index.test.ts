@@ -11,7 +11,6 @@ describe("parseHtmlToStringTree", () => {
         </div>
       `
     )
-
     expect(tree).toEqual({
       string: "",
       children: [
@@ -36,7 +35,6 @@ describe("parseHtmlToStringTree", () => {
         </section>
       `
     )
-
     expect(tree).toEqual({
       string: "",
       children: [
@@ -60,7 +58,6 @@ describe("parseHtmlToStringTree", () => {
         </div>
       `
     )
-
     expect(tree).toEqual({
       string: "",
       children: [
@@ -80,7 +77,6 @@ describe("parseHtmlToStringTree", () => {
         </div>
       `
     )
-
     expect(tree).toEqual({
       string: "",
       children: [
@@ -102,7 +98,6 @@ describe("parseHtmlToStringTree", () => {
     const tree = parseHtmlToStringTree<{ A: number; B: number }>(
       ({ html, context }) => html`<p>${context.A < context.B ? "a" : "b"} & more</p>`
     )
-
     expect(tree).toEqual({
       string: "",
       children: [
@@ -117,16 +112,15 @@ describe("parseHtmlToStringTree", () => {
   // 3) self-closing без пробела
   it("self-closing без пробела", () => {
     const tree = parseHtmlToStringTree(({ html }) => html` <div><img /><br /><input /></div> `)
-
     expect(tree).toEqual({
       string: "",
       children: [
         {
           string: "<div>",
           children: [
-            { string: "<img/>", children: [] },
-            { string: "<br/>", children: [] },
-            { string: "<input/>", children: [] },
+            { string: "<img />", children: [] },
+            { string: "<br />", children: [] },
+            { string: "<input />", children: [] },
           ],
         },
       ],
@@ -138,7 +132,6 @@ describe("parseHtmlToStringTree", () => {
     const tree = parseHtmlToStringTree<{ A: number; B: number }>(
       ({ html, context }) => html`<div><title>A < B & ${context.A > context.B}</title></div>`
     )
-
     expect(tree).toEqual({
       string: "",
       children: [
@@ -155,17 +148,20 @@ describe("parseHtmlToStringTree", () => {
     const tree = parseHtmlToStringTree<{ A: number; B: number }>(
       ({ html, context }) => html`<x data="${context.A > context.B ? "yes" : "no"}" y="ok"></x>`
     )
-
     expect(tree).toEqual({
       string: "",
-      children: [{ string: '<x data=\'${context.A > context.B ? "yes" : "no"}\' y="ok">', children: [] }],
+      children: [
+        {
+          string: '<x data="${context.A > context.B ? "yes" : "no"}" y="ok">',
+          children: [],
+        },
+      ],
     })
   })
 
   // 9) Соседние текстовые узлы и теги вплотную
   it("соседние текстовые узлы и теги", () => {
     const tree = parseHtmlToStringTree(({ html }) => html` <p>a<b>c</b>d</p> `)
-
     expect(tree).toEqual({
       string: "",
       children: [
@@ -184,7 +180,6 @@ describe("parseHtmlToStringTree", () => {
   // 10) Большой блок без угловых скобок внутри, но с ${...}
   it("<pre> с ${...} и текстом, не содержащим теги", () => {
     const tree = parseHtmlToStringTree(({ html }) => html` <pre>${"{}[]() <> not a tag"}</pre> `)
-
     expect(tree).toEqual({
       string: "",
       children: [

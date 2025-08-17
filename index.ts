@@ -1,3 +1,8 @@
+/**
+ * Узел дерева строк: каждая строка — это либо открывающий/self-closing тег,
+ * либо текстовый фрагмент. Мы не интерпретируем HTML, а лишь сохраняем сырой
+ * текст и его вложенность.
+ */
 export type StringTreeNode = { string: string; children: StringTreeNode[] }
 
 export type Content = Record<string, string | number | boolean | null | Array<string | number | boolean | null>>
@@ -15,14 +20,17 @@ export type Render<C extends Content> = ({
 
 const RAW_KEEP_AS_IS = new Set(["textarea", "title"])
 
+/** Извлекаем сырой html`...` из исходника функции, сохраняя ${...} как текст. */
 function extractHtmlFromRender<C extends Content>(render: Render<C>): string {
   const src = render.toString()
   const m = /html\s*`/.exec(src)
   if (!m) return ""
+
   let i = m.index + m[0].length
   let out = ""
   let inExpr = false
   let depth = 0
+
   while (i < src.length) {
     const ch = src[i++]
     if (!inExpr && ch === "`") break
@@ -71,6 +79,36 @@ export function parseHtmlToStringTree<C extends Content>(render: Render<C>): Str
     if (!isWsOnly(s)) current.children.push({ string: s, children: [] })
   }
 
+  /** Найдём следующий символ '<', пропуская ${...} в тексте. */
+  function nextLt(pos: number): number {
+    let j = pos
+    let inExpr = false
+    let depth = 0
+    while (j < n) {
+      const ch = src[j]!
+      if (!inExpr && ch === "$" && src[j + 1] === "{") {
+        inExpr = true
+        depth = 1
+        j += 2
+        continue
+      }
+      if (inExpr) {
+        const c = src[j]!
+        if (c === "{") depth++
+        else if (c === "}") {
+          depth--
+          if (depth === 0) inExpr = false
+        }
+        j++
+        continue
+      }
+      if (ch === "<") return j
+      j++
+    }
+    return -1
+  }
+
+  /** Прочитать тег до '>' с учётом кавычек и ${...}. */
   function readTag(start: number): number {
     let j = start + 1
     let q: '"' | "'" | null = null
@@ -108,6 +146,7 @@ export function parseHtmlToStringTree<C extends Content>(render: Render<C>): Str
     return j
   }
 
+  /** Имя и тип тега по сырой строке тега. */
   function tagName(rawTag: string): { name: string; closing: boolean; selfClosing: boolean } {
     const inner = rawTag.slice(1, -1)
     const closing = /^\s*\//.test(inner)
@@ -124,7 +163,7 @@ export function parseHtmlToStringTree<C extends Content>(render: Render<C>): Str
   }
 
   while (i < n) {
-    const lt = src.indexOf("<", i)
+    const lt = nextLt(i)
     if (lt === -1) {
       pushText(src.slice(i))
       break
