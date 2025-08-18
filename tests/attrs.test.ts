@@ -59,4 +59,14 @@ describe("scanTagsFromRender / атрибуты", () => {
       { text: "</div>", index: 49, name: "div", kind: "close" },
     ])
   })
+  it("булевые атрибуты", () => {
+    const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
+      ({ html, context }) => html`<button ${context.flag && "disabled"}></button>`
+    )
+    const tags = scanHtmlTags(mainHtml)
+    expect(tags).toEqual([
+      { text: '<button ${context.flag && "disabled"}>', index: 0, name: "button", kind: "open" },
+      { text: "</button>", index: 38, name: "button", kind: "close" },
+    ])
+  })
 })
