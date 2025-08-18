@@ -1,320 +1,246 @@
-# HTML Tag Scanner for Template HTML
+# HTML Tag Scanner
 
-> Мини-библиотека для извлечения **основного HTML-блока** из render-функции и сканирования по нему **тегов** с позициями и типами.
+Утилита для **сканирования HTML-строк** и извлечения тегов с их типами и позициями.
+Главная идея — **анализ HTML-структуры без исполнения JavaScript-выражений**, выделение тегов и их классификацию.
 
-## Зачем это нужно
+> Проект используется локально, установка через npm не требуется. Все комментарии и JSDoc оформляются **на русском языке**.  
+> В тестах — преимущественно **сравнение с объектом** (наглядный expected), модуль тестов обязан содержать **общий `describe`**.  
+> Не оставляем мёртвый код.
 
-- Имеем render-функции вида `({ html, context }) => html\`<div>...</div>\``.
-- Нужно **не исполнять** JS-выражения из `${...}`, а получить **строку HTML** и пробежать по ней, выделив теги.
-- Из полученной строки хотим быстро получить **последовательность токенов-тегов**: имя тега, тип (`open|close|self|void`) и позицию в строке.
+---
 
-## Экспортируемое API
+## Когда это нужно
 
-### Типы
+- Для статического анализа HTML-структуры без выполнения кода.
+- Для инструментов валидации и линтинга HTML-шаблонов.
+- Для извлечения метаданных о тегах (позиции, типы, имена).
+- Для предварительной обработки HTML перед парсингом.
+
+---
+
+## Ключевые свойства
+
+- **Без исполнения кода** — никакие выражения внутри `${...}` не вычисляются.
+- **Сканирование тегов** — выделение всех HTML-тегов с их позициями и типами.
+- **Классификация тегов** — определение типа тега (open/close/self/void).
+- **Поддержка template literals** — корректная обработка `${...}` внутри атрибутов.
+- **Namespace-теги** — поддержка тегов вида `svg:use`.
+- **Валидация имён** — проверка корректности имён тегов.
+
+---
+
+## Ограничения входных данных
+
+- **HTML-строка** — валидный HTML с возможными template literals `${...}`.
+- **Template literals** — поддерживаются внутри атрибутов и текстового содержимого.
+- **Комментарии и DOCTYPE** — игнорируются при сканировании.
+
+---
+
+## Быстрый старт
 
 ```ts
-export type Content = Record<string, string | number | boolean | null | Array<string | number | boolean | null>>
-export type Core = Record<string, any>
-export type State = string
+import { scanHtmlTags, extractMainHtmlBlock } from "./index.ts"
 
-export type Render<C extends Content = Content, I extends Core = Core, S extends State = State> = (args: {
+// Сканирование HTML-строки
+const tokens = scanHtmlTags('<div class="test">Hello <span>world</span></div>')
+
+console.log(tokens)
+```
+
+Результат:
+
+```json
+[
+  { "text": "<div class=\"test\">", "index": 0, "name": "div", "kind": "open" },
+  { "text": "<span>", "index": 25, "name": "span", "kind": "open" },
+  { "text": "</span>", "index": 31, "name": "span", "kind": "close" },
+  { "text": "</div>", "index": 38, "name": "div", "kind": "close" }
+]
+```
+
+---
+
+## API
+
+### `scanHtmlTags(input: string, offset = 0): TagToken[]`
+
+#### Параметры scanHtmlTags
+
+- `input: string` — HTML-строка для сканирования
+- `offset: number` — смещение для индексов (по умолчанию 0)
+
+#### Возвращаемое значение scanHtmlTags
+
+`TagToken[]` — массив токенов тегов. Каждый токен содержит:
+
+```ts
+type TagToken = {
+  text: string // полный текст тега (включая атрибуты)
+  index: number // позиция в исходной строке
+  name: string // имя тега (в нижнем регистре)
+  kind: TagKind // тип тега
+}
+
+type TagKind = "open" | "close" | "self" | "void"
+```
+
+### `extractMainHtmlBlock<T>(render: Render<T>): string`
+
+#### Параметры extractMainHtmlBlock
+
+- `render: Render<T>` — функция вида `({ html, context, core, state }) => html`...``
+
+#### Возвращаемое значение extractMainHtmlBlock
+
+`string` — сырой HTML-текст из template literal
+
+---
+
+## Поддерживаемые конструкции
+
+### 1) Базовые HTML-теги
+
+```ts
+scanHtmlTags("<div>content</div>")
+// [
+//   { text: "<div>", index: 0, name: "div", kind: "open" },
+//   { text: "</div>", index: 12, name: "div", kind: "close" }
+// ]
+```
+
+### 2) Self-closing теги
+
+```ts
+scanHtmlTags('<img src="test.jpg" />')
+// [
+//   { text: '<img src="test.jpg" />', index: 0, name: "img", kind: "self" }
+// ]
+```
+
+### 3) Void теги
+
+```ts
+scanHtmlTags("<br><hr>")
+// [
+//   { text: "<br>", index: 0, name: "br", kind: "void" },
+//   { text: "<hr>", index: 4, name: "hr", kind: "void" }
+// ]
+```
+
+### 4) Namespace-теги
+
+```ts
+scanHtmlTags('<svg:use href="#icon" />')
+// [
+//   { text: '<svg:use href="#icon" />', index: 0, name: "svg:use", kind: "self" }
+// ]
+```
+
+### 5) Template literals в атрибутах
+
+```ts
+scanHtmlTags('<input value="${context.name}" />')
+// [
+//   { text: '<input value="${context.name}" />', index: 0, name: "input", kind: "self" }
+// ]
+```
+
+---
+
+## Типы данных
+
+```ts
+// Контекст для render-функции
+type Content = Record<string, string | number | boolean | null | Array<string | number | boolean | null>>
+
+// Ядро с произвольной вложенностью
+type Core = Record<string, any>
+
+// Состояние
+type State = string
+
+// Render-функция
+type Render<C extends Content = Content, I extends Core = Core, S extends State = State> = (args: {
   html: (strings: TemplateStringsArray, ...values: any[]) => string
   core: I
   context: C
   state: State
 }) => void
-
-export type TagKind = "open" | "close" | "self" | "void"
-export type TagToken = { text: string; index: number; name: string; kind: TagKind }
 ```
-
-### Функции
-
-```ts
-/** Возвращает основной HTML-блок из render-функции как строку */
-export function extractMainHtmlBlock<C = Content, I = Core, S = State>(render: Render<C, I, S>): string
-
-/** Сканирует строку HTML и возвращает список токенов тегов */
-export function scanHtmlTags(html: string): TagToken[]
-```
-
-## Поведение (по тестам)
-
-- Поддерживаются:
-  - Простые пары тегов и вложенность: `<div></div>`, `<div><p>..</p></div>`.
-  - **Самозакрывающиеся** теги `<br />`, `<img />`, `<input disabled />` → `kind: "self"`.
-  - **Void-теги** (напр. `br`, `img`, `input` и др.). Без `/>` такие теги помечаются как `kind: "void"`.
-  - **Пространства имён**: `<svg:use ...></svg:use>` → `name: "svg:use"`.
-  - Угловые скобки **внутри значений атрибутов** (не ломают парс): `<div title="a > b, c < d">...</div>`.
-  - Встраивания через `${ ... html\`<tag>...\` ... }`, тернарники и `map()` с вложенными шаблонами.
-- Игнорируются: Processing Instructions (`<?xml ...?>`), HTML-комментарии (`<!-- ... -->`) и `<!DOCTYPE ...>`.
-- В каждом `TagToken`:
-  - `text` — точный сырой текст тега.
-  - `index` — позиция начала тега в исходной строке.
-  - `name` — имя тега (в нижнем регистре), с учётом пространства имён.
-  - `kind` — `"open" | "close" | "self" | "void"`.
-
-## Примеры
-
-### Базовый
-
-```ts
-import { extractMainHtmlBlock, scanHtmlTags } from "./index"
-
-const html = extractMainHtmlBlock(({ html }) => html`<div></div>`)
-const tags = scanHtmlTags(html)
-// => [ { text: "<div>", index: 0, name: "div", kind: "open" },
-//      { text: "</div>", index: 5, name: "div", kind: "close" } ]
-```
-
-### Вложенность, соседние узлы и self-теги
-
-```ts
-const html = extractMainHtmlBlock(
-  ({ html }) => html`
-    <div>
-      <br />
-      <img src="x" />
-      <input disabled />
-    </div>
-  `
-)
-const tags = scanHtmlTags(html)
-// => "<div>" (open), "<br />" (self), "<img ... />" (self), "<input ... />" (self), "</div>" (close)
-```
-
-### Namespace-теги
-
-```ts
-const html = extractMainHtmlBlock(({ html }) => html`<svg:use xlink:href="#id"></svg:use>`)
-const tags = scanHtmlTags(html)
-// => "<svg:use ...>" (open), "</svg:use>" (close)
-```
-
-### Условия и вложенные шаблоны
-
-```ts
-const html = extractMainHtmlBlock<{ list: string[] }>(
-  ({ html, context }) => html`
-    <ul>
-      ${context.list.map((_, i) => html` <li>${i % 2 ? html`<em>A</em>` : html`<strong>B</strong>`}</li> `)}
-    </ul>
-  `
-)
-const tags = scanHtmlTags(html)
-// => корректная последовательность для <ul>, <li>, <em>/<strong> и т.д.
-```
-
-## Ограничения и договорённости
-
-- Задача библиотеки — **сканирование тегов**. Она **не** строит полноценное AST-дерево узлов (текст/узлы/атрибуты).
-- JS-выражения внутри `${...}` **не вычисляются**; важен итоговый собранный **сырой HTML-текст**.
-- Для корректной работы `extractMainHtmlBlock` ожидается, что HTML собирается **через переданный `html` тег** (шаблонные литералы `html\`...\``).
 
 ---
 
-Если нужно — добавлю раздел про список поддерживаемых **void-тегов** и формальный разбор регулярного выражения сканера.
+## Алгоритм сканирования
 
-## Поддерживаемые void‑теги
+1. **Быстрое обнаружение** — использование `TAG_LOOKAHEAD` для поиска возможных тегов
+2. **Точный парсинг** — ручное извлечение границ тега с учётом кавычек и template literals
+3. **Валидация имени** — проверка корректности имени тега
+4. **Классификация** — определение типа тега на основе структуры и списка void-тегов
 
-Следующие теги считаются **void** (не имеют закрывающего тега) и помечаются `kind: "void"` при отсутствии `/>`:
+**Особенности обработки:**
 
-```
-area, base, br, col, embed, hr, img, input, link, meta, param, source, track, wbr
-```
+- Игнорирование комментариев (`<!-- -->`) и DOCTYPE
+- Корректная обработка вложенных кавычек
+- Пропуск template literals `${...}` внутри атрибутов
+- Поддержка экранированных символов
 
-> Если тот же тег встречается в самозакрывающемся виде (`<img />`), он маркируется как `kind: "self"`.
+---
 
-## Почему два регулярных выражения?
+## Примеры из тестов
 
-Внутри `index.ts` используются два регекспа:
+- `index.intro.test.ts` — самые простые сценарии сканирования.
+- `index.basic.test.ts` — базовая структура токенов, различные типы тегов.
+- `index.attrs.test.ts` — атрибуты и их значения, включая template literals.
+- `index.namespace.test.ts` — namespace-теги и сложные имена.
+- `index.extract.test.ts` — извлечение HTML из render-функций.
 
-- **`TAG_LOOKAHEAD`** — лёгкий **поисковый** шаблон с позитивным просмотром вперёд `(?=...)`.
+Запуск тестов:
 
-  - Цель: быстро найти **возможные начала** тегов в строке, не разбирая их полностью.
-  - Он устойчив к шуму (атрибуты, кавычки, пробелы), не захватывает текст и не строит большой матч.
-  - Мы двигаем `lastIndex` стримингово, поэтому проход по строке линейный.
-
-- **`TAG_MATCH`** — точный **парсер** тега с извлечением имени и флага самозакрытия.
-  - Цель: на уже найденной позиции **строго** распарсить один тег целиком, получить:
-    - `name` (`[A-Za-z][A-Za-z0-9:-]*`, в т.ч. `svg:use`),
-    - `selfSlash` — присутствие завершающего `/` перед `>`,
-    - оригинальный текст тега `full` для `text`.
-
-Такое разделение даёт баланс: быстрый курсор по строке + точный разбор только там, где действительно есть тег.
-
-## Алгоритм (в общих чертах)
-
-1. **Извлекаем сырой HTML** из `render` через `extractMainHtmlBlock`:
-   - Приводим функцию к строке, находим первый `html\`` и последний обратный апостроф, берём подстроку между ними.
-2. **Идём по строке** с помощью `TAG_LOOKAHEAD` (режим `g`):
-   - Для каждого срабатывания получаем индекс возможного тега `localIndex`.
-   - Если следующий символ после `<` — `!` или `?`, **пропускаем** (комментарии, `<!DOCTYPE ...>`, PI).
-3. **Применяем `TAG_MATCH`** к срезу `input.slice(localIndex)`:
-   - Если матч не удался — сдвигаем курсор на 1 символ и продолжаем.
-   - Если удался — извлекаем `full`, `name`, `selfSlash`.
-4. **Определяем вид тега (`kind`)**:
-   - начинается с `</` → **`"close"`**
-   - есть `selfSlash` → **`"self"`**
-   - имя в `VOID_TAGS` → **`"void"`**
-   - иначе → **`"open"`**
-5. **Записываем токен** `{ text: full, index: offset + localIndex, name, kind }` и двигаем `lastIndex` вперёд.
-6. После прохода возвращаем массив токенов.
-
-### Сложность
-
-- Проход по входной строке **линейный** относительно длины (`O(n)`), без бэктрекинга на большие участки.
-- Память — пропорциональна количеству найденных тегов.
-
-### Ограничения
-
-- Парсер **не** строит дерево и **не** валидирует корректность вложенности/закрытий.
-- Конструкции вида `<script>...</script>` с сырым `<` внутри строк/комментариев JavaScript не поддерживаются полноценно — задача за пределами сканера.
-- Внутренности `${...}` **не исполняются**; мы работаем с уже собранной строкой шаблона.
-
-## Диаграмма потока (Flow)
-
-```mermaid
-flowchart TD
-    A[Функция render] --> B[extractMainHtmlBlock]
-    B --> C[Строка HTML]
-    C --> D{TAG_LOOKAHEAD нашёл `<`?}
-    D -- нет --> E[Конец]
-    D -- да --> F[Проверка <! / <?]
-    F -- это спец --> G[Пропустить и ++lastIndex]
-    F -- обычный тег --> H[Применить TAG_MATCH]
-    H -- нет матча --> I[++lastIndex и продолжить]
-    H -- матч --> J[Извлечь имя, selfSlash, full]
-    J --> K{Определить kind}
-    K -- </ --> L[close]
-    K -- selfSlash --> M[self]
-    K -- name ∈ VOID_TAGS --> N[void]
-    K -- иначе --> O[open]
-    L --> P[Сохранить токен]
-    M --> P
-    N --> P
-    O --> P
-    P --> D
-    E[Возврат массива токенов]
+```bash
+bun test
 ```
 
-## Краевые кейсы (из тестов)
+> В тестах мы **сравниваем с объектами** (наглядный expected JSON-подобной формы). Обязательно есть **общий `describe`**, ветвления отражают оси вариантности, а сообщения у `expect` — на русском.
 
-- `<div title="a > b, c < d">x</div>` → не ломается на `>` или `<` внутри кавычек.
-- `<?xml version="1.0"?>` → пропускается (не тег).
-- `<!-- comment -->` → пропускается.
-- `<!DOCTYPE html>` → пропускается.
-- `<br>` → `kind: "void"`.
-- `<br />` → `kind: "self"`.
-- `<svg:use xlink:href="#id"></svg:use>` → корректно работает namespace.
-- `${context.list.map(i => html`<li>${i}</li>`}` → вложенные шаблоны обрабатываются как часть HTML.
+---
 
-## Диаграмма потока
+## Частые вопросы
 
-```mermaid
-flowchart TD
-    A[render-функция] --> B{extractMainHtmlBlock}
-    B -->|toString + slice по `html`| C[сырой HTML]
-    C --> D{TAG_LOOKAHEAD на '<'}
-    D -->|не тег: '!' или '?'| D1[пропуск <!-- -->, <!DOCTYPE>, <?...?>] --> D
-    D -->|кандидат| E[TAG_MATCH на подстроке]
-    E -->|неудача| F[сдвиг на 1 символ] --> D
-    E -->|успех| G[извлечь name/self/full]
-    G --> H{определить kind}
-    H -->|startsWith('</')| H1[close]
-    H -->|selfSlash| H2[self]
-    H -->|name ∈ VOID| H3[void]
-    H -->|иначе| H4[open]
-    H1 --> I[записать токен + index]
-    H2 --> I
-    H3 --> I
-    H4 --> I
-    I --> D
-    D -->|конец строки| J[возврат массива токенов]
-```
+**Почему мы не парсим в дерево?**  
+Это сканер, а не парсер. Задача — выделить теги с метаданными, а не построить иерархию.
 
-## Краевые кейсы (из тестов)
+**Как обрабатываются template literals?**  
+Они сохраняются как часть текста атрибута или содержимого, но не исполняются.
 
-- **Namespace-тег**  
-  Вход:
+**Поддерживаются ли комментарии?**  
+Нет, комментарии игнорируются при сканировании.
 
-  ```html
-  <svg:use xlink:href="#id"></svg:use>
-  ```
+**Что такое void-теги?**  
+HTML-теги, которые не могут иметь содержимого (например, `<br>`, `<img>`).
 
-  Результат: `open(svg:use)`, `close(svg:use)`.
+---
 
-- **Кавычки в атрибутах**  
-  Вход:
+## Стандарты проекта
 
-  ```html
-  <a href="https://e.co" target="_blank">x</a>
-  <div title="a > b, c < d"></div>
-  ```
+- Комментарии и JSDoc — **на русском языке**.
+- Не оставлять **мёртвый код**.
+- Тестовые наборы:
+  - общий `describe`;
+  - преимущественно сравнением с объектом;
+  - структура тестов — дерево вариантностей (ветвления — параллельные `describe`, листья — `it`).
 
-  Результат: `>`, `<` внутри значений **не** ломают сканирование.
+---
 
-- **Вложенность и self/void**  
-  Вход:
+## Дорожная карта (идеи)
 
-  ```html
-  <div>
-    <br />
-    <img src="x" />
-    <input disabled />
-  </div>
-  ```
+- Парсер для построения иерархического дерева на основе токенов.
+- Валидация HTML-структуры (проверка закрытия тегов).
+- Поддержка CSS-селекторов для поиска тегов.
+- Интеграция с линтерами и инструментами разработки.
 
-  Результат: `open(div)`, `self(br)`, `self(img)`, `self(input)`, `close(div)`.
+---
 
-- **Условия с внутренними шаблонами**  
-  Вход (сокращено):
+## Лицензия
 
-  ```ts
-  html`<div>${context.cond ? html`<em>A</em>` : html`<span>b</span>`}</div>`
-  ```
-
-  Результат: корректная последовательность для `<div>`, затем `<em>` **или** `<span>`.
-
-- **map + условия**  
-  Вход (сокращено):
-
-  ```ts
-  html`<ul>
-    ${context.list.map((_, i) => html` <li>${i % 2 ? html`<em>A</em>` : html`<strong>B</strong>`}</li> `)}
-  </ul>`
-  ```
-
-  Результат: корректные теги для `<ul>`, `<li>`, и вложенных `<em>/<strong>`.
-
-- **Операторы сравнения без тегов**  
-  Вход:
-
-  ```ts
-  ${context.a < context.b && context.c > context.d ? "1" : "0"}
-  ```
-
-  Результат: **ничего не матчит** (нет `<tag>`), сравнения игнорируются.
-
-- **Шум и недопустимые имена**  
-  Вход (сокращено):
-
-  ```html
-  <di*v>bad</di*v>
-  <1a> ... </1a>
-  <-x>no</-x>
-  <good-tag/>÷
-  ```
-
-  Результат: `di*v`, `1a`, `-x` **не считаются тегами**; `<good-tag/>` → `self(good-tag)`.
-
-- **PI/комментарии/doctype**  
-  Вход:
-
-  ```html
-  <?xml version="1.0"?>
-  <!-- comment -->
-  <!DOCTYPE html>
-  ```
-
-  Результат: все три **пропускаются**.
+MIT

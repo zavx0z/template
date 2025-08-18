@@ -49,16 +49,11 @@ const VOID_TAGS = new Set([
 
 // Упрощенное регулярное выражение для поиска тегов
 const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>)/gi
-const TAG_MATCH = /^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s|>|\/)([^>]*?)(\/?)>/i
 
 // Функция для валидации имени тега
-function isValidTagName(name: string): boolean {
-  return /^[A-Za-z][A-Za-z0-9:-]*$/.test(name) && !name.includes("*")
-}
+const isValidTagName = (name: string) => /^[A-Za-z][A-Za-z0-9:-]*$/.test(name) && !name.includes("*")
 
-function shouldIgnoreAt(input: string, i: number): boolean {
-  return input[i + 1] === "!" || input[i + 1] === "?"
-}
+const shouldIgnoreAt = (input: string, i: number) => input[i + 1] === "!" || input[i + 1] === "?"
 
 /**
  * Извлекает основной HTML-блок из render-функции.
@@ -89,8 +84,8 @@ export function extractMainHtmlBlock<C extends Content = Content, I extends Core
  * 3. Определяет тип тега (open/close/self/void).
  * 4. Формирует массив токенов с index и текстом.
  *
- * @param {string} html - входная HTML-строка
- * @returns {TagToken[]} список токенов с полями { text, index, name, kind }
+ * @param html - входная HTML-строка
+ * @returns список токенов с полями { text, index, name, kind }
  */
 export function scanHtmlTags(input: string, offset = 0): TagToken[] {
   const out: TagToken[] = []
