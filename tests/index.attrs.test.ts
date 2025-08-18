@@ -28,4 +28,15 @@ describe("scanTagsFromRender / атрибуты", () => {
       { text: "</div>", index: 26, name: "div", kind: "close" },
     ])
   })
+  it("условие в атрибуте", () => {
+    const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
+      ({ html, context }) => html`<div title="${context.flag ? "a > b" : "c < d"}"></div>`
+    )
+    const tags = scanHtmlTags(mainHtml)
+    console.log(tags)
+    expect(tags).toEqual([
+      { text: '<div title="a > b">', index: 0, name: "div", kind: "open" },
+      { text: "</div>", index: 49, name: "div", kind: "close" },
+    ])
+  })
 })

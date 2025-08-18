@@ -39,4 +39,25 @@ describe("scanTagsFromRender / map", () => {
       { text: "</ul>", index: 130, name: "ul", kind: "close" },
     ])
   })
+  it("map в условии", () => {
+    const mainHtml = extractMainHtmlBlock<{ flag: boolean }, { list: { title: string; nested: string[] }[] }>(
+      ({ html, core, context }) =>
+        html`${context.flag
+          ? html`<ul>
+              ${core.list.map(({ title, nested }) => html`<li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li>`)}
+            </ul>`
+          : html`<div>x</div>`}`
+    )
+    const tags = scanHtmlTags(mainHtml)
+    expect(tags).toEqual([
+      { text: "<ul>", index: 22, name: "ul", kind: "open" },
+      { text: "<li>", index: 85, name: "li", kind: "open" },
+      { text: "<em>", index: 123, name: "em", kind: "open" },
+      { text: "</em>", index: 131, name: "em", kind: "close" },
+      { text: "</li>", index: 139, name: "li", kind: "close" },
+      { text: "</ul>", index: 160, name: "ul", kind: "close" },
+      { text: "<div>", index: 174, name: "div", kind: "open" },
+      { text: "</div>", index: 180, name: "div", kind: "close" },
+    ])
+  })
 })
