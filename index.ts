@@ -47,18 +47,14 @@ const VOID_TAGS = new Set([
   "wbr",
 ])
 
-const TAG_LOOKAHEAD = new RegExp(
-  String.raw`(?=<\/?[A-Za-z][A-Za-z0-9:-]*(?:\s+(?:[A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>` +
-    "`" +
-    String.raw`]+))?)*\s*\/?>)`,
-  "gi"
-)
-const TAG_MATCH = new RegExp(
-  String.raw`^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s+(?:[A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>` +
-    "`" +
-    String.raw`]+))?)*\s*(\/?)>`,
-  "i"
-)
+// Упрощенное регулярное выражение для поиска тегов
+const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>)/gi
+const TAG_MATCH = /^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s|>|\/)([^>]*?)(\/?)>/i
+
+// Функция для валидации имени тега
+function isValidTagName(name: string): boolean {
+  return /^[A-Za-z][A-Za-z0-9:-]*$/.test(name) && !name.includes("*")
+}
 
 function shouldIgnoreAt(input: string, i: number): boolean {
   return input[i + 1] === "!" || input[i + 1] === "?"
@@ -106,21 +102,84 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
       TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
     }
-    const mm = TAG_MATCH.exec(input.slice(localIndex))
-    if (!mm) {
+
+    // Находим правильный конец тега, учитывая вложенные кавычки и template literals
+    const tagStart = localIndex
+    let tagEnd = -1
+    let i = localIndex + 1
+
+    while (i < input.length) {
+      const char = input[i]
+      if (char === ">") {
+        tagEnd = i + 1
+        break
+      } else if (char === '"' || char === "'") {
+        // Пропускаем содержимое кавычек
+        const quote = char
+        i++
+        while (i < input.length && input[i] !== quote) {
+          if (input[i] === "\\") {
+            i++ // пропускаем экранированные символы
+            i++
+          } else if (input[i] === "$" && i + 1 < input.length && input[i + 1] === "{") {
+            // Пропускаем template literal внутри кавычек
+            i += 2 // пропускаем ${
+            let braceCount = 1
+            while (i < input.length && braceCount > 0) {
+              if (input[i] === "{") braceCount++
+              else if (input[i] === "}") braceCount--
+              i++
+            }
+          } else {
+            i++
+          }
+        }
+        if (i < input.length) i++ // пропускаем закрывающую кавычку
+      } else if (char === "$" && i + 1 < input.length && input[i + 1] === "{") {
+        // Пропускаем template literal
+        i += 2 // пропускаем ${
+        let braceCount = 1
+        while (i < input.length && braceCount > 0) {
+          if (input[i] === "{") braceCount++
+          else if (input[i] === "}") braceCount--
+          i++
+        }
+      } else {
+        i++
+      }
+    }
+
+    if (tagEnd === -1) {
       TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
     }
-    const full = mm[0]
-    const name = (mm[1] || "").toLowerCase()
-    const selfSlash = mm[2] || ""
+
+    const full = input.slice(tagStart, tagEnd)
+
+    // Извлекаем имя тега вручную
+    const tagNameMatch = full.match(/^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s|>|\/)/i)
+    if (!tagNameMatch) {
+      TAG_LOOKAHEAD.lastIndex = localIndex + 1
+      continue
+    }
+
+    const name = (tagNameMatch[1] || "").toLowerCase()
+
+    // Проверяем валидность имени тега
+    if (!isValidTagName(tagNameMatch[1] || "")) {
+      TAG_LOOKAHEAD.lastIndex = localIndex + 1
+      continue
+    }
+
+    // Определяем тип тега
     let kind: TagKind
     if (full.startsWith("</")) kind = "close"
-    else if (selfSlash === "/") kind = "self"
+    else if (full.endsWith("/>")) kind = "self"
     else if (VOID_TAGS.has(name)) kind = "void"
     else kind = "open"
+
     out.push({ text: full, index: offset + localIndex, name, kind })
-    TAG_LOOKAHEAD.lastIndex = localIndex + 1
+    TAG_LOOKAHEAD.lastIndex = tagEnd
   }
   return out
 }

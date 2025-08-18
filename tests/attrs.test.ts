@@ -33,9 +33,29 @@ describe("scanTagsFromRender / атрибуты", () => {
       ({ html, context }) => html`<div title="${context.flag ? "a > b" : "c < d"}"></div>`
     )
     const tags = scanHtmlTags(mainHtml)
-    console.log(tags)
     expect(tags).toEqual([
-      { text: '<div title="a > b">', index: 0, name: "div", kind: "open" },
+      { text: '<div title="${context.flag ? "a > b" : "c < d"}">', index: 0, name: "div", kind: "open" },
+      { text: "</div>", index: 49, name: "div", kind: "close" },
+    ])
+  })
+  it("условие в аттрибуте без кавычек", () => {
+    const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
+      ({ html, context }) => html`<div title=${context.flag ? "a > b" : "c < d"}></div>`
+    )
+    const tags = scanHtmlTags(mainHtml)
+    expect(tags).toEqual([
+      { text: '<div title=${context.flag ? "a > b" : "c < d"}>', index: 0, name: "div", kind: "open" },
+      { text: "</div>", index: 47, name: "div", kind: "close" },
+    ])
+  })
+  it("условие в аттрибуте с одинарными кавычками", () => {
+    const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
+      // prettier-ignore
+      ({ html, context }) => html`<div title='${context.flag ? "a > b" : "c < d"}'></div>`
+    )
+    const tags = scanHtmlTags(mainHtml)
+    expect(tags).toEqual([
+      { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', index: 0, name: "div", kind: "open" },
       { text: "</div>", index: 49, name: "div", kind: "close" },
     ])
   })
