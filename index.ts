@@ -1,206 +1,126 @@
 /**
- * Узел дерева строк: каждая строка — это либо открывающий/self-closing тег,
- * либо текстовый фрагмент. Мы не интерпретируем HTML, а лишь сохраняем сырой
- * текст и его вложенность.
+ * @fileoverview HTML Tag Scanner
+ *
+ * Предоставляет утилиты для:
+ *  - извлечения основного HTML-блока из render-функции
+ *  - сканирования HTML-строки и выделения тегов с их типами и позициями
+ *
+ * Алгоритм использует два регулярных выражения:
+ *  TAG_LOOKAHEAD — быстрое определение возможных тегов
+ *  TAG_MATCH     — точный парсер одного тега
+ *
+ * Поддерживаются:
+ *  - Простые, вложенные, self и void теги
+ *  - Namespace-теги (например, svg:use)
+ *  - Атрибуты с кавычками и спецсимволами
+ * Игнорируются: комментарии, DOCTYPE, processing instructions
  */
-export type StringTreeNode = { string: string; children: StringTreeNode[] }
 
 export type Content = Record<string, string | number | boolean | null | Array<string | number | boolean | null>>
-export type Render<C extends Content> = ({
-  html,
-  core,
-  context,
-  state,
-}: {
+export type Core = Record<string, any>
+export type State = string
+
+export type Render<C extends Content = Content, I extends Core = Core, S extends State = State> = (args: {
   html: (strings: TemplateStringsArray, ...values: any[]) => string
-  core: { [key: string]: any }
+  core: I
   context: C
-  state: string
+  state: State
 }) => void
 
-const RAW_KEEP_AS_IS = new Set(["textarea", "title"])
+export type TagKind = "open" | "close" | "self" | "void"
+export type TagToken = { text: string; index: number; name: string; kind: TagKind }
 
-/** Извлекаем сырой html`...` из исходника функции, сохраняя ${...} как текст. */
-function extractHtmlFromRender<C extends Content>(render: Render<C>): string {
-  const src = render.toString()
-  const m = /html\s*`/.exec(src)
-  if (!m) return ""
+const VOID_TAGS = new Set([
+  "area",
+  "base",
+  "br",
+  "col",
+  "embed",
+  "hr",
+  "img",
+  "input",
+  "link",
+  "meta",
+  "param",
+  "source",
+  "track",
+  "wbr",
+])
 
-  let i = m.index + m[0].length
-  let out = ""
-  let inExpr = false
-  let depth = 0
+const TAG_LOOKAHEAD = new RegExp(
+  String.raw`(?=<\/?[A-Za-z][A-Za-z0-9:-]*(?:\s+(?:[A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>` +
+    "`" +
+    String.raw`]+))?)*\s*\/?>)`,
+  "gi"
+)
+const TAG_MATCH = new RegExp(
+  String.raw`^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s+(?:[A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>` +
+    "`" +
+    String.raw`]+))?)*\s*(\/?)>`,
+  "i"
+)
 
-  while (i < src.length) {
-    const ch = src[i++]
-    if (!inExpr && ch === "`") break
-    if (!inExpr && ch === "\\") {
-      out += ch
-      if (i < src.length) out += src[i++]
-      continue
-    }
-    if (!inExpr && ch === "$" && src[i] === "{") {
-      inExpr = true
-      depth = 1
-      out += "${"
-      i++
-      continue
-    }
-    if (inExpr) {
-      const c = src[i - 1]!
-      if (c === "{") depth++
-      else if (c === "}") {
-        depth--
-        if (depth === 0) {
-          out += "}"
-          inExpr = false
-          continue
-        }
-      }
-      out += c
-      continue
-    }
-    out += ch
-  }
-  return out
+function shouldIgnoreAt(input: string, i: number): boolean {
+  return input[i + 1] === "!" || input[i + 1] === "?"
 }
 
-export function parseHtmlToStringTree<C extends Content>(render: Render<C>): StringTreeNode {
-  const src = extractHtmlFromRender(render)
-  const root: StringTreeNode = { string: "", children: [] }
-  let current = root
-  const stack: StringTreeNode[] = []
+/**
+ * Извлекает основной HTML-блок из render-функции.
+ *
+ * @template C extends Content
+ * @template I extends Core
+ * @template S extends State
+ * @param {Render<C,I,S>} render - функция вида ({ html, context, core, state }) => html`...`
+ * @returns {string} сырой HTML-текст внутри template literal
+ */
+export function extractMainHtmlBlock<C extends Content = Content, I extends Core = Core, S extends State = State>(
+  render: Render<C, I, S>
+): string {
+  const src = Function.prototype.toString.call(render)
+  const firstIndex = src.indexOf("html`")
+  if (firstIndex === -1) throw new Error("функция render не содержит html`")
+  const lastBacktick = src.lastIndexOf("`")
+  if (lastBacktick === -1 || lastBacktick <= firstIndex) throw new Error("render function does not contain html`")
+  return src.slice(firstIndex + 5, lastBacktick)
+}
 
-  let i = 0
-  const n = src.length
-
-  const isWsOnly = (s: string) => s.trim().length === 0
-  const pushText = (s: string) => {
-    if (!isWsOnly(s)) current.children.push({ string: s, children: [] })
-  }
-
-  /** Найдём следующий символ '<', пропуская ${...} в тексте. */
-  function nextLt(pos: number): number {
-    let j = pos
-    let inExpr = false
-    let depth = 0
-    while (j < n) {
-      const ch = src[j]!
-      if (!inExpr && ch === "$" && src[j + 1] === "{") {
-        inExpr = true
-        depth = 1
-        j += 2
-        continue
-      }
-      if (inExpr) {
-        const c = src[j]!
-        if (c === "{") depth++
-        else if (c === "}") {
-          depth--
-          if (depth === 0) inExpr = false
-        }
-        j++
-        continue
-      }
-      if (ch === "<") return j
-      j++
-    }
-    return -1
-  }
-
-  /** Прочитать тег до '>' с учётом кавычек и ${...}. */
-  function readTag(start: number): number {
-    let j = start + 1
-    let q: '"' | "'" | null = null
-    let inExpr = false
-    let depth = 0
-    while (j < n) {
-      const ch = src[j]!
-      if (!inExpr && (ch === '"' || ch === "'")) {
-        q = q === ch ? null : q ? q : ch
-        j++
-        continue
-      }
-      if (!q && !inExpr && ch === "$" && src[j + 1] === "{") {
-        inExpr = true
-        depth = 1
-        j += 2
-        continue
-      }
-      if (inExpr) {
-        const c = src[j]!
-        if (c === "{") depth++
-        else if (c === "}") {
-          depth--
-          if (depth === 0) inExpr = false
-        }
-        j++
-        continue
-      }
-      if (!q && ch === ">") {
-        j++
-        break
-      }
-      j++
-    }
-    return j
-  }
-
-  /** Имя и тип тега по сырой строке тега. */
-  function tagName(rawTag: string): { name: string; closing: boolean; selfClosing: boolean } {
-    const inner = rawTag.slice(1, -1)
-    const closing = /^\s*\//.test(inner)
-    const selfClosing = /\/\>\s*$/.test(rawTag)
-    let s = inner.trim()
-    if (closing) s = s.replace(/^\//, "").trim()
-    let name = ""
-    for (let k = 0; k < s.length; k++) {
-      const ch = s[k]!
-      if (!/[A-Za-z0-9:_-]/.test(ch)) break
-      name += ch
-    }
-    return { name: name.toLowerCase(), closing, selfClosing }
-  }
-
-  while (i < n) {
-    const lt = nextLt(i)
-    if (lt === -1) {
-      pushText(src.slice(i))
-      break
-    }
-    if (lt > i) pushText(src.slice(i, lt))
-
-    const end = readTag(lt)
-    const raw = src.slice(lt, end)
-
-    const { name, closing, selfClosing } = tagName(raw)
-
-    if (closing) {
-      current = stack.pop() ?? root
-      i = end
+/**
+ * Сканирует HTML-строку и возвращает список токенов тегов.
+ *
+ * Алгоритм:
+ * 1. Ищет возможные теги через TAG_LOOKAHEAD (быстрое обнаружение).
+ * 2. Находит точное совпадение с помощью TAG_MATCH.
+ * 3. Определяет тип тега (open/close/self/void).
+ * 4. Формирует массив токенов с index и текстом.
+ *
+ * @param {string} html - входная HTML-строка
+ * @returns {TagToken[]} список токенов с полями { text, index, name, kind }
+ */
+export function scanHtmlTags(input: string, offset = 0): TagToken[] {
+  const out: TagToken[] = []
+  TAG_LOOKAHEAD.lastIndex = 0
+  let m: RegExpExecArray | null
+  while ((m = TAG_LOOKAHEAD.exec(input)) !== null) {
+    const localIndex = m.index
+    if (shouldIgnoreAt(input, localIndex)) {
+      TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
     }
-
-    const node: StringTreeNode = { string: raw, children: [] }
-    current.children.push(node)
-
-    if (!selfClosing && RAW_KEEP_AS_IS.has(name)) {
-      const lower = src.toLowerCase()
-      const closeSeq = `</${name}`
-      const bodyStart = end
-      const closeIdx = lower.indexOf(closeSeq, bodyStart)
-      const body = closeIdx === -1 ? src.slice(bodyStart) : src.slice(bodyStart, closeIdx)
-      if (!isWsOnly(body)) node.children.push({ string: body, children: [] })
-      i = closeIdx === -1 ? n : readTag(closeIdx)
+    const mm = TAG_MATCH.exec(input.slice(localIndex))
+    if (!mm) {
+      TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
     }
-
-    if (!selfClosing) {
-      stack.push(current)
-      current = node
-    }
-    i = end
+    const full = mm[0]
+    const name = (mm[1] || "").toLowerCase()
+    const selfSlash = mm[2] || ""
+    let kind: TagKind
+    if (full.startsWith("</")) kind = "close"
+    else if (selfSlash === "/") kind = "self"
+    else if (VOID_TAGS.has(name)) kind = "void"
+    else kind = "open"
+    out.push({ text: full, index: offset + localIndex, name, kind })
+    TAG_LOOKAHEAD.lastIndex = localIndex + 1
   }
-
-  return root
+  return out
 }
