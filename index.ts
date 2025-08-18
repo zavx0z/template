@@ -178,3 +178,11 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
   }
   return out
 }
+
+type ElementHierarchy = Record<string, any>
+type ElementsHierarchy = ElementHierarchy[]
+
+export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHierarchy => {
+  const hierarchy: ElementsHierarchy = []
+  return hierarchy
+}
