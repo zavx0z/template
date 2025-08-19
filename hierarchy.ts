@@ -10,13 +10,14 @@ export type MapInfo = {
 }
 
 /**
- * Информация об условии (тернарный оператор) вокруг дочернего элемента.
- * Пример: `${context.flag ? html`<em/>` : html`<span/>`}` → value зависит от позиции.
+ * Узел условия (тернарный оператор) с ветками true/false.
  */
-export type ConditionInfo = {
+export type ConditionNode = {
+  type: "cond"
   src: "context" | "core"
   key: string
-  value: boolean
+  true: ElementHierarchy
+  false: ElementHierarchy
 }
 
 /**
@@ -25,15 +26,14 @@ export type ConditionInfo = {
 export type ElementHierarchy = {
   tag: string
   type: "el"
-  child?: ElementHierarchy[]
+  child?: (ElementHierarchy | ConditionNode)[]
   item?: MapInfo
-  cond?: ConditionInfo
 }
 
 /**
  * Корневая иерархия элементов для переданного HTML.
  */
-export type ElementsHierarchy = ElementHierarchy[]
+export type ElementsHierarchy = (ElementHierarchy | ConditionNode)[]
 
 /**
  * Формирует иерархию элементов на основе последовательности тегов и исходного HTML.
@@ -56,6 +56,7 @@ export type ElementsHierarchy = ElementHierarchy[]
 export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHierarchy => {
   const hierarchy: ElementsHierarchy = []
   const stack: { tag: TagToken; element: ElementHierarchy }[] = []
+  const conditionStack: { startIndex: number; conditionInfo: { src: "context" | "core"; key: string } }[] = []
 
   for (let i = 0; i < tags.length; i++) {
     const tag = tags[i]
@@ -67,8 +68,7 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
         type: "el",
       }
 
-      // Проверяем, является ли этот элемент частью map и/или условием,
-      // используя диапазон между открывающим тегом родителя и самим текущим тегом
+      // Проверяем, является ли этот элемент частью map
       if (stack.length > 0) {
         const parentItem = stack[stack.length - 1]
         if (parentItem) {
@@ -83,9 +83,9 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
             }
 
             // Проверяем условные элементы
-            const condInfo = findConditionPattern(slice, i, tags)
+            const condInfo = findConditionPattern(slice)
             if (condInfo) {
-              element.cond = condInfo
+              conditionStack.push({ startIndex: i, conditionInfo: condInfo })
             }
           }
         }
@@ -110,6 +110,33 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
         const lastStackItem = stack[stack.length - 1]
         if (lastStackItem && lastStackItem.tag.name === tag.name) {
           stack.pop()
+
+          // Проверяем, нужно ли создать ConditionNode
+          if (conditionStack.length > 0) {
+            const condition = conditionStack[conditionStack.length - 1]
+            if (condition && condition.startIndex === i - 1) {
+              // Создаем ConditionNode из последних двух элементов
+              const parent = stack[stack.length - 1]
+              if (parent && parent.element && parent.element.child && parent.element.child.length >= 2) {
+                const trueBranch = parent.element.child[parent.element.child.length - 2]
+                const falseBranch = parent.element.child[parent.element.child.length - 1]
+
+                if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
+                  const conditionNode: ConditionNode = {
+                    type: "cond",
+                    src: condition.conditionInfo.src,
+                    key: condition.conditionInfo.key,
+                    true: trueBranch as ElementHierarchy,
+                    false: falseBranch as ElementHierarchy,
+                  }
+
+                  // Заменяем последние два элемента на ConditionNode
+                  parent.element.child.splice(-2, 2, conditionNode)
+                  conditionStack.pop()
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -138,44 +165,16 @@ export function findMapPattern(slice: string): MapInfo | null {
 /**
  * Ищет паттерны условных операторов (тернарников) в подстроке.
  * Примеры совпадений в подстроке: `context.flag ?`, `core.ready ?`.
- * По позиции текущего дочернего тега определяется `value` (true/false).
  *
  * @param slice Подстрока между открывающим родительским тегом и текущим дочерним
- * @param tagIndex Индекс текущего дочернего тега в массиве токенов
- * @param tags Все токены, полученные из scanHtmlTags(html)
  * @returns Информация об условии или null
  */
-export function findConditionPattern(slice: string, tagIndex: number, tags: TagToken[]): ConditionInfo | null {
+export function findConditionPattern(slice: string): { src: "context" | "core"; key: string } | null {
   const ctx = slice.match(/context\.(\w+)\s*\?/)
-  if (ctx && ctx[1]) {
-    const value = determineConditionValue(tagIndex, tags)
-    return { src: "context", key: ctx[1], value }
-  }
+  if (ctx && ctx[1]) return { src: "context", key: ctx[1] }
 
   const core = slice.match(/core\.(\w+)\s*\?/)
-  if (core && core[1]) {
-    const value = determineConditionValue(tagIndex, tags)
-    return { src: "core", key: core[1], value }
-  }
+  if (core && core[1]) return { src: "core", key: core[1] }
 
   return null
-}
-
-/**
- * Определяет значение условия (true/false) на основе позиции текущего дочернего тега
- * относительно других открывающих тегов внутри того же тернарного выражения.
- * Упрощение: считаем, что первый встреченный дочерний тег — ветка `true`, второй — `false`.
- */
-export function determineConditionValue(tagIndex: number, tags: TagToken[]): boolean {
-  const currentTag = tags[tagIndex]
-  if (!currentTag) return true
-
-  let count = 0
-  for (let i = 0; i < tagIndex; i++) {
-    const tag = tags[i]
-    if (tag && tag.kind === "open" && tag.name !== "div") {
-      count++
-    }
-  }
-  return count === 0
 }

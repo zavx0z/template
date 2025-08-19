@@ -22,21 +22,16 @@ describe("scanTagsFromRender / conditions", () => {
         type: "el",
         child: [
           {
-            tag: "em",
-            type: "el",
-            cond: {
-              src: "context",
-              key: "cond",
-              value: true,
+            type: "cond",
+            src: "context",
+            key: "cond",
+            true: {
+              tag: "em",
+              type: "el",
             },
-          },
-          {
-            tag: "span",
-            type: "el",
-            cond: {
-              src: "context",
-              key: "cond",
-              value: false,
+            false: {
+              tag: "span",
+              type: "el",
             },
           },
         ],
