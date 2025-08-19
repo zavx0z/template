@@ -1,8 +1,8 @@
 import { describe, it, expect } from "bun:test"
-import { extractMainHtmlBlock, scanHtmlTags } from "../index"
+import { extractMainHtmlBlock, scanHtmlTags } from "../splitter"
 
-describe("scanTagsFromRender / внутри ${...}", () => {
-  it("тернарник с внутренними тегами", () => {
+describe("внутри ${...}", () => {
+  it("теги внутри тернарника", () => {
     const mainHtml = extractMainHtmlBlock(
       ({ html, context }) => html` <div>${context.cond ? html`<p>a</p>` : html`<span>b</span>`}</div> `
     )

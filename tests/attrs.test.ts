@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
-import { scanHtmlTags, extractMainHtmlBlock } from "../index"
+import { scanHtmlTags, extractMainHtmlBlock } from "../splitter"
 
-describe("scanTagsFromRender / атрибуты", () => {
+describe("атрибуты", () => {
   it("namespace", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<svg:use xlink:href="#id"></svg:use>`)
     const tags = scanHtmlTags(mainHtml)

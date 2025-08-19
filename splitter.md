@@ -1,4 +1,4 @@
-# HTML Tag Scanner
+# Splitter HTML
 
 Утилита для **сканирования HTML-строк** и извлечения тегов с их типами и позициями.
 Главная идея — **анализ HTML-структуры без исполнения JavaScript-выражений**, выделение тегов и их классификацию.
@@ -40,7 +40,7 @@
 ## Быстрый старт
 
 ```ts
-import { scanHtmlTags, extractMainHtmlBlock } from "./index.ts"
+import { scanHtmlTags, extractMainHtmlBlock } from "./splitter.ts"
 
 // Сканирование HTML-строки
 const tokens = scanHtmlTags('<div class="test">Hello <span>world</span></div>')
@@ -187,18 +187,14 @@ type Render<C extends Content = Content, I extends Core = Core, S extends State 
 
 ---
 
-## Примеры из тестов
+## Тесты
 
-- `index.intro.test.ts` — самые простые сценарии сканирования.
-- `index.basic.test.ts` — базовая структура токенов, различные типы тегов.
-- `index.attrs.test.ts` — атрибуты и их значения, включая template literals.
-- `index.namespace.test.ts` — namespace-теги и сложные имена.
-- `index.extract.test.ts` — извлечение HTML из render-функций.
+- `splitter.spec.ts`
 
 Запуск тестов:
 
 ```bash
-bun test
+bun test splitter.spec.ts
 ```
 
 > В тестах мы **сравниваем с объектами** (наглядный expected JSON-подобной формы). Обязательно есть **общий `describe`**, ветвления отражают оси вариантности, а сообщения у `expect` — на русском.
@@ -229,18 +225,3 @@ HTML-теги, которые не могут иметь содержимого 
   - общий `describe`;
   - преимущественно сравнением с объектом;
   - структура тестов — дерево вариантностей (ветвления — параллельные `describe`, листья — `it`).
-
----
-
-## Дорожная карта (идеи)
-
-- Парсер для построения иерархического дерева на основе токенов.
-- Валидация HTML-структуры (проверка закрытия тегов).
-- Поддержка CSS-селекторов для поиска тегов.
-- Интеграция с линтерами и инструментами разработки.
-
----
-
-## Лицензия
-
-MIT

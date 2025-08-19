@@ -1,4 +1,4 @@
-import type { TagToken } from "./index"
+import type { TagToken } from "./splitter"
 import type { NodeText } from "./text.t"
 import { checkPresentText, makeNodeText } from "./text"
 
@@ -195,14 +195,14 @@ function addTextNodesToElement(
   // Находим открывающий и закрывающий теги для этого элемента
   const openTag = findOpenTag(tags, element.tag)
   const closeTag = findCloseTag(tags, element.tag)
-  
+
   if (!openTag || !closeTag) return
-  
+
   const contentStart = openTag.index + openTag.text.length
   const contentEnd = closeTag.index
-  
+
   if (contentEnd <= contentStart) return
-  
+
   // Получаем все теги внутри элемента
   const innerTags: TagToken[] = []
   for (const tag of tags) {
@@ -210,7 +210,7 @@ function addTextNodesToElement(
       innerTags.push(tag)
     }
   }
-  
+
   // Если нет внутренних тегов, обрабатываем весь контент как текст
   if (innerTags.length === 0) {
     const content = html.slice(contentStart, contentEnd)
@@ -226,10 +226,10 @@ function addTextNodesToElement(
     }
     return
   }
-  
+
   // Создаем массив фрагментов с позициями
   const fragments: Array<{ position: number; type: "element" | "text"; data: any }> = []
-  
+
   // Добавляем существующие элементы
   if (element.child) {
     let elementIndex = 0
@@ -244,10 +244,10 @@ function addTextNodesToElement(
       }
     }
   }
-  
+
   // Добавляем текстовые фрагменты
   let lastTagEnd = contentStart
-  
+
   for (const innerTag of innerTags) {
     // Текст перед тегом
     if (innerTag.index > lastTagEnd) {
@@ -266,7 +266,7 @@ function addTextNodesToElement(
         }
       }
     }
-    
+
     // Обновляем позицию
     if (innerTag.kind === "open") {
       const closingTagForInner = findClosingTag(innerTags, innerTag)
@@ -281,7 +281,7 @@ function addTextNodesToElement(
       lastTagEnd = innerTag.index + innerTag.text.length
     }
   }
-  
+
   // Текст после последнего тега
   if (lastTagEnd < contentEnd) {
     const textFragment = html.slice(lastTagEnd, contentEnd)
@@ -299,11 +299,11 @@ function addTextNodesToElement(
       }
     }
   }
-  
+
   // Сортируем по позиции и заменяем дочерние элементы
   fragments.sort((a, b) => a.position - b.position)
   const newChildren = fragments.map((f) => f.data)
-  
+
   if (newChildren.length > 0) {
     element.child = newChildren
   }

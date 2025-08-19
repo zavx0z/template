@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { scanHtmlTags, extractMainHtmlBlock } from "../index"
+import { scanHtmlTags, extractMainHtmlBlock } from "../splitter"
 
 describe("scanTagsFromRender / web components", () => {
   it("базовые custom elements", () => {
