@@ -189,6 +189,12 @@ function findTextPattern(slice: string): ({ kind: "static"; value: string } | { 
   const normalized = withoutTpl.replace(/\n+/g, " ")
   if (normalized.trim().length > 0) return { kind: "static", value: normalized }
 
+  // Если нет интерполяций и нет тегов, но есть текст - это статический текст
+  const trimmed = slice.trim()
+  if (trimmed.length > 0 && !/[<>]/.test(trimmed)) {
+    return { kind: "static", value: trimmed }
+  }
+
   return null
 }
 

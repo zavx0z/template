@@ -175,10 +175,21 @@ function addTextNodes(
   hierarchy: ElementsHierarchy,
   mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[]
 ) {
-  // Проходим по всем элементам и добавляем текстовые узлы
+  // Рекурсивно проходим по всем элементам и добавляем текстовые узлы
   for (const element of hierarchy) {
     if (element.type === "el") {
       addTextNodesToElement(html, tags, element, mapStack)
+      // Рекурсивно обрабатываем дочерние элементы
+      if (element.child) {
+        addTextNodes(html, tags, element.child, mapStack)
+      }
+    } else if (element.type === "cond") {
+      // Обрабатываем ветки условия
+      addTextNodes(html, tags, [element.true], mapStack)
+      addTextNodes(html, tags, [element.false], mapStack)
+    } else if (element.type === "map") {
+      // Обрабатываем дочерние элементы map
+      addTextNodes(html, tags, element.child, mapStack)
     }
   }
 }
@@ -193,8 +204,8 @@ function addTextNodesToElement(
   mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[]
 ) {
   // Находим открывающий и закрывающий теги для этого элемента
-  const openTag = findOpenTag(tags, element.tag)
-  const closeTag = findCloseTag(tags, element.tag)
+  const openTag = findOpenTagForElement(tags, element.tag)
+  const closeTag = findCloseTagForElement(tags, element.tag)
 
   if (!openTag || !closeTag) return
 
@@ -379,6 +390,32 @@ function findOpenTag(tags: TagToken[], tagName: string): TagToken | null {
 }
 
 function findCloseTag(tags: TagToken[], tagName: string): TagToken | null {
+  for (const tag of tags) {
+    if (tag.kind === "close" && tag.name === tagName) {
+      return tag
+    }
+  }
+  return null
+}
+
+/**
+ * Находит открывающий тег для конкретного элемента в иерархии
+ */
+function findOpenTagForElement(tags: TagToken[], tagName: string): TagToken | null {
+  // Ищем первый открывающий тег с таким именем
+  for (const tag of tags) {
+    if (tag.kind === "open" && tag.name === tagName) {
+      return tag
+    }
+  }
+  return null
+}
+
+/**
+ * Находит закрывающий тег для конкретного элемента в иерархии
+ */
+function findCloseTagForElement(tags: TagToken[], tagName: string): TagToken | null {
+  // Ищем первый закрывающий тег с таким именем
   for (const tag of tags) {
     if (tag.kind === "close" && tag.name === tagName) {
       return tag

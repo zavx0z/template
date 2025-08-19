@@ -233,5 +233,24 @@ describe("извлечение тегов", () => {
         { text: "</div>", index: 231, name: "div", kind: "close" },
       ])
     })
+
+    it("condition в тексте", () => {
+      const mainHtml = extractMainHtmlBlock<{ show: boolean; name: string }>(
+        ({ html, context }) => html`
+          <div>${context.show ? html`<p>Visible: ${context.name}</p>` : html`<p>Hidden</p>`}</div>
+        `
+      )
+      const elements = extractHtmlElements(mainHtml)
+      expect(elements).toEqual([
+        { text: "<div>", index: 11, name: "div", kind: "open" },
+        { text: "<p>", index: 38, name: "p", kind: "open" },
+        { text: "Visible: ${context.name}", index: 41, name: "", kind: "text" },
+        { text: "</p>", index: 65, name: "p", kind: "close" },
+        { text: "<p>", index: 78, name: "p", kind: "open" },
+        { text: "Hidden", index: 81, name: "", kind: "text" },
+        { text: "</p>", index: 87, name: "p", kind: "close" },
+        { text: "</div>", index: 93, name: "div", kind: "close" },
+      ])
+    })
   })
 })
