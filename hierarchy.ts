@@ -7,7 +7,7 @@ export type MapNode = {
   type: "map"
   src: "context" | "core"
   key: string
-  item: ElementHierarchy
+  child: ElementHierarchy[]
 }
 
 /**
@@ -125,7 +125,7 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
                     type: "map",
                     src: map.mapInfo.src,
                     key: map.mapInfo.key,
-                    item: lastChild as ElementHierarchy,
+                    child: [lastChild as ElementHierarchy],
                   }
 
                   // Заменяем последний элемент на MapNode
