@@ -173,23 +173,24 @@ function addTextNodes(
   html: string,
   tags: TagToken[],
   hierarchy: ElementsHierarchy,
-  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[]
+  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[],
+  usedTags: Set<TagToken> = new Set()
 ) {
   // Рекурсивно проходим по всем элементам и добавляем текстовые узлы
   for (const element of hierarchy) {
     if (element.type === "el") {
-      addTextNodesToElement(html, tags, element, mapStack)
+      addTextNodesToElement(html, tags, element, mapStack, usedTags)
       // Рекурсивно обрабатываем дочерние элементы
       if (element.child) {
-        addTextNodes(html, tags, element.child, mapStack)
+        addTextNodes(html, tags, element.child, mapStack, usedTags)
       }
     } else if (element.type === "cond") {
       // Обрабатываем ветки условия
-      addTextNodes(html, tags, [element.true], mapStack)
-      addTextNodes(html, tags, [element.false], mapStack)
+      addTextNodes(html, tags, [element.true], mapStack, usedTags)
+      addTextNodes(html, tags, [element.false], mapStack, usedTags)
     } else if (element.type === "map") {
       // Обрабатываем дочерние элементы map
-      addTextNodes(html, tags, element.child, mapStack)
+      addTextNodes(html, tags, element.child, mapStack, usedTags)
     }
   }
 }
@@ -201,13 +202,17 @@ function addTextNodesToElement(
   html: string,
   tags: TagToken[],
   element: ElementHierarchy,
-  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[]
+  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[],
+  usedTags: Set<TagToken> = new Set()
 ) {
   // Находим открывающий и закрывающий теги для этого элемента
-  const openTag = findOpenTagForElement(tags, element.tag)
-  const closeTag = findCloseTagForElement(tags, element.tag)
+  const openTag = findOpenTagForElement(tags, element.tag, usedTags)
+  if (!openTag) return
 
-  if (!openTag || !closeTag) return
+  usedTags.add(openTag)
+  const closeTag = findCloseTagForElement(tags, element.tag, openTag)
+
+  if (!closeTag) return
 
   const contentStart = openTag.index + openTag.text.length
   const contentEnd = closeTag.index
@@ -401,10 +406,14 @@ function findCloseTag(tags: TagToken[], tagName: string): TagToken | null {
 /**
  * Находит открывающий тег для конкретного элемента в иерархии
  */
-function findOpenTagForElement(tags: TagToken[], tagName: string): TagToken | null {
-  // Ищем первый открывающий тег с таким именем
+function findOpenTagForElement(
+  tags: TagToken[],
+  tagName: string,
+  usedTags: Set<TagToken> = new Set()
+): TagToken | null {
+  // Ищем первый неиспользованный открывающий тег с таким именем
   for (const tag of tags) {
-    if (tag.kind === "open" && tag.name === tagName) {
+    if (tag.kind === "open" && tag.name === tagName && !usedTags.has(tag)) {
       return tag
     }
   }
@@ -414,13 +423,31 @@ function findOpenTagForElement(tags: TagToken[], tagName: string): TagToken | nu
 /**
  * Находит закрывающий тег для конкретного элемента в иерархии
  */
-function findCloseTagForElement(tags: TagToken[], tagName: string): TagToken | null {
-  // Ищем первый закрывающий тег с таким именем
+function findCloseTagForElement(tags: TagToken[], tagName: string, openTag: TagToken): TagToken | null {
+  // Ищем соответствующий закрывающий тег для данного открывающего тега
+  let depth = 0
+  let foundOpen = false
+
   for (const tag of tags) {
-    if (tag.kind === "close" && tag.name === tagName) {
-      return tag
+    if (tag === openTag) {
+      foundOpen = true
+      continue
+    }
+
+    if (!foundOpen) continue
+
+    if (tag.name === tagName) {
+      if (tag.kind === "open") {
+        depth++
+      } else if (tag.kind === "close") {
+        if (depth === 0) {
+          return tag
+        }
+        depth--
+      }
     }
   }
+
   return null
 }
 
