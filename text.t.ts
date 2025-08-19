@@ -16,6 +16,7 @@ type TextDynamicSingle = {
 type TextNestedMapContextSingle = {
   type: "text"
   src: ["context", string]
+  template?: string // Опциональный шаблон для смешанного текста
 }
 
 /** Текст значения ядра, вложенный в массив */
@@ -23,6 +24,7 @@ type TextNestedMapCoreSingle = {
   type: "text"
   src: ["core", ...string[]]
   key?: string
+  template?: string // Опциональный шаблон для смешанного текста
 }
 
 /** Смешанный текст с шаблоном и несколькими переменными */

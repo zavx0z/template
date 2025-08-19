@@ -304,11 +304,18 @@ describe("text", () => {
     ])
   })
 
-  it.todo("динамический текст в map с несколькими элементами", () => {
+  it("динамический текст в map с доступом по ключу в элементе массива, на разных уровнях", () => {
     const mainHtml = extractMainHtmlBlock<any, { users: { name: string; role: string }[] }>(
       ({ html, core }) => html`
         <ul>
-          ${core.users.map((user) => html` <li><strong>${user.name}</strong> - ${user.role}</li> `)}
+          ${core.users.map(
+            (user) => html`
+              <li>
+                <strong>${user.name}</strong>
+                - ${user.role}
+              </li>
+            `
+          )}
         </ul>
       `
     )
@@ -321,7 +328,7 @@ describe("text", () => {
         child: [
           {
             type: "map",
-            src: "context",
+            src: "core",
             key: "users",
             child: [
               {
@@ -334,17 +341,16 @@ describe("text", () => {
                     child: [
                       {
                         type: "text",
-                        src: ["context", "users"],
+                        src: ["core", "users"],
+                        key: "name",
                       },
                     ],
                   },
                   {
                     type: "text",
-                    value: " - ",
-                  },
-                  {
-                    type: "text",
-                    src: ["context", "users"],
+                    template: " - ${0}",
+                    src: ["core", "users"],
+                    key: "role",
                   },
                 ],
               },
