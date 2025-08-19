@@ -31,6 +31,12 @@ describe("map", () => {
               {
                 tag: "li",
                 type: "el",
+                child: [
+                  {
+                    type: "text",
+                    src: ["context", "list"],
+                  },
+                ],
               },
             ],
           },
@@ -73,6 +79,12 @@ describe("map", () => {
               {
                 tag: "li",
                 type: "el",
+                child: [
+                  {
+                    type: "text",
+                    src: ["context", "list"],
+                  },
+                ],
               },
               {
                 tag: "br",
