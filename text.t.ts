@@ -9,6 +9,7 @@ type TextDynamicSingle = {
   type: "text"
   src: "context" | "core" | "state"
   key?: string
+  template?: string // Опциональный шаблон для смешанного текста
 }
 
 /** Текст значения контекста, вложенный в массив */

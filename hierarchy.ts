@@ -1,28 +1,11 @@
 import type { TagToken } from "./index"
+import type { NodeText } from "./text.t"
+import { checkPresentText, makeNodeText } from "./text"
 
 /**
  * Текстовый узел.
  */
-export type TextNode =
-  | {
-      type: "text"
-      value: string
-    }
-  | {
-      type: "text"
-      src: ["context" | "core", string]
-    }
-  | {
-      type: "text"
-      src: "context" | "core"
-      key: string
-      template: string
-    }
-  | {
-      type: "text"
-      template: string
-      items: Array<{ src: "context" | "core"; key: string }>
-    }
+export type TextNode = NodeText
 
 /**
  * Узел map-операции с шаблоном элемента.
@@ -147,59 +130,19 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
           if (contentEnd > contentStart) {
             const content = html.slice(contentStart, contentEnd)
 
-            // Проверяем, есть ли сложные выражения (map, condition) или HTML теги
-            const hasComplexExpressions =
-              /context\.\w+\.map|core\.\w+\.map|context\.\w+\s*\?|core\.\w+\s*\?|<[^>]*>/.test(content)
+            // Проверяем наличие текста и создаем текстовый узел
+            const textInfo = checkPresentText(content)
+            if (textInfo) {
+              const current = lastStackItem.element
+              if (!current.child) current.child = []
 
-            if (!hasComplexExpressions) {
-              // Пробуем разобрать как смешанный текст
-              const mixedText = parseMixedText(content)
-              if (mixedText) {
-                const current = lastStackItem.element
-                if (!current.child) current.child = []
+              // Получаем контекст map, если есть
+              const parentMap = mapStack[mapStack.length - 1]
+              const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
 
-                if (mixedText.items.length === 1) {
-                  // Одна переменная - используем упрощенный формат
-                  const item = mixedText.items[0]
-                  if (item) {
-                    current.child.push({
-                      type: "text",
-                      src: item.src,
-                      key: item.key,
-                      template: mixedText.template,
-                    })
-                  }
-                } else {
-                  // Несколько переменных - используем полный формат
-                  current.child.push({
-                    type: "text",
-                    template: mixedText.template,
-                    items: mixedText.items,
-                  })
-                }
-              } else {
-                // Если не смешанный текст, пробуем обычный разбор
-                const textInfo = findTextPattern(content)
-                if (textInfo) {
-                  const current = lastStackItem.element
-                  if (!current.child) current.child = []
-
-                  if (textInfo.kind === "dynamic") {
-                    // добавляем только динамический текст, и только если нет вложенных элементов
-                    const hasElementChildren = Array.isArray(current.child)
-                      ? current.child.some((c) => c.type === "el")
-                      : false
-                    if (!hasElementChildren) {
-                      const parentMap = mapStack[mapStack.length - 1]
-                      if (parentMap) {
-                        current.child.push({ type: "text", src: [parentMap.mapInfo.src, parentMap.mapInfo.key] })
-                      }
-                    }
-                  } else if (textInfo.kind === "static") {
-                    // добавляем статический текст
-                    current.child.push({ type: "text", value: textInfo.value })
-                  }
-                }
+              const textNode = makeNodeText(textInfo, mapContext)
+              if (textNode) {
+                current.child.push(textNode)
               }
             }
           }
@@ -294,59 +237,6 @@ export function findConditionPattern(slice: string): { src: "context" | "core"; 
 
   const core = slice.match(/core\.(\w+)\s*\?/)
   if (core && core[1]) return { src: "core", key: core[1] }
-
-  return null
-}
-
-/**
- * Ищет паттерны текстовых узлов в подстроке.
- * Возвращает либо статическое значение, либо признак динамического текста `${...}`.
- */
-export function findTextPattern(slice: string): ({ kind: "static"; value: string } | { kind: "dynamic" }) | null {
-  // Динамика: только простой идентификатор без точек/скобок/тегов внутри: ${name}
-  const dynamicId = slice.match(/\$\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}/)
-  if (dynamicId) return { kind: "dynamic" }
-
-  // Статика: убираем интерполяции и проверяем, что нет тегов
-  const withoutTpl = slice.replace(/\$\{[^}]*\}/g, "").trim()
-  // Игнорируем, если строка содержит теги или угловые скобки — это не текстовый узел
-  if (/[<>]/.test(withoutTpl)) return null
-  // Убираем лишние переводы строк
-  const normalized = withoutTpl.replace(/\n+/g, " ").trim()
-  if (normalized.length > 0) return { kind: "static", value: normalized }
-
-  return null
-}
-
-/**
- * Разбирает смешанный текст на шаблон и переменные.
- * Пример: "Hello, ${context.name}!" → { template: "Hello, ${0}!", items: [{ src: "context", key: "name" }] }
- */
-export function parseMixedText(
-  slice: string
-): { template: string; items: Array<{ src: "context" | "core"; key: string }> } | null {
-  const items: Array<{ src: "context" | "core"; key: string }> = []
-  let template = slice
-  let index = 0
-
-  // Ищем все выражения ${context.key} или ${core.key}
-  const regex = /\$\{(context|core)\.(\w+)\}/g
-  let match
-
-  while ((match = regex.exec(slice)) !== null) {
-    const [fullMatch, src, key] = match
-    if (src && key) {
-      items.push({ src: src as "context" | "core", key })
-
-      // Заменяем в шаблоне на ${index}
-      template = template.replace(fullMatch, `\${${index}}`)
-      index++
-    }
-  }
-
-  if (items.length > 0) {
-    return { template, items }
-  }
 
   return null
 }

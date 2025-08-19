@@ -1,0 +1,164 @@
+import type { NodeText } from "./text.t"
+
+/**
+ * Проверяет наличие текста в HTML-контенте и возвращает информацию о найденном тексте.
+ *
+ * @param content HTML-контент для анализа
+ * @returns Информация о найденном тексте или null, если текст не найден
+ */
+export function checkPresentText(content: string): {
+  kind: "static" | "dynamic" | "mixed"
+  value?: string
+  template?: string
+  items?: Array<{ src: "context" | "core" | "state"; key?: string }>
+} | null {
+  // Проверяем, есть ли сложные выражения (map, condition) или HTML теги
+  const hasComplexExpressions = /context\.\w+\.map|core\.\w+\.map|context\.\w+\s*\?|core\.\w+\s*\?|<[^>]*>/.test(
+    content
+  )
+
+  if (hasComplexExpressions) {
+    return null
+  }
+
+  // Пробуем разобрать как смешанный текст
+  const mixedText = parseMixedText(content)
+  if (mixedText) {
+    return {
+      kind: "mixed",
+      template: mixedText.template,
+      items: mixedText.items,
+    }
+  }
+
+  // Пробуем обычный разбор
+  const textInfo = findTextPattern(content)
+  if (textInfo) {
+    if (textInfo.kind === "dynamic") {
+      return { kind: "dynamic" }
+    } else if (textInfo.kind === "static") {
+      return { kind: "static", value: textInfo.value }
+    }
+  }
+
+  return null
+}
+
+/**
+ * Создает текстовый узел на основе информации о тексте.
+ *
+ * @param textInfo Информация о тексте из checkPresentText
+ * @param mapContext Контекст map-операции (если текст находится внутри map)
+ * @returns Текстовый узел или null, если узел не может быть создан
+ */
+export function makeNodeText(
+  textInfo: NonNullable<ReturnType<typeof checkPresentText>>,
+  mapContext?: { src: "context" | "core"; key: string }
+): NodeText | null {
+  if (textInfo.kind === "static") {
+    return {
+      type: "text",
+      value: textInfo.value!,
+    }
+  }
+
+  if (textInfo.kind === "dynamic") {
+    if (mapContext) {
+      // Текст внутри map - используем вложенный формат
+      if (mapContext.src === "context") {
+        return {
+          type: "text",
+          src: ["context", mapContext.key],
+        }
+      } else {
+        return {
+          type: "text",
+          src: ["core", mapContext.key],
+        }
+      }
+    } else {
+      // Обычный динамический текст
+      return {
+        type: "text",
+        src: "context", // По умолчанию context, можно расширить логику
+      }
+    }
+  }
+
+  if (textInfo.kind === "mixed") {
+    if (textInfo.items!.length === 1) {
+      // Одна переменная - используем TextDynamicSingle с шаблоном
+      const item = textInfo.items![0]
+      if (item) {
+        return {
+          type: "text",
+          src: item.src,
+          key: item.key,
+          template: textInfo.template!,
+        }
+      }
+    } else {
+      // Несколько переменных - используем TextMixedMulti
+      return {
+        type: "text",
+        template: textInfo.template!,
+        items: textInfo.items!,
+      }
+    }
+  }
+
+  return null
+}
+
+/**
+ * Ищет паттерны текстовых узлов в подстроке.
+ * Возвращает либо статическое значение, либо признак динамического текста `${...}`.
+ */
+function findTextPattern(slice: string): ({ kind: "static"; value: string } | { kind: "dynamic" }) | null {
+  // Динамика: только простой идентификатор без точек/скобок/тегов внутри: ${name}
+  const dynamicId = slice.match(/\$\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}/)
+  if (dynamicId) return { kind: "dynamic" }
+
+  // Статика: убираем интерполяции и проверяем, что нет тегов
+  const withoutTpl = slice.replace(/\$\{[^}]*\}/g, "").trim()
+  // Игнорируем, если строка содержит теги или угловые скобки — это не текстовый узел
+  if (/[<>]/.test(withoutTpl)) return null
+  // Убираем лишние переводы строк
+  const normalized = withoutTpl.replace(/\n+/g, " ").trim()
+  if (normalized.length > 0) return { kind: "static", value: normalized }
+
+  return null
+}
+
+/**
+ * Разбирает смешанный текст на шаблон и переменные.
+ * Пример: "Hello, ${context.name}!" → { template: "Hello, ${0}!", items: [{ src: "context", key: "name" }] }
+ */
+function parseMixedText(
+  slice: string
+): { template: string; items: Array<{ src: "context" | "core" | "state"; key?: string }> } | null {
+  const items: Array<{ src: "context" | "core" | "state"; key?: string }> = []
+  let template = slice
+  let index = 0
+
+  // Ищем все выражения ${context.key} или ${core.key}
+  const regex = /\$\{(context|core)\.(\w+)\}/g
+  let match
+
+  while ((match = regex.exec(slice)) !== null) {
+    const [fullMatch, src, key] = match
+    if (src && key) {
+      items.push({ src: src as "context" | "core", key })
+
+      // Заменяем в шаблоне на ${index}
+      template = template.replace(fullMatch, `\${${index}}`)
+      index++
+    }
+  }
+
+  if (items.length > 0) {
+    return { template, items }
+  }
+
+  return null
+}
