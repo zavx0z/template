@@ -178,3 +178,46 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
   }
   return out
 }
+
+/**
+ * Унифицированные виды узлов: теги + текст
+ */
+export type ElementKind = TagKind | "text"
+
+/**
+ * Унифицированный токен узла: для тегов сохраняем name и исходный фрагмент,
+ * для текста: name = "" (пустая строка), kind = "text".
+ */
+export type ElementToken = { text: string; index: number; name: string; kind: ElementKind }
+
+/**
+ * Извлекает из HTML-строки единый плоский список узлов (теги + текст).
+ * - Текстовые узлы формируются из промежутков между последовательными тегами.
+ * - Пустые или состоящие только из пробелов/переводов строк узлы игнорируются.
+ * - Для текста поле `name` — пустая строка.
+ */
+export function extractHtmlElements(input: string): ElementToken[] {
+  const tags = scanHtmlTags(input)
+  const out: ElementToken[] = []
+  let cursor = 0
+
+  const pushText = (chunk: string, index: number) => {
+    if (chunk.trim().length > 0) {
+      out.push({ text: chunk, index, name: "", kind: "text" })
+    }
+  }
+
+  for (const tag of tags) {
+    if (tag.index > cursor) {
+      pushText(input.slice(cursor, tag.index), cursor)
+    }
+    out.push(tag as unknown as ElementToken)
+    cursor = tag.index + tag.text.length
+  }
+
+  if (cursor < input.length) {
+    pushText(input.slice(cursor), cursor)
+  }
+
+  return out
+}

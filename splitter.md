@@ -225,3 +225,31 @@ HTML-теги, которые не могут иметь содержимого 
   - общий `describe`;
   - преимущественно сравнением с объектом;
   - структура тестов — дерево вариантностей (ветвления — параллельные `describe`, листья — `it`).
+
+## Новая функция: `extractHtmlElements(html: string)`
+
+Возвращает **единый плоский список** узлов (теги и текст) в порядке следования.
+Элемент имеет форму:
+
+```ts
+type ElementKind = "open" | "close" | "self" | "void" | "text"
+type ElementToken = { text: string; index: number; name: string; kind: ElementKind }
+```
+
+- Для **текстовых** узлов: `kind: "text"`, `name: ""`, `text` — содержимое.
+- Для **тегов**: `kind` — один из `"open" | "close" | "self" | "void"`, `name` — имя тега, `text` — исходный фрагмент (`<div>`, `</p>`, и т.д.).
+
+Пример:
+
+```ts
+extractHtmlElements("<p>a<b>c</b>d</p>")
+// => [
+/*0*/ { text: "<p>", index: 0, name: "p", kind: "open" },
+/*1*/ { text: "a",   index: 3, name: "",  kind: "text" },
+/*2*/ { text: "<b>", index: 4, name: "b", kind: "open" },
+/*3*/ { text: "c",   index: 7, name: "",  kind: "text" },
+/*4*/ { text: "</b>",index: 8, name: "b", kind: "close" },
+/*5*/ { text: "d",   index: 12,name: "",  kind: "text" },
+/*6*/ { text: "</p>",index: 13,name: "p", kind: "close" },
+]
+```
