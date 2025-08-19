@@ -1,20 +1,31 @@
 import { describe, it, expect } from "bun:test"
-import { scanHtmlTags, extractMainHtmlBlock } from "../index"
+import { scanHtmlTags, extractMainHtmlBlock, elementsHierarchy } from "../index"
 
 describe("scanTagsFromRender / conditions", () => {
   it("тернарник с внутренними тегами", () => {
     const mainHtml = extractMainHtmlBlock(
-      ({ html, context }: any) => html`<div>${context.cond ? html`<em>A</em>` : html`<span>b</span>`}</div>`
+      ({ html, context }) => html`<div>${context.cond ? html`<em>A</em>` : html`<span>b</span>`}</div>`
     )
-    const tokens = scanHtmlTags(mainHtml).map((t) => ({ name: t.name, kind: t.kind }))
-    expect(tokens).toEqual([
-      { name: "div", kind: "open" },
-      { name: "em", kind: "open" },
-      { name: "em", kind: "close" },
-      { name: "span", kind: "open" },
-      { name: "span", kind: "close" },
-      { name: "div", kind: "close" },
+    const tags = scanHtmlTags(mainHtml)
+    expect(tags).toEqual([
+      { text: "<div>", index: 0, name: "div", kind: "open" },
+      { text: "<em>", index: 27, name: "em", kind: "open" },
+      { text: "</em>", index: 32, name: "em", kind: "close" },
+      { text: "<span>", index: 46, name: "span", kind: "open" },
+      { text: "</span>", index: 53, name: "span", kind: "close" },
+      { text: "</div>", index: 62, name: "div", kind: "close" },
     ])
+    // const hierarchy = elementsHierarchy(mainHtml, tags)
+    // expect(hierarchy).toEqual([
+    //   {
+    //     tag: "div",
+    //     type: "el",
+    //     child: [
+    //       { tag: "em", type: "el" },
+    //       { tag: "span", type: "el" },
+    //     ],
+    //   },
+    // ])
   })
 
   it("логические операторы без тегов — ничего не находится", () => {
