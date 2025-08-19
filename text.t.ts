@@ -16,6 +16,7 @@ type TextDynamicSingle = {
 type TextNestedMapContextSingle = {
   type: "text"
   src: ["context", string]
+  key?: string
   template?: string // Опциональный шаблон для смешанного текста
 }
 

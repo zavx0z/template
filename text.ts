@@ -13,9 +13,9 @@ export function checkPresentText(content: string): {
   items?: Array<{ src: "context" | "core" | "state"; key?: string }>
   condition?: { src: "context" | "core" | "state"; key: string; true: string; false: string }
 } | null {
-  // Проверяем, есть ли сложные выражения (map, condition) или HTML теги
+  // Проверяем, есть ли сложные выражения (map, condition), HTML теги или template literal синтаксис
   // Но не блокируем условные выражения в тексте вида ${context.key ? "true" : "false"}
-  const hasComplexExpressions = /context\.\w+\.map|core\.\w+\.map|<[^>]*>/.test(content)
+  const hasComplexExpressions = /context\.\w+\.map|core\.\w+\.map|<[^>]*>|`\)|html`|`\s*:|`\s*\?|`\}/.test(content)
 
   if (hasComplexExpressions) {
     return null
@@ -40,7 +40,7 @@ export function checkPresentText(content: string): {
     }
   }
 
-  // Пробуем обычный разбор
+  // Пробуем обычный разбор (статический или простой динамический)
   const textInfo = findTextPattern(content)
   if (textInfo) {
     if (textInfo.kind === "dynamic") {
@@ -96,14 +96,60 @@ export function makeNodeText(
 
   if (textInfo.kind === "mixed") {
     if (textInfo.items!.length === 1) {
-      // Одна переменная - используем TextDynamicSingle с шаблоном
+      // Одна переменная - проверяем, есть ли окружающий текст
       const item = textInfo.items![0]
       if (item) {
-        return {
-          type: "text",
-          src: item.src,
-          key: item.key,
-          template: textInfo.template!,
+        const hasTemplate = textInfo.template!.trim() !== "${0}"
+
+        if (!hasTemplate) {
+          // Нет окружающего текста - обрабатываем как простой динамический
+          if (mapContext) {
+            if (mapContext.src === "context") {
+              return {
+                type: "text",
+                src: ["context", mapContext.key],
+                key: item.key,
+              }
+            } else {
+              return {
+                type: "text",
+                src: ["core", mapContext.key],
+                key: item.key,
+              }
+            }
+          } else {
+            return {
+              type: "text",
+              src: item.src,
+              key: item.key,
+            }
+          }
+        } else {
+          // Есть окружающий текст - используем шаблон
+          if (mapContext) {
+            if (mapContext.src === "context") {
+              return {
+                type: "text",
+                src: ["context", mapContext.key],
+                key: item.key,
+                template: textInfo.template!,
+              }
+            } else {
+              return {
+                type: "text",
+                src: ["core", mapContext.key],
+                key: item.key,
+                template: textInfo.template!,
+              }
+            }
+          } else {
+            return {
+              type: "text",
+              src: item.src,
+              key: item.key,
+              template: textInfo.template!,
+            }
+          }
         }
       }
     } else {
@@ -136,12 +182,12 @@ function findTextPattern(slice: string): ({ kind: "static"; value: string } | { 
   if (dynamicId) return { kind: "dynamic" }
 
   // Статика: убираем интерполяции и проверяем, что нет тегов
-  const withoutTpl = slice.replace(/\$\{[^}]*\}/g, "").trim()
+  const withoutTpl = slice.replace(/\$\{[^}]*\}/g, "")
   // Игнорируем, если строка содержит теги или угловые скобки — это не текстовый узел
   if (/[<>]/.test(withoutTpl)) return null
-  // Убираем лишние переводы строк
-  const normalized = withoutTpl.replace(/\n+/g, " ").trim()
-  if (normalized.length > 0) return { kind: "static", value: normalized }
+  // Убираем только лишние переводы строк, сохраняем пробелы
+  const normalized = withoutTpl.replace(/\n+/g, " ")
+  if (normalized.trim().length > 0) return { kind: "static", value: normalized }
 
   return null
 }
@@ -157,19 +203,25 @@ function parseMixedText(
   let template = slice
   let index = 0
 
-  // Ищем все выражения ${context.key} или ${core.key}
-  const regex = /\$\{(context|core)\.(\w+)\}/g
+  // Сохраняем исходное форматирование
+
+  // Ищем все выражения ${context.key}, ${core.key} или ${identifier.key}
+  const regex = /\$\{(context|core)\.(\w+)\}|\$\{(\w+)\.(\w+)\}/g
   let match
 
   while ((match = regex.exec(slice)) !== null) {
-    const [fullMatch, src, key] = match
+    const [fullMatch, src, key, identifier, prop] = match
     if (src && key) {
+      // Выражение вида ${context.key} или ${core.key}
       items.push({ src: src as "context" | "core", key })
-
-      // Заменяем в шаблоне на ${index}
-      template = template.replace(fullMatch, `\${${index}}`)
-      index++
+    } else if (identifier && prop) {
+      // Выражение вида ${identifier.key} - используем context как источник
+      items.push({ src: "context" as "context" | "core", key: prop })
     }
+
+    // Заменяем в шаблоне на ${index}
+    template = template.replace(fullMatch, `\${${index}}`)
+    index++
   }
 
   if (items.length > 0) {

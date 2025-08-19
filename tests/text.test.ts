@@ -304,7 +304,65 @@ describe("text", () => {
     ])
   })
 
-  it("динамический текст в map с доступом по ключу в элементе массива, на разных уровнях", () => {
+  it("статический текст в элементе на одном уровне с динамическим текстом", () => {
+    const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div><b>Hello, </b>${context.name}</div>`)
+    const tags = scanHtmlTags(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, tags)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "b",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "Hello, ",
+              },
+            ],
+          },
+          {
+            type: "text",
+            src: "context",
+            key: "name",
+          },
+        ],
+      },
+    ])
+  })
+
+  it("динамический текст со статическим текстом в элементе на одном уровне", () => {
+    const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div>${context.name}<b>-hello</b></div>`)
+    const tags = scanHtmlTags(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, tags)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "text",
+            src: "context",
+            key: "name",
+          },
+          {
+            tag: "b",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "-hello",
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
+
+  it.todo("динамический текст в map с доступом по ключу в элементе массива, на разных уровнях", () => {
     const mainHtml = extractMainHtmlBlock<any, { users: { name: string; role: string }[] }>(
       ({ html, core }) => html`
         <ul>

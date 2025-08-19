@@ -123,29 +123,8 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
       if (stack.length > 0) {
         const lastStackItem = stack[stack.length - 1]
         if (lastStackItem && lastStackItem.tag.name === tag.name) {
-          // Проверяем текстовые паттерны в контенте между открывающим и закрывающим тегом
-          const openTag = lastStackItem.tag
-          const contentStart = openTag.index + openTag.text.length
-          const contentEnd = tag.index
-          if (contentEnd > contentStart) {
-            const content = html.slice(contentStart, contentEnd)
-
-            // Проверяем наличие текста и создаем текстовый узел
-            const textInfo = checkPresentText(content)
-            if (textInfo) {
-              const current = lastStackItem.element
-              if (!current.child) current.child = []
-
-              // Получаем контекст map, если есть
-              const parentMap = mapStack[mapStack.length - 1]
-              const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
-
-              const textNode = makeNodeText(textInfo, mapContext)
-              if (textNode) {
-                current.child.push(textNode)
-              }
-            }
-          }
+          // Обрабатываем текстовые фрагменты между тегами
+          processTextFragments(html, lastStackItem, tag, tags, mapStack)
 
           stack.pop()
 
@@ -238,5 +217,154 @@ export function findConditionPattern(slice: string): { src: "context" | "core"; 
   const core = slice.match(/core\.(\w+)\s*\?/)
   if (core && core[1]) return { src: "core", key: core[1] }
 
+  return null
+}
+
+/**
+ * Обрабатывает текстовые фрагменты между HTML тегами внутри элемента
+ * Вставляет текстовые узлы в правильном порядке между элементами
+ */
+function processTextFragments(
+  html: string,
+  parentStackItem: { tag: TagToken; element: ElementHierarchy },
+  closingTag: TagToken,
+  tags: TagToken[],
+  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[]
+) {
+  const parentOpenTag = parentStackItem.tag
+  const contentStart = parentOpenTag.index + parentOpenTag.text.length
+  const contentEnd = closingTag.index
+
+  if (contentEnd <= contentStart) return
+
+  // Получаем все теги внутри текущего элемента
+  const innerTags: TagToken[] = []
+  for (const tag of tags) {
+    if (tag.index > contentStart && tag.index < contentEnd) {
+      innerTags.push(tag)
+    }
+  }
+
+  // Если нет внутренних тегов, обрабатываем весь контент как текст
+  if (innerTags.length === 0) {
+    const content = html.slice(contentStart, contentEnd)
+    const textInfo = checkPresentText(content)
+    if (textInfo) {
+      const parentMap = mapStack[mapStack.length - 1]
+      const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
+      const textNode = makeNodeText(textInfo, mapContext)
+      if (textNode) {
+        // Добавляем текстовый узел к дочерним элементам
+        if (!parentStackItem.element.child) parentStackItem.element.child = []
+        parentStackItem.element.child.push(textNode)
+      }
+    }
+    return
+  }
+
+  // Создаем массив позиций элементов и текстовых фрагментов для правильного порядка
+  const fragments: Array<{ position: number; type: "element" | "text"; data: any }> = []
+
+  // Добавляем существующие элементы с их позициями
+  if (parentStackItem.element.child) {
+    let elementIndex = 0
+    for (const innerTag of innerTags) {
+      if (innerTag.kind === "open" || innerTag.kind === "self") {
+        if (elementIndex < parentStackItem.element.child.length) {
+          fragments.push({
+            position: innerTag.index,
+            type: "element",
+            data: parentStackItem.element.child[elementIndex],
+          })
+          elementIndex++
+        }
+      }
+    }
+  }
+
+  // Добавляем текстовые фрагменты с их позициями
+  let lastTagEnd = contentStart
+
+  for (const innerTag of innerTags) {
+    // Проверяем текст перед текущим тегом
+    if (innerTag.index > lastTagEnd) {
+      const textFragment = html.slice(lastTagEnd, innerTag.index)
+      const textInfo = checkPresentText(textFragment)
+      if (textInfo) {
+        const parentMap = mapStack[mapStack.length - 1]
+        const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
+        const textNode = makeNodeText(textInfo, mapContext)
+        if (textNode) {
+          fragments.push({
+            position: lastTagEnd,
+            type: "text",
+            data: textNode,
+          })
+        }
+      }
+    }
+
+    // Обновляем позицию
+    if (innerTag.kind === "open") {
+      const closingTagForInner = findClosingTag(innerTags, innerTag)
+      if (closingTagForInner) {
+        lastTagEnd = closingTagForInner.index + closingTagForInner.text.length
+      } else {
+        lastTagEnd = innerTag.index + innerTag.text.length
+      }
+    } else if (innerTag.kind === "self") {
+      lastTagEnd = innerTag.index + innerTag.text.length
+    } else if (innerTag.kind === "close") {
+      lastTagEnd = innerTag.index + innerTag.text.length
+    }
+  }
+
+  // Проверяем текст после последнего тега
+  if (lastTagEnd < contentEnd) {
+    const textFragment = html.slice(lastTagEnd, contentEnd)
+    const textInfo = checkPresentText(textFragment)
+    if (textInfo) {
+      const parentMap = mapStack[mapStack.length - 1]
+      const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
+      const textNode = makeNodeText(textInfo, mapContext)
+      if (textNode) {
+        fragments.push({
+          position: lastTagEnd,
+          type: "text",
+          data: textNode,
+        })
+      }
+    }
+  }
+
+  // Сортируем по позиции и создаем новый массив дочерних элементов
+  fragments.sort((a, b) => a.position - b.position)
+  const newChildren = fragments.map((f) => f.data)
+
+  // Заменяем дочерние элементы на новый упорядоченный массив
+  if (newChildren.length > 0) {
+    parentStackItem.element.child = newChildren
+  }
+}
+
+/**
+ * Находит соответствующий закрывающий тег для открывающего
+ */
+function findClosingTag(tags: TagToken[], openTag: TagToken): TagToken | null {
+  let depth = 0
+  for (const tag of tags) {
+    if (tag.index <= openTag.index) continue
+
+    if (tag.name === openTag.name) {
+      if (tag.kind === "open") {
+        depth++
+      } else if (tag.kind === "close") {
+        if (depth === 0) {
+          return tag
+        }
+        depth--
+      }
+    }
+  }
   return null
 }
