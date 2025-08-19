@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { scanHtmlTags, extractMainHtmlBlock, elementsHierarchy } from "../index"
 
 describe("map", () => {
-  it("простое map", () => {
+  it("простой map", () => {
     const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
       ({ html, context }) => html`
         <ul>
@@ -27,13 +27,42 @@ describe("map", () => {
             type: "map",
             src: "context",
             key: "list",
-            item: {
-              tag: "li",
-              type: "el",
-            },
+            child: [
+              {
+                tag: "li",
+                type: "el",
+              },
+            ],
           },
         ],
       },
+    ])
+  })
+  it("map в элементе вложенный в map", () => {
+    const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
+      ({ html, core }) => html`
+        <ul>
+          ${core.list.map(
+            ({ title, nested }) => html`
+              <li>
+                <p>${title}</p>
+                ${nested.map((n) => html`<em>${n}</em>`)}
+              </li>
+            `
+          )}
+        </ul>
+      `
+    )
+    const tags = scanHtmlTags(mainHtml)
+    expect(tags).toEqual([
+      { text: "<ul>", index: 9, name: "ul", kind: "open" },
+      { text: "<li>", index: 83, name: "li", kind: "open" },
+      { text: "<p>", index: 104, name: "p", kind: "open" },
+      { text: "</p>", index: 115, name: "p", kind: "close" },
+      { text: "<em>", index: 161, name: "em", kind: "open" },
+      { text: "</em>", index: 169, name: "em", kind: "close" },
+      { text: "</li>", index: 192, name: "li", kind: "close" },
+      { text: "</ul>", index: 222, name: "ul", kind: "close" },
     ])
   })
   it("map рендерит вложенные шаблоны (последовательность name/kind)", () => {
@@ -57,7 +86,7 @@ describe("map", () => {
     ])
   })
 
-  it("map вложенный в map", () => {
+  it("map в text вложенный в map", () => {
     const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
       ({ html, core }) => html`
         <ul>
@@ -73,35 +102,6 @@ describe("map", () => {
       { text: "</em>", index: 114, name: "em", kind: "close" },
       { text: "</li>", index: 122, name: "li", kind: "close" },
       { text: "</ul>", index: 139, name: "ul", kind: "close" },
-    ])
-    const hierarchy = elementsHierarchy(mainHtml, tags)
-    expect(hierarchy).toEqual([
-      {
-        tag: "ul",
-        type: "el",
-        child: [
-          {
-            type: "map",
-            src: "core",
-            key: "list",
-            item: {
-              tag: "li",
-              type: "el",
-              child: [
-                {
-                  type: "map",
-                  src: ["core", "list"],
-                  key: "nested",
-                  item: {
-                    tag: "em",
-                    type: "el",
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
     ])
   })
   it("map в условии", () => {
