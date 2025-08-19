@@ -184,11 +184,18 @@ type MapInfo = {
   key: string
 }
 
+type ConditionInfo = {
+  src: "context" | "core"
+  key: string
+  value: boolean
+}
+
 type ElementHierarchy = {
   tag: string
   type: "el"
   child?: ElementHierarchy[]
   item?: MapInfo
+  cond?: ConditionInfo
 }
 
 type ElementsHierarchy = ElementHierarchy[]
@@ -219,6 +226,12 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
             const mapInfo = findMapPattern(slice)
             if (mapInfo) {
               element.item = mapInfo
+            }
+
+            // Проверяем условные элементы
+            const condInfo = findConditionPattern(slice, i, tags)
+            if (condInfo) {
+              element.cond = condInfo
             }
           }
         }
@@ -265,4 +278,50 @@ function findMapPattern(slice: string): MapInfo | null {
   const core = slice.match(/core\.(\w+)\.map\s*\(/)
   if (core && core[1]) return { src: "core", key: core[1] }
   return null
+}
+
+/**
+ * Ищет паттерны условных операторов в строке
+ *
+ * @param slice - подстрока для поиска
+ * @param tagIndex - индекс текущего тега
+ * @param tags - массив всех тегов
+ * @returns информация о найденном условном паттерне или null
+ */
+function findConditionPattern(slice: string, tagIndex: number, tags: TagToken[]): ConditionInfo | null {
+  // Ищем паттерны context.<key> ? или core.<key> ?
+  const ctx = slice.match(/context\.(\w+)\s*\?/)
+  if (ctx && ctx[1]) {
+    const value = determineConditionValue(tagIndex, tags)
+    return { src: "context", key: ctx[1], value }
+  }
+
+  const core = slice.match(/core\.(\w+)\s*\?/)
+  if (core && core[1]) {
+    const value = determineConditionValue(tagIndex, tags)
+    return { src: "core", key: core[1], value }
+  }
+
+  return null
+}
+
+/**
+ * Определяет значение условия на основе позиции тега
+ */
+function determineConditionValue(tagIndex: number, tags: TagToken[]): boolean {
+  // В тернарном операторе: первый элемент = true, второй = false
+  const currentTag = tags[tagIndex]
+  if (!currentTag) return true
+
+  // Ищем все открывающие теги до текущего, исключая родительские
+  let count = 0
+  for (let i = 0; i < tagIndex; i++) {
+    const tag = tags[i]
+    if (tag && tag.kind === "open" && tag.name !== "div") {
+      count++
+    }
+  }
+
+  // Первый элемент = true, второй = false
+  return count === 0
 }
