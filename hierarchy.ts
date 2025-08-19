@@ -63,7 +63,7 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
     const tag = tags[i]
     if (!tag) continue
 
-    if (tag.kind === "open") {
+    if (tag.kind === "open" || tag.kind === "self") {
       const element: ElementHierarchy = {
         tag: tag.name,
         type: "el",
@@ -104,37 +104,16 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
         hierarchy.push(element)
       }
 
-      stack.push({ tag, element })
+      // Добавляем в стек только открывающие теги (не self-closing)
+      if (tag.kind === "open") {
+        stack.push({ tag, element })
+      }
     } else if (tag.kind === "close") {
       // Закрываем элемент, если имя совпадает с верхним элементом стека
       if (stack.length > 0) {
         const lastStackItem = stack[stack.length - 1]
         if (lastStackItem && lastStackItem.tag.name === tag.name) {
           stack.pop()
-
-          // Проверяем, нужно ли создать MapNode
-          if (mapStack.length > 0) {
-            const map = mapStack[mapStack.length - 1]
-            if (map && map.startIndex === i - 1) {
-              // Создаем MapNode из последнего элемента
-              const parent = stack[stack.length - 1]
-              if (parent && parent.element && parent.element.child && parent.element.child.length >= 1) {
-                const lastChild = parent.element.child[parent.element.child.length - 1]
-                if (lastChild && lastChild.type === "el") {
-                  const mapNode: MapNode = {
-                    type: "map",
-                    src: map.mapInfo.src,
-                    key: map.mapInfo.key,
-                    child: [lastChild as ElementHierarchy],
-                  }
-
-                  // Заменяем последний элемент на MapNode
-                  parent.element.child.splice(-1, 1, mapNode)
-                  mapStack.pop()
-                }
-              }
-            }
-          }
 
           // Проверяем, нужно ли создать ConditionNode
           if (conditionStack.length > 0) {
@@ -165,7 +144,36 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
         }
       }
     }
-    // Игнорируем self и void теги для иерархии
+    // Игнорируем void теги для иерархии
+  }
+
+  // Создаем MapNode в конце, когда все элементы обработаны
+  if (mapStack.length > 0 && hierarchy.length > 0) {
+    const map = mapStack[mapStack.length - 1]
+    if (map) {
+      const rootElement = hierarchy[hierarchy.length - 1] as ElementHierarchy
+      if (rootElement && rootElement.child) {
+        // Собираем все дочерние элементы в массив
+        const children: ElementHierarchy[] = []
+        for (const child of rootElement.child) {
+          if (child.type === "el") {
+            children.push(child as ElementHierarchy)
+          }
+        }
+
+        if (children.length > 0) {
+          const mapNode: MapNode = {
+            type: "map",
+            src: map.mapInfo.src,
+            key: map.mapInfo.key,
+            child: children,
+          }
+
+          // Заменяем все дочерние элементы на MapNode
+          rootElement.child = [mapNode]
+        }
+      }
+    }
   }
 
   return hierarchy

@@ -38,6 +38,52 @@ describe("map", () => {
       },
     ])
   })
+  it("простой map с несколькими детьми", () => {
+    const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
+      ({ html, context }) => html`
+        <ul>
+          ${context.list.map(
+            (name) => html`
+              <li>${name}</li>
+              <br />
+            `
+          )}
+        </ul>
+      `
+    )
+    const tags = scanHtmlTags(mainHtml)
+    expect(tags).toEqual([
+      { text: "<ul>", index: 9, name: "ul", kind: "open" },
+      { text: "<li>", index: 73, name: "li", kind: "open" },
+      { text: "</li>", index: 84, name: "li", kind: "close" },
+      { text: "<br />", index: 104, name: "br", kind: "self" },
+      { text: "</ul>", index: 135, name: "ul", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, tags)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            src: "context",
+            key: "list",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+              },
+              {
+                tag: "br",
+                type: "el",
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
   it("map в элементе вложенный в map", () => {
     const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
       ({ html, core }) => html`
