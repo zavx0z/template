@@ -1,11 +1,11 @@
 import { describe, it, expect } from "bun:test"
-import { scanHtmlTags, extractMainHtmlBlock } from "../splitter"
+import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 
 describe("scanTagsFromRender / базовые случаи", () => {
   it("простая пара тегов", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<div></div>`)
-    const tags = scanHtmlTags(mainHtml)
-    expect(tags).toEqual([
+    const elements = extractHtmlElements(mainHtml)
+    expect(elements).toEqual([
       { text: "<div>", index: 0, name: "div", kind: "open" },
       { text: "</div>", index: 5, name: "div", kind: "close" },
     ])
@@ -20,12 +20,14 @@ describe("scanTagsFromRender / базовые случаи", () => {
         </ul>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    expect(tags).toEqual([
+    const elements = extractHtmlElements(mainHtml)
+    expect(elements).toEqual([
       { text: "<ul>", index: 9, name: "ul", kind: "open" },
       { text: "<li>", index: 24, name: "li", kind: "open" },
+      { text: "a", index: 28, name: "", kind: "text" },
       { text: "</li>", index: 29, name: "li", kind: "close" },
       { text: "<li>", index: 45, name: "li", kind: "open" },
+      { text: "b", index: 49, name: "", kind: "text" },
       { text: "</li>", index: 50, name: "li", kind: "close" },
       { text: "</ul>", index: 64, name: "ul", kind: "close" },
     ])
@@ -41,8 +43,8 @@ describe("scanTagsFromRender / базовые случаи", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    expect(tags).toEqual([
+    const elements = extractHtmlElements(mainHtml)
+    expect(elements).toEqual([
       { text: "<div>", index: 9, name: "div", kind: "open" },
       { text: "<br />", index: 25, name: "br", kind: "self" },
       { text: '<img src="x" />', index: 42, name: "img", kind: "self" },

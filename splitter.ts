@@ -131,7 +131,7 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
         }
         if (i < input.length) i++ // пропускаем закрывающую кавычку
       } else if (char === "$" && i + 1 < input.length && input[i + 1] === "{") {
-        // Пропускаем template literal
+        // Пропускаем template literal, но обрабатываем вложенные template literals
         i += 2 // пропускаем ${
         let braceCount = 1
         while (i < input.length && braceCount > 0) {
@@ -193,6 +193,7 @@ export type ElementToken = { text: string; index: number; name: string; kind: El
 /**
  * Извлекает из HTML-строки единый плоский список узлов (теги + текст).
  * - Текстовые узлы формируются из промежутков между последовательными тегами.
+ * - JavaScript-выражения в ${...} пропускаются и не включаются в текстовые узлы.
  * - Пустые или состоящие только из пробелов/переводов строк узлы игнорируются.
  * - Для текста поле `name` — пустая строка.
  */
@@ -202,8 +203,53 @@ export function extractHtmlElements(input: string): ElementToken[] {
   let cursor = 0
 
   const pushText = (chunk: string, index: number) => {
-    if (chunk.trim().length > 0) {
-      out.push({ text: chunk, index, name: "", kind: "text" })
+    // Обрабатываем текст между тегами
+    // Template literals включаются в текст только если они полностью закрываются в этом куске
+    let processedChunk = ""
+    let i = 0
+
+    // Проверяем, не является ли весь кусок частью незакрытого template literal
+    // Ищем незакрытые скобки или ` в начале/конце (части большого template literal)
+    if (
+      chunk.startsWith("`") ||
+      chunk.match(/^\s*:\s*html`/) ||
+      chunk.match(/`\}\s*$/) ||
+      chunk.match(/^\s*`\}\s*$/) ||
+      chunk.match(/^\s+`\)\}\s*$/) ||
+      chunk.match(/^\s*`\s*:\s*html`\s*$/)
+    ) {
+      return // пропускаем куски, которые явно являются частями template literals
+    }
+
+    while (i < chunk.length) {
+      if (chunk[i] === "$" && i + 1 < chunk.length && chunk[i + 1] === "{") {
+        // Нашли начало template literal
+        const startPos = i
+        i += 2 // пропускаем ${
+        let braceCount = 1
+
+        // Ищем закрывающую скобку
+        while (i < chunk.length && braceCount > 0) {
+          if (chunk[i] === "{") braceCount++
+          else if (chunk[i] === "}") braceCount--
+          i++
+        }
+
+        if (braceCount === 0) {
+          // Литерал полностью закрывается в этом куске - включаем в текст
+          processedChunk += chunk.slice(startPos, i)
+        } else {
+          // Литерал не закрывается - остальное пропускаем
+          break
+        }
+      } else {
+        processedChunk += chunk[i]
+        i++
+      }
+    }
+
+    if (processedChunk.trim().length > 0) {
+      out.push({ text: processedChunk, index, name: "", kind: "text" })
     }
   }
 

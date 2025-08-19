@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { scanHtmlTags, extractMainHtmlBlock } from "../splitter"
+import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 
 describe("text", () => {
@@ -11,8 +11,8 @@ describe("text", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([{ tag: "div", type: "el", child: [{ tag: "p", type: "el" }] }])
   })
   it("динамический текст в map где значением является строка элемент массива", () => {
@@ -23,8 +23,8 @@ describe("text", () => {
         </ul>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "ul",
@@ -60,8 +60,8 @@ describe("text", () => {
         </ul>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "ul",
@@ -97,8 +97,8 @@ describe("text", () => {
         </ul>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "ul",
@@ -134,8 +134,8 @@ describe("text", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -164,8 +164,8 @@ describe("text", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -195,8 +195,8 @@ describe("text", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -234,8 +234,8 @@ describe("text", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -266,8 +266,8 @@ describe("text", () => {
         <div>${context.show ? html`<p>Visible: ${context.name}</p>` : html`<p>Hidden</p>`}</div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -307,8 +307,8 @@ describe("text", () => {
 
   it("статический текст в элементе на одном уровне с динамическим текстом", () => {
     const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div><b>Hello, </b>${context.name}</div>`)
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -336,8 +336,8 @@ describe("text", () => {
 
   it("динамический текст со статическим текстом в элементе на одном уровне", () => {
     const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div>${context.name}<b>-hello</b></div>`)
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -378,8 +378,8 @@ describe("text", () => {
         </ul>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "ul",
@@ -428,8 +428,8 @@ describe("text", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     // Сложные выражения не должны создавать текстовые узлы
     expect(hierarchy).toEqual([
       {
@@ -453,8 +453,8 @@ describe("text", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     // Выражения с точками не должны создавать текстовые узлы
     expect(hierarchy).toEqual([
       {
@@ -482,8 +482,8 @@ describe("text", () => {
         </div>
       `
     )
-    const tags = scanHtmlTags(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, tags)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
