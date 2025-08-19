@@ -74,6 +74,35 @@ describe("map", () => {
       { text: "</li>", index: 122, name: "li", kind: "close" },
       { text: "</ul>", index: 139, name: "ul", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, tags)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            src: "core",
+            key: "list",
+            item: {
+              tag: "li",
+              type: "el",
+              child: [
+                {
+                  type: "map",
+                  src: ["core", "list"],
+                  key: "nested",
+                  item: {
+                    tag: "em",
+                    type: "el",
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ])
   })
   it("map в условии", () => {
     const mainHtml = extractMainHtmlBlock<{ flag: boolean }, { list: { title: string; nested: string[] }[] }>(
