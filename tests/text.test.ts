@@ -143,11 +143,11 @@ describe("text", () => {
     ])
   })
 
-  it("смешанный текст - статический + динамический", () => {
+  it("смешанный текст - статический + динамический (с одной переменной)", () => {
     const mainHtml = extractMainHtmlBlock<{ name: string }>(
       ({ html, context }) => html`
         <div>
-          <p>Привет, ${context.name}!</p>
+          <p>Hello, ${context.name}!</p>
         </div>
       `
     )
@@ -164,15 +164,9 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                value: "Привет, ",
-              },
-              {
-                type: "text",
-                src: ["context", "name"],
-              },
-              {
-                type: "text",
-                value: "!",
+                src: "context",
+                key: "name",
+                template: "Hello, ${0}!",
               },
             ],
           },
@@ -180,7 +174,45 @@ describe("text", () => {
       },
     ])
   })
-
+  it("смешанный текст - статический + динамический (с несколькими переменными)", () => {
+    const mainHtml = extractMainHtmlBlock<{ family: string; name: string }>(
+      ({ html, context }) => html`
+        <div>
+          <p>Hello, ${context.family} ${context.name}!</p>
+        </div>
+      `
+    )
+    const tags = scanHtmlTags(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, tags)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                template: "Hello, ${0} ${1}!",
+                items: [
+                  {
+                    src: "context",
+                    key: "family",
+                  },
+                  {
+                    src: "context",
+                    key: "name",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
   it("динамический текст в условии", () => {
     const mainHtml = extractMainHtmlBlock<{ show: boolean; name: string }>(
       ({ html, context }) => html`
