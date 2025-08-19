@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test"
-import { scanHtmlTags, extractMainHtmlBlock, elementsHierarchy } from "../index"
+import { scanHtmlTags, extractMainHtmlBlock } from "../index"
+import { elementsHierarchy } from "../hierarchy"
 
 describe("text", () => {
   it("пустой элемент без текста", () => {

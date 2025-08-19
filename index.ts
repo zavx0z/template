@@ -178,4 +178,3 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
   }
   return out
 }
-export { elementsHierarchy } from "./hierarchy"

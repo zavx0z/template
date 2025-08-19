@@ -1,5 +1,6 @@
-import { describe, it, expect } from "bun:test"
-import { scanHtmlTags, extractMainHtmlBlock, elementsHierarchy } from "../index"
+import { describe, it, expect } from "bun:test" 
+import { scanHtmlTags, extractMainHtmlBlock } from "../index"
+import { elementsHierarchy } from "../hierarchy"
 
 describe("scanTagsFromRender / conditions", () => {
   it("тернарник с внутренними тегами", () => {
