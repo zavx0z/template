@@ -363,6 +363,42 @@ describe("text", () => {
     ])
   })
 
+  it("динамические тексты вокруг статического текста", () => {
+    const mainHtml = extractMainHtmlBlock(
+      ({ html, context }) => html`<div>${context.family} <b>-hello</b>${context.name}</div>`
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "text",
+            src: "context",
+            key: "family",
+          },
+          {
+            tag: "b",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "-hello",
+              },
+            ],
+          },
+          {
+            type: "text",
+            src: "context",
+            key: "name",
+          },
+        ],
+      },
+    ])
+  })
+
   it.todo("динамический текст в map с доступом по ключу в элементе массива, на разных уровнях", () => {
     const mainHtml = extractMainHtmlBlock<any, { users: { name: string; role: string }[] }>(
       ({ html, core }) => html`
