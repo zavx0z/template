@@ -137,19 +137,23 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
             const content = html.slice(contentStart, contentEnd)
             const textInfo = findTextPattern(content)
             if (textInfo) {
-              // добавляем только динамический текст, и только если нет вложенных элементов
+              const current = lastStackItem.element
+              if (!current.child) current.child = []
+
               if (textInfo.kind === "dynamic") {
-                const current = lastStackItem.element
+                // добавляем только динамический текст, и только если нет вложенных элементов
                 const hasElementChildren = Array.isArray(current.child)
                   ? current.child.some((c) => c.type === "el")
                   : false
                 if (!hasElementChildren) {
-                  if (!current.child) current.child = []
                   const parentMap = mapStack[mapStack.length - 1]
                   if (parentMap) {
                     current.child.push({ type: "text", src: [parentMap.mapInfo.src, parentMap.mapInfo.key] })
                   }
                 }
+              } else if (textInfo.kind === "static") {
+                // добавляем статический текст
+                current.child.push({ type: "text", value: textInfo.value })
               }
             }
           }
