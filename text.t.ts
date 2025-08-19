@@ -32,9 +32,21 @@ type TextMixedMulti = {
   items: Array<{ src: "context" | "core" | "state"; key?: string }>
 }
 
+/** Условие в тексте */
+type TextCondition = {
+  type: "text"
+  cond: {
+    src: "context" | "core" | "state"
+    key: string
+    true: string
+    false: string
+  }
+}
+
 export type NodeText =
   | TextStatic
   | TextDynamicSingle
   | TextNestedMapContextSingle
   | TextNestedMapCoreSingle
   | TextMixedMulti
+  | TextCondition

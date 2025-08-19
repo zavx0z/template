@@ -225,10 +225,44 @@ describe("text", () => {
       },
     ])
   })
-  it.todo("динамический текст в условии", () => {
+  it("условие в тексте", () => {
     const mainHtml = extractMainHtmlBlock<{ show: boolean; name: string }>(
       ({ html, context }) => html`
-        <div>${context.show ? html`<p>Показано: ${context.name}</p>` : html`<p>Скрыто</p>`}</div>
+        <div>
+          <p>${context.show ? "Visible" : "Hidden"}</p>
+        </div>
+      `
+    )
+    const tags = scanHtmlTags(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, tags)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                cond: {
+                  src: "context",
+                  key: "show",
+                  true: "Visible",
+                  false: "Hidden",
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
+  it("динамический текст в условии", () => {
+    const mainHtml = extractMainHtmlBlock<{ show: boolean; name: string }>(
+      ({ html, context }) => html`
+        <div>${context.show ? html`<p>Visible: ${context.name}</p>` : html`<p>Hidden</p>`}</div>
       `
     )
     const tags = scanHtmlTags(mainHtml)
@@ -248,11 +282,9 @@ describe("text", () => {
               child: [
                 {
                   type: "text",
-                  value: "Показано: ",
-                },
-                {
-                  type: "text",
-                  src: ["context", "name"],
+                  template: "Visible: ${0}",
+                  src: "context",
+                  key: "name",
                 },
               ],
             },
@@ -262,7 +294,7 @@ describe("text", () => {
               child: [
                 {
                   type: "text",
-                  value: "Скрыто",
+                  value: "Hidden",
                 },
               ],
             },
