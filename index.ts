@@ -179,10 +179,87 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
   return out
 }
 
-type ElementHierarchy = Record<string, any>
+type ElementHierarchy = {
+  tag: string
+  type: "el"
+  child?: ElementHierarchy[]
+  item?: {
+    src: "context" | "core"
+    key: string
+  }
+}
+
 type ElementsHierarchy = ElementHierarchy[]
 
 export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHierarchy => {
   const hierarchy: ElementsHierarchy = []
+  const stack: { tag: TagToken; element: ElementHierarchy }[] = []
+
+  for (let i = 0; i < tags.length; i++) {
+    const tag = tags[i]
+    if (!tag) continue
+
+    if (tag.kind === "open") {
+      const element: ElementHierarchy = {
+        tag: tag.name,
+        type: "el",
+      }
+
+      // Проверяем, является ли этот элемент частью map, используя диапазон между родителем и текущим тегом
+      if (stack.length > 0) {
+        const parentItem = stack[stack.length - 1]
+        if (parentItem) {
+          const parentOpenTag = parentItem.tag
+          const rangeStart = parentOpenTag.index + parentOpenTag.text.length
+          const rangeEnd = tag.index
+          if (rangeEnd > rangeStart) {
+            const mapInfo = detectMapElementInRange(html, rangeStart, rangeEnd)
+            if (mapInfo) {
+              element.item = mapInfo
+            }
+          }
+        }
+      }
+
+      if (stack.length > 0) {
+        // Добавляем как дочерний элемент
+        const parent = stack[stack.length - 1]
+        if (parent && parent.element) {
+          if (!parent.element.child) parent.element.child = []
+          parent.element.child.push(element)
+        }
+      } else {
+        // Корневой элемент
+        hierarchy.push(element)
+      }
+
+      stack.push({ tag, element })
+    } else if (tag.kind === "close") {
+      // Закрываем элемент
+      if (stack.length > 0) {
+        const lastStackItem = stack[stack.length - 1]
+        if (lastStackItem && lastStackItem.tag.name === tag.name) {
+          stack.pop()
+        }
+      }
+    }
+    // Игнорируем self и void теги для иерархии
+  }
+
   return hierarchy
+}
+
+function detectMapElementInRange(
+  html: string,
+  startIndex: number,
+  endIndex: number
+): { src: "context" | "core"; key: string } | null {
+  if (endIndex <= startIndex) return null
+  const slice = html.slice(startIndex, endIndex)
+  // Достаточно наличия паттерна context|core.<key>.map( внутри диапазона
+  const ctx = slice.match(/context\.(\w+)\.map\s*\(/)
+  if (ctx && ctx[1]) return { src: "context", key: ctx[1] }
+  const core = slice.match(/core\.(\w+)\.map\s*\(/)
+  if (core && core[1]) return { src: "core", key: core[1] }
+  return null
 }

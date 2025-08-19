@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { scanHtmlTags, extractMainHtmlBlock, elementsHierarchy } from "../index"
 
-describe("scanTagsFromRender / map", () => {
+describe("map", () => {
   it("простое map", () => {
     const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
       ({ html, context }) => html`
