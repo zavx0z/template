@@ -1,13 +1,26 @@
 import type { TagToken } from "./index"
 
 /**
+ * Текстовый узел.
+ */
+export type TextNode =
+  | {
+      type: "text"
+      value: string
+    }
+  | {
+      type: "text"
+      src: ["context" | "core", string]
+    }
+
+/**
  * Узел map-операции с шаблоном элемента.
  */
 export type MapNode = {
   type: "map"
   src: "context" | "core"
   key: string
-  child: ElementHierarchy[]
+  child: (ElementHierarchy | TextNode)[]
 }
 
 /**
@@ -27,13 +40,13 @@ export type ConditionNode = {
 export type ElementHierarchy = {
   tag: string
   type: "el"
-  child?: (ElementHierarchy | ConditionNode | MapNode)[]
+  child?: (ElementHierarchy | ConditionNode | MapNode | TextNode)[]
 }
 
 /**
  * Корневая иерархия элементов для переданного HTML.
  */
-export type ElementsHierarchy = (ElementHierarchy | ConditionNode | MapNode)[]
+export type ElementsHierarchy = (ElementHierarchy | ConditionNode | MapNode | TextNode)[]
 
 /**
  * Формирует иерархию элементов на основе последовательности тегов и исходного HTML.
@@ -58,6 +71,7 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
   const stack: { tag: TagToken; element: ElementHierarchy }[] = []
   const conditionStack: { startIndex: number; conditionInfo: { src: "context" | "core"; key: string } }[] = []
   const mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[] = []
+  // текстовые узлы добавляем сразу при закрытии тега, отдельный стек не нужен
 
   for (let i = 0; i < tags.length; i++) {
     const tag = tags[i]
@@ -88,6 +102,8 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
             if (condInfo) {
               conditionStack.push({ startIndex: i, conditionInfo: condInfo })
             }
+
+            // Текстовые узлы на этом этапе не определяем (только внутри контента элемента при закрытии)
           }
         }
       }
@@ -113,6 +129,31 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
       if (stack.length > 0) {
         const lastStackItem = stack[stack.length - 1]
         if (lastStackItem && lastStackItem.tag.name === tag.name) {
+          // Проверяем текстовые паттерны в контенте между открывающим и закрывающим тегом
+          const openTag = lastStackItem.tag
+          const contentStart = openTag.index + openTag.text.length
+          const contentEnd = tag.index
+          if (contentEnd > contentStart) {
+            const content = html.slice(contentStart, contentEnd)
+            const textInfo = findTextPattern(content)
+            if (textInfo) {
+              // добавляем только динамический текст, и только если нет вложенных элементов
+              if (textInfo.kind === "dynamic") {
+                const current = lastStackItem.element
+                const hasElementChildren = Array.isArray(current.child)
+                  ? current.child.some((c) => c.type === "el")
+                  : false
+                if (!hasElementChildren) {
+                  if (!current.child) current.child = []
+                  const parentMap = mapStack[mapStack.length - 1]
+                  if (parentMap) {
+                    current.child.push({ type: "text", src: [parentMap.mapInfo.src, parentMap.mapInfo.key] })
+                  }
+                }
+              }
+            }
+          }
+
           stack.pop()
 
           // Проверяем, нужно ли создать ConditionNode
@@ -153,14 +194,11 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
     if (map) {
       const rootElement = hierarchy[hierarchy.length - 1] as ElementHierarchy
       if (rootElement && rootElement.child) {
-        // Собираем все дочерние элементы в массив
-        const children: ElementHierarchy[] = []
+        const children: (ElementHierarchy | TextNode)[] = []
         for (const child of rootElement.child) {
-          if (child.type === "el") {
-            children.push(child as ElementHierarchy)
-          }
+          if (child.type === "el") children.push(child as ElementHierarchy)
+          else if (child.type === "text") children.push(child as TextNode)
         }
-
         if (children.length > 0) {
           const mapNode: MapNode = {
             type: "map",
@@ -168,8 +206,6 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
             key: map.mapInfo.key,
             child: children,
           }
-
-          // Заменяем все дочерние элементы на MapNode
           rootElement.child = [mapNode]
         }
       }
@@ -208,6 +244,26 @@ export function findConditionPattern(slice: string): { src: "context" | "core"; 
 
   const core = slice.match(/core\.(\w+)\s*\?/)
   if (core && core[1]) return { src: "core", key: core[1] }
+
+  return null
+}
+
+/**
+ * Ищет паттерны текстовых узлов в подстроке.
+ * Возвращает либо статическое значение, либо признак динамического текста `${...}`.
+ */
+export function findTextPattern(slice: string): ({ kind: "static"; value: string } | { kind: "dynamic" }) | null {
+  // Динамика: только простой идентификатор без точек/скобок/тегов внутри: ${name}
+  const dynamicId = slice.match(/\$\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}/)
+  if (dynamicId) return { kind: "dynamic" }
+
+  // Статика: убираем интерполяции и проверяем, что нет тегов
+  const withoutTpl = slice.replace(/\$\{[^}]*\}/g, "").trim()
+  // Игнорируем, если строка содержит теги или угловые скобки — это не текстовый узел
+  if (/[<>]/.test(withoutTpl)) return null
+  // Убираем лишние переводы строк
+  const normalized = withoutTpl.replace(/\n+/g, " ").trim()
+  if (normalized.length > 0) return { kind: "static", value: normalized }
 
   return null
 }
