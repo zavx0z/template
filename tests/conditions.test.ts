@@ -15,17 +15,33 @@ describe("scanTagsFromRender / conditions", () => {
       { text: "</span>", index: 53, name: "span", kind: "close" },
       { text: "</div>", index: 62, name: "div", kind: "close" },
     ])
-    // const hierarchy = elementsHierarchy(mainHtml, tags)
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       { tag: "em", type: "el" },
-    //       { tag: "span", type: "el" },
-    //     ],
-    //   },
-    // ])
+    const hierarchy = elementsHierarchy(mainHtml, tags)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "em",
+            type: "el",
+            cond: {
+              src: "context",
+              key: "cond",
+              value: true,
+            },
+          },
+          {
+            tag: "span",
+            type: "el",
+            cond: {
+              src: "context",
+              key: "cond",
+              value: false,
+            },
+          },
+        ],
+      },
+    ])
   })
 
   it("логические операторы без тегов — ничего не находится", () => {
