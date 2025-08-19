@@ -1,4 +1,4 @@
-import type { TagToken } from "./splitter"
+import type { TagToken, ElementToken } from "./splitter"
 import type { NodeText } from "./text.t"
 import { checkPresentText, makeNodeText } from "./text"
 
@@ -60,10 +60,10 @@ export type ElementsHierarchy = (ElementHierarchy | ConditionNode | MapNode | Te
  * @param tags Токены тегов, полученные из scanHtmlTags(html)
  * @returns Иерархия элементов
  */
-export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHierarchy => {
+export const elementsHierarchy = (html: string, tags: ElementToken[]): ElementsHierarchy => {
   // ПЕРВЫЙ ПРОХОД: Строим базовую иерархию элементов (без текста)
   const hierarchy: ElementsHierarchy = []
-  const stack: { tag: TagToken; element: ElementHierarchy }[] = []
+  const stack: { tag: ElementToken; element: ElementHierarchy }[] = []
   const conditionStack: { startIndex: number; conditionInfo: { src: "context" | "core"; key: string } }[] = []
   const mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[] = []
 
@@ -171,10 +171,10 @@ export function findConditionPattern(slice: string): { src: "context" | "core"; 
  */
 function addTextNodes(
   html: string,
-  tags: TagToken[],
+  tags: ElementToken[],
   hierarchy: ElementsHierarchy,
   mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[],
-  usedTags: Set<TagToken> = new Set()
+  usedTags: Set<ElementToken> = new Set()
 ) {
   // Рекурсивно проходим по всем элементам и добавляем текстовые узлы
   for (const element of hierarchy) {
@@ -200,10 +200,10 @@ function addTextNodes(
  */
 function addTextNodesToElement(
   html: string,
-  tags: TagToken[],
+  tags: ElementToken[],
   element: ElementHierarchy,
   mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[],
-  usedTags: Set<TagToken> = new Set()
+  usedTags: Set<ElementToken> = new Set()
 ) {
   // Находим открывающий и закрывающий теги для этого элемента
   const openTag = findOpenTagForElement(tags, element.tag, usedTags)
@@ -220,9 +220,9 @@ function addTextNodesToElement(
   if (contentEnd <= contentStart) return
 
   // Получаем все теги внутри элемента
-  const innerTags: TagToken[] = []
+  const innerTags: ElementToken[] = []
   for (const tag of tags) {
-    if (tag.index > contentStart && tag.index < contentEnd) {
+    if (tag.index >= contentStart && tag.index < contentEnd) {
       innerTags.push(tag)
     }
   }
@@ -407,10 +407,10 @@ function findCloseTag(tags: TagToken[], tagName: string): TagToken | null {
  * Находит открывающий тег для конкретного элемента в иерархии
  */
 function findOpenTagForElement(
-  tags: TagToken[],
+  tags: ElementToken[],
   tagName: string,
-  usedTags: Set<TagToken> = new Set()
-): TagToken | null {
+  usedTags: Set<ElementToken> = new Set()
+): ElementToken | null {
   // Ищем первый неиспользованный открывающий тег с таким именем
   for (const tag of tags) {
     if (tag.kind === "open" && tag.name === tagName && !usedTags.has(tag)) {
@@ -423,7 +423,7 @@ function findOpenTagForElement(
 /**
  * Находит закрывающий тег для конкретного элемента в иерархии
  */
-function findCloseTagForElement(tags: TagToken[], tagName: string, openTag: TagToken): TagToken | null {
+function findCloseTagForElement(tags: ElementToken[], tagName: string, openTag: ElementToken): ElementToken | null {
   // Ищем соответствующий закрывающий тег для данного открывающего тега
   let depth = 0
   let foundOpen = false
