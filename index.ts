@@ -179,14 +179,16 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
   return out
 }
 
+type MapInfo = {
+  src: "context" | "core"
+  key: string
+}
+
 type ElementHierarchy = {
   tag: string
   type: "el"
   child?: ElementHierarchy[]
-  item?: {
-    src: "context" | "core"
-    key: string
-  }
+  item?: MapInfo
 }
 
 type ElementsHierarchy = ElementHierarchy[]
@@ -213,7 +215,8 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
           const rangeStart = parentOpenTag.index + parentOpenTag.text.length
           const rangeEnd = tag.index
           if (rangeEnd > rangeStart) {
-            const mapInfo = detectMapElementInRange(html, rangeStart, rangeEnd)
+            const slice = html.slice(rangeStart, rangeEnd)
+            const mapInfo = findMapPattern(slice)
             if (mapInfo) {
               element.item = mapInfo
             }
@@ -249,14 +252,14 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
   return hierarchy
 }
 
-function detectMapElementInRange(
-  html: string,
-  startIndex: number,
-  endIndex: number
-): { src: "context" | "core"; key: string } | null {
-  if (endIndex <= startIndex) return null
-  const slice = html.slice(startIndex, endIndex)
-  // Достаточно наличия паттерна context|core.<key>.map( внутри диапазона
+/**
+ * Ищет паттерны map-операций в строке
+ *
+ * @param slice - подстрока для поиска
+ * @returns информация о найденном map-паттерне или null
+ */
+function findMapPattern(slice: string): MapInfo | null {
+  // Ищем паттерны context.<key>.map( или core.<key>.map(
   const ctx = slice.match(/context\.(\w+)\.map\s*\(/)
   if (ctx && ctx[1]) return { src: "context", key: ctx[1] }
   const core = slice.match(/core\.(\w+)\.map\s*\(/)
