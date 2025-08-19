@@ -24,11 +24,12 @@ describe("map", () => {
         type: "el",
         child: [
           {
-            tag: "li",
-            type: "el",
+            type: "map",
+            src: "context",
+            key: "list",
             item: {
-              src: "context",
-              key: "list",
+              tag: "li",
+              type: "el",
             },
           },
         ],

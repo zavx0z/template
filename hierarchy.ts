@@ -1,12 +1,13 @@
 import type { TagToken } from "./index"
 
 /**
- * Информация о map-паттерне, найденном между родителем и дочерним элементом.
- * Пример: `${context.list.map(...)}` → { src: "context", key: "list" }
+ * Узел map-операции с шаблоном элемента.
  */
-export type MapInfo = {
+export type MapNode = {
+  type: "map"
   src: "context" | "core"
   key: string
+  item: ElementHierarchy
 }
 
 /**
@@ -26,14 +27,13 @@ export type ConditionNode = {
 export type ElementHierarchy = {
   tag: string
   type: "el"
-  child?: (ElementHierarchy | ConditionNode)[]
-  item?: MapInfo
+  child?: (ElementHierarchy | ConditionNode | MapNode)[]
 }
 
 /**
  * Корневая иерархия элементов для переданного HTML.
  */
-export type ElementsHierarchy = (ElementHierarchy | ConditionNode)[]
+export type ElementsHierarchy = (ElementHierarchy | ConditionNode | MapNode)[]
 
 /**
  * Формирует иерархию элементов на основе последовательности тегов и исходного HTML.
@@ -57,6 +57,7 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
   const hierarchy: ElementsHierarchy = []
   const stack: { tag: TagToken; element: ElementHierarchy }[] = []
   const conditionStack: { startIndex: number; conditionInfo: { src: "context" | "core"; key: string } }[] = []
+  const mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[] = []
 
   for (let i = 0; i < tags.length; i++) {
     const tag = tags[i]
@@ -68,7 +69,7 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
         type: "el",
       }
 
-      // Проверяем, является ли этот элемент частью map
+      // Проверяем, является ли этот элемент частью map или условия
       if (stack.length > 0) {
         const parentItem = stack[stack.length - 1]
         if (parentItem) {
@@ -79,7 +80,7 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
             const slice = html.slice(rangeStart, rangeEnd)
             const mapInfo = findMapPattern(slice)
             if (mapInfo) {
-              element.item = mapInfo
+              mapStack.push({ startIndex: i, mapInfo: mapInfo })
             }
 
             // Проверяем условные элементы
@@ -110,6 +111,30 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
         const lastStackItem = stack[stack.length - 1]
         if (lastStackItem && lastStackItem.tag.name === tag.name) {
           stack.pop()
+
+          // Проверяем, нужно ли создать MapNode
+          if (mapStack.length > 0) {
+            const map = mapStack[mapStack.length - 1]
+            if (map && map.startIndex === i - 1) {
+              // Создаем MapNode из последнего элемента
+              const parent = stack[stack.length - 1]
+              if (parent && parent.element && parent.element.child && parent.element.child.length >= 1) {
+                const lastChild = parent.element.child[parent.element.child.length - 1]
+                if (lastChild && lastChild.type === "el") {
+                  const mapNode: MapNode = {
+                    type: "map",
+                    src: map.mapInfo.src,
+                    key: map.mapInfo.key,
+                    item: lastChild as ElementHierarchy,
+                  }
+
+                  // Заменяем последний элемент на MapNode
+                  parent.element.child.splice(-1, 1, mapNode)
+                  mapStack.pop()
+                }
+              }
+            }
+          }
 
           // Проверяем, нужно ли создать ConditionNode
           if (conditionStack.length > 0) {
@@ -154,7 +179,7 @@ export const elementsHierarchy = (html: string, tags: TagToken[]): ElementsHiera
  * @param slice Подстрока для поиска (между родителем и дочерним тегом)
  * @returns Информация о найденном map-паттерне или null, если не найдено
  */
-export function findMapPattern(slice: string): MapInfo | null {
+export function findMapPattern(slice: string): { src: "context" | "core"; key: string } | null {
   const ctx = slice.match(/context\.(\w+)\.map\s*\(/)
   if (ctx && ctx[1]) return { src: "context", key: ctx[1] }
   const core = slice.match(/core\.(\w+)\.map\s*\(/)
