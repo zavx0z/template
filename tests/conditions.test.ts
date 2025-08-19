@@ -28,10 +28,12 @@ describe("scanTagsFromRender / conditions", () => {
             true: {
               tag: "em",
               type: "el",
+              child: [{ type: "text", value: "A" }],
             },
             false: {
               tag: "span",
               type: "el",
+              child: [{ type: "text", value: "b" }],
             },
           },
         ],
