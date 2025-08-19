@@ -7,18 +7,27 @@ import type { NodeText } from "./text.t"
  * @returns Информация о найденном тексте или null, если текст не найден
  */
 export function checkPresentText(content: string): {
-  kind: "static" | "dynamic" | "mixed"
+  kind: "static" | "dynamic" | "mixed" | "condition"
   value?: string
   template?: string
   items?: Array<{ src: "context" | "core" | "state"; key?: string }>
+  condition?: { src: "context" | "core" | "state"; key: string; true: string; false: string }
 } | null {
   // Проверяем, есть ли сложные выражения (map, condition) или HTML теги
-  const hasComplexExpressions = /context\.\w+\.map|core\.\w+\.map|context\.\w+\s*\?|core\.\w+\s*\?|<[^>]*>/.test(
-    content
-  )
+  // Но не блокируем условные выражения в тексте вида ${context.key ? "true" : "false"}
+  const hasComplexExpressions = /context\.\w+\.map|core\.\w+\.map|<[^>]*>/.test(content)
 
   if (hasComplexExpressions) {
     return null
+  }
+
+  // Пробуем разобрать как условное выражение в тексте
+  const conditionText = parseConditionText(content)
+  if (conditionText) {
+    return {
+      kind: "condition",
+      condition: conditionText,
+    }
   }
 
   // Пробуем разобрать как смешанный текст
@@ -107,6 +116,13 @@ export function makeNodeText(
     }
   }
 
+  if (textInfo.kind === "condition") {
+    return {
+      type: "text",
+      cond: textInfo.condition!,
+    }
+  }
+
   return null
 }
 
@@ -158,6 +174,32 @@ function parseMixedText(
 
   if (items.length > 0) {
     return { template, items }
+  }
+
+  return null
+}
+
+/**
+ * Разбирает условное выражение в тексте.
+ * Пример: "${context.show ? "Visible" : "Hidden"}" → { src: "context", key: "show", true: "Visible", false: "Hidden" }
+ */
+function parseConditionText(
+  slice: string
+): { src: "context" | "core" | "state"; key: string; true: string; false: string } | null {
+  // Ищем паттерн: ${context.key ? "true_value" : "false_value"}
+  const regex = /\$\{(context|core)\.(\w+)\s*\?\s*["']([^"']*)["']\s*:\s*["']([^"']*)["']\}/g
+  const match = regex.exec(slice)
+
+  if (match) {
+    const [, src, key, trueValue, falseValue] = match
+    if (src && key && trueValue !== undefined && falseValue !== undefined) {
+      return {
+        src: src as "context" | "core" | "state",
+        key,
+        true: trueValue,
+        false: falseValue,
+      }
+    }
   }
 
   return null
