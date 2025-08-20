@@ -366,7 +366,7 @@ function createSpecialNodes(
         const children: (ElementHierarchy | TextNode)[] = []
         for (const child of rootElement.child) {
           if (child.type === "el") children.push(child as ElementHierarchy)
-          else if (child.type === "text") children.push(child as TextNode)
+          // Не добавляем текстовые узлы в MapNode, они уже добавлены в дочерние элементы
         }
         if (children.length > 0) {
           const mapNode: MapNode = {
@@ -385,7 +385,7 @@ function createSpecialNodes(
 /**
  * Вспомогательные функции для поиска тегов
  */
-function findOpenTag(tags: TagToken[], tagName: string): TagToken | null {
+function findOpenTag(tags: ElementToken[], tagName: string): ElementToken | null {
   for (const tag of tags) {
     if (tag.kind === "open" && tag.name === tagName) {
       return tag
@@ -394,7 +394,7 @@ function findOpenTag(tags: TagToken[], tagName: string): TagToken | null {
   return null
 }
 
-function findCloseTag(tags: TagToken[], tagName: string): TagToken | null {
+function findCloseTag(tags: ElementToken[], tagName: string): ElementToken | null {
   for (const tag of tags) {
     if (tag.kind === "close" && tag.name === tagName) {
       return tag
@@ -457,9 +457,9 @@ function findCloseTagForElement(tags: ElementToken[], tagName: string, openTag: 
  */
 function processTextFragments(
   html: string,
-  parentStackItem: { tag: TagToken; element: ElementHierarchy },
-  closingTag: TagToken,
-  tags: TagToken[],
+  parentStackItem: { tag: ElementToken; element: ElementHierarchy },
+  closingTag: ElementToken,
+  tags: ElementToken[],
   mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[]
 ) {
   const parentOpenTag = parentStackItem.tag
@@ -469,7 +469,7 @@ function processTextFragments(
   if (contentEnd <= contentStart) return
 
   // Получаем все теги внутри текущего элемента
-  const innerTags: TagToken[] = []
+  const innerTags: ElementToken[] = []
   for (const tag of tags) {
     if (tag.index > contentStart && tag.index < contentEnd) {
       innerTags.push(tag)
@@ -581,7 +581,7 @@ function processTextFragments(
 /**
  * Находит соответствующий закрывающий тег для открывающего
  */
-function findClosingTag(tags: TagToken[], openTag: TagToken): TagToken | null {
+function findClosingTag(tags: ElementToken[], openTag: ElementToken): ElementToken | null {
   let depth = 0
   for (const tag of tags) {
     if (tag.index <= openTag.index) continue
