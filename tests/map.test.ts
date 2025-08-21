@@ -259,8 +259,15 @@ describe("map", () => {
                     text: "nested.map((n)`",
                     child: [
                       {
-                        type: "text",
-                        text: "${n}",
+                        tag: "em",
+                        type: "el",
+                        text: "<em>",
+                        child: [
+                          {
+                            type: "text",
+                            text: "${n}",
+                          },
+                        ],
                       },
                     ],
                   },
@@ -324,16 +331,24 @@ describe("map", () => {
                     params: ["n"],
                     child: [
                       {
-                        type: "text",
-                        text: "${n}",
-                        data: "[item]",
-                        pathType: "item",
-                        staticParts: [],
-                        dynamicParts: [
+                        tag: "em",
+                        type: "el",
+                        text: "<em>",
+                        attributes: [],
+                        child: [
                           {
-                            path: "[item]",
-                            type: "item",
+                            type: "text",
                             text: "${n}",
+                            data: "[item]",
+                            pathType: "item",
+                            staticParts: [],
+                            dynamicParts: [
+                              {
+                                path: "[item]",
+                                type: "item",
+                                text: "${n}",
+                              },
+                            ],
                           },
                         ],
                       },

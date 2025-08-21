@@ -51,8 +51,15 @@ describe("hierarchy", () => {
                     text: "nested.map((n)`",
                     child: [
                       {
-                        type: "text",
-                        text: "${n}",
+                        tag: "em",
+                        type: "el",
+                        text: "<em>",
+                        child: [
+                          {
+                            type: "text",
+                            text: "${n}",
+                          },
+                        ],
                       },
                     ],
                   },
@@ -467,15 +474,15 @@ describe("hierarchy", () => {
                 text: "<section>",
                 child: [
                   {
-                    tag: "h2",
-                    type: "el",
-                    text: "<h2>",
                     child: [
                       {
-                        type: "text",
                         text: "${category.name}",
+                        type: "text",
                       },
                     ],
+                    tag: "h2",
+                    text: "<h2>",
+                    type: "el",
                   },
                   {
                     type: "map",

@@ -18,7 +18,8 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
   const hierarchy: NodeHierarchy = []
   const stack: StackItem[] = []
   const conditionStack: { parent: NodeElement | null; text: string }[] = []
-  const mapStack: { parent: NodeElement | null; text: string; startIndex: number }[] = []
+  // Запоминаем у какого родителя начался map и с какого индекса его дети должны быть обернуты
+  const mapStack: { parent: NodeElement | null; text: string; startChildIndex: number }[] = []
 
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i]
@@ -50,9 +51,10 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
           finalMapText += "`" // Добавляем символ ` в конец
         }
 
-        // Запоминаем что нужно создать map для родителя
+        // Запоминаем что нужно создать map для родителя и с какого индекса детей
         const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
-        mapStack.push({ parent, text: finalMapText, startIndex: i })
+        const startChildIndex = parent && parent.child ? parent.child.length : 0
+        mapStack.push({ parent, text: finalMapText, startChildIndex })
       }
 
       // Ищем condition паттерны
@@ -88,32 +90,9 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
           // Создаем NodeMap если нужно
           const mapInfo = mapStack.find((m) => m.parent === parentElement)
           if (mapInfo && parentElement.child && parentElement.child.length > 0) {
-            // Определяем какие элементы должны быть в map
-            let mapChildren: (NodeElement | NodeText)[]
-
-            if (mapInfo.text.includes("nested.map")) {
-              // Для вложенного map - проверяем контекст
-              const hasDirectTextNodes = parentElement.child.some((child) => child.type === "text")
-
-              if (hasDirectTextNodes) {
-                // Случай 2: есть текстовые узлы на том же уровне - обертываем элемент
-                const elementsWithN = parentElement.child.filter(
-                  (child) =>
-                    child.type === "el" &&
-                    child.child &&
-                    child.child.some((grandChild) => grandChild.type === "text" && grandChild.text?.includes("${n}"))
-                ) as NodeElement[]
-                mapChildren = elementsWithN
-              } else {
-                // Случай 1: нет текстовых узлов на том же уровне - создаем пустой map
-                // Текстовые узлы будут добавлены позже
-                mapChildren = []
-              }
-            } else {
-              // Для основного map - берем все дочерние элементы родителя
-              // В данном случае это все элементы ul (li и br)
-              mapChildren = [...parentElement.child] as (NodeElement | NodeText)[]
-            }
+            const startIdx = Math.max(0, mapInfo.startChildIndex)
+            const beforeChildren = parentElement.child.slice(0, startIdx)
+            const mapChildren = parentElement.child.slice(startIdx) as (NodeElement | NodeText)[]
 
             const mapNode: NodeMap = {
               type: "map",
@@ -121,75 +100,8 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
               child: mapChildren,
             }
 
-            // Очищаем дочерние элементы родителя и заменяем их на map
-            if (!mapInfo.text.includes("nested.map")) {
-              parentElement.child = [mapNode]
-            }
-
-            if (mapChildren.length > 0 || mapInfo.text.includes("nested.map")) {
-              if (mapInfo.text.includes("nested.map")) {
-                // Для вложенного map - применяем логику в зависимости от контекста
-                const hasDirectTextNodes = parentElement.child.some((child) => child.type === "text")
-
-                if (hasDirectTextNodes) {
-                  // Случай 2: заменяем элемент с ${n} на map
-                  const elementsWithN = parentElement.child.filter(
-                    (child) =>
-                      child.type === "el" &&
-                      child.child &&
-                      child.child.some((grandChild) => grandChild.type === "text" && grandChild.text?.includes("${n}"))
-                  ) as NodeElement[]
-
-                  if (elementsWithN.length > 0) {
-                    const firstElementWithN = elementsWithN[0]
-                    if (firstElementWithN) {
-                      const index = parentElement.child.indexOf(firstElementWithN)
-                      if (index !== -1) {
-                        parentElement.child.splice(index, 1, mapNode)
-                      }
-                    }
-                  }
-                } else {
-                  // Случай 1: перемещаем текстовые узлы из элементов в map и добавляем map
-                  const elementsToRemove: NodeElement[] = []
-                  for (const child of parentElement.child) {
-                    if (child.type === "el" && child.child) {
-                      const textIndex = child.child.findIndex(
-                        (grandChild) => grandChild.type === "text" && grandChild.text?.includes("${n}")
-                      )
-                      if (textIndex !== -1) {
-                        const textNode = child.child[textIndex]
-                        if (textNode) {
-                          child.child.splice(textIndex, 1) // Удаляем из элемента
-                          mapNode.child.push(textNode) // Добавляем в map
-
-                          // Помечаем элемент для удаления если он стал пустым
-                          if (child.child.length === 0) {
-                            elementsToRemove.push(child as NodeElement)
-                          }
-                          break
-                        }
-                      }
-                    }
-                  }
-
-                  // Удаляем пустые элементы
-                  for (const elementToRemove of elementsToRemove) {
-                    const index = parentElement.child.indexOf(elementToRemove)
-                    if (index !== -1) {
-                      parentElement.child.splice(index, 1)
-                    }
-                  }
-
-                  parentElement.child.push(mapNode)
-                }
-              } else {
-                // Для основного map - заменяем последний элемент на map
-                parentElement.child.splice(-1, 1, mapNode)
-              }
-
-              mapStack.splice(mapStack.indexOf(mapInfo), 1)
-            }
+            parentElement.child = [...beforeChildren, mapNode]
+            mapStack.splice(mapStack.indexOf(mapInfo), 1)
           }
 
           // Создаем NodeCondition если нужно
