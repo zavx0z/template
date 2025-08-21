@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
+import { enrichHierarchyWithFullData } from "../data-parser"
 
 describe("map", () => {
   it("простой map", () => {
@@ -46,31 +47,52 @@ describe("map", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "ul",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "map",
-    //         data: "/context/list",
-    //         child: [
-    //           {
-    //             tag: "li",
-    //             type: "el",
-    //             child: [
-    //               {
-    //                 type: "text",
-    //                 data: "[item]",
-    //               },
-    //             ],
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+
+    // Тест обогащенной иерархии с данными
+    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        attributes: [],
+        child: [
+          {
+            type: "map",
+            text: "context.list.map((name)`",
+            data: "/context/list",
+            pathType: "absolute",
+            params: ["name"],
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                attributes: [],
+                child: [
+                  {
+                    type: "text",
+                    text: "${name}",
+                    data: "[item]",
+                    pathType: "item",
+                    staticParts: [],
+                    dynamicParts: [
+                      {
+                        path: "[item]",
+                        type: "item",
+                        text: "${name}",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
+
   it("простой map с несколькими детьми", () => {
     const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
       ({ html, context }) => html`
@@ -125,35 +147,58 @@ describe("map", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "ul",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "map",
-    //         data: "/context/list",
-    //         child: [
-    //           {
-    //             tag: "li",
-    //             type: "el",
-    //             child: [
-    //               {
-    //                 type: "text",
-    //                 data: "[item]",
-    //               },
-    //             ],
-    //           },
-    //           {
-    //             tag: "br",
-    //             type: "el",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+
+    // Тест обогащенной иерархии с данными
+    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        attributes: [],
+        child: [
+          {
+            type: "map",
+            text: "context.list.map((name)`",
+            data: "/context/list",
+            pathType: "absolute",
+            params: ["name"],
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                attributes: [],
+                child: [
+                  {
+                    type: "text",
+                    text: "${name}",
+                    data: "[item]",
+                    pathType: "item",
+                    staticParts: [],
+                    dynamicParts: [
+                      {
+                        path: "[item]",
+                        type: "item",
+                        text: "${name}",
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                tag: "br",
+                type: "el",
+                text: "<br />",
+                attributes: [],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
+
   it("map в элементе вложенный в map", () => {
     const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
       ({ html, core }) => html`
@@ -226,47 +271,83 @@ describe("map", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "ul",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "map",
-    //         data: "/core/list",
-    //         child: [
-    //           {
-    //             tag: "li",
-    //             type: "el",
-    //             child: [
-    //               {
-    //                 tag: "p",
-    //                 type: "el",
-    //                 child: [
-    //                   {
-    //                     type: "text",
-    //                     data: "[item]/title",
-    //                   },
-    //                 ],
-    //               },
-    //               {
-    //                 type: "map",
-    //                 data: "[item]/nested",
-    //                 child: [
-    //                   {
-    //                     type: "text",
-    //                     data: "[item]",
-    //                   },
-    //                 ],
-    //               },
-    //             ],
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+
+    // Тест обогащенной иерархии с данными
+    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        attributes: [],
+        child: [
+          {
+            type: "map",
+            text: "core.list.map(({ title, nested })`",
+            data: "/core/list",
+            pathType: "absolute",
+            params: ["title", "nested"],
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                attributes: [],
+                child: [
+                  {
+                    tag: "p",
+                    type: "el",
+                    text: "<p>",
+                    attributes: [],
+                    child: [
+                      {
+                        type: "text",
+                        text: "${title}",
+                        data: "[item]",
+                        pathType: "item",
+                        staticParts: [],
+                        dynamicParts: [
+                          {
+                            path: "[item]",
+                            type: "item",
+                            text: "${title}",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    type: "map",
+                    text: "nested.map((n)`",
+                    data: "[item]/nested",
+                    pathType: "relative",
+                    params: ["n"],
+                    child: [
+                      {
+                        type: "text",
+                        text: "${n}",
+                        data: "[item]",
+                        pathType: "item",
+                        staticParts: [],
+                        dynamicParts: [
+                          {
+                            path: "[item]",
+                            type: "item",
+                            text: "${n}",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
+
   it("map рендерит вложенные шаблоны (последовательность name/kind)", () => {
     const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
       ({ html, context }) => html`

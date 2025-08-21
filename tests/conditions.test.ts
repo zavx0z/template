@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
+import { enrichHierarchyWithFullData } from "../data-parser"
 
 describe("scanTagsFromRender / conditions", () => {
   it("тернарник с внутренними тегами", () => {
@@ -44,28 +45,56 @@ describe("scanTagsFromRender / conditions", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "cond",
-    //         data: "/context/cond",
-    //         true: {
-    //           tag: "em",
-    //           type: "el",
-    //           child: [{ type: "text", value: "A" }],
-    //         },
-    //         false: {
-    //           tag: "span",
-    //           type: "el",
-    //           child: [{ type: "text", value: "b" }],
-    //         },
-    //       },
-    //     ],
-    //   },
-    // ])
+
+    // Тест обогащенной иерархии с данными
+    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        attributes: [],
+        child: [
+          {
+            type: "cond",
+            text: "context.cond",
+            data: "/context/cond",
+            pathType: "absolute",
+            expression: "context.cond",
+            true: {
+              tag: "em",
+              type: "el",
+              text: "<em>",
+              attributes: [],
+              child: [
+                {
+                  type: "text",
+                  text: "A",
+                  data: "",
+                  pathType: "absolute",
+                  staticParts: ["A"],
+                },
+              ],
+            },
+            false: {
+              tag: "span",
+              type: "el",
+              text: "<span>",
+              attributes: [],
+              child: [
+                {
+                  type: "text",
+                  text: "b",
+                  data: "",
+                  pathType: "absolute",
+                  staticParts: ["b"],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ])
   })
   it("сравнение нескольких переменных", () => {
     const mainHtml = extractMainHtmlBlock(

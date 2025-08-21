@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
+import { enrichHierarchyWithFullData } from "../data-parser"
 
 describe("text", () => {
   it("пустой элемент без текста", () => {
@@ -64,6 +65,50 @@ describe("text", () => {
         ],
       },
     ])
+
+    // Тест обогащенной иерархии с данными
+    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        attributes: [],
+        child: [
+          {
+            type: "map",
+            text: "context.list.map((name)`",
+            data: "/context/list",
+            pathType: "absolute",
+            params: ["name"],
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                attributes: [],
+                child: [
+                  {
+                    type: "text",
+                    text: "${name}",
+                    data: "[item]",
+                    pathType: "item",
+                    staticParts: [],
+                    dynamicParts: [
+                      {
+                        path: "[item]",
+                        type: "item",
+                        text: "${name}",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("динамический текст с разными именами переменных элемента массива", () => {
@@ -94,6 +139,50 @@ describe("text", () => {
                   {
                     type: "text",
                     text: "${item}",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+
+    // Тест обогащенной иерархии с данными
+    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        attributes: [],
+        child: [
+          {
+            type: "map",
+            text: "context.items.map((item)`",
+            data: "/context/items",
+            pathType: "absolute",
+            params: ["item"],
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                attributes: [],
+                child: [
+                  {
+                    type: "text",
+                    text: "${item}",
+                    data: "[item]",
+                    pathType: "item",
+                    staticParts: [],
+                    dynamicParts: [
+                      {
+                        path: "[item]",
+                        type: "item",
+                        text: "${item}",
+                      },
+                    ],
                   },
                 ],
               },
