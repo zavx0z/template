@@ -1,12 +1,11 @@
 import type {
   DataParserContext,
   DataParseResult,
-  NodeDataAttribute,
   NodeDataText,
   NodeDataMap,
   NodeDataCondition,
   NodeDataElement,
-} from "./data-parser.t"
+} from "./data.t"
 
 /**
  * Парсит путь к данным из map-выражения.
@@ -19,7 +18,7 @@ export const parseMapData = (
   const mapMatch = mapText.match(/(\w+(?:\.\w+)*)\.map\(([^)]*)\)/)
 
   if (!mapMatch) {
-    return { path: "", type: "absolute" }
+    return { path: "" }
   }
 
   const dataPath = mapMatch[1] || ""
@@ -44,7 +43,6 @@ export const parseMapData = (
 
     return {
       path: `[item]/${relativePath}`,
-      type: "relative",
       context: newContext,
       metadata: { params },
     }
@@ -62,7 +60,6 @@ export const parseMapData = (
 
     return {
       path: `[item]/${dataPath}`,
-      type: "relative",
       context: newContext,
       metadata: { params },
     }
@@ -80,7 +77,6 @@ export const parseMapData = (
 
     return {
       path: `[item]/${dataPath}`,
-      type: "relative",
       context: newContext,
       metadata: { params },
     }
@@ -99,7 +95,6 @@ export const parseMapData = (
 
   return {
     path: absolutePath,
-    type: "absolute",
     context: newContext,
     metadata: { params },
   }
@@ -142,7 +137,7 @@ export const parseConditionData = (
   const pathMatches = condText.match(/(\w+(?:\.\w+)*)/g) || []
 
   if (pathMatches.length === 0) {
-    return { path: "", type: "absolute" }
+    return { path: "" }
   }
 
   // Извлекаем выражение условия
@@ -154,7 +149,6 @@ export const parseConditionData = (
 
     return {
       path: absolutePath,
-      type: "absolute",
       metadata: { expression },
     }
   }
@@ -164,7 +158,6 @@ export const parseConditionData = (
 
   return {
     path: paths,
-    type: "absolute",
     metadata: { expression },
   }
 }
@@ -178,20 +171,14 @@ export const extractConditionExpression = (condText: string): string => {
 }
 
 /**
- * Парсит текстовый модуль с путями к данным.
+ * Парсит текстовые данные с путями.
  */
 export const parseTextData = (text: string, context: DataParserContext = { pathStack: [], level: 0 }): NodeDataText => {
-  // Ищем все переменные в тексте: ${variable}
-  const varMatches = text.match(/\$\{([^}]+)\}/g) || []
-
-  if (varMatches.length === 0) {
-    // Статический текст
+  // Если текст не содержит переменных - возвращаем статический
+  if (!text.includes("${")) {
     return {
       type: "text",
-      data: "",
-      pathType: "absolute",
-      text,
-      staticParts: [text],
+      value: text,
     }
   }
 
@@ -207,40 +194,61 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
 
       // Определяем путь к данным
       let path: string
-      let type: "absolute" | "relative" | "item" = "absolute"
 
       if (context.mapParams && context.mapParams.length > 0) {
         // В контексте map - используем [item]
         path = "[item]"
-        type = "item"
       } else if (context.currentPath && !context.currentPath.includes("[item]")) {
         // В контексте, но не map - добавляем к текущему пути
         path = `${context.currentPath}/${variable}`
-        type = "relative"
       } else {
         // Абсолютный путь
         path = `/${variable}`
-        type = "absolute"
       }
 
       return {
         path,
-        type,
         text: part.text,
       }
     })
 
   // Определяем основной путь (берем первый динамический)
-  const mainPath = dynamicParts.length > 0 ? dynamicParts[0]?.path || "" : ""
-  const mainType = dynamicParts.length > 0 ? dynamicParts[0]?.type || "absolute" : "absolute"
+  const firstDynamicPart = dynamicParts[0]
+  const mainPath = firstDynamicPart ? firstDynamicPart.path : ""
 
+  // Если только одна переменная без дополнительного текста
+  if (parts.length === 1 && parts[0] && parts[0].type === "dynamic") {
+    return {
+      type: "text",
+      data: mainPath,
+    }
+  }
+
+  // Если несколько переменных или смешанный текст
+  if (dynamicParts.length > 1) {
+    return {
+      type: "text",
+      data: dynamicParts.map((part) => part.path),
+      expr: parts
+        .map((part) => {
+          if (part.type === "static") return part.text
+          const index = dynamicParts.findIndex((dp) => dp.text === part.text)
+          return `\${${index}}`
+        })
+        .join(""),
+    }
+  }
+
+  // Одна переменная с дополнительным текстом
   return {
     type: "text",
     data: mainPath,
-    pathType: mainType,
-    text,
-    staticParts: parts.filter((part) => part.type === "static").map((part) => part.text),
-    dynamicParts,
+    expr: parts
+      .map((part) => {
+        if (part.type === "static") return part.text
+        return `\${0}`
+      })
+      .join(""),
   }
 }
 
@@ -279,77 +287,14 @@ export const splitTextIntoParts = (text: string): Array<{ type: "static" | "dyna
 }
 
 /**
- * Парсит атрибуты элемента с путями к данным.
- */
-export const parseElementAttributes = (
-  elementText: string,
-  context: DataParserContext = { pathStack: [], level: 0 }
-): NodeDataAttribute[] => {
-  const attributes: NodeDataAttribute[] = []
-
-  // Ищем атрибуты в теге: name="value" или name=${variable}
-  const attrMatches = elementText.match(/(\w+)=(?:["']([^"']*?)["']|([^"'\s>]+))/g) || []
-
-  for (const attrMatch of attrMatches) {
-    const nameMatch = attrMatch.match(/(\w+)=/)
-    const valueMatch = attrMatch.match(/=(?:["']([^"']*?)["']|([^"'\s>]+))/)
-
-    if (nameMatch && valueMatch) {
-      const name = nameMatch[1] || ""
-      const value = valueMatch[1] || valueMatch[2] || ""
-
-      // Проверяем, содержит ли значение переменную
-      if (value.includes("${")) {
-        const varMatch = value.match(/\$\{([^}]+)\}/)
-        const variable = varMatch?.[1] || ""
-
-        // Определяем путь к данным
-        let path: string
-        let type: "absolute" | "relative" | "item" = "absolute"
-
-        if (context.mapParams && context.mapParams.length > 0) {
-          path = "[item]"
-          type = "item"
-        } else if (context.currentPath && !context.currentPath.includes("[item]")) {
-          path = `${context.currentPath}/${variable}`
-          type = "relative"
-        } else {
-          path = `/${variable}`
-          type = "absolute"
-        }
-
-        attributes.push({
-          name,
-          data: path,
-          type,
-          text: attrMatch,
-        })
-      } else {
-        // Статический атрибут
-        attributes.push({
-          name,
-          data: "",
-          type: "absolute",
-          text: attrMatch,
-        })
-      }
-    }
-  }
-
-  return attributes
-}
-
-/**
  * Создает NodeDataMap из обычного NodeMap.
  */
 export const createNodeDataMap = (node: any, context: DataParserContext = { pathStack: [], level: 0 }): NodeDataMap => {
   const mapData = parseMapData(node.text, context)
 
   return {
-    ...node,
-    data: mapData.path,
-    pathType: mapData.type,
-    params: mapData.metadata?.params,
+    type: "map",
+    data: Array.isArray(mapData.path) ? mapData.path[0] || "" : mapData.path,
     child: node.child ? node.child.map((child: any) => createNodeDataElement(child, mapData.context || context)) : [],
   }
 }
@@ -364,10 +309,9 @@ export const createNodeDataCondition = (
   const condData = parseConditionData(node.text, context)
 
   return {
-    ...node,
-    data: condData.path,
-    pathType: condData.type,
-    expression: condData.metadata?.expression,
+    type: "cond",
+    data: Array.isArray(condData.path) ? condData.path : [condData.path],
+    expr: condData.metadata?.expression || "",
     true: createNodeDataElement(node.true, context),
     false: createNodeDataElement(node.false, context),
   }
@@ -391,8 +335,8 @@ export const createNodeDataElement = (node: any, context: DataParserContext = { 
 
   if (node.type === "el") {
     return {
-      ...node,
-      attributes: parseElementAttributes(node.text, context),
+      tag: node.tag,
+      type: "el",
       child: node.child ? node.child.map((child: any) => createNodeDataElement(child, context)) : undefined,
     }
   }
@@ -403,7 +347,7 @@ export const createNodeDataElement = (node: any, context: DataParserContext = { 
 /**
  * Обогащает иерархию узлов полными данными о путях.
  */
-export const enrichHierarchyWithFullData = (
+export const enrichHierarchyWithData = (
   hierarchy: any[],
   context: DataParserContext = { pathStack: [], level: 0 }
 ): (NodeDataElement | NodeDataText | NodeDataMap | NodeDataCondition)[] => {

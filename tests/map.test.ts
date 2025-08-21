@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
+import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
-import { enrichHierarchyWithFullData } from "../data-parser"
+import { enrichHierarchyWithData } from "../data"
 
 describe("map", () => {
   it("простой map", () => {
@@ -48,41 +48,23 @@ describe("map", () => {
       },
     ])
 
-    // Тест обогащенной иерархии с данными
-    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
     expect(enrichedHierarchy).toEqual([
       {
         tag: "ul",
         type: "el",
-        text: "<ul>",
-        attributes: [],
         child: [
           {
             type: "map",
-            text: "context.list.map((name)`",
             data: "/context/list",
-            pathType: "absolute",
-            params: ["name"],
             child: [
               {
                 tag: "li",
                 type: "el",
-                text: "<li>",
-                attributes: [],
                 child: [
                   {
                     type: "text",
-                    text: "${name}",
                     data: "[item]",
-                    pathType: "item",
-                    staticParts: [],
-                    dynamicParts: [
-                      {
-                        path: "[item]",
-                        type: "item",
-                        text: "${name}",
-                      },
-                    ],
                   },
                 ],
               },
@@ -147,50 +129,29 @@ describe("map", () => {
         ],
       },
     ])
-
-    // Тест обогащенной иерархии с данными
-    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
     expect(enrichedHierarchy).toEqual([
       {
         tag: "ul",
         type: "el",
-        text: "<ul>",
-        attributes: [],
         child: [
           {
             type: "map",
-            text: "context.list.map((name)`",
             data: "/context/list",
-            pathType: "absolute",
-            params: ["name"],
             child: [
               {
                 tag: "li",
                 type: "el",
-                text: "<li>",
-                attributes: [],
                 child: [
                   {
                     type: "text",
-                    text: "${name}",
                     data: "[item]",
-                    pathType: "item",
-                    staticParts: [],
-                    dynamicParts: [
-                      {
-                        path: "[item]",
-                        type: "item",
-                        text: "${name}",
-                      },
-                    ],
                   },
                 ],
               },
               {
                 tag: "br",
                 type: "el",
-                text: "<br />",
-                attributes: [],
               },
             ],
           },
@@ -278,77 +239,41 @@ describe("map", () => {
         ],
       },
     ])
-
-    // Тест обогащенной иерархии с данными
-    const enrichedHierarchy = enrichHierarchyWithFullData(hierarchy)
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
     expect(enrichedHierarchy).toEqual([
       {
         tag: "ul",
         type: "el",
-        text: "<ul>",
-        attributes: [],
         child: [
           {
             type: "map",
-            text: "core.list.map(({ title, nested })`",
             data: "/core/list",
-            pathType: "absolute",
-            params: ["title", "nested"],
             child: [
               {
                 tag: "li",
                 type: "el",
-                text: "<li>",
-                attributes: [],
                 child: [
                   {
                     tag: "p",
                     type: "el",
-                    text: "<p>",
-                    attributes: [],
                     child: [
                       {
                         type: "text",
-                        text: "${title}",
                         data: "[item]",
-                        pathType: "item",
-                        staticParts: [],
-                        dynamicParts: [
-                          {
-                            path: "[item]",
-                            type: "item",
-                            text: "${title}",
-                          },
-                        ],
                       },
                     ],
                   },
                   {
                     type: "map",
-                    text: "nested.map((n)`",
                     data: "[item]/nested",
-                    pathType: "relative",
-                    params: ["n"],
                     child: [
                       {
                         tag: "em",
                         type: "el",
-                        text: "<em>",
-                        attributes: [],
                         child: [
                           {
                             type: "text",
-                            text: "${n}",
                             data: "[item]",
-                            pathType: "item",
-                            staticParts: [],
-                            dynamicParts: [
-                              {
-                                path: "[item]",
-                                type: "item",
-                                text: "${n}",
-                              },
-                            ],
                           },
                         ],
                       },
