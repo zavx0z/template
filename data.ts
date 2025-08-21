@@ -166,8 +166,20 @@ export const parseConditionData = (
  * Извлекает выражение условия.
  */
 export const extractConditionExpression = (condText: string): string => {
-  // Убираем лишние пробелы и символы
-  return condText.replace(/\s+/g, " ").trim()
+  // Ищем все переменные в условии
+  const pathMatches = condText.match(/(\w+(?:\.\w+)*)/g) || []
+
+  if (pathMatches.length <= 1) {
+    return condText.replace(/\s+/g, " ").trim()
+  }
+
+  // Заменяем переменные на индексы ${0}, ${1}, и т.д.
+  let expression = condText
+  pathMatches.forEach((path, index) => {
+    expression = expression.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+  })
+
+  return expression.replace(/\s+/g, " ").trim()
 }
 
 /**
@@ -307,11 +319,12 @@ export const createNodeDataCondition = (
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeDataCondition => {
   const condData = parseConditionData(node.text, context)
+  const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
 
   return {
     type: "cond",
-    data: Array.isArray(condData.path) ? condData.path : [condData.path],
-    expr: condData.metadata?.expression || "",
+    data: isSimpleCondition ? (Array.isArray(condData.path) ? condData.path[0] : condData.path) : condData.path,
+    ...(isSimpleCondition ? {} : { expr: condData.metadata?.expression || "" }),
     true: createNodeDataElement(node.true, context),
     false: createNodeDataElement(node.false, context),
   }

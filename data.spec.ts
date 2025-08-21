@@ -79,12 +79,13 @@ describe("data-parser", () => {
     it("парсит сложное условие", () => {
       const result = parseConditionData("context.cond && context.cond2")
       expect(result.path).toEqual(["/context/cond", "/context/cond2"])
-      expect(result.metadata?.expression).toBe("context.cond && context.cond2")
+      expect(result.metadata?.expression).toBe("${0} && ${1}")
     })
 
     it("парсит условие с операторами", () => {
       const result = parseConditionData("context.flag === context.cond2")
       expect(result.path).toEqual(["/context/flag", "/context/cond2"])
+      expect(result.metadata?.expression).toBe("${0} === ${1}")
     })
   })
 
@@ -224,8 +225,8 @@ describe("data-parser", () => {
       const enriched = enrichHierarchyWithData(hierarchy)
       expect(enriched[0]?.type).toBe("cond")
       const condNode = enriched[0] as any
-      expect(condNode.data).toEqual(["/context/flag"])
-      expect(condNode.expr).toBe("context.flag")
+      expect(condNode.data).toBe("/context/flag")
+      expect(condNode.expr).toBeUndefined()
     })
   })
 })

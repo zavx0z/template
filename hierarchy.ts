@@ -58,11 +58,11 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
       }
 
       // Ищем condition паттерны
-      const condMatch = slice.match(/(\w+(?:\.\w+)*)(?:\s*\?|(?=\s*\?\s*html`))/)
+      const condMatch = slice.match(/\$\{([^?]+)\?/)
       if (condMatch) {
         // Запоминаем что нужно создать condition для родителя
         const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
-        conditionStack.push({ parent, text: condMatch[1] || "" })
+        conditionStack.push({ parent, text: condMatch[1].trim() || "" })
       }
 
       // Добавляем элемент в иерархию

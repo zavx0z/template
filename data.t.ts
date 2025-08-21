@@ -21,8 +21,8 @@ export interface NodeDataMap {
 
 export interface NodeDataCondition {
   type: "cond"
-  data: string[] // Массив путей к данным
-  expr: string // Выражение с индексами
+  data: string | string[] // Путь(и) к данным
+  expr?: string // Выражение с индексами (если несколько переменных)
   true: NodeData
   false: NodeData
 }

@@ -327,7 +327,7 @@ describe("map", () => {
                 child: [
                   {
                     type: "cond",
-                    text: "2",
+                    text: "i % 2",
                     true: {
                       tag: "em",
                       type: "el",

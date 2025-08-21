@@ -45,30 +45,6 @@ describe("scanTagsFromRender / conditions", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "cond",
-    //         data: "/context/cond",
-    //         true: {
-    //           tag: "em",
-    //           type: "el",
-    //           child: [{ type: "text", value: "A" }],
-    //         },
-    //         false: {
-    //           tag: "span",
-    //           type: "el",
-    //           child: [{ type: "text", value: "b" }],
-    //         },
-    //       },
-    //     ],
-    //   },
-    // ])
-
-    // Тест обогащенной иерархии с данными
     const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
     expect(enrichedHierarchy).toEqual([
       {
@@ -117,7 +93,7 @@ describe("scanTagsFromRender / conditions", () => {
         child: [
           {
             type: "cond",
-            text: "context.cond2",
+            text: "context.cond && context.cond2",
             true: {
               tag: "em",
               type: "el",
@@ -134,29 +110,30 @@ describe("scanTagsFromRender / conditions", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "cond",
-    //         data: ["/context/cond", "/context/cond2"],
-    //         expr: "${0} && ${1}",
-    //         true: {
-    //           tag: "em",
-    //           type: "el",
-    //           child: [{ type: "text", value: "A" }],
-    //         },
-    //         false: {
-    //           tag: "span",
-    //           type: "el",
-    //           child: [{ type: "text", value: "b" }],
-    //         },
-    //       },
-    //     ],
-    //   },
-    // ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "cond",
+            data: ["/context/cond", "/context/cond2"],
+            expr: "${0} && ${1}",
+            true: {
+              tag: "em",
+              type: "el",
+              child: [{ type: "text", value: "A" }],
+            },
+            false: {
+              tag: "span",
+              type: "el",
+              child: [{ type: "text", value: "b" }],
+            },
+          },
+        ],
+      },
+    ])
   })
 
   it("сравнение переменных на равенство", () => {
@@ -175,7 +152,7 @@ describe("scanTagsFromRender / conditions", () => {
         child: [
           {
             type: "cond",
-            text: "context.cond2",
+            text: "context.cond === context.cond2",
             true: {
               tag: "em",
               type: "el",
