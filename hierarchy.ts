@@ -110,16 +110,20 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
                 mapChildren = []
               }
             } else {
-              // Для основного map - берем все элементы после начала map
-              mapChildren = parentElement.child.filter((child, index) => {
-                return index >= (parentElement.child?.length || 0) - 1
-              }) as (NodeElement | NodeText)[]
+              // Для основного map - берем все дочерние элементы родителя
+              // В данном случае это все элементы ul (li и br)
+              mapChildren = [...parentElement.child] as (NodeElement | NodeText)[]
             }
 
             const mapNode: NodeMap = {
               type: "map",
               text: mapInfo.text,
               child: mapChildren,
+            }
+
+            // Очищаем дочерние элементы родителя и заменяем их на map
+            if (!mapInfo.text.includes("nested.map")) {
+              parentElement.child = [mapNode]
             }
 
             if (mapChildren.length > 0 || mapInfo.text.includes("nested.map")) {

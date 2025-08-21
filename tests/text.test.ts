@@ -114,6 +114,32 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "core.titles.map((title)`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    type: "text",
+                    text: "${title}",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "ul",
@@ -182,6 +208,26 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            text: "<p>",
+            child: [
+              {
+                type: "text",
+                text: "Hello, ${context.name}!",
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "div",
@@ -212,6 +258,26 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            text: "<p>",
+            child: [
+              {
+                type: "text",
+                text: "Hello, ${context.family} ${context.name}!",
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "div",
@@ -250,6 +316,26 @@ describe("text", () => {
     ])
 
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            text: "<p>",
+            child: [
+              {
+                type: "text",
+                text: '${context.show ? "Visible" : "Hidden"}',
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "div",
@@ -298,6 +384,41 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            type: "cond",
+            text: "context.show",
+            true: {
+              tag: "p",
+              type: "el",
+              text: "<p>",
+              child: [
+                {
+                  type: "text",
+                  text: "Visible: ${context.name}",
+                },
+              ],
+            },
+            false: {
+              tag: "p",
+              type: "el",
+              text: "<p>",
+              child: [
+                {
+                  type: "text",
+                  text: "Hidden",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "div",
@@ -337,6 +458,30 @@ describe("text", () => {
     const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div><b>Hello, </b>${context.name}</div>`)
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            tag: "b",
+            type: "el",
+            text: "<b>",
+            child: [
+              {
+                type: "text",
+                text: "Hello, ",
+              },
+            ],
+          },
+          {
+            type: "text",
+            text: "${context.name}",
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "div",
@@ -365,6 +510,30 @@ describe("text", () => {
     const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div>${context.name}<b>-hello</b></div>`)
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            type: "text",
+            text: "${context.name}",
+          },
+          {
+            tag: "b",
+            type: "el",
+            text: "<b>",
+            child: [
+              {
+                type: "text",
+                text: "-hello",
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "div",
@@ -395,6 +564,34 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            type: "text",
+            text: "${context.family} ",
+          },
+          {
+            tag: "b",
+            type: "el",
+            text: "<b>",
+            child: [
+              {
+                type: "text",
+                text: "-hello",
+              },
+            ],
+          },
+          {
+            type: "text",
+            text: "${context.name}",
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "div",
@@ -433,6 +630,43 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "core.users.map((user)`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    tag: "strong",
+                    type: "el",
+                    text: "<strong>",
+                    child: [
+                      {
+                        type: "text",
+                        text: "${user.name}",
+                      },
+                    ],
+                  },
+                  {
+                    type: "text",
+                    text: " - ${user.role}",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "ul",

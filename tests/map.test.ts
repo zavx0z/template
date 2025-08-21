@@ -20,6 +20,32 @@ describe("map", () => {
       { text: "</ul>", index: 86, name: "ul", kind: "close" },
     ])
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "context.list.map((name)`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    type: "text",
+                    text: "${name}",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "ul",
@@ -68,6 +94,37 @@ describe("map", () => {
       { text: "</ul>", index: 135, name: "ul", kind: "close" },
     ])
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "context.list.map((name)`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    type: "text",
+                    text: "${name}",
+                  },
+                ],
+              },
+              {
+                tag: "br",
+                type: "el",
+                text: "<br />",
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "ul",
@@ -126,6 +183,49 @@ describe("map", () => {
       { text: "</ul>", index: 222, name: "ul", kind: "close" },
     ])
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "core.list.map(({ title, nested })`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    tag: "p",
+                    type: "el",
+                    text: "<p>",
+                    child: [
+                      {
+                        type: "text",
+                        text: "${title}",
+                      },
+                    ],
+                  },
+                  {
+                    type: "map",
+                    text: "nested.map((n)`",
+                    child: [
+                      {
+                        type: "text",
+                        text: "${n}",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "ul",
@@ -189,6 +289,54 @@ describe("map", () => {
       { text: "</ul>", index: 133, name: "ul", kind: "close" },
     ])
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "context.list.map((_, i)`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    type: "cond",
+                    text: "2",
+                    true: {
+                      tag: "em",
+                      type: "el",
+                      text: "<em>",
+                      child: [
+                        {
+                          type: "text",
+                          text: "A",
+                        },
+                      ],
+                    },
+                    false: {
+                      tag: "strong",
+                      type: "el",
+                      text: "<strong>",
+                      child: [
+                        {
+                          type: "text",
+                          text: "B",
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "ul",
@@ -262,6 +410,49 @@ describe("map", () => {
       { text: "</ul>", index: 139, name: "ul", kind: "close" },
     ])
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "core.list.map(({ title, nested })`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    type: "text",
+                    text: "${title} ",
+                  },
+                  {
+                    type: "map",
+                    text: "nested.map((n)`",
+                    child: [
+                      {
+                        tag: "em",
+                        type: "el",
+                        text: "<em>",
+                        child: [
+                          {
+                            type: "text",
+                            text: "${n}",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     tag: "ul",
@@ -328,6 +519,64 @@ describe("map", () => {
       { text: "</div>", index: 189, name: "div", kind: "close" },
     ])
     const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        type: "cond",
+        text: "context.flag",
+        true: {
+          tag: "ul",
+          type: "el",
+          text: "<ul>",
+          child: [
+            {
+              type: "map",
+              text: "core.list.map(({ title, nested })`",
+              child: [
+                {
+                  tag: "li",
+                  type: "el",
+                  text: "<li>",
+                  child: [
+                    {
+                      type: "text",
+                      text: "${title} ",
+                    },
+                    {
+                      type: "map",
+                      text: "nested.map((n)`",
+                      child: [
+                        {
+                          tag: "em",
+                          type: "el",
+                          text: "<em>",
+                          child: [
+                            {
+                              type: "text",
+                              text: "${n}",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        false: {
+          tag: "div",
+          type: "el",
+          text: "<div>",
+          child: [
+            {
+              type: "text",
+              text: "x",
+            },
+          ],
+        },
+      },
+    ])
     // expect(hierarchy).toEqual([
     //   {
     //     type: "cond",
