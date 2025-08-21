@@ -4,6 +4,12 @@
 export type NodeText = {
   /** Тип узла */
   type: "text"
-  /** Исходный текст */
-  text: string
+  /** Исходный текст (опционально) */
+  text?: string
+  /** Путь к данным (опционально) */
+  data?: string | string[]
+  /** Значение (опционально) */
+  value?: string
+  /** Выражение (опционально) */
+  expr?: string
 }

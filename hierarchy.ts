@@ -101,7 +101,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
                   (child) =>
                     child.type === "el" &&
                     child.child &&
-                    child.child.some((grandChild) => grandChild.type === "text" && grandChild.text.includes("${n}"))
+                    child.child.some((grandChild) => grandChild.type === "text" && grandChild.text?.includes("${n}"))
                 ) as NodeElement[]
                 mapChildren = elementsWithN
               } else {
@@ -137,7 +137,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
                     (child) =>
                       child.type === "el" &&
                       child.child &&
-                      child.child.some((grandChild) => grandChild.type === "text" && grandChild.text.includes("${n}"))
+                      child.child.some((grandChild) => grandChild.type === "text" && grandChild.text?.includes("${n}"))
                   ) as NodeElement[]
 
                   if (elementsWithN.length > 0) {
@@ -155,7 +155,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
                   for (const child of parentElement.child) {
                     if (child.type === "el" && child.child) {
                       const textIndex = child.child.findIndex(
-                        (grandChild) => grandChild.type === "text" && grandChild.text.includes("${n}")
+                        (grandChild) => grandChild.type === "text" && grandChild.text?.includes("${n}")
                       )
                       if (textIndex !== -1) {
                         const textNode = child.child[textIndex]
