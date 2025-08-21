@@ -7,7 +7,7 @@ import type { NodeText } from "./text.t"
  * @returns Информация о найденном тексте или null, если текст не найден
  */
 export function checkPresentText(content: string): {
-  kind: "static" | "dynamic" | "mixed" | "condition"
+  kind: "static" | "dynamic" | "mixed" | "condition" | "complex"
   value?: string
   template?: string
   items?: Array<{ src: "context" | "core" | "state"; key?: string }>
@@ -18,6 +18,14 @@ export function checkPresentText(content: string): {
   const hasComplexExpressions = /context\.\w+\.map|core\.\w+\.map|<[^>]*>|`\)|html`|`\s*:|`\s*\?|`\}/.test(content)
 
   if (hasComplexExpressions) {
+    // Проверяем, является ли это сложным выражением, которое мы можем обработать
+    const complexMatch = content.match(/\$\{(context|core)\.(\w+)\.map\s*\([^}]*\)\}/)
+    if (complexMatch) {
+      return {
+        kind: "complex",
+        value: content,
+      }
+    }
     return null
   }
 
@@ -44,7 +52,7 @@ export function checkPresentText(content: string): {
   const textInfo = findTextPattern(content)
   if (textInfo) {
     if (textInfo.kind === "dynamic") {
-      return { kind: "dynamic" }
+      return { kind: "dynamic", value: content }
     } else if (textInfo.kind === "static") {
       return { kind: "static", value: textInfo.value }
     }
@@ -62,7 +70,8 @@ export function checkPresentText(content: string): {
  */
 export function makeNodeText(
   textInfo: NonNullable<ReturnType<typeof checkPresentText>>,
-  mapContext?: { src: "context" | "core" | ["core", ...string[]]; key: string }
+  mapContext?: { data: string },
+  originalText?: string
 ): NodeText | null {
   if (textInfo.kind === "static") {
     return {
@@ -72,113 +81,134 @@ export function makeNodeText(
   }
 
   if (textInfo.kind === "dynamic") {
+    // Нужно анализировать весь текст, а не только textInfo.value
+    // Ищем все ${...} выражения в тексте
+    const fullText = textInfo.value || ""
+
     if (mapContext) {
-      // Текст внутри map - используем вложенный формат
-      if (mapContext.src === "context") {
+      // Текст внутри map - анализируем содержимое
+      const match = fullText.match(/\$\{(\w+)\.(\w+)\}/)
+      if (match) {
+        const [, obj, prop] = match
+        // Если это обращение к свойству объекта (например, user.name)
         return {
           type: "text",
-          src: ["context", mapContext.key],
-        }
-      } else if (mapContext.src === "core") {
-        return {
-          type: "text",
-          src: ["core", mapContext.key],
-        }
-      } else {
-        // Вложенный путь для core
-        return {
-          type: "text",
-          src: [...mapContext.src, mapContext.key],
+          data: `[item]/${prop}`,
         }
       }
-    } else {
-      // Обычный динамический текст
+      // Простой случай - используем [item]
       return {
         type: "text",
-        src: "context", // По умолчанию context, можно расширить логику
+        data: "[item]",
       }
+    } else {
+      // Обычный динамический текст - извлекаем путь из textInfo
+      // Сначала проверяем вложенные свойства: core.user.name
+      const nestedMatch = fullText.match(/\$\{(context|core)\.(\w+)\.(\w+)\}/)
+      if (nestedMatch) {
+        const [, src, obj, prop] = nestedMatch
+        return {
+          type: "text",
+          data: `/${src}/${obj}/${prop}`,
+        }
+      }
+      // Потом простые: context.name
+      const match = fullText.match(/\$\{(context|core)\.(\w+)\}/)
+      if (match) {
+        const [, src, key] = match
+        return {
+          type: "text",
+          data: `/${src}/${key}`,
+        }
+      }
+      return null
     }
   }
 
   if (textInfo.kind === "mixed") {
     if (textInfo.items!.length === 1) {
-      // Одна переменная - проверяем, есть ли окружающий текст
+      // Одна переменная
       const item = textInfo.items![0]
       if (item) {
         const hasTemplate = textInfo.template!.trim() !== "${0}"
 
         if (!hasTemplate) {
-          // Нет окружающего текста - обрабатываем как простой динамический
+          // Нет окружающего текста
           if (mapContext) {
-            if (mapContext.src === "context") {
+            // В map контексте - проверяем, есть ли обращение к свойству
+            const textToAnalyze = originalText || textInfo.value || ""
+            const match = textToAnalyze.match(/\$\{(\w+)\.(\w+)\}/)
+            if (match) {
+              const [, obj, prop] = match
               return {
                 type: "text",
-                src: ["context", mapContext.key],
-                key: item.key,
-              }
-            } else if (mapContext.src === "core") {
-              return {
-                type: "text",
-                src: ["core", mapContext.key],
-                key: item.key,
-              }
-            } else {
-              // Вложенный путь для core
-              return {
-                type: "text",
-                src: [...mapContext.src, mapContext.key],
-                key: item.key,
+                data: `[item]/${prop}`,
               }
             }
-          } else {
             return {
               type: "text",
-              src: item.src,
-              key: item.key,
+              data: "[item]",
+            }
+          } else {
+            // Проверяем вложенные свойства
+            const nestedMatch = textInfo.value?.match(/\$\{(context|core)\.(\w+)\.(\w+)\}/)
+            if (nestedMatch) {
+              const [, src, obj, prop] = nestedMatch
+              return {
+                type: "text",
+                data: `/${src}/${obj}/${prop}`,
+              }
+            }
+            return {
+              type: "text",
+              data: `/${item.src}/${item.key}`,
             }
           }
         } else {
-          // Есть окружающий текст - используем шаблон
+          // Есть окружающий текст
           if (mapContext) {
-            if (mapContext.src === "context") {
+            // В map контексте - проверяем, есть ли обращение к свойству
+            const textToAnalyze = originalText || textInfo.value || ""
+            const match = textToAnalyze.match(/\$\{(\w+)\.(\w+)\}/)
+            if (match) {
+              const [, obj, prop] = match
               return {
                 type: "text",
-                src: ["context", mapContext.key],
-                key: item.key,
-                template: textInfo.template!,
-              }
-            } else if (mapContext.src === "core") {
-              return {
-                type: "text",
-                src: ["core", mapContext.key],
-                key: item.key,
-                template: textInfo.template!,
-              }
-            } else {
-              // Вложенный путь для core
-              return {
-                type: "text",
-                src: [...mapContext.src, mapContext.key],
-                key: item.key,
-                template: textInfo.template!,
+                data: `[item]/${prop}`,
+                expr: textInfo.template!,
               }
             }
-          } else {
             return {
               type: "text",
-              src: item.src,
-              key: item.key,
-              template: textInfo.template!,
+              data: "[item]",
+              expr: textInfo.template!,
+            }
+          } else {
+            // Проверяем вложенные свойства
+            const nestedMatch = textInfo.value?.match(/\$\{(context|core)\.(\w+)\.(\w+)\}/)
+            if (nestedMatch) {
+              const [, src, obj, prop] = nestedMatch
+              return {
+                type: "text",
+                data: `/${src}/${obj}/${prop}`,
+                expr: textInfo.template!,
+              }
+            }
+            return {
+              type: "text",
+              data: `/${item.src}/${item.key}`,
+              expr: textInfo.template!,
             }
           }
         }
       }
     } else {
-      // Несколько переменных - используем TextMixedMulti
+      // Несколько переменных
+      const paths = textInfo.items!.map((item) => `/${item.src}/${item.key}`)
       return {
         type: "text",
-        template: textInfo.template!,
-        items: textInfo.items!,
+        data: paths,
+        expr: textInfo.template!,
       }
     }
   }
@@ -186,7 +216,31 @@ export function makeNodeText(
   if (textInfo.kind === "condition") {
     return {
       type: "text",
-      cond: textInfo.condition!,
+      data: `/${textInfo.condition!.src}/${textInfo.condition!.key}`,
+      expr: `\${0} ? '${textInfo.condition!.true}' : '${textInfo.condition!.false}'`,
+    }
+  }
+
+  if (textInfo.kind === "complex") {
+    const fullText = textInfo.value || ""
+    // Используем более общее регулярное выражение для всех случаев
+    const complexMatch = fullText.match(/\$\{(context|core)\.(\w+)\.map\s*\([^}]*\)\}/)
+    if (complexMatch) {
+      const [, src, key] = complexMatch
+      // Извлекаем выражение внутри map
+      const exprMatch = fullText.match(/\.map\s*\(([^}]*)\)/)
+      if (exprMatch) {
+        const expr = exprMatch[1]
+        if (!expr) return null
+        // Убираем лишние скобки из параметра функции
+        const cleanExpr = expr.replace(/^\(([^)]+)\)\s*=>/, "$1 =>")
+        const result: NodeText = {
+          type: "text",
+          data: `/${src}/${key}`,
+          expr: `\${0}.map(${cleanExpr})`,
+        }
+        return result
+      }
     }
   }
 
@@ -198,8 +252,8 @@ export function makeNodeText(
  * Возвращает либо статическое значение, либо признак динамического текста `${...}`.
  */
 function findTextPattern(slice: string): ({ kind: "static"; value: string } | { kind: "dynamic" }) | null {
-  // Динамика: только простой идентификатор без точек/скобок/тегов внутри: ${name}
-  const dynamicId = slice.match(/\$\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}/)
+  // Динамика: идентификатор с возможными точками: ${name} или ${context.name} или ${core.user.name}
+  const dynamicId = slice.match(/\$\{\s*([A-Za-z_][A-Za-z0-9_.]*)\s*\}/)
   if (dynamicId) return { kind: "dynamic" }
 
   // Статика: убираем интерполяции и проверяем, что нет тегов

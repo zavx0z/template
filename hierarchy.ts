@@ -1,4 +1,4 @@
-import type { TagToken, ElementToken } from "./splitter"
+import type { ElementToken } from "./splitter"
 import { checkPresentText, makeNodeText } from "./text"
 import type {
   NodeMap,
@@ -10,7 +10,6 @@ import type {
   StackItem,
   MapStackItem,
   ConditionStackItem,
-  ContentFragment,
 } from "./hierarchy.t"
 import type { NodeText } from "./text.t"
 
@@ -114,25 +113,29 @@ export const elementsHierarchy = (html: string, tags: ElementToken[]): NodeHiera
  * @returns Информация о найденном map-паттерне или null, если не найдено
  */
 export function findMapPattern(slice: string): MapPatternInfo | null {
+  // Простые map: context.list.map( или core.list.map(
   const ctx = slice.match(/context\.(\w+)\.map\s*\(/)
   if (ctx && ctx[1]) {
-    // Ищем переменную индекса в map-вызове
-    const indexMatch = slice.match(/context\.(\w+)\.map\s*\(\s*\([^,]*,\s*(\w+)\)\s*=>/)
-    if (indexMatch && indexMatch[2]) {
-      return { src: "context", key: ctx[1], index: indexMatch[2] }
-    }
-    return { src: "context", key: ctx[1] }
+    return { data: `/context/${ctx[1]}` }
   }
 
   const core = slice.match(/core\.(\w+)\.map\s*\(/)
   if (core && core[1]) {
-    // Ищем переменную индекса в map-вызове
-    const indexMatch = slice.match(/core\.(\w+)\.map\s*\(\s*\([^,]*,\s*(\w+)\)\s*=>/)
-    if (indexMatch && indexMatch[2]) {
-      return { src: "core", key: core[1], index: indexMatch[2] }
-    }
-    return { src: "core", key: core[1] }
+    return { data: `/core/${core[1]}` }
   }
+
+  // Вложенные map: item.nested.map( или title.nested.map(
+  const nested = slice.match(/(\w+)\.(\w+)\.map\s*\(/)
+  if (nested && nested[1] && nested[2]) {
+    return { data: `[item]/${nested[2]}` }
+  }
+
+  // Альтернативный паттерн для вложенных map: nested.map(
+  const altNested = slice.match(/(\w+)\.map\s*\(/)
+  if (altNested && altNested[1]) {
+    return { data: `[item]/${altNested[1]}` }
+  }
+
   return null
 }
 
@@ -144,11 +147,39 @@ export function findMapPattern(slice: string): MapPatternInfo | null {
  * @returns Информация об условии или null
  */
 export function findConditionPattern(slice: string): ConditionPatternInfo | null {
+  // Сложные условия: context.cond && context.cond2 ? (внутри ${...})
+  const complexCtx = slice.match(/\$\{context\.(\w+)\s*&&\s*context\.(\w+)\s*\?\s*/)
+  if (complexCtx && complexCtx[1] && complexCtx[2]) {
+    return {
+      data: [`/context/${complexCtx[1]}`, `/context/${complexCtx[2]}`],
+      expr: "${0} && ${1}",
+    }
+  }
+
+  // Сравнения: context.cond === context.cond2 ? (внутри ${...})
+  const compareCtx = slice.match(/\$\{context\.(\w+)\s*===\s*context\.(\w+)\s*\?\s*/)
+  if (compareCtx && compareCtx[1] && compareCtx[2]) {
+    return {
+      data: [`/context/${compareCtx[1]}`, `/context/${compareCtx[2]}`],
+      expr: "${0} === ${1}",
+    }
+  }
+
+  // Простые условия: context.flag ? или core.flag ?
   const ctx = slice.match(/context\.(\w+)\s*\?/)
-  if (ctx && ctx[1]) return { src: "context", key: ctx[1] }
+  if (ctx && ctx[1]) return { data: `/context/${ctx[1]}` }
 
   const core = slice.match(/core\.(\w+)\s*\?/)
-  if (core && core[1]) return { src: "core", key: core[1] }
+  if (core && core[1]) return { data: `/core/${core[1]}` }
+
+  // Условия с индексами: i % 2 ?
+  const indexCond = slice.match(/(\w+)\s*%\s*(\d+)\s*\?/)
+  if (indexCond && indexCond[1] && indexCond[2]) {
+    return {
+      data: "[index]",
+      expr: `${indexCond[1]} % ${indexCond[2]}`,
+    }
+  }
 
   return null
 }
@@ -220,8 +251,8 @@ function addTextNodesToElement(
     const textInfo = checkPresentText(content)
     if (textInfo) {
       const parentMap = mapStack[mapStack.length - 1]
-      const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
-      const textNode = makeNodeText(textInfo, mapContext)
+      const mapContext = parentMap ? { data: parentMap.mapInfo.data } : undefined
+      const textNode = makeNodeText(textInfo, mapContext, content)
       if (textNode) {
         if (!element.child) element.child = []
         element.child.push(textNode)
@@ -261,8 +292,8 @@ function addTextNodesToElement(
       const textInfo = checkPresentText(textFragment)
       if (textInfo) {
         const parentMap = mapStack[mapStack.length - 1]
-        const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
-        const textNode = makeNodeText(textInfo, mapContext)
+        const mapContext = parentMap ? { data: parentMap.mapInfo.data } : undefined
+        const textNode = makeNodeText(textInfo, mapContext, textFragment)
         if (textNode) {
           fragments.push({
             position: lastTagEnd,
@@ -294,8 +325,8 @@ function addTextNodesToElement(
     const textInfo = checkPresentText(textFragment)
     if (textInfo) {
       const parentMap = mapStack[mapStack.length - 1]
-      const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
-      const textNode = makeNodeText(textInfo, mapContext)
+      const mapContext = parentMap ? { data: parentMap.mapInfo.data } : undefined
+      const textNode = makeNodeText(textInfo, mapContext, textFragment)
       if (textNode) {
         fragments.push({
           position: lastTagEnd,
@@ -331,8 +362,8 @@ function createSpecialNodes(hierarchy: NodeHierarchy, conditionStack: ConditionS
         if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
           const conditionNode: NodeCondition = {
             type: "cond",
-            src: condition.conditionInfo.src,
-            key: condition.conditionInfo.key,
+            data: condition.conditionInfo.data,
+            expr: condition.conditionInfo.expr,
             true: trueBranch as NodeElement,
             false: falseBranch as NodeElement,
           }
@@ -357,9 +388,7 @@ function createSpecialNodes(hierarchy: NodeHierarchy, conditionStack: ConditionS
         if (children.length > 0) {
           const mapNode: NodeMap = {
             type: "map",
-            src: map.mapInfo.src,
-            key: map.mapInfo.key,
-            index: map.mapInfo.index,
+            data: map.mapInfo.data,
             child: children,
           }
           rootElement.child = [mapNode]
@@ -372,23 +401,6 @@ function createSpecialNodes(hierarchy: NodeHierarchy, conditionStack: ConditionS
 /**
  * Вспомогательные функции для поиска тегов
  */
-function findOpenTag(tags: ElementToken[], tagName: string): ElementToken | null {
-  for (const tag of tags) {
-    if (tag.kind === "open" && tag.name === tagName) {
-      return tag
-    }
-  }
-  return null
-}
-
-function findCloseTag(tags: ElementToken[], tagName: string): ElementToken | null {
-  for (const tag of tags) {
-    if (tag.kind === "close" && tag.name === tagName) {
-      return tag
-    }
-  }
-  return null
-}
 
 /**
  * Находит открывающий тег для конкретного элемента в иерархии
@@ -436,136 +448,6 @@ function findCloseTagForElement(tags: ElementToken[], tagName: string, openTag: 
   }
 
   return null
-}
-
-/**
- * Обрабатывает текстовые фрагменты между HTML тегами внутри элемента
- * Вставляет текстовые узлы в правильном порядке между элементами
- */
-function processTextFragments(
-  html: string,
-  parentStackItem: StackItem,
-  closingTag: ElementToken,
-  tags: ElementToken[],
-  mapStack: MapStackItem[]
-) {
-  const parentOpenTag = parentStackItem.tag
-  const contentStart = parentOpenTag.index + parentOpenTag.text.length
-  const contentEnd = closingTag.index
-
-  if (contentEnd <= contentStart) return
-
-  // Получаем все теги внутри текущего элемента
-  const innerTags: ElementToken[] = []
-  for (const tag of tags) {
-    if (tag.index > contentStart && tag.index < contentEnd) {
-      innerTags.push(tag)
-    }
-  }
-
-  // Если нет внутренних тегов, обрабатываем весь контент как текст
-  if (innerTags.length === 0) {
-    const content = html.slice(contentStart, contentEnd)
-    const textInfo = checkPresentText(content)
-    if (textInfo) {
-      const parentMap = mapStack[mapStack.length - 1]
-      const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
-      const textNode = makeNodeText(textInfo, mapContext)
-      if (textNode) {
-        // Добавляем текстовый узел к дочерним элементам
-        if (!parentStackItem.element.child) parentStackItem.element.child = []
-        parentStackItem.element.child.push(textNode)
-      }
-    }
-    return
-  }
-
-  // Создаем массив позиций элементов и текстовых фрагментов для правильного порядка
-  const fragments: Array<{ position: number; type: "element" | "text"; data: NodeElement | NodeText }> = []
-
-  // Добавляем существующие элементы с их позициями
-  if (parentStackItem.element.child) {
-    let elementIndex = 0
-    for (const innerTag of innerTags) {
-      if (innerTag.kind === "open" || innerTag.kind === "self") {
-        if (elementIndex < parentStackItem.element.child.length) {
-          const child = parentStackItem.element.child[elementIndex]
-          if (child && (child.type === "el" || child.type === "text")) {
-            fragments.push({
-              position: innerTag.index,
-              type: "element",
-              data: child,
-            })
-          }
-          elementIndex++
-        }
-      }
-    }
-  }
-
-  // Добавляем текстовые фрагменты с их позициями
-  let lastTagEnd = contentStart
-
-  for (const innerTag of innerTags) {
-    // Проверяем текст перед текущим тегом
-    if (innerTag.index > lastTagEnd) {
-      const textFragment = html.slice(lastTagEnd, innerTag.index)
-      const textInfo = checkPresentText(textFragment)
-      if (textInfo) {
-        const parentMap = mapStack[mapStack.length - 1]
-        const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
-        const textNode = makeNodeText(textInfo, mapContext)
-        if (textNode) {
-          fragments.push({
-            position: lastTagEnd,
-            type: "text",
-            data: textNode,
-          })
-        }
-      }
-    }
-
-    // Обновляем позицию
-    if (innerTag.kind === "open") {
-      const closingTagForInner = findClosingTag(innerTags, innerTag)
-      if (closingTagForInner) {
-        lastTagEnd = closingTagForInner.index + closingTagForInner.text.length
-      } else {
-        lastTagEnd = innerTag.index + innerTag.text.length
-      }
-    } else if (innerTag.kind === "self") {
-      lastTagEnd = innerTag.index + innerTag.text.length
-    } else if (innerTag.kind === "close") {
-      lastTagEnd = innerTag.index + innerTag.text.length
-    }
-  }
-
-  // Проверяем текст после последнего тега
-  if (lastTagEnd < contentEnd) {
-    const textFragment = html.slice(lastTagEnd, contentEnd)
-    const textInfo = checkPresentText(textFragment)
-    if (textInfo) {
-      const parentMap = mapStack[mapStack.length - 1]
-      const mapContext = parentMap ? { src: parentMap.mapInfo.src, key: parentMap.mapInfo.key } : undefined
-      const textNode = makeNodeText(textInfo, mapContext)
-      if (textNode) {
-        fragments.push({
-          position: lastTagEnd,
-          type: "text",
-          data: textNode,
-        })
-      }
-    }
-  }
-
-  // Сортируем по позиции и создаем новый массив дочерних элементов
-  fragments.sort((a, b) => a.position - b.position)
-  const newChildren = fragments.map((f) => f.data)
-
-  // Заменяем дочерние элементы на новый упорядоченный массив
-  if (newChildren.length > 0) {
-    parentStackItem.element.child = newChildren
-  }
 }
 
 /**

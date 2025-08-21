@@ -48,12 +48,8 @@ import type { NodeText } from "./text.t"
 export type NodeMap = {
   /** Тип узла */
   type: "map"
-  /** Источник данных для итерации */
-  src: "context" | "core" | ["core", ...string[]]
-  /** Ключ коллекции в источнике данных */
-  key: string
-  /** Переменная индекса (если используется) */
-  index?: string
+  /** Путь к коллекции данных */
+  data: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
   child: (NodeElement | NodeText)[]
 }
@@ -85,10 +81,10 @@ export type NodeMap = {
 export type NodeCondition = {
   /** Тип узла */
   type: "cond"
-  /** Источник данных для проверки условия */
-  src: "context" | "core"
-  /** Ключ значения в источнике данных */
-  key: string
+  /** Путь(и) к данным для проверки */
+  data: string | string[]
+  /** Выражение для вычисления (опционально) */
+  expr?: string
   /** Элемент, рендерящийся когда условие истинно */
   true: NodeElement
   /** Элемент, рендерящийся когда условие ложно */
@@ -175,12 +171,8 @@ export type NodeHierarchy = (NodeElement | NodeCondition | NodeMap | NodeText)[]
  * ```
  */
 export type MapPatternInfo = {
-  /** Источник данных */
-  src: "context" | "core" | ["core", ...string[]]
-  /** Ключ коллекции */
-  key: string
-  /** Переменная индекса (если используется) */
-  index?: string
+  /** Путь к коллекции данных */
+  data: string
 }
 
 /**
@@ -201,10 +193,10 @@ export type MapPatternInfo = {
  * ```
  */
 export type ConditionPatternInfo = {
-  /** Источник данных */
-  src: "context" | "core"
-  /** Ключ значения */
-  key: string
+  /** Путь(и) к данным */
+  data: string | string[]
+  /** Выражение для вычисления (опционально) */
+  expr?: string
 }
 
 /**
@@ -253,23 +245,4 @@ export type ConditionStackItem = {
   startIndex: number
   /** Информация об условном паттерне */
   conditionInfo: ConditionPatternInfo
-}
-
-/**
- * Фрагмент контента с позицией.
- *
- * @description
- * Используется для правильного упорядочивания элементов и текста внутри HTML элемента.
- *
- * @property {number} position - Позиция фрагмента в исходном HTML
- * @property {"element" | "text"} type - Тип фрагмента
- * @property {NodeElement | NodeText} data - Данные фрагмента
- */
-export type ContentFragment = {
-  /** Позиция фрагмента в исходном HTML */
-  position: number
-  /** Тип фрагмента */
-  type: "element" | "text"
-  /** Данные фрагмента */
-  data: NodeElement | NodeText
 }

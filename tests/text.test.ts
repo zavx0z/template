@@ -222,6 +222,14 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
+    expect(elements).toEqual([
+      { text: "<div>", index: 9, name: "div", kind: "open" },
+      { text: "<p>", index: 25, name: "p", kind: "open" },
+      { text: '${context.show ? "Visible" : "Hidden"}', index: 28, name: "", kind: "text" },
+      { text: "</p>", index: 66, name: "p", kind: "close" },
+      { text: "</div>", index: 79, name: "div", kind: "close" },
+    ])
+
     const hierarchy = elementsHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
@@ -243,7 +251,7 @@ describe("text", () => {
       },
     ])
   })
-  it("map в тексте, рядом с динамическим текстом из map выше уровня", () => {
+  it("map в рядом с текстом, рядом с динамическим текстом из map выше уровня", () => {
     const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
       ({ html, core }) => html`
         <ul>
