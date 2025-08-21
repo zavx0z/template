@@ -26,8 +26,69 @@ describe("scanTagsFromRender / conditions", () => {
         child: [
           {
             type: "cond",
-            src: "context",
-            key: "cond",
+            data: "/context/cond",
+            true: {
+              tag: "em",
+              type: "el",
+              child: [{ type: "text", value: "A" }],
+            },
+            false: {
+              tag: "span",
+              type: "el",
+              child: [{ type: "text", value: "b" }],
+            },
+          },
+        ],
+      },
+    ])
+  })
+  it("сравнение нескольких переменных", () => {
+    const mainHtml = extractMainHtmlBlock(
+      ({ html, context }) => html`<div>${context.cond && context.cond2 ? html`<em>A</em>` : html`<span>b</span>`}</div>`
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "cond",
+            data: ["/context/cond", "/context/cond2"],
+            expr: "${0} && ${1}",
+            true: {
+              tag: "em",
+              type: "el",
+              child: [{ type: "text", value: "A" }],
+            },
+            false: {
+              tag: "span",
+              type: "el",
+              child: [{ type: "text", value: "b" }],
+            },
+          },
+        ],
+      },
+    ])
+  })
+  it("сравнение переменных на равенство", () => {
+    const mainHtml = extractMainHtmlBlock(
+      ({ html, context }) => html`
+        <div>${context.cond === context.cond2 ? html`<em>A</em>` : html`<span>b</span>`}</div>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "cond",
+            data: ["/context/cond", "/context/cond2"],
+            expr: "${0} === ${1}",
             true: {
               tag: "em",
               type: "el",
@@ -60,26 +121,6 @@ describe("scanTagsFromRender / conditions", () => {
       { text: "<br />", index: 27, name: "br", kind: "self" },
       { text: '<img src="x" />', index: 42, name: "img", kind: "self" },
       { text: "</div>", index: 59, name: "div", kind: "close" },
-    ])
-  })
-  it("условие в map", () => {
-    const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
-      ({ html, core }) => html`
-        <ul>
-          ${core.list.map(({ title, nested }) => html` <li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li> `)}
-        </ul>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: "<ul>", index: 9, name: "ul", kind: "open" },
-      { text: "<li>", index: 69, name: "li", kind: "open" },
-      { text: "${title} ", index: 73, name: "", kind: "text" },
-      { text: "<em>", index: 107, name: "em", kind: "open" },
-      { text: "${n}", index: 111, name: "", kind: "text" },
-      { text: "</em>", index: 115, name: "em", kind: "close" },
-      { text: "</li>", index: 123, name: "li", kind: "close" },
-      { text: "</ul>", index: 141, name: "ul", kind: "close" },
     ])
   })
 })

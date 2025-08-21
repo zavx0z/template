@@ -32,8 +32,7 @@ describe("text", () => {
         child: [
           {
             type: "map",
-            src: "context",
-            key: "list",
+            data: "/context/list",
             child: [
               {
                 tag: "li",
@@ -41,7 +40,7 @@ describe("text", () => {
                 child: [
                   {
                     type: "text",
-                    src: ["context", "list"],
+                    data: "[item]",
                   },
                 ],
               },
@@ -69,8 +68,7 @@ describe("text", () => {
         child: [
           {
             type: "map",
-            src: "context",
-            key: "items",
+            data: "/context/items",
             child: [
               {
                 tag: "li",
@@ -78,7 +76,7 @@ describe("text", () => {
                 child: [
                   {
                     type: "text",
-                    src: ["context", "items"],
+                    data: "[item]",
                   },
                 ],
               },
@@ -106,8 +104,7 @@ describe("text", () => {
         child: [
           {
             type: "map",
-            src: "core",
-            key: "titles",
+            data: "/core/titles",
             child: [
               {
                 tag: "li",
@@ -115,7 +112,7 @@ describe("text", () => {
                 child: [
                   {
                     type: "text",
-                    src: ["core", "titles"],
+                    data: "[item]",
                   },
                 ],
               },
@@ -177,9 +174,8 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                src: "context",
-                key: "name",
-                template: "Hello, ${0}!",
+                data: "/context/name",
+                expr: "Hello, ${0}!",
               },
             ],
           },
@@ -208,17 +204,8 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                template: "Hello, ${0} ${1}!",
-                items: [
-                  {
-                    src: "context",
-                    key: "family",
-                  },
-                  {
-                    src: "context",
-                    key: "name",
-                  },
-                ],
+                data: ["/context/family", "/context/name"],
+                expr: "Hello, ${0} ${1}!",
               },
             ],
           },
@@ -247,17 +234,33 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                cond: {
-                  src: "context",
-                  key: "show",
-                  true: "Visible",
-                  false: "Hidden",
-                },
+                data: "/context/show",
+                expr: "${0} ? 'Visible' : 'Hidden'",
               },
             ],
           },
         ],
       },
+    ])
+  })
+  it("map в тексте, рядом с динамическим текстом из map выше уровня", () => {
+    const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
+      ({ html, core }) => html`
+        <ul>
+          ${core.list.map(({ title, nested }) => html` <li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li> `)}
+        </ul>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    expect(elements).toEqual([
+      { text: "<ul>", index: 9, name: "ul", kind: "open" },
+      { text: "<li>", index: 69, name: "li", kind: "open" },
+      { text: "${title} ", index: 73, name: "", kind: "text" },
+      { text: "<em>", index: 107, name: "em", kind: "open" },
+      { text: "${n}", index: 111, name: "", kind: "text" },
+      { text: "</em>", index: 115, name: "em", kind: "close" },
+      { text: "</li>", index: 123, name: "li", kind: "close" },
+      { text: "</ul>", index: 141, name: "ul", kind: "close" },
     ])
   })
   it("динамический текст в условии", () => {
@@ -275,17 +278,15 @@ describe("text", () => {
         child: [
           {
             type: "cond",
-            src: "context",
-            key: "show",
+            data: "/context/show",
             true: {
               tag: "p",
               type: "el",
               child: [
                 {
                   type: "text",
-                  template: "Visible: ${0}",
-                  src: "context",
-                  key: "name",
+                  data: "/context/name",
+                  expr: "Visible: ${0}",
                 },
               ],
             },
@@ -326,8 +327,7 @@ describe("text", () => {
           },
           {
             type: "text",
-            src: "context",
-            key: "name",
+            data: "/context/name",
           },
         ],
       },
@@ -345,8 +345,7 @@ describe("text", () => {
         child: [
           {
             type: "text",
-            src: "context",
-            key: "name",
+            data: "/context/name",
           },
           {
             tag: "b",
@@ -376,8 +375,7 @@ describe("text", () => {
         child: [
           {
             type: "text",
-            src: "context",
-            key: "family",
+            data: "/context/family",
           },
           {
             tag: "b",
@@ -391,8 +389,7 @@ describe("text", () => {
           },
           {
             type: "text",
-            src: "context",
-            key: "name",
+            data: "/context/name",
           },
         ],
       },
@@ -416,8 +413,7 @@ describe("text", () => {
         child: [
           {
             type: "map",
-            src: "core",
-            key: "users",
+            data: "/core/users",
             child: [
               {
                 tag: "li",
@@ -429,16 +425,14 @@ describe("text", () => {
                     child: [
                       {
                         type: "text",
-                        src: ["core", "users"],
-                        key: "name",
+                        data: "[item]/name",
                       },
                     ],
                   },
                   {
                     type: "text",
-                    template: " - ${0}",
-                    src: ["core", "users"],
-                    key: "role",
+                    data: "[item]/role",
+                    expr: " - ${0}",
                   },
                 ],
               },
@@ -449,7 +443,7 @@ describe("text", () => {
     ])
   })
 
-  it.todo("игнорирует сложные выражения в ${}", () => {
+  it("обрабатывает выражения в ${}", () => {
     const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
       ({ html, context }) => html`
         <div>
@@ -468,13 +462,20 @@ describe("text", () => {
           {
             tag: "p",
             type: "el",
+            child: [
+              {
+                type: "text",
+                data: "/context/list",
+                expr: "${0}.map(item => item.toUpperCase())",
+              },
+            ],
           },
         ],
       },
     ])
   })
 
-  it.todo("обрабатывает выражения с точками в ${} к вложенным элементам ядра", () => {
+  it("обрабатывает выражения с точками в ${} к вложенным элементам ядра", () => {
     const mainHtml = extractMainHtmlBlock<any, { user: { name: string } }>(
       ({ html, core }) => html`
         <div>
@@ -493,6 +494,12 @@ describe("text", () => {
           {
             tag: "p",
             type: "el",
+            child: [
+              {
+                type: "text",
+                data: "/core/user/name",
+              },
+            ],
           },
         ],
       },

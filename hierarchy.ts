@@ -115,9 +115,24 @@ export const elementsHierarchy = (html: string, tags: ElementToken[]): NodeHiera
  */
 export function findMapPattern(slice: string): MapPatternInfo | null {
   const ctx = slice.match(/context\.(\w+)\.map\s*\(/)
-  if (ctx && ctx[1]) return { src: "context", key: ctx[1] }
+  if (ctx && ctx[1]) {
+    // Ищем переменную индекса в map-вызове
+    const indexMatch = slice.match(/context\.(\w+)\.map\s*\(\s*\([^,]*,\s*(\w+)\)\s*=>/)
+    if (indexMatch && indexMatch[2]) {
+      return { src: "context", key: ctx[1], index: indexMatch[2] }
+    }
+    return { src: "context", key: ctx[1] }
+  }
+
   const core = slice.match(/core\.(\w+)\.map\s*\(/)
-  if (core && core[1]) return { src: "core", key: core[1] }
+  if (core && core[1]) {
+    // Ищем переменную индекса в map-вызове
+    const indexMatch = slice.match(/core\.(\w+)\.map\s*\(\s*\([^,]*,\s*(\w+)\)\s*=>/)
+    if (indexMatch && indexMatch[2]) {
+      return { src: "core", key: core[1], index: indexMatch[2] }
+    }
+    return { src: "core", key: core[1] }
+  }
   return null
 }
 
@@ -344,6 +359,7 @@ function createSpecialNodes(hierarchy: NodeHierarchy, conditionStack: ConditionS
             type: "map",
             src: map.mapInfo.src,
             key: map.mapInfo.key,
+            index: map.mapInfo.index,
             child: children,
           }
           rootElement.child = [mapNode]

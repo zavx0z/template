@@ -11,6 +11,7 @@ import type { NodeText } from "./text.t"
  * @property {string} type - Тип узла, всегда "map"
  * @property {"context" | "core" | ["core", ...string[]]} src - Источник данных для итерации
  * @property {string} key - Ключ коллекции в источнике данных
+ * @property {string} [index] - Переменная индекса (если используется)
  * @property {(NodeElement | NodeText)[]} child - Дочерние элементы, повторяемые для каждого элемента коллекции
  *
  * @example
@@ -19,6 +20,16 @@ import type { NodeText } from "./text.t"
  *   type: "map",
  *   src: "context",
  *   key: "users",
+ *   child: [
+ *     { tag: "div", type: "el", child: [...] }
+ *   ]
+ * }
+ *
+ * const mapWithIndexNode: NodeMap = {
+ *   type: "map",
+ *   src: "context",
+ *   key: "users",
+ *   index: "i",
  *   child: [
  *     { tag: "div", type: "el", child: [...] }
  *   ]
@@ -41,6 +52,8 @@ export type NodeMap = {
   src: "context" | "core" | ["core", ...string[]]
   /** Ключ коллекции в источнике данных */
   key: string
+  /** Переменная индекса (если используется) */
+  index?: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
   child: (NodeElement | NodeText)[]
 }
@@ -140,12 +153,19 @@ export type NodeHierarchy = (NodeElement | NodeCondition | NodeMap | NodeText)[]
  *
  * @property {"context" | "core" | ["core", ...string[]]} src - Источник данных
  * @property {string} key - Ключ коллекции
+ * @property {string} [index] - Переменная индекса (если используется)
  *
  * @example
  * ```typescript
  * const mapInfo: MapPatternInfo = {
  *   src: "context",
  *   key: "users"
+ * }
+ *
+ * const mapWithIndexInfo: MapPatternInfo = {
+ *   src: "context",
+ *   key: "users",
+ *   index: "i"
  * }
  *
  * const nestedMapInfo: MapPatternInfo = {
@@ -159,6 +179,8 @@ export type MapPatternInfo = {
   src: "context" | "core" | ["core", ...string[]]
   /** Ключ коллекции */
   key: string
+  /** Переменная индекса (если используется) */
+  index?: string
 }
 
 /**
