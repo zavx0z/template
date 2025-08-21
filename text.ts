@@ -62,7 +62,7 @@ export function checkPresentText(content: string): {
  */
 export function makeNodeText(
   textInfo: NonNullable<ReturnType<typeof checkPresentText>>,
-  mapContext?: { src: "context" | "core"; key: string }
+  mapContext?: { src: "context" | "core" | ["core", ...string[]]; key: string }
 ): NodeText | null {
   if (textInfo.kind === "static") {
     return {
@@ -79,10 +79,16 @@ export function makeNodeText(
           type: "text",
           src: ["context", mapContext.key],
         }
-      } else {
+      } else if (mapContext.src === "core") {
         return {
           type: "text",
           src: ["core", mapContext.key],
+        }
+      } else {
+        // Вложенный путь для core
+        return {
+          type: "text",
+          src: [...mapContext.src, mapContext.key],
         }
       }
     } else {
@@ -110,10 +116,17 @@ export function makeNodeText(
                 src: ["context", mapContext.key],
                 key: item.key,
               }
-            } else {
+            } else if (mapContext.src === "core") {
               return {
                 type: "text",
                 src: ["core", mapContext.key],
+                key: item.key,
+              }
+            } else {
+              // Вложенный путь для core
+              return {
+                type: "text",
+                src: [...mapContext.src, mapContext.key],
                 key: item.key,
               }
             }
@@ -134,10 +147,18 @@ export function makeNodeText(
                 key: item.key,
                 template: textInfo.template!,
               }
-            } else {
+            } else if (mapContext.src === "core") {
               return {
                 type: "text",
                 src: ["core", mapContext.key],
+                key: item.key,
+                template: textInfo.template!,
+              }
+            } else {
+              // Вложенный путь для core
+              return {
+                type: "text",
+                src: [...mapContext.src, mapContext.key],
                 key: item.key,
                 template: textInfo.template!,
               }

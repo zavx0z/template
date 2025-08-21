@@ -9,7 +9,7 @@ import type { NodeText } from "./text.t"
  * повторены для каждого элемента коллекции.
  *
  * @property {string} type - Тип узла, всегда "map"
- * @property {"context" | "core"} src - Источник данных для итерации
+ * @property {"context" | "core" | ["core", ...string[]]} src - Источник данных для итерации
  * @property {string} key - Ключ коллекции в источнике данных
  * @property {(NodeElement | NodeText)[]} child - Дочерние элементы, повторяемые для каждого элемента коллекции
  *
@@ -23,13 +23,22 @@ import type { NodeText } from "./text.t"
  *     { tag: "div", type: "el", child: [...] }
  *   ]
  * }
+ *
+ * const nestedMapNode: NodeMap = {
+ *   type: "map",
+ *   src: ["core", "users"],
+ *   key: "posts",
+ *   child: [
+ *     { tag: "div", type: "el", child: [...] }
+ *   ]
+ * }
  * ```
  */
 export type NodeMap = {
   /** Тип узла */
   type: "map"
   /** Источник данных для итерации */
-  src: "context" | "core"
+  src: "context" | "core" | ["core", ...string[]]
   /** Ключ коллекции в источнике данных */
   key: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
@@ -129,7 +138,7 @@ export type NodeHierarchy = (NodeElement | NodeCondition | NodeMap | NodeText)[]
  * @description
  * Результат поиска map-операции в тексте между HTML тегами.
  *
- * @property {"context" | "core"} src - Источник данных
+ * @property {"context" | "core" | ["core", ...string[]]} src - Источник данных
  * @property {string} key - Ключ коллекции
  *
  * @example
@@ -138,11 +147,16 @@ export type NodeHierarchy = (NodeElement | NodeCondition | NodeMap | NodeText)[]
  *   src: "context",
  *   key: "users"
  * }
+ *
+ * const nestedMapInfo: MapPatternInfo = {
+ *   src: ["core", "users"],
+ *   key: "posts"
+ * }
  * ```
  */
 export type MapPatternInfo = {
   /** Источник данных */
-  src: "context" | "core"
+  src: "context" | "core" | ["core", ...string[]]
   /** Ключ коллекции */
   key: string
 }

@@ -127,6 +127,48 @@ describe("map", () => {
       { text: "</li>", index: 192, name: "li", kind: "close" },
       { text: "</ul>", index: 222, name: "ul", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            src: "core",
+            key: "list",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                child: [
+                  {
+                    tag: "p",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        src: ["core", "list"],
+                      },
+                    ],
+                  },
+                  {
+                    tag: "em",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        src: ["core", "list"],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
   it("map рендерит вложенные шаблоны (последовательность name/kind)", () => {
     const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
@@ -149,6 +191,48 @@ describe("map", () => {
       { text: "</li>", index: 116, name: "li", kind: "close" },
       { text: "</ul>", index: 133, name: "ul", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            src: "context",
+            key: "list",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                child: [
+                  {
+                    tag: "em",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        value: "A",
+                      },
+                    ],
+                  },
+                  {
+                    tag: "strong",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        value: "B",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("map в text вложенный в map", () => {
@@ -169,6 +253,38 @@ describe("map", () => {
       { text: "</em>", index: 114, name: "em", kind: "close" },
       { text: "</li>", index: 122, name: "li", kind: "close" },
       { text: "</ul>", index: 139, name: "ul", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            src: "core",
+            key: "list",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                child: [
+                  {
+                    tag: "em",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        src: ["core", "list"],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     ])
   })
   it("map в условии", () => {
@@ -194,6 +310,41 @@ describe("map", () => {
       { text: "<div>", index: 183, name: "div", kind: "open" },
       { text: "x", index: 188, name: "", kind: "text" },
       { text: "</div>", index: 189, name: "div", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            tag: "li",
+            type: "el",
+            child: [
+              {
+                tag: "em",
+                type: "el",
+                child: [
+                  {
+                    type: "text",
+                    src: ["core", "list"],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "text",
+            value: "x",
+          },
+        ],
+      },
     ])
   })
 })
