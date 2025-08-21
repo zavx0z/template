@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
+import { elementsHierarchy } from "../hierarchy"
 
 describe("внутри ${...}", () => {
   it("теги внутри тернарника", () => {
@@ -16,6 +17,42 @@ describe("внутри ${...}", () => {
       { text: "b", index: 51, name: "", kind: "text" },
       { text: "</span>", index: 52, name: "span", kind: "close" },
       { text: "</div>", index: 61, name: "div", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            type: "cond",
+            text: "context.cond",
+            true: {
+              tag: "p",
+              type: "el",
+              text: "<p>",
+              child: [
+                {
+                  type: "text",
+                  text: "a",
+                },
+              ],
+            },
+            false: {
+              tag: "span",
+              type: "el",
+              text: "<span>",
+              child: [
+                {
+                  type: "text",
+                  text: "b",
+                },
+              ],
+            },
+          },
+        ],
+      },
     ])
   })
 })

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
+import { elementsHierarchy } from "../hierarchy"
 
 describe("scanTagsFromRender / базовые случаи", () => {
   it("простая пара тегов", () => {
@@ -8,6 +9,14 @@ describe("scanTagsFromRender / базовые случаи", () => {
     expect(elements).toEqual([
       { text: "<div>", index: 0, name: "div", kind: "open" },
       { text: "</div>", index: 5, name: "div", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+      },
     ])
   })
 
@@ -31,6 +40,38 @@ describe("scanTagsFromRender / базовые случаи", () => {
       { text: "</li>", index: 50, name: "li", kind: "close" },
       { text: "</ul>", index: 64, name: "ul", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            tag: "li",
+            type: "el",
+            text: "<li>",
+            child: [
+              {
+                type: "text",
+                text: "a",
+              },
+            ],
+          },
+          {
+            tag: "li",
+            type: "el",
+            text: "<li>",
+            child: [
+              {
+                type: "text",
+                text: "b",
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("void и self", () => {
@@ -50,6 +91,31 @@ describe("scanTagsFromRender / базовые случаи", () => {
       { text: '<img src="x" />', index: 42, name: "img", kind: "self" },
       { text: "<input disabled />", index: 68, name: "input", kind: "self" },
       { text: "</div>", index: 95, name: "div", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            tag: "br",
+            type: "el",
+            text: "<br />",
+          },
+          {
+            tag: "img",
+            type: "el",
+            text: '<img src="x" />',
+          },
+          {
+            tag: "input",
+            type: "el",
+            text: "<input disabled />",
+          },
+        ],
+      },
     ])
   })
 })

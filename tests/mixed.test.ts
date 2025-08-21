@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
+import { elementsHierarchy } from "../hierarchy"
 
 describe("scanTagsFromRender / смешанные сценарии", () => {
   it("map + условия", () => {
@@ -25,6 +26,55 @@ describe("scanTagsFromRender / смешанные сценарии", () => {
       { text: "</li>", index: 130, name: "li", kind: "close" },
       { text: "</ul>", index: 148, name: "ul", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "context.list.map((_, i)`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    type: "cond",
+                    text: "2",
+                    true: {
+                      tag: "em",
+                      type: "el",
+                      text: "<em>",
+                      child: [
+                        {
+                          type: "text",
+                          text: '${"A"}',
+                        },
+                      ],
+                    },
+                    false: {
+                      tag: "strong",
+                      type: "el",
+                      text: "<strong>",
+                      child: [
+                        {
+                          type: "text",
+                          text: '${"B"}',
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("операторы сравнения — без тегов", () => {
@@ -34,6 +84,13 @@ describe("scanTagsFromRender / смешанные сценарии", () => {
     const elements = extractHtmlElements(mainHtml)
     expect(elements).toEqual([
       { index: 0, kind: "text", name: "", text: '${context.a < context.b && context.c > context.d ? "1" : "0"}' },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        type: "text",
+        text: '${context.a < context.b && context.c > context.d ? "1" : "0"}',
+      },
     ])
   })
 

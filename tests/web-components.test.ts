@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
+import { elementsHierarchy } from "../hierarchy"
 
 describe("scanTagsFromRender / web components", () => {
   it("базовые custom elements", () => {
@@ -8,6 +9,14 @@ describe("scanTagsFromRender / web components", () => {
     expect(elements).toEqual([
       { text: "<my-element>", index: 0, name: "my-element", kind: "open" },
       { text: "</my-element>", index: 12, name: "my-element", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "my-element",
+        type: "el",
+        text: "<my-element>",
+      },
     ])
   })
 
@@ -18,12 +27,28 @@ describe("scanTagsFromRender / web components", () => {
       { text: '<user-card name="John" age="25">', index: 0, name: "user-card", kind: "open" },
       { text: "</user-card>", index: 32, name: "user-card", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "user-card",
+        type: "el",
+        text: '<user-card name="John" age="25">',
+      },
+    ])
   })
 
   it("self-closing custom elements", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<loading-spinner />`)
     const elements = extractHtmlElements(mainHtml)
     expect(elements).toEqual([{ text: "<loading-spinner />", index: 0, name: "loading-spinner", kind: "self" }])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "loading-spinner",
+        type: "el",
+        text: "<loading-spinner />",
+      },
+    ])
   })
 
   it("вложенные custom elements", () => {

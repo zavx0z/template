@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
+import { elementsHierarchy } from "../hierarchy"
 
 describe("атрибуты", () => {
   it("namespace", () => {
@@ -8,6 +9,14 @@ describe("атрибуты", () => {
     expect(elements).toEqual([
       { text: '<svg:use xlink:href="#id">', index: 0, name: "svg:use", kind: "open" },
       { text: "</svg:use>", index: 26, name: "svg:use", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "svg:use",
+        type: "el",
+        text: '<svg:use xlink:href="#id">',
+      },
     ])
   })
 
@@ -19,6 +28,20 @@ describe("атрибуты", () => {
       { text: "x", index: 39, name: "", kind: "text" },
       { text: "</a>", index: 40, name: "a", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "a",
+        type: "el",
+        text: '<a href="https://e.co" target="_blank">',
+        child: [
+          {
+            type: "text",
+            text: "x",
+          },
+        ],
+      },
+    ])
   })
 
   it("угловые скобки внутри значения", () => {
@@ -27,6 +50,14 @@ describe("атрибуты", () => {
     expect(elements).toEqual([
       { text: '<div title="a > b, c < d">', index: 0, name: "div", kind: "open" },
       { text: "</div>", index: 26, name: "div", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: '<div title="a > b, c < d">',
+      },
     ])
   })
   it("условие в атрибуте", () => {
@@ -38,6 +69,14 @@ describe("атрибуты", () => {
       { text: '<div title="${context.flag ? "a > b" : "c < d"}">', index: 0, name: "div", kind: "open" },
       { text: "</div>", index: 49, name: "div", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: '<div title="${context.flag ? "a > b" : "c < d"}">',
+      },
+    ])
   })
   it("условие в аттрибуте без кавычек", () => {
     const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
@@ -47,6 +86,14 @@ describe("атрибуты", () => {
     expect(elements).toEqual([
       { text: '<div title=${context.flag ? "a > b" : "c < d"}>', index: 0, name: "div", kind: "open" },
       { text: "</div>", index: 47, name: "div", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: '<div title=${context.flag ? "a > b" : "c < d"}>',
+      },
     ])
   })
   it("условие в аттрибуте с одинарными кавычками", () => {
@@ -59,6 +106,14 @@ describe("атрибуты", () => {
       { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', index: 0, name: "div", kind: "open" },
       { text: "</div>", index: 49, name: "div", kind: "close" },
     ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>',
+      },
+    ])
   })
   it("булевые атрибуты", () => {
     const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
@@ -68,6 +123,14 @@ describe("атрибуты", () => {
     expect(elements).toEqual([
       { text: '<button ${context.flag && "disabled"}>', index: 0, name: "button", kind: "open" },
       { text: "</button>", index: 38, name: "button", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "button",
+        type: "el",
+        text: '<button ${context.flag && "disabled"}>',
+      },
     ])
   })
 })
