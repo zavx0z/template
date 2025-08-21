@@ -1,46 +1,18 @@
 import type { TagToken, ElementToken } from "./splitter"
-import type { NodeText } from "./text.t"
 import { checkPresentText, makeNodeText } from "./text"
-
-/**
- * Текстовый узел.
- */
-export type TextNode = NodeText
-
-/**
- * Узел map-операции с шаблоном элемента.
- */
-export type MapNode = {
-  type: "map"
-  src: "context" | "core"
-  key: string
-  child: (ElementHierarchy | TextNode)[]
-}
-
-/**
- * Узел условия (тернарный оператор) с ветками true/false.
- */
-export type ConditionNode = {
-  type: "cond"
-  src: "context" | "core"
-  key: string
-  true: ElementHierarchy
-  false: ElementHierarchy
-}
-
-/**
- * Узел иерархии элементов, соответствующий открытому тегу.
- */
-export type ElementHierarchy = {
-  tag: string
-  type: "el"
-  child?: (ElementHierarchy | ConditionNode | MapNode | TextNode)[]
-}
-
-/**
- * Корневая иерархия элементов для переданного HTML.
- */
-export type ElementsHierarchy = (ElementHierarchy | ConditionNode | MapNode | TextNode)[]
+import type {
+  NodeMap,
+  NodeCondition,
+  NodeElement,
+  NodeHierarchy,
+  MapPatternInfo,
+  ConditionPatternInfo,
+  StackItem,
+  MapStackItem,
+  ConditionStackItem,
+  ContentFragment,
+} from "./hierarchy.t"
+import type { NodeText } from "./text.t"
 
 /**
  * Формирует иерархию элементов на основе последовательности тегов и исходного HTML.
@@ -60,19 +32,19 @@ export type ElementsHierarchy = (ElementHierarchy | ConditionNode | MapNode | Te
  * @param tags Токены тегов, полученные из scanHtmlTags(html)
  * @returns Иерархия элементов
  */
-export const elementsHierarchy = (html: string, tags: ElementToken[]): ElementsHierarchy => {
+export const elementsHierarchy = (html: string, tags: ElementToken[]): NodeHierarchy => {
   // ПЕРВЫЙ ПРОХОД: Строим базовую иерархию элементов (без текста)
-  const hierarchy: ElementsHierarchy = []
-  const stack: { tag: ElementToken; element: ElementHierarchy }[] = []
-  const conditionStack: { startIndex: number; conditionInfo: { src: "context" | "core"; key: string } }[] = []
-  const mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[] = []
+  const hierarchy: NodeHierarchy = []
+  const stack: StackItem[] = []
+  const conditionStack: ConditionStackItem[] = []
+  const mapStack: MapStackItem[] = []
 
   for (let i = 0; i < tags.length; i++) {
     const tag = tags[i]
     if (!tag) continue
 
     if (tag.kind === "open" || tag.kind === "self") {
-      const element: ElementHierarchy = {
+      const element: NodeElement = {
         tag: tag.name,
         type: "el",
       }
@@ -127,7 +99,7 @@ export const elementsHierarchy = (html: string, tags: ElementToken[]): ElementsH
   // ВТОРОЙ ПРОХОД: Добавляем текстовые узлы в правильном порядке
   addTextNodes(html, tags, hierarchy, mapStack)
 
-  // ТРЕТИЙ ПРОХОД: Создаем MapNode и ConditionNode
+  // ТРЕТИЙ ПРОХОД: Создаем NodeMap и NodeCondition
   createSpecialNodes(hierarchy, conditionStack, mapStack)
 
   return hierarchy
@@ -141,7 +113,7 @@ export const elementsHierarchy = (html: string, tags: ElementToken[]): ElementsH
  * @param slice Подстрока для поиска (между родителем и дочерним тегом)
  * @returns Информация о найденном map-паттерне или null, если не найдено
  */
-export function findMapPattern(slice: string): { src: "context" | "core"; key: string } | null {
+export function findMapPattern(slice: string): MapPatternInfo | null {
   const ctx = slice.match(/context\.(\w+)\.map\s*\(/)
   if (ctx && ctx[1]) return { src: "context", key: ctx[1] }
   const core = slice.match(/core\.(\w+)\.map\s*\(/)
@@ -156,7 +128,7 @@ export function findMapPattern(slice: string): { src: "context" | "core"; key: s
  * @param slice Подстрока между открывающим родительским тегом и текущим дочерним
  * @returns Информация об условии или null
  */
-export function findConditionPattern(slice: string): { src: "context" | "core"; key: string } | null {
+export function findConditionPattern(slice: string): ConditionPatternInfo | null {
   const ctx = slice.match(/context\.(\w+)\s*\?/)
   if (ctx && ctx[1]) return { src: "context", key: ctx[1] }
 
@@ -172,8 +144,8 @@ export function findConditionPattern(slice: string): { src: "context" | "core"; 
 function addTextNodes(
   html: string,
   tags: ElementToken[],
-  hierarchy: ElementsHierarchy,
-  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[],
+  hierarchy: NodeHierarchy,
+  mapStack: MapStackItem[],
   usedTags: Set<ElementToken> = new Set()
 ) {
   // Рекурсивно проходим по всем элементам и добавляем текстовые узлы
@@ -201,8 +173,8 @@ function addTextNodes(
 function addTextNodesToElement(
   html: string,
   tags: ElementToken[],
-  element: ElementHierarchy,
-  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[],
+  element: NodeElement,
+  mapStack: MapStackItem[],
   usedTags: Set<ElementToken> = new Set()
 ) {
   // Находим открывающий и закрывающий теги для этого элемента
@@ -244,18 +216,21 @@ function addTextNodesToElement(
   }
 
   // Создаем массив фрагментов с позициями
-  const fragments: Array<{ position: number; type: "element" | "text"; data: any }> = []
+  const fragments: Array<{ position: number; type: "element" | "text"; data: NodeElement | NodeText }> = []
 
   // Добавляем существующие элементы
   if (element.child) {
     let elementIndex = 0
     for (const innerTag of innerTags) {
       if ((innerTag.kind === "open" || innerTag.kind === "self") && elementIndex < element.child.length) {
-        fragments.push({
-          position: innerTag.index,
-          type: "element",
-          data: element.child[elementIndex],
-        })
+        const child = element.child[elementIndex]
+        if (child && (child.type === "el" || child.type === "text")) {
+          fragments.push({
+            position: innerTag.index,
+            type: "element",
+            data: child as NodeElement | NodeText,
+          })
+        }
         elementIndex++
       }
     }
@@ -326,29 +301,25 @@ function addTextNodesToElement(
 }
 
 /**
- * ТРЕТИЙ ПРОХОД: Создает MapNode и ConditionNode
+ * ТРЕТИЙ ПРОХОД: Создает NodeMap и NodeCondition
  */
-function createSpecialNodes(
-  hierarchy: ElementsHierarchy,
-  conditionStack: { startIndex: number; conditionInfo: { src: "context" | "core"; key: string } }[],
-  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[]
-) {
-  // Создаем ConditionNode
+function createSpecialNodes(hierarchy: NodeHierarchy, conditionStack: ConditionStackItem[], mapStack: MapStackItem[]) {
+  // Создаем NodeCondition
   if (conditionStack.length > 0 && hierarchy.length > 0) {
     const condition = conditionStack[conditionStack.length - 1]
     if (condition) {
-      const rootElement = hierarchy[hierarchy.length - 1] as ElementHierarchy
+      const rootElement = hierarchy[hierarchy.length - 1] as NodeElement
       if (rootElement && rootElement.child && rootElement.child.length >= 2) {
         const trueBranch = rootElement.child[rootElement.child.length - 2]
         const falseBranch = rootElement.child[rootElement.child.length - 1]
 
         if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
-          const conditionNode: ConditionNode = {
+          const conditionNode: NodeCondition = {
             type: "cond",
             src: condition.conditionInfo.src,
             key: condition.conditionInfo.key,
-            true: trueBranch as ElementHierarchy,
-            false: falseBranch as ElementHierarchy,
+            true: trueBranch as NodeElement,
+            false: falseBranch as NodeElement,
           }
 
           rootElement.child.splice(-2, 2, conditionNode)
@@ -357,19 +328,19 @@ function createSpecialNodes(
     }
   }
 
-  // Создаем MapNode
+  // Создаем NodeMap
   if (mapStack.length > 0 && hierarchy.length > 0) {
     const map = mapStack[mapStack.length - 1]
     if (map) {
-      const rootElement = hierarchy[hierarchy.length - 1] as ElementHierarchy
+      const rootElement = hierarchy[hierarchy.length - 1] as NodeElement
       if (rootElement && rootElement.child) {
-        const children: (ElementHierarchy | TextNode)[] = []
+        const children: (NodeElement | NodeText)[] = []
         for (const child of rootElement.child) {
-          if (child.type === "el") children.push(child as ElementHierarchy)
-          // Не добавляем текстовые узлы в MapNode, они уже добавлены в дочерние элементы
+          if (child.type === "el") children.push(child as NodeElement)
+          // Не добавляем текстовые узлы в NodeMap, они уже добавлены в дочерние элементы
         }
         if (children.length > 0) {
-          const mapNode: MapNode = {
+          const mapNode: NodeMap = {
             type: "map",
             src: map.mapInfo.src,
             key: map.mapInfo.key,
@@ -457,10 +428,10 @@ function findCloseTagForElement(tags: ElementToken[], tagName: string, openTag: 
  */
 function processTextFragments(
   html: string,
-  parentStackItem: { tag: ElementToken; element: ElementHierarchy },
+  parentStackItem: StackItem,
   closingTag: ElementToken,
   tags: ElementToken[],
-  mapStack: { startIndex: number; mapInfo: { src: "context" | "core"; key: string } }[]
+  mapStack: MapStackItem[]
 ) {
   const parentOpenTag = parentStackItem.tag
   const contentStart = parentOpenTag.index + parentOpenTag.text.length
@@ -494,7 +465,7 @@ function processTextFragments(
   }
 
   // Создаем массив позиций элементов и текстовых фрагментов для правильного порядка
-  const fragments: Array<{ position: number; type: "element" | "text"; data: any }> = []
+  const fragments: Array<{ position: number; type: "element" | "text"; data: NodeElement | NodeText }> = []
 
   // Добавляем существующие элементы с их позициями
   if (parentStackItem.element.child) {
@@ -502,11 +473,14 @@ function processTextFragments(
     for (const innerTag of innerTags) {
       if (innerTag.kind === "open" || innerTag.kind === "self") {
         if (elementIndex < parentStackItem.element.child.length) {
-          fragments.push({
-            position: innerTag.index,
-            type: "element",
-            data: parentStackItem.element.child[elementIndex],
-          })
+          const child = parentStackItem.element.child[elementIndex]
+          if (child && (child.type === "el" || child.type === "text")) {
+            fragments.push({
+              position: innerTag.index,
+              type: "element",
+              data: child,
+            })
+          }
           elementIndex++
         }
       }
