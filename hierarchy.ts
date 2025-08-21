@@ -41,17 +41,18 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
       const mapMatch = slice.match(/(\w+(?:\.\w+)*\.map\([^)]*\))/)
       if (mapMatch) {
         // Проверяем что после map-выражения есть символ `
-        const mapEnd = slice.indexOf(mapMatch[1]) + mapMatch[1].length
+        const mapText = mapMatch[1] || ""
+        const mapEnd = slice.indexOf(mapText) + mapText.length
         const afterMap = slice.slice(mapEnd)
 
-        let mapText = mapMatch[1]
+        let finalMapText = mapText
         if (afterMap.match(/^\s*=>\s*html`/)) {
-          mapText += "`" // Добавляем символ ` в конец
+          finalMapText += "`" // Добавляем символ ` в конец
         }
 
         // Запоминаем что нужно создать map для родителя
         const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
-        mapStack.push({ parent, text: mapText, startIndex: i })
+        mapStack.push({ parent, text: finalMapText, startIndex: i })
       }
 
       // Ищем condition паттерны
@@ -154,14 +155,16 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
                       )
                       if (textIndex !== -1) {
                         const textNode = child.child[textIndex]
-                        child.child.splice(textIndex, 1) // Удаляем из элемента
-                        mapNode.child.push(textNode) // Добавляем в map
+                        if (textNode) {
+                          child.child.splice(textIndex, 1) // Удаляем из элемента
+                          mapNode.child.push(textNode) // Добавляем в map
 
-                        // Помечаем элемент для удаления если он стал пустым
-                        if (child.child.length === 0) {
-                          elementsToRemove.push(child as NodeElement)
+                          // Помечаем элемент для удаления если он стал пустым
+                          if (child.child.length === 0) {
+                            elementsToRemove.push(child as NodeElement)
+                          }
+                          break
                         }
-                        break
                       }
                     }
                   }

@@ -28,7 +28,7 @@ export type NodeMap = {
   /** Исходный текст map-выражения */
   text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (NodeElement | NodeText)[]
+  child: (NodeElement | NodeText | NodeMap | NodeCondition)[]
 }
 
 /**
@@ -59,9 +59,9 @@ export type NodeCondition = {
   /** Исходный текст условия */
   text: string
   /** Элемент, рендерящийся когда условие истинно */
-  true: NodeElement
+  true: NodeElement | NodeCondition
   /** Элемент, рендерящийся когда условие ложно */
-  false: NodeElement
+  false: NodeElement | NodeCondition
 }
 
 /**
