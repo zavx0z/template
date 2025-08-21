@@ -4,43 +4,20 @@ import type { NodeText } from "./text.t"
  * Узел map-операции с шаблоном элемента.
  *
  * @description
- * Представляет цикл по коллекции данных. Содержит информацию о источнике данных
- * (context или core), ключе коллекции и дочерних элементах, которые будут
- * повторены для каждого элемента коллекции.
+ * Представляет цикл по коллекции данных. Содержит исходный текст map-выражения
+ * и дочерние элементы, которые будут повторены для каждого элемента коллекции.
  *
  * @property {string} type - Тип узла, всегда "map"
- * @property {"context" | "core" | ["core", ...string[]]} src - Источник данных для итерации
- * @property {string} key - Ключ коллекции в источнике данных
- * @property {string} [index] - Переменная индекса (если используется)
+ * @property {string} text - Исходный текст map-выражения
  * @property {(NodeElement | NodeText)[]} child - Дочерние элементы, повторяемые для каждого элемента коллекции
  *
  * @example
  * ```typescript
  * const mapNode: NodeMap = {
  *   type: "map",
- *   src: "context",
- *   key: "users",
+ *   text: "core.list.map(({ title, nested }) => html`",
  *   child: [
- *     { tag: "div", type: "el", child: [...] }
- *   ]
- * }
- *
- * const mapWithIndexNode: NodeMap = {
- *   type: "map",
- *   src: "context",
- *   key: "users",
- *   index: "i",
- *   child: [
- *     { tag: "div", type: "el", child: [...] }
- *   ]
- * }
- *
- * const nestedMapNode: NodeMap = {
- *   type: "map",
- *   src: ["core", "users"],
- *   key: "posts",
- *   child: [
- *     { tag: "div", type: "el", child: [...] }
+ *     { tag: "div", type: "el", text: "<div>", child: [...] }
  *   ]
  * }
  * ```
@@ -48,8 +25,8 @@ import type { NodeText } from "./text.t"
 export type NodeMap = {
   /** Тип узла */
   type: "map"
-  /** Путь к коллекции данных */
-  data: string
+  /** Исходный текст map-выражения */
+  text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
   child: (NodeElement | NodeText)[]
 }
@@ -59,11 +36,10 @@ export type NodeMap = {
  *
  * @description
  * Представляет условный рендеринг на основе значения из context или core.
- * Содержит две ветки: для случая когда условие истинно и когда ложно.
+ * Содержит исходный текст условия и две ветки: для случая когда условие истинно и когда ложно.
  *
  * @property {string} type - Тип узла, всегда "cond"
- * @property {"context" | "core"} src - Источник данных для проверки условия
- * @property {string} key - Ключ значения в источнике данных
+ * @property {string} text - Исходный текст условия
  * @property {NodeElement} true - Элемент, рендерящийся когда условие истинно
  * @property {NodeElement} false - Элемент, рендерящийся когда условие ложно
  *
@@ -71,20 +47,17 @@ export type NodeMap = {
  * ```typescript
  * const conditionNode: NodeCondition = {
  *   type: "cond",
- *   src: "context",
- *   key: "isVisible",
- *   true: { tag: "div", type: "el", child: [...] },
- *   false: { tag: "span", type: "el", child: [...] }
+ *   text: "context.flag ?",
+ *   true: { tag: "div", type: "el", text: "<div>", child: [...] },
+ *   false: { tag: "span", type: "el", text: "<span>", child: [...] }
  * }
  * ```
  */
 export type NodeCondition = {
   /** Тип узла */
   type: "cond"
-  /** Путь(и) к данным для проверки */
-  data: string | string[]
-  /** Выражение для вычисления (опционально) */
-  expr?: string
+  /** Исходный текст условия */
+  text: string
   /** Элемент, рендерящийся когда условие истинно */
   true: NodeElement
   /** Элемент, рендерящийся когда условие ложно */
@@ -100,6 +73,7 @@ export type NodeCondition = {
  *
  * @property {string} tag - Имя HTML тега (например, "div", "span", "p")
  * @property {string} type - Тип узла, всегда "el"
+ * @property {string} text - Исходный текст тега
  * @property {(NodeElement | NodeCondition | NodeMap | NodeText)[]} [child] - Дочерние элементы (опционально)
  *
  * @example
@@ -107,9 +81,10 @@ export type NodeCondition = {
  * const elementNode: NodeElement = {
  *   tag: "div",
  *   type: "el",
+ *   text: "<div>",
  *   child: [
- *     { type: "text", value: "Hello", index: 10, length: 5 },
- *     { tag: "span", type: "el", child: [...] }
+ *     { type: "text", text: "Hello" },
+ *     { tag: "span", type: "el", text: "<span>", child: [...] }
  *   ]
  * }
  * ```
@@ -119,6 +94,8 @@ export type NodeElement = {
   tag: string
   /** Тип узла */
   type: "el"
+  /** Исходный текст тега */
+  text: string
   /** Дочерние элементы (опционально) */
   child?: (NodeElement | NodeCondition | NodeMap | NodeText)[]
 }
@@ -133,71 +110,13 @@ export type NodeElement = {
  * @example
  * ```typescript
  * const hierarchy: ElementsHierarchy = [
- *   { tag: "div", type: "el", child: [...] },
- *   { type: "cond", src: "context", key: "showHeader", true: {...}, false: {...} },
- *   { type: "map", src: "core", key: "items", child: [...] }
+ *   { tag: "div", type: "el", text: "<div>", child: [...] },
+ *   { type: "cond", text: "context.showHeader ?", true: {...}, false: {...} },
+ *   { type: "map", text: "core.items.map(...)", child: [...] }
  * ]
  * ```
  */
 export type NodeHierarchy = (NodeElement | NodeCondition | NodeMap | NodeText)[]
-
-/**
- * Информация о найденном map-паттерне.
- *
- * @description
- * Результат поиска map-операции в тексте между HTML тегами.
- *
- * @property {"context" | "core" | ["core", ...string[]]} src - Источник данных
- * @property {string} key - Ключ коллекции
- * @property {string} [index] - Переменная индекса (если используется)
- *
- * @example
- * ```typescript
- * const mapInfo: MapPatternInfo = {
- *   src: "context",
- *   key: "users"
- * }
- *
- * const mapWithIndexInfo: MapPatternInfo = {
- *   src: "context",
- *   key: "users",
- *   index: "i"
- * }
- *
- * const nestedMapInfo: MapPatternInfo = {
- *   src: ["core", "users"],
- *   key: "posts"
- * }
- * ```
- */
-export type MapPatternInfo = {
-  /** Путь к коллекции данных */
-  data: string
-}
-
-/**
- * Информация о найденном условном паттерне.
- *
- * @description
- * Результат поиска тернарного оператора в тексте между HTML тегами.
- *
- * @property {"context" | "core"} src - Источник данных
- * @property {string} key - Ключ значения
- *
- * @example
- * ```typescript
- * const condInfo: ConditionPatternInfo = {
- *   src: "context",
- *   key: "isVisible"
- * }
- * ```
- */
-export type ConditionPatternInfo = {
-  /** Путь(и) к данным */
-  data: string | string[]
-  /** Выражение для вычисления (опционально) */
-  expr?: string
-}
 
 /**
  * Элемент стека для отслеживания открытых тегов.
@@ -221,14 +140,17 @@ export type StackItem = {
  * @description
  * Используется для отслеживания map-операций во время построения иерархии.
  *
- * @property {number} startIndex - Индекс начала map-операции
- * @property {MapPatternInfo} mapInfo - Информация о map-паттерне
+ * @property {ElementToken} startElement - Элемент начала map-операции
+ * @property {ElementToken} endElement - Элемент конца map-операции
+ * @property {string} text - Исходный текст map-выражения
  */
 export type MapStackItem = {
-  /** Индекс начала map-операции */
-  startIndex: number
-  /** Информация о map-паттерне */
-  mapInfo: MapPatternInfo
+  /** Элемент начала map-операции */
+  startElement: import("./splitter").ElementToken
+  /** Элемент конца map-операции */
+  endElement: import("./splitter").ElementToken
+  /** Исходный текст map-выражения */
+  text: string
 }
 
 /**
@@ -237,12 +159,15 @@ export type MapStackItem = {
  * @description
  * Используется для отслеживания условных операторов во время построения иерархии.
  *
- * @property {number} startIndex - Индекс начала условия
- * @property {ConditionPatternInfo} conditionInfo - Информация об условном паттерне
+ * @property {ElementToken} startElement - Элемент начала условия
+ * @property {ElementToken} endElement - Элемент конца условия
+ * @property {string} text - Исходный текст условия
  */
 export type ConditionStackItem = {
-  /** Индекс начала условия */
-  startIndex: number
-  /** Информация об условном паттерне */
-  conditionInfo: ConditionPatternInfo
+  /** Элемент начала условия */
+  startElement: import("./splitter").ElementToken
+  /** Элемент конца условия */
+  endElement: import("./splitter").ElementToken
+  /** Исходный текст условия */
+  text: string
 }

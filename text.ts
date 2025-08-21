@@ -15,12 +15,23 @@ export function checkPresentText(content: string): {
 } | null {
   // Проверяем, есть ли сложные выражения (map, condition), HTML теги или template literal синтаксис
   // Но не блокируем условные выражения в тексте вида ${context.key ? "true" : "false"}
-  const hasComplexExpressions = /context\.\w+\.map|core\.\w+\.map|<[^>]*>|`\)|html`|`\s*:|`\s*\?|`\}/.test(content)
+  const hasComplexExpressions = /context\.\w+\.map|core\.\w+\.map|\w+\.map|<[^>]*>|`\)|html`|`\s*:|`\s*\?|`\}/.test(
+    content
+  )
 
   if (hasComplexExpressions) {
     // Проверяем, является ли это сложным выражением, которое мы можем обработать
     const complexMatch = content.match(/\$\{(context|core)\.(\w+)\.map\s*\([^}]*\)\}/)
     if (complexMatch) {
+      return {
+        kind: "complex",
+        value: content,
+      }
+    }
+
+    // Проверяем вложенные map: ${nested.map(...)}
+    const nestedMapMatch = content.match(/\$\{(\w+)\.map\s*\([^}]*\)\}/)
+    if (nestedMapMatch) {
       return {
         kind: "complex",
         value: content,
@@ -96,6 +107,18 @@ export function makeNodeText(
           data: `[item]/${prop}`,
         }
       }
+
+      // Проверяем переменные деструктуризации (например, ${title})
+      const simpleMatch = fullText.match(/\$\{(\w+)\}/)
+      if (simpleMatch) {
+        const [, varName] = simpleMatch
+        // Переменные деструктуризации обрабатываем как [item]/varName
+        return {
+          type: "text",
+          data: `[item]/${varName}`,
+        }
+      }
+
       // Простой случай - используем [item]
       return {
         type: "text",
@@ -145,6 +168,17 @@ export function makeNodeText(
                 data: `[item]/${prop}`,
               }
             }
+
+            // Проверяем переменные деструктуризации (например, ${title})
+            const simpleMatch = textToAnalyze.match(/\$\{(\w+)\}/)
+            if (simpleMatch) {
+              const [, varName] = simpleMatch
+              return {
+                type: "text",
+                data: `[item]/${varName}`,
+              }
+            }
+
             return {
               type: "text",
               data: "[item]",
@@ -178,6 +212,18 @@ export function makeNodeText(
                 expr: textInfo.template!,
               }
             }
+
+            // Проверяем переменные деструктуризации (например, ${title})
+            const simpleMatch = textToAnalyze.match(/\$\{(\w+)\}/)
+            if (simpleMatch) {
+              const [, varName] = simpleMatch
+              return {
+                type: "text",
+                data: `[item]/${varName}`,
+                expr: textInfo.template!,
+              }
+            }
+
             return {
               type: "text",
               data: "[item]",
@@ -223,6 +269,22 @@ export function makeNodeText(
 
   if (textInfo.kind === "complex") {
     const fullText = textInfo.value || ""
+
+    // Проверяем вложенные map: ${nested.map(...)}
+    const nestedMapMatch = fullText.match(/\$\{(\w+)\.map\s*\(([^}]*)\)\}/)
+    if (nestedMapMatch) {
+      const [, varName, expr] = nestedMapMatch
+      if (!expr) return null
+      // Убираем лишние скобки из параметра функции
+      const cleanExpr = expr.replace(/^\(([^)]+)\)\s*=>/, "$1 =>")
+      const result: NodeText = {
+        type: "text",
+        data: `[item]/${varName}`,
+        expr: `\${0}.map(${cleanExpr})`,
+      }
+      return result
+    }
+
     // Используем более общее регулярное выражение для всех случаев
     const complexMatch = fullText.match(/\$\{(context|core)\.(\w+)\.map\s*\([^}]*\)\}/)
     if (complexMatch) {

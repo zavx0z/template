@@ -1,32 +1,9 @@
-/** Статический текст */
-type TextStatic = {
+/**
+ * Базовый тип для всех текстовых узлов.
+ */
+export type NodeText = {
+  /** Тип узла */
   type: "text"
-  value: string
+  /** Исходный текст */
+  text: string
 }
-
-/** Динамический текст */
-type TextDynamic = {
-  type: "text"
-  data: string | string[]
-  expr?: string // Шаблон с подстановкой
-}
-
-/** Условие в тексте */
-type TextCondition = {
-  type: "text"
-  cond: {
-    data: string | string[]
-    expr?: string
-    true: string
-    false: string
-  }
-}
-
-/** Сложное выражение в тексте */
-type TextComplex = {
-  type: "text"
-  data: string
-  expr: string
-}
-
-export type NodeText = TextStatic | TextDynamic | TextCondition | TextComplex

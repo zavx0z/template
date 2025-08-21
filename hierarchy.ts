@@ -1,73 +1,65 @@
 import type { ElementToken } from "./splitter"
-import { checkPresentText, makeNodeText } from "./text"
-import type {
-  NodeMap,
-  NodeCondition,
-  NodeElement,
-  NodeHierarchy,
-  MapPatternInfo,
-  ConditionPatternInfo,
-  StackItem,
-  MapStackItem,
-  ConditionStackItem,
-} from "./hierarchy.t"
+import type { NodeMap, NodeCondition, NodeElement, NodeHierarchy, StackItem } from "./hierarchy.t"
 import type { NodeText } from "./text.t"
 
 /**
- * Формирует иерархию элементов на основе последовательности тегов и исходного HTML.
+ * Формирует иерархию элементов на основе последовательности тегов.
  *
- * Правила:
- * - Строится дерево по открывающим/закрывающим тегам
- * - Для каждого дочернего узла анализируется подстрока между родительским открывающим тегом
- *   и началом дочернего, чтобы определить:
- *   - map-паттерн (`context|core.<key>.map(`) → поле `item`
- *   - условный рендер (тернарный оператор) → поле `cond`
+ * ПРОСТОЙ АЛГОРИТМ:
+ * 1. Один проход по элементам
+ * 2. Строим иерархию сразу при обнаружении map/condition
+ * 3. Создаем NodeMap/NodeCondition на правильном уровне
  *
- * Ограничения и упрощения:
- * - Самозакрывающиеся и void-теги в иерархии не добавляются как отдельные узлы
- * - Анализ выражений упрощён до поиска известных паттернов, без полноценного AST
- *
- * @param html Полный HTML-текст (template literal без внешних бэктиков)
- * @param tags Токены тегов, полученные из scanHtmlTags(html)
- * @returns Иерархия элементов
+ * @param html Полный HTML-текст
+ * @param elements Токены элементов (теги + текст)
+ * @returns Иерархия элементов с исходными подстроками
  */
-export const elementsHierarchy = (html: string, tags: ElementToken[]): NodeHierarchy => {
-  // ПЕРВЫЙ ПРОХОД: Строим базовую иерархию элементов (без текста)
+export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeHierarchy => {
   const hierarchy: NodeHierarchy = []
   const stack: StackItem[] = []
-  const conditionStack: ConditionStackItem[] = []
-  const mapStack: MapStackItem[] = []
+  const conditionStack: { parent: NodeElement | null; text: string }[] = []
+  const mapStack: { parent: NodeElement | null; text: string; startIndex: number }[] = []
 
-  for (let i = 0; i < tags.length; i++) {
-    const tag = tags[i]
-    if (!tag) continue
+  for (let i = 0; i < elements.length; i++) {
+    const element = elements[i]
+    if (!element) continue
 
-    if (tag.kind === "open" || tag.kind === "self") {
-      const element: NodeElement = {
-        tag: tag.name,
+    if (element.kind === "open" || element.kind === "self") {
+      // Создаем HTML элемент
+      const nodeElement: NodeElement = {
+        tag: element.name || "",
         type: "el",
+        text: element.text || "",
       }
 
-      // Проверяем map и condition паттерны
-      if (stack.length > 0) {
-        const parentItem = stack[stack.length - 1]
-        if (parentItem) {
-          const parentOpenTag = parentItem.tag
-          const rangeStart = parentOpenTag.index + parentOpenTag.text.length
-          const rangeEnd = tag.index
-          if (rangeEnd > rangeStart) {
-            const slice = html.slice(rangeStart, rangeEnd)
-            const mapInfo = findMapPattern(slice)
-            if (mapInfo) {
-              mapStack.push({ startIndex: i, mapInfo: mapInfo })
-            }
+      // Проверяем map/condition перед этим элементом
+      const sliceStart = i === 0 ? 0 : (elements[i - 1]?.index || 0) + (elements[i - 1]?.text?.length || 0)
+      const sliceEnd = element.index || 0
+      const slice = html.slice(sliceStart, sliceEnd)
 
-            const condInfo = findConditionPattern(slice)
-            if (condInfo) {
-              conditionStack.push({ startIndex: i, conditionInfo: condInfo })
-            }
-          }
+      // Ищем map паттерны
+      const mapMatch = slice.match(/(\w+(?:\.\w+)*\.map\([^)]*\))/)
+      if (mapMatch) {
+        // Проверяем что после map-выражения есть символ `
+        const mapEnd = slice.indexOf(mapMatch[1]) + mapMatch[1].length
+        const afterMap = slice.slice(mapEnd)
+
+        let mapText = mapMatch[1]
+        if (afterMap.match(/^\s*=>\s*html`/)) {
+          mapText += "`" // Добавляем символ ` в конец
         }
+
+        // Запоминаем что нужно создать map для родителя
+        const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
+        mapStack.push({ parent, text: mapText, startIndex: i })
+      }
+
+      // Ищем condition паттерны
+      const condMatch = slice.match(/(\w+(?:\.\w+)*)(?:\s*\?|(?=\s*\?\s*html`))/)
+      if (condMatch) {
+        // Запоминаем что нужно создать condition для родителя
+        const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
+        conditionStack.push({ parent, text: condMatch[1] || "" })
       }
 
       // Добавляем элемент в иерархию
@@ -75,399 +67,192 @@ export const elementsHierarchy = (html: string, tags: ElementToken[]): NodeHiera
         const parent = stack[stack.length - 1]
         if (parent && parent.element) {
           if (!parent.element.child) parent.element.child = []
-          parent.element.child.push(element)
+          parent.element.child.push(nodeElement)
         }
       } else {
-        hierarchy.push(element)
+        hierarchy.push(nodeElement)
       }
 
       // Добавляем в стек только открывающие теги
-      if (tag.kind === "open") {
-        stack.push({ tag, element })
+      if (element.kind === "open") {
+        stack.push({ tag: element, element: nodeElement })
       }
-    } else if (tag.kind === "close") {
+    } else if (element.kind === "close") {
+      // Закрывающий тег - создаем map/condition если нужно
       if (stack.length > 0) {
         const lastStackItem = stack[stack.length - 1]
-        if (lastStackItem && lastStackItem.tag.name === tag.name) {
+        if (lastStackItem && lastStackItem.tag.name === (element.name || "")) {
+          const parentElement = lastStackItem.element
+
+          // Создаем NodeMap если нужно
+          const mapInfo = mapStack.find((m) => m.parent === parentElement)
+          if (mapInfo && parentElement.child && parentElement.child.length > 0) {
+            // Определяем какие элементы должны быть в map
+            let mapChildren: (NodeElement | NodeText)[]
+
+            if (mapInfo.text.includes("nested.map")) {
+              // Для вложенного map - проверяем контекст
+              const hasDirectTextNodes = parentElement.child.some((child) => child.type === "text")
+
+              if (hasDirectTextNodes) {
+                // Случай 2: есть текстовые узлы на том же уровне - обертываем элемент
+                const elementsWithN = parentElement.child.filter(
+                  (child) =>
+                    child.type === "el" &&
+                    child.child &&
+                    child.child.some((grandChild) => grandChild.type === "text" && grandChild.text.includes("${n}"))
+                ) as NodeElement[]
+                mapChildren = elementsWithN
+              } else {
+                // Случай 1: нет текстовых узлов на том же уровне - создаем пустой map
+                // Текстовые узлы будут добавлены позже
+                mapChildren = []
+              }
+            } else {
+              // Для основного map - берем все элементы после начала map
+              mapChildren = parentElement.child.filter((child, index) => {
+                return index >= (parentElement.child?.length || 0) - 1
+              }) as (NodeElement | NodeText)[]
+            }
+
+            const mapNode: NodeMap = {
+              type: "map",
+              text: mapInfo.text,
+              child: mapChildren,
+            }
+
+            if (mapChildren.length > 0 || mapInfo.text.includes("nested.map")) {
+              if (mapInfo.text.includes("nested.map")) {
+                // Для вложенного map - применяем логику в зависимости от контекста
+                const hasDirectTextNodes = parentElement.child.some((child) => child.type === "text")
+
+                if (hasDirectTextNodes) {
+                  // Случай 2: заменяем элемент с ${n} на map
+                  const elementsWithN = parentElement.child.filter(
+                    (child) =>
+                      child.type === "el" &&
+                      child.child &&
+                      child.child.some((grandChild) => grandChild.type === "text" && grandChild.text.includes("${n}"))
+                  ) as NodeElement[]
+
+                  if (elementsWithN.length > 0) {
+                    const firstElementWithN = elementsWithN[0]
+                    if (firstElementWithN) {
+                      const index = parentElement.child.indexOf(firstElementWithN)
+                      if (index !== -1) {
+                        parentElement.child.splice(index, 1, mapNode)
+                      }
+                    }
+                  }
+                } else {
+                  // Случай 1: перемещаем текстовые узлы из элементов в map и добавляем map
+                  const elementsToRemove: NodeElement[] = []
+                  for (const child of parentElement.child) {
+                    if (child.type === "el" && child.child) {
+                      const textIndex = child.child.findIndex(
+                        (grandChild) => grandChild.type === "text" && grandChild.text.includes("${n}")
+                      )
+                      if (textIndex !== -1) {
+                        const textNode = child.child[textIndex]
+                        child.child.splice(textIndex, 1) // Удаляем из элемента
+                        mapNode.child.push(textNode) // Добавляем в map
+
+                        // Помечаем элемент для удаления если он стал пустым
+                        if (child.child.length === 0) {
+                          elementsToRemove.push(child as NodeElement)
+                        }
+                        break
+                      }
+                    }
+                  }
+
+                  // Удаляем пустые элементы
+                  for (const elementToRemove of elementsToRemove) {
+                    const index = parentElement.child.indexOf(elementToRemove)
+                    if (index !== -1) {
+                      parentElement.child.splice(index, 1)
+                    }
+                  }
+
+                  parentElement.child.push(mapNode)
+                }
+              } else {
+                // Для основного map - заменяем последний элемент на map
+                parentElement.child.splice(-1, 1, mapNode)
+              }
+
+              mapStack.splice(mapStack.indexOf(mapInfo), 1)
+            }
+          }
+
+          // Создаем NodeCondition если нужно
+          const condInfo = conditionStack.find((c) => c.parent === parentElement)
+          if (condInfo && parentElement.child && parentElement.child.length >= 2) {
+            const trueBranch = parentElement.child[parentElement.child.length - 2]
+            const falseBranch = parentElement.child[parentElement.child.length - 1]
+
+            if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
+              const conditionNode: NodeCondition = {
+                type: "cond",
+                text: condInfo.text,
+                true: trueBranch as NodeElement,
+                false: falseBranch as NodeElement,
+              }
+              parentElement.child.splice(-2, 2, conditionNode)
+              conditionStack.splice(conditionStack.indexOf(condInfo), 1)
+            }
+          }
+
           stack.pop()
         }
       }
+    } else if (element.kind === "text") {
+      // Текстовый элемент - добавляем к текущему родителю
+      const textNode: NodeText = {
+        type: "text",
+        text: element.text || "",
+      }
+
+      if (stack.length > 0) {
+        const parent = stack[stack.length - 1]
+        if (parent && parent.element) {
+          if (!parent.element.child) parent.element.child = []
+          parent.element.child.push(textNode)
+        }
+      } else {
+        hierarchy.push(textNode)
+      }
     }
   }
 
-  // ВТОРОЙ ПРОХОД: Добавляем текстовые узлы в правильном порядке
-  addTextNodes(html, tags, hierarchy, mapStack)
+  // Обрабатываем map/condition на верхнем уровне
+  for (const mapInfo of mapStack) {
+    if (mapInfo.parent === null && hierarchy.length > 0) {
+      const mapNode: NodeMap = {
+        type: "map",
+        text: mapInfo.text,
+        child: hierarchy.filter((item) => item.type === "el" || item.type === "text") as (NodeElement | NodeText)[],
+      }
+      hierarchy.splice(0, hierarchy.length, mapNode)
+    }
+  }
 
-  // ТРЕТИЙ ПРОХОД: Создаем NodeMap и NodeCondition
-  createSpecialNodes(hierarchy, conditionStack, mapStack)
+  for (const condInfo of conditionStack) {
+    if (condInfo.parent === null && hierarchy.length >= 2) {
+      const trueBranch = hierarchy[hierarchy.length - 2]
+      const falseBranch = hierarchy[hierarchy.length - 1]
+
+      if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
+        const conditionNode: NodeCondition = {
+          type: "cond",
+          text: condInfo.text,
+          true: trueBranch as NodeElement,
+          false: falseBranch as NodeElement,
+        }
+        hierarchy.splice(-2, 2, conditionNode)
+      }
+    }
+  }
 
   return hierarchy
-}
-
-/**
- * Ищет паттерны map-операций в указанной подстроке.
- * Пример совпадения: `context.list.map(` или `core.items.map(`.
- * Возвращает источник (`context`/`core`) и ключ коллекции.
- *
- * @param slice Подстрока для поиска (между родителем и дочерним тегом)
- * @returns Информация о найденном map-паттерне или null, если не найдено
- */
-export function findMapPattern(slice: string): MapPatternInfo | null {
-  // Простые map: context.list.map( или core.list.map(
-  const ctx = slice.match(/context\.(\w+)\.map\s*\(/)
-  if (ctx && ctx[1]) {
-    return { data: `/context/${ctx[1]}` }
-  }
-
-  const core = slice.match(/core\.(\w+)\.map\s*\(/)
-  if (core && core[1]) {
-    return { data: `/core/${core[1]}` }
-  }
-
-  // Вложенные map: item.nested.map( или title.nested.map(
-  const nested = slice.match(/(\w+)\.(\w+)\.map\s*\(/)
-  if (nested && nested[1] && nested[2]) {
-    return { data: `[item]/${nested[2]}` }
-  }
-
-  // Альтернативный паттерн для вложенных map: nested.map(
-  const altNested = slice.match(/(\w+)\.map\s*\(/)
-  if (altNested && altNested[1]) {
-    return { data: `[item]/${altNested[1]}` }
-  }
-
-  return null
-}
-
-/**
- * Ищет паттерны условных операторов (тернарников) в подстроке.
- * Примеры совпадений в подстроке: `context.flag ?`, `core.ready ?`.
- *
- * @param slice Подстрока между открывающим родительским тегом и текущим дочерним
- * @returns Информация об условии или null
- */
-export function findConditionPattern(slice: string): ConditionPatternInfo | null {
-  // Сложные условия: context.cond && context.cond2 ? (внутри ${...})
-  const complexCtx = slice.match(/\$\{context\.(\w+)\s*&&\s*context\.(\w+)\s*\?\s*/)
-  if (complexCtx && complexCtx[1] && complexCtx[2]) {
-    return {
-      data: [`/context/${complexCtx[1]}`, `/context/${complexCtx[2]}`],
-      expr: "${0} && ${1}",
-    }
-  }
-
-  // Сравнения: context.cond === context.cond2 ? (внутри ${...})
-  const compareCtx = slice.match(/\$\{context\.(\w+)\s*===\s*context\.(\w+)\s*\?\s*/)
-  if (compareCtx && compareCtx[1] && compareCtx[2]) {
-    return {
-      data: [`/context/${compareCtx[1]}`, `/context/${compareCtx[2]}`],
-      expr: "${0} === ${1}",
-    }
-  }
-
-  // Простые условия: context.flag ? или core.flag ?
-  const ctx = slice.match(/context\.(\w+)\s*\?/)
-  if (ctx && ctx[1]) return { data: `/context/${ctx[1]}` }
-
-  const core = slice.match(/core\.(\w+)\s*\?/)
-  if (core && core[1]) return { data: `/core/${core[1]}` }
-
-  // Условия с индексами: i % 2 ?
-  const indexCond = slice.match(/(\w+)\s*%\s*(\d+)\s*\?/)
-  if (indexCond && indexCond[1] && indexCond[2]) {
-    return {
-      data: "[index]",
-      expr: `${indexCond[1]} % ${indexCond[2]}`,
-    }
-  }
-
-  return null
-}
-
-/**
- * ВТОРОЙ ПРОХОД: Добавляет текстовые узлы в правильном порядке
- */
-function addTextNodes(
-  html: string,
-  tags: ElementToken[],
-  hierarchy: NodeHierarchy,
-  mapStack: MapStackItem[],
-  usedTags: Set<ElementToken> = new Set()
-) {
-  // Рекурсивно проходим по всем элементам и добавляем текстовые узлы
-  for (const element of hierarchy) {
-    if (element.type === "el") {
-      addTextNodesToElement(html, tags, element, mapStack, usedTags)
-      // Рекурсивно обрабатываем дочерние элементы
-      if (element.child) {
-        addTextNodes(html, tags, element.child, mapStack, usedTags)
-      }
-    } else if (element.type === "cond") {
-      // Обрабатываем ветки условия
-      addTextNodes(html, tags, [element.true], mapStack, usedTags)
-      addTextNodes(html, tags, [element.false], mapStack, usedTags)
-    } else if (element.type === "map") {
-      // Обрабатываем дочерние элементы map
-      addTextNodes(html, tags, element.child, mapStack, usedTags)
-    }
-  }
-}
-
-/**
- * Добавляет текстовые узлы к конкретному элементу
- */
-function addTextNodesToElement(
-  html: string,
-  tags: ElementToken[],
-  element: NodeElement,
-  mapStack: MapStackItem[],
-  usedTags: Set<ElementToken> = new Set()
-) {
-  // Находим открывающий и закрывающий теги для этого элемента
-  const openTag = findOpenTagForElement(tags, element.tag, usedTags)
-  if (!openTag) return
-
-  usedTags.add(openTag)
-  const closeTag = findCloseTagForElement(tags, element.tag, openTag)
-
-  if (!closeTag) return
-
-  const contentStart = openTag.index + openTag.text.length
-  const contentEnd = closeTag.index
-
-  if (contentEnd <= contentStart) return
-
-  // Получаем все теги внутри элемента
-  const innerTags: ElementToken[] = []
-  for (const tag of tags) {
-    if (tag.index >= contentStart && tag.index < contentEnd) {
-      innerTags.push(tag)
-    }
-  }
-
-  // Если нет внутренних тегов, обрабатываем весь контент как текст
-  if (innerTags.length === 0) {
-    const content = html.slice(contentStart, contentEnd)
-    const textInfo = checkPresentText(content)
-    if (textInfo) {
-      const parentMap = mapStack[mapStack.length - 1]
-      const mapContext = parentMap ? { data: parentMap.mapInfo.data } : undefined
-      const textNode = makeNodeText(textInfo, mapContext, content)
-      if (textNode) {
-        if (!element.child) element.child = []
-        element.child.push(textNode)
-      }
-    }
-    return
-  }
-
-  // Создаем массив фрагментов с позициями
-  const fragments: Array<{ position: number; type: "element" | "text"; data: NodeElement | NodeText }> = []
-
-  // Добавляем существующие элементы
-  if (element.child) {
-    let elementIndex = 0
-    for (const innerTag of innerTags) {
-      if ((innerTag.kind === "open" || innerTag.kind === "self") && elementIndex < element.child.length) {
-        const child = element.child[elementIndex]
-        if (child && (child.type === "el" || child.type === "text")) {
-          fragments.push({
-            position: innerTag.index,
-            type: "element",
-            data: child as NodeElement | NodeText,
-          })
-        }
-        elementIndex++
-      }
-    }
-  }
-
-  // Добавляем текстовые фрагменты
-  let lastTagEnd = contentStart
-
-  for (const innerTag of innerTags) {
-    // Текст перед тегом
-    if (innerTag.index > lastTagEnd) {
-      const textFragment = html.slice(lastTagEnd, innerTag.index)
-      const textInfo = checkPresentText(textFragment)
-      if (textInfo) {
-        const parentMap = mapStack[mapStack.length - 1]
-        const mapContext = parentMap ? { data: parentMap.mapInfo.data } : undefined
-        const textNode = makeNodeText(textInfo, mapContext, textFragment)
-        if (textNode) {
-          fragments.push({
-            position: lastTagEnd,
-            type: "text",
-            data: textNode,
-          })
-        }
-      }
-    }
-
-    // Обновляем позицию
-    if (innerTag.kind === "open") {
-      const closingTagForInner = findClosingTag(innerTags, innerTag)
-      if (closingTagForInner) {
-        lastTagEnd = closingTagForInner.index + closingTagForInner.text.length
-      } else {
-        lastTagEnd = innerTag.index + innerTag.text.length
-      }
-    } else if (innerTag.kind === "self") {
-      lastTagEnd = innerTag.index + innerTag.text.length
-    } else if (innerTag.kind === "close") {
-      lastTagEnd = innerTag.index + innerTag.text.length
-    }
-  }
-
-  // Текст после последнего тега
-  if (lastTagEnd < contentEnd) {
-    const textFragment = html.slice(lastTagEnd, contentEnd)
-    const textInfo = checkPresentText(textFragment)
-    if (textInfo) {
-      const parentMap = mapStack[mapStack.length - 1]
-      const mapContext = parentMap ? { data: parentMap.mapInfo.data } : undefined
-      const textNode = makeNodeText(textInfo, mapContext, textFragment)
-      if (textNode) {
-        fragments.push({
-          position: lastTagEnd,
-          type: "text",
-          data: textNode,
-        })
-      }
-    }
-  }
-
-  // Сортируем по позиции и заменяем дочерние элементы
-  fragments.sort((a, b) => a.position - b.position)
-  const newChildren = fragments.map((f) => f.data)
-
-  if (newChildren.length > 0) {
-    element.child = newChildren
-  }
-}
-
-/**
- * ТРЕТИЙ ПРОХОД: Создает NodeMap и NodeCondition
- */
-function createSpecialNodes(hierarchy: NodeHierarchy, conditionStack: ConditionStackItem[], mapStack: MapStackItem[]) {
-  // Создаем NodeCondition
-  if (conditionStack.length > 0 && hierarchy.length > 0) {
-    const condition = conditionStack[conditionStack.length - 1]
-    if (condition) {
-      const rootElement = hierarchy[hierarchy.length - 1] as NodeElement
-      if (rootElement && rootElement.child && rootElement.child.length >= 2) {
-        const trueBranch = rootElement.child[rootElement.child.length - 2]
-        const falseBranch = rootElement.child[rootElement.child.length - 1]
-
-        if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
-          const conditionNode: NodeCondition = {
-            type: "cond",
-            data: condition.conditionInfo.data,
-            expr: condition.conditionInfo.expr,
-            true: trueBranch as NodeElement,
-            false: falseBranch as NodeElement,
-          }
-
-          rootElement.child.splice(-2, 2, conditionNode)
-        }
-      }
-    }
-  }
-
-  // Создаем NodeMap
-  if (mapStack.length > 0 && hierarchy.length > 0) {
-    const map = mapStack[mapStack.length - 1]
-    if (map) {
-      const rootElement = hierarchy[hierarchy.length - 1] as NodeElement
-      if (rootElement && rootElement.child) {
-        const children: (NodeElement | NodeText)[] = []
-        for (const child of rootElement.child) {
-          if (child.type === "el") children.push(child as NodeElement)
-          // Не добавляем текстовые узлы в NodeMap, они уже добавлены в дочерние элементы
-        }
-        if (children.length > 0) {
-          const mapNode: NodeMap = {
-            type: "map",
-            data: map.mapInfo.data,
-            child: children,
-          }
-          rootElement.child = [mapNode]
-        }
-      }
-    }
-  }
-}
-
-/**
- * Вспомогательные функции для поиска тегов
- */
-
-/**
- * Находит открывающий тег для конкретного элемента в иерархии
- */
-function findOpenTagForElement(
-  tags: ElementToken[],
-  tagName: string,
-  usedTags: Set<ElementToken> = new Set()
-): ElementToken | null {
-  // Ищем первый неиспользованный открывающий тег с таким именем
-  for (const tag of tags) {
-    if (tag.kind === "open" && tag.name === tagName && !usedTags.has(tag)) {
-      return tag
-    }
-  }
-  return null
-}
-
-/**
- * Находит закрывающий тег для конкретного элемента в иерархии
- */
-function findCloseTagForElement(tags: ElementToken[], tagName: string, openTag: ElementToken): ElementToken | null {
-  // Ищем соответствующий закрывающий тег для данного открывающего тега
-  let depth = 0
-  let foundOpen = false
-
-  for (const tag of tags) {
-    if (tag === openTag) {
-      foundOpen = true
-      continue
-    }
-
-    if (!foundOpen) continue
-
-    if (tag.name === tagName) {
-      if (tag.kind === "open") {
-        depth++
-      } else if (tag.kind === "close") {
-        if (depth === 0) {
-          return tag
-        }
-        depth--
-      }
-    }
-  }
-
-  return null
-}
-
-/**
- * Находит соответствующий закрывающий тег для открывающего
- */
-function findClosingTag(tags: ElementToken[], openTag: ElementToken): ElementToken | null {
-  let depth = 0
-  for (const tag of tags) {
-    if (tag.index <= openTag.index) continue
-
-    if (tag.name === openTag.name) {
-      if (tag.kind === "open") {
-        depth++
-      } else if (tag.kind === "close") {
-        if (depth === 0) {
-          return tag
-        }
-        depth--
-      }
-    }
-  }
-  return null
 }
