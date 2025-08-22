@@ -341,6 +341,7 @@ describe("text", () => {
                   {
                     type: "text",
                     data: "[item]/title",
+                    expr: "${0} ",
                   },
                   {
                     type: "map",
@@ -352,7 +353,7 @@ describe("text", () => {
                         child: [
                           {
                             type: "text",
-                            data: "[item]/nested/item",
+                            data: "[item]",
                           },
                         ],
                       },
@@ -594,6 +595,7 @@ describe("text", () => {
           {
             type: "text",
             data: "/context/family",
+            expr: "${0} ",
           },
           {
             tag: "b",
@@ -722,7 +724,7 @@ describe("text", () => {
               {
                 type: "text",
                 data: "/context/list",
-                expr: "${0}.map(item => item.toUpperCase())",
+                expr: "${0}.map((item) => item.toUpperCase())",
               },
             ],
           },

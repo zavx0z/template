@@ -191,7 +191,7 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
   }
 
   // Проверяем, является ли это условным выражением или логическим оператором
-  const hasConditionalOperators = /[?:]/.test(text)
+  const hasConditionalOperators = /\?.*:/.test(text) // тернарный оператор ?:
   const hasLogicalOperators = /[&&||]/.test(text)
 
   if (hasConditionalOperators || hasLogicalOperators) {
@@ -216,33 +216,77 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
       const varMatch = part.text.match(/\$\{([^}]+)\}/)
       const variable = varMatch?.[1] || ""
 
+      // Фильтруем строковые литералы
+      if (variable.startsWith('"') || variable.startsWith("'") || variable.includes('"') || variable.includes("'")) {
+        return null
+      }
+
+      // Для сложных выражений с методами извлекаем только базовую переменную
+      let baseVariable = variable
+      if (variable.includes("(")) {
+        // Для выражений с методами, ищем переменную до первого вызова метода
+        // Например, для "context.list.map((item) => ...)" нужно получить "context.list"
+        const beforeMethod = variable
+          .split(/\.\w+\(/)
+          .shift()
+          ?.trim()
+        if (beforeMethod && /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(beforeMethod)) {
+          baseVariable = beforeMethod
+        }
+      }
+
       // Определяем путь к данным
       let path: string
 
       if (context.mapParams && context.mapParams.length > 0) {
         // В контексте map - различаем простые параметры и деструктурированные свойства
-        if (context.mapParams.includes(variable)) {
-          // Проверяем, является ли это деструктуризацией
-          // Если mapParams содержит переменную и их больше одного, то это деструктуризация
+        // Проверяем, является ли переменная свойством параметра map (например, user.name)
+        const variableParts = baseVariable.split(".")
+        const mapParamVariable = variableParts[0] || ""
+
+        if (context.mapParams.includes(mapParamVariable)) {
+          // Переменная является параметром map или его свойством
           if (context.mapParams.length > 1) {
-            // Это деструктурированное свойство (например, title в map(({ title, nested }) => ...))
-            // Представляет свойство объекта в массиве
-            path = `[item]/${variable.replace(/\./g, "/")}`
+            // Деструктурированные параметры - переменная представляет свойство объекта
+            path = `[item]/${baseVariable.replace(/\./g, "/")}`
           } else {
-            // Это простой параметр map (например, name в context.list.map((name) => ...))
-            // Представляет сам элемент массива
+            // Простой параметр map
+            if (variableParts.length > 1) {
+              // Свойство простого параметра (например, user.name в map((user) => ...))
+              // Убираем имя параметра и оставляем только свойство
+              const propertyPath = variableParts.slice(1).join("/")
+              path = `[item]/${propertyPath}`
+            } else {
+              // Сам простой параметр (например, name в context.list.map((name) => ...))
+              path = "[item]"
+            }
+          }
+        } else if (context.mapParams.includes(baseVariable)) {
+          // Переменная точно совпадает с параметром map
+          if (context.mapParams.length > 1) {
+            // Деструктурированное свойство
+            path = `[item]/${baseVariable.replace(/\./g, "/")}`
+          } else {
+            // Простой параметр
             path = "[item]"
           }
         } else {
-          // Переменная не найдена в mapParams - используем обычный путь
-          path = `[item]/${variable.replace(/\./g, "/")}`
+          // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
+          // Если текущий путь содержит [item], то это вложенный map
+          if (context.currentPath && context.currentPath.includes("[item]")) {
+            // Вложенный map - переменная представляет элемент массива
+            path = "[item]"
+          } else {
+            // Обычный путь
+            path = `[item]/${baseVariable.replace(/\./g, "/")}`
+          }
         }
       } else if (context.currentPath && !context.currentPath.includes("[item]")) {
         // В контексте, но не map - добавляем к текущему пути
-        path = `${context.currentPath}/${variable.replace(/\./g, "/")}`
+        path = `${context.currentPath}/${baseVariable.replace(/\./g, "/")}`
       } else {
         // Абсолютный путь
-        path = `/${variable.replace(/\./g, "/")}`
+        path = `/${baseVariable.replace(/\./g, "/")}`
       }
 
       return {
@@ -250,13 +294,62 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
         text: part.text,
       }
     })
+    .filter((part): part is NonNullable<typeof part> => part !== null)
 
   // Определяем основной путь (берем первый динамический)
   const firstDynamicPart = dynamicParts[0]
   const mainPath = firstDynamicPart ? firstDynamicPart.path : ""
 
+  // Если все динамические части отфильтрованы (например, остались только строковые литералы),
+  // то это статический текст
+  if (dynamicParts.length === 0 && parts.some((part) => part.type === "dynamic")) {
+    // Извлекаем статический текст из динамических частей
+    const staticText = parts
+      .filter((part) => part.type === "dynamic")
+      .map((part) => {
+        const varMatch = part.text.match(/\$\{([^}]+)\}/)
+        const variable = varMatch?.[1] || ""
+        // Возвращаем содержимое строковых литералов
+        if (variable.startsWith('"') && variable.endsWith('"')) {
+          return variable.slice(1, -1)
+        }
+        if (variable.startsWith("'") && variable.endsWith("'")) {
+          return variable.slice(1, -1)
+        }
+        return ""
+      })
+      .join("")
+
+    if (staticText) {
+      return {
+        type: "text",
+        value: staticText,
+      }
+    }
+  }
+
   // Если только одна переменная без дополнительного текста
   if (parts.length === 1 && parts[0] && parts[0].type === "dynamic") {
+    // Проверяем, содержит ли выражение методы или сложные операции
+    const dynamicText = parts[0].text
+    const variable = dynamicText.match(/\$\{([^}]+)\}/)?.[1] || ""
+    const hasComplexExpression = variable.includes("(")
+
+    if (hasComplexExpression) {
+      // Для сложных выражений добавляем expr с замещенной базовой переменной
+      const baseVariable = dynamicParts[0]?.path.replace(/^\//, "").replace(/\//g, ".") || ""
+      let expr = variable
+      if (baseVariable) {
+        expr = expr.replace(new RegExp(`\\b${baseVariable.replace(/\./g, "\\.")}\\b`, "g"), "${0}")
+      }
+
+      return {
+        type: "text",
+        data: mainPath,
+        expr,
+      }
+    }
+
     return {
       type: "text",
       data: mainPath,
@@ -282,7 +375,7 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
   const hasStaticText = parts.some((part) => part.type === "static" && part.text.trim() !== "")
   const hasWhitespace = parts.some((part) => part.type === "static" && /\s/.test(part.text))
 
-  // Добавляем expr только если есть статический текст или пробельные символы
+  // Добавляем expr если есть статический текст или пробельные символы
   if (hasStaticText || hasWhitespace) {
     return {
       type: "text",
@@ -356,8 +449,8 @@ const parseTemplateLiteral = (
   if (hasConditionalOperators) {
     // Для условных выражений используем стандартную унификацию
     // Извлекаем переменные из выражения, исключая строковые литералы
-    // Сначала удаляем все строковые литералы из выражения, сохраняя их кавычки
-    const valueWithoutStrings = value.replace(/"[^"]*"/g, '"').replace(/'[^']*'/g, "'")
+    // Сначала удаляем все строковые литералы из выражения, заменяя их на пустые строки
+    const valueWithoutStrings = value.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''")
     const pathMatches = valueWithoutStrings.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
     const uniquePaths = [...new Set(pathMatches)].filter((path) => {
       // Исключаем пустые и короткие строки
@@ -431,8 +524,34 @@ const parseTemplateLiteral = (
     return null
   }
 
-  const variables = varMatches.map((match) => match.slice(2, -1).trim()).filter(Boolean)
-  const paths = variables.map((variable) => `/${variable.replace(/\./g, "/")}`)
+  const variables = varMatches
+    .map((match) => match.slice(2, -1).trim())
+    .filter(Boolean)
+    .filter((variable) => {
+      // Фильтруем строковые литералы
+      return (
+        !variable.startsWith('"') && !variable.startsWith("'") && !variable.includes('"') && !variable.includes("'")
+      )
+    })
+
+  // Для сложных выражений с методами извлекаем только базовую переменную
+  const baseVariables = variables.map((variable) => {
+    // Если выражение содержит методы (скобки), извлекаем только переменную до первого метода
+    if (variable.includes("(")) {
+      // Для выражений с методами, ищем переменную до первого вызова метода
+      // Например, для "context.list.map((item) => ...)" нужно получить "context.list"
+      const beforeMethod = variable
+        .split(/\.\w+\(/)
+        .shift()
+        ?.trim()
+      if (beforeMethod && /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(beforeMethod)) {
+        return beforeMethod
+      }
+    }
+    return variable
+  })
+
+  const paths = baseVariables.map((variable) => `/${variable.replace(/\./g, "/")}`)
 
   // Для простых переменных без условий - возвращаем только data
   if (variables.length === 1 && value === `\${${variables[0]}}`) {
@@ -443,8 +562,8 @@ const parseTemplateLiteral = (
 
   // Создаем выражение с индексами для сложных случаев
   let expr = value
-  variables.forEach((variable, index) => {
-    expr = expr.replace(new RegExp(`\\$\\{${variable}\\}`, "g"), `\${${index}}`)
+  baseVariables.forEach((variable, index) => {
+    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
   })
 
   return {

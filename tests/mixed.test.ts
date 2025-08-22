@@ -100,7 +100,7 @@ describe("scanTagsFromRender / смешанные сценарии", () => {
                       child: [
                         {
                           type: "text",
-                          data: '[item]/"A"',
+                          value: "A",
                         },
                       ],
                     },
@@ -110,7 +110,7 @@ describe("scanTagsFromRender / смешанные сценарии", () => {
                       child: [
                         {
                           type: "text",
-                          data: '[item]/"B"',
+                          value: "B",
                         },
                       ],
                     },
