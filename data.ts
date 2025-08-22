@@ -8,6 +8,92 @@ import type {
 } from "./data.t"
 
 /**
+ * Определяет путь к данным с учетом контекста map.
+ * Переиспользуемая функция для обработки переменных в контексте map.
+ */
+const resolveDataPath = (variable: string, context: DataParserContext): string => {
+  if (context.mapParams && context.mapParams.length > 0) {
+    // В контексте map - различаем простые параметры и деструктурированные свойства
+    const variableParts = variable.split(".")
+    const mapParamVariable = variableParts[0] || ""
+
+    if (context.mapParams.includes(mapParamVariable)) {
+      // Переменная является параметром map или его свойством
+      if (context.mapParams.length > 1) {
+        // Деструктурированные параметры - переменная представляет свойство объекта
+        return `[item]/${variable.replace(/\./g, "/")}`
+      } else {
+        // Простой параметр map
+        if (variableParts.length > 1) {
+          // Свойство простого параметра (например, user.name в map((user) => ...))
+          const propertyPath = variableParts.slice(1).join("/")
+          return `[item]/${propertyPath}`
+        } else {
+          // Сам простой параметр (например, name в context.list.map((name) => ...))
+          return "[item]"
+        }
+      }
+    } else if (context.mapParams.includes(variable)) {
+      // Переменная точно совпадает с параметром map
+      if (context.mapParams.length > 1) {
+        // Деструктурированное свойство
+        return `[item]/${variable.replace(/\./g, "/")}`
+      } else {
+        // Простой параметр
+        return "[item]"
+      }
+    } else {
+      // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
+      if (context.currentPath && context.currentPath.includes("[item]")) {
+        // Вложенный map - переменная представляет элемент массива
+        return "[item]"
+      } else {
+        // Обычный путь
+        return `[item]/${variable.replace(/\./g, "/")}`
+      }
+    }
+  } else if (context.currentPath && !context.currentPath.includes("[item]")) {
+    // В контексте, но не map - добавляем к текущему пути
+    return `${context.currentPath}/${variable.replace(/\./g, "/")}`
+  } else {
+    // Абсолютный путь
+    return `/${variable.replace(/\./g, "/")}`
+  }
+}
+
+/**
+ * Извлекает базовую переменную из сложного выражения с методами.
+ * Переиспользуемая функция для обработки выражений типа "context.list.map(...)".
+ */
+const extractBaseVariable = (variable: string): string => {
+  if (variable.includes("(")) {
+    // Для выражений с методами, ищем переменную до первого вызова метода
+    // Например, для "context.list.map((item) => ...)" нужно получить "context.list"
+    const beforeMethod = variable
+      .split(/\.\w+\(/)
+      .shift()
+      ?.trim()
+    if (beforeMethod && /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(beforeMethod)) {
+      return beforeMethod
+    }
+  }
+  return variable
+}
+
+/**
+ * Создает выражение с унификацией переменных на индексы.
+ * Переиспользуемая функция для создания expr.
+ */
+const createUnifiedExpression = (value: string, variables: string[]): string => {
+  let expr = value
+  variables.forEach((variable, index) => {
+    // Заменяем переменные в ${} на индексы
+    expr = expr.replace(new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g"), `\${${index}}`)
+  })
+  return expr
+}
+
+/**
  * Парсит путь к данным из map-выражения.
  */
 export const parseMapData = (
@@ -222,72 +308,10 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
       }
 
       // Для сложных выражений с методами извлекаем только базовую переменную
-      let baseVariable = variable
-      if (variable.includes("(")) {
-        // Для выражений с методами, ищем переменную до первого вызова метода
-        // Например, для "context.list.map((item) => ...)" нужно получить "context.list"
-        const beforeMethod = variable
-          .split(/\.\w+\(/)
-          .shift()
-          ?.trim()
-        if (beforeMethod && /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(beforeMethod)) {
-          baseVariable = beforeMethod
-        }
-      }
+      const baseVariable = extractBaseVariable(variable)
 
-      // Определяем путь к данным
-      let path: string
-
-      if (context.mapParams && context.mapParams.length > 0) {
-        // В контексте map - различаем простые параметры и деструктурированные свойства
-        // Проверяем, является ли переменная свойством параметра map (например, user.name)
-        const variableParts = baseVariable.split(".")
-        const mapParamVariable = variableParts[0] || ""
-
-        if (context.mapParams.includes(mapParamVariable)) {
-          // Переменная является параметром map или его свойством
-          if (context.mapParams.length > 1) {
-            // Деструктурированные параметры - переменная представляет свойство объекта
-            path = `[item]/${baseVariable.replace(/\./g, "/")}`
-          } else {
-            // Простой параметр map
-            if (variableParts.length > 1) {
-              // Свойство простого параметра (например, user.name в map((user) => ...))
-              // Убираем имя параметра и оставляем только свойство
-              const propertyPath = variableParts.slice(1).join("/")
-              path = `[item]/${propertyPath}`
-            } else {
-              // Сам простой параметр (например, name в context.list.map((name) => ...))
-              path = "[item]"
-            }
-          }
-        } else if (context.mapParams.includes(baseVariable)) {
-          // Переменная точно совпадает с параметром map
-          if (context.mapParams.length > 1) {
-            // Деструктурированное свойство
-            path = `[item]/${baseVariable.replace(/\./g, "/")}`
-          } else {
-            // Простой параметр
-            path = "[item]"
-          }
-        } else {
-          // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
-          // Если текущий путь содержит [item], то это вложенный map
-          if (context.currentPath && context.currentPath.includes("[item]")) {
-            // Вложенный map - переменная представляет элемент массива
-            path = "[item]"
-          } else {
-            // Обычный путь
-            path = `[item]/${baseVariable.replace(/\./g, "/")}`
-          }
-        }
-      } else if (context.currentPath && !context.currentPath.includes("[item]")) {
-        // В контексте, но не map - добавляем к текущему пути
-        path = `${context.currentPath}/${baseVariable.replace(/\./g, "/")}`
-      } else {
-        // Абсолютный путь
-        path = `/${baseVariable.replace(/\./g, "/")}`
-      }
+      // Определяем путь к данным с использованием переиспользуемой функции
+      const path = resolveDataPath(baseVariable, context)
 
       return {
         path,
@@ -459,60 +483,7 @@ const parseTemplateLiteral = (
 
     if (uniquePaths.length > 0) {
       // Создаем пути к данным с учетом контекста
-      const paths = uniquePaths.map((path) => {
-        // Определяем путь к данным с учетом контекста
-        let dataPath: string
-
-        if (context.mapParams && context.mapParams.length > 0) {
-          // В контексте map - различаем простые параметры и деструктурированные свойства
-          const variableParts = path.split(".")
-          const mapParamVariable = variableParts[0] || ""
-
-          if (context.mapParams.includes(mapParamVariable)) {
-            // Переменная является параметром map или его свойством
-            if (context.mapParams.length > 1) {
-              // Деструктурированные параметры - переменная представляет свойство объекта
-              dataPath = `[item]/${path.replace(/\./g, "/")}`
-            } else {
-              // Простой параметр map
-              if (variableParts.length > 1) {
-                // Свойство простого параметра
-                const propertyPath = variableParts.slice(1).join("/")
-                dataPath = `[item]/${propertyPath}`
-              } else {
-                // Сам простой параметр
-                dataPath = "[item]"
-              }
-            }
-          } else if (context.mapParams.includes(path)) {
-            // Переменная точно совпадает с параметром map
-            if (context.mapParams.length > 1) {
-              // Деструктурированное свойство
-              dataPath = `[item]/${path.replace(/\./g, "/")}`
-            } else {
-              // Простой параметр
-              dataPath = "[item]"
-            }
-          } else {
-            // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
-            if (context.currentPath && context.currentPath.includes("[item]")) {
-              // Вложенный map - переменная представляет элемент массива
-              dataPath = "[item]"
-            } else {
-              // Обычный путь
-              dataPath = `[item]/${path.replace(/\./g, "/")}`
-            }
-          }
-        } else if (context.currentPath && !context.currentPath.includes("[item]")) {
-          // В контексте, но не map - добавляем к текущему пути
-          dataPath = `${context.currentPath}/${path.replace(/\./g, "/")}`
-        } else {
-          // Абсолютный путь
-          dataPath = `/${path.replace(/\./g, "/")}`
-        }
-
-        return dataPath
-      })
+      const paths = uniquePaths.map((path) => resolveDataPath(path, context))
 
       // Создаем выражение с унификацией - убираем ${} и заменяем переменные на индексы
       let expr = value.replace(/^\$\{/, "").replace(/\}$/, "")
@@ -547,70 +518,14 @@ const parseTemplateLiteral = (
 
     if (uniquePaths.length > 0) {
       // Создаем пути к данным с учетом контекста
-      const paths = uniquePaths.map((path) => {
-        // Определяем путь к данным с учетом контекста
-        let dataPath: string
-
-        if (context.mapParams && context.mapParams.length > 0) {
-          // В контексте map - различаем простые параметры и деструктурированные свойства
-          const variableParts = path.split(".")
-          const mapParamVariable = variableParts[0] || ""
-
-          if (context.mapParams.includes(mapParamVariable)) {
-            // Переменная является параметром map или его свойством
-            if (context.mapParams.length > 1) {
-              // Деструктурированные параметры - переменная представляет свойство объекта
-              dataPath = `[item]/${path.replace(/\./g, "/")}`
-            } else {
-              // Простой параметр map
-              if (variableParts.length > 1) {
-                // Свойство простого параметра
-                const propertyPath = variableParts.slice(1).join("/")
-                dataPath = `[item]/${propertyPath}`
-              } else {
-                // Сам простой параметр
-                dataPath = "[item]"
-              }
-            }
-          } else if (context.mapParams.includes(path)) {
-            // Переменная точно совпадает с параметром map
-            if (context.mapParams.length > 1) {
-              // Деструктурированное свойство
-              dataPath = `[item]/${path.replace(/\./g, "/")}`
-            } else {
-              // Простой параметр
-              dataPath = "[item]"
-            }
-          } else {
-            // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
-            if (context.currentPath && context.currentPath.includes("[item]")) {
-              // Вложенный map - переменная представляет элемент массива
-              dataPath = "[item]"
-            } else {
-              // Обычный путь
-              dataPath = `[item]/${path.replace(/\./g, "/")}`
-            }
-          }
-        } else if (context.currentPath && !context.currentPath.includes("[item]")) {
-          // В контексте, но не map - добавляем к текущему пути
-          dataPath = `${context.currentPath}/${path.replace(/\./g, "/")}`
-        } else {
-          // Абсолютный путь
-          dataPath = `/${path.replace(/\./g, "/")}`
-        }
-
-        return dataPath
-      })
+      const paths = uniquePaths.map((path) => resolveDataPath(path, context))
 
       // Проверяем, есть ли сложные операции (сравнения, математические операторы)
       const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(value)
 
       if (hasComplexOperations) {
         // Есть сложные операции - нужен expr
-        let expr = value.replace(/^\$\{/, "").replace(/\}$/, "")
-        uniquePaths.forEach((path, index) => {
-          expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
-        })
+        const expr = createUnifiedExpression(value.replace(/^\$\{/, "").replace(/\}$/, ""), uniquePaths)
 
         return {
           data: paths.length === 1 ? paths[0] || "" : paths,
@@ -642,77 +557,10 @@ const parseTemplateLiteral = (
     })
 
   // Для сложных выражений с методами извлекаем только базовую переменную
-  const baseVariables = variables.map((variable) => {
-    // Если выражение содержит методы (скобки), извлекаем только переменную до первого метода
-    if (variable.includes("(")) {
-      // Для выражений с методами, ищем переменную до первого вызова метода
-      // Например, для "context.list.map((item) => ...)" нужно получить "context.list"
-      const beforeMethod = variable
-        .split(/\.\w+\(/)
-        .shift()
-        ?.trim()
-      if (beforeMethod && /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(beforeMethod)) {
-        return beforeMethod
-      }
-    }
-    return variable
-  })
+  const baseVariables = variables.map((variable) => extractBaseVariable(variable))
 
   // Обрабатываем пути с учетом контекста map
-  const paths = baseVariables.map((variable) => {
-    // Определяем путь к данным с учетом контекста
-    let path: string
-
-    if (context.mapParams && context.mapParams.length > 0) {
-      // В контексте map - различаем простые параметры и деструктурированные свойства
-      const variableParts = variable.split(".")
-      const mapParamVariable = variableParts[0] || ""
-
-      if (context.mapParams.includes(mapParamVariable)) {
-        // Переменная является параметром map или его свойством
-        if (context.mapParams.length > 1) {
-          // Деструктурированные параметры - переменная представляет свойство объекта
-          path = `[item]/${variable.replace(/\./g, "/")}`
-        } else {
-          // Простой параметр map
-          if (variableParts.length > 1) {
-            // Свойство простого параметра (например, user.name в map((user) => ...))
-            const propertyPath = variableParts.slice(1).join("/")
-            path = `[item]/${propertyPath}`
-          } else {
-            // Сам простой параметр (например, name в context.list.map((name) => ...))
-            path = "[item]"
-          }
-        }
-      } else if (context.mapParams.includes(variable)) {
-        // Переменная точно совпадает с параметром map
-        if (context.mapParams.length > 1) {
-          // Деструктурированное свойство
-          path = `[item]/${variable.replace(/\./g, "/")}`
-        } else {
-          // Простой параметр
-          path = "[item]"
-        }
-      } else {
-        // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
-        if (context.currentPath && context.currentPath.includes("[item]")) {
-          // Вложенный map - переменная представляет элемент массива
-          path = "[item]"
-        } else {
-          // Обычный путь
-          path = `[item]/${variable.replace(/\./g, "/")}`
-        }
-      }
-    } else if (context.currentPath && !context.currentPath.includes("[item]")) {
-      // В контексте, но не map - добавляем к текущему пути
-      path = `${context.currentPath}/${variable.replace(/\./g, "/")}`
-    } else {
-      // Абсолютный путь
-      path = `/${variable.replace(/\./g, "/")}`
-    }
-
-    return path
-  })
+  const paths = baseVariables.map((variable) => resolveDataPath(variable, context))
 
   // Для простых переменных без условий - возвращаем только data
   if (variables.length === 1 && value === `\${${variables[0]}}`) {
@@ -722,11 +570,7 @@ const parseTemplateLiteral = (
   }
 
   // Создаем выражение с индексами для сложных случаев
-  let expr = value
-  baseVariables.forEach((variable, index) => {
-    // Заменяем переменные в ${} на индексы
-    expr = expr.replace(new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g"), `\${${index}}`)
-  })
+  const expr = createUnifiedExpression(value, baseVariables)
 
   return {
     data: paths.length === 1 ? paths[0] || "" : paths,
