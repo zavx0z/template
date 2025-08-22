@@ -222,6 +222,11 @@ describe("атрибуты", () => {
       {
         tag: "button",
         type: "el",
+        attr: {
+          disabled: {
+            data: "/context/flag",
+          },
+        },
       },
     ])
   })

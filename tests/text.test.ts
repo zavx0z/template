@@ -130,25 +130,26 @@ describe("text", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         tag: "p",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             data: "/context/name",
-    //             expr: "Hello, ${0}!",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                data: "/context/name",
+                expr: "Hello, ${0}!",
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
   it("смешанный текст - статический + динамический (с несколькими переменными)", () => {
     const mainHtml = extractMainHtmlBlock<{ family: string; name: string }>(
@@ -180,25 +181,26 @@ describe("text", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         tag: "p",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             data: ["/context/family", "/context/name"],
-    //             expr: "Hello, ${0} ${1}!",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                data: ["/context/family", "/context/name"],
+                expr: "Hello, ${0} ${1}!",
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
   it("условие в тексте", () => {
     const mainHtml = extractMainHtmlBlock<{ show: boolean; name: string }>(
@@ -238,25 +240,26 @@ describe("text", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         tag: "p",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             data: "/context/show",
-    //             expr: "${0} ? 'Visible' : 'Hidden'",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                data: "/context/show",
+                expr: '${0} ? "Visible" : "Hidden"',
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
   it("map в рядом с текстом, рядом с динамическим текстом из map выше уровня", () => {
     const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
@@ -276,6 +279,91 @@ describe("text", () => {
       { text: "</em>", index: 115, name: "em", kind: "close" },
       { text: "</li>", index: 123, name: "li", kind: "close" },
       { text: "</ul>", index: 141, name: "ul", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        text: "<ul>",
+        child: [
+          {
+            type: "map",
+            text: "core.list.map(({ title, nested })`",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                text: "<li>",
+                child: [
+                  {
+                    type: "text",
+                    text: "${title} ",
+                  },
+                  {
+                    type: "map",
+                    text: "nested.map((n)`",
+                    child: [
+                      {
+                        tag: "em",
+                        type: "el",
+                        text: "<em>",
+                        child: [
+                          {
+                            type: "text",
+                            text: "${n}",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            data: "/core/list",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                child: [
+                  {
+                    type: "text",
+                    data: "[item]/title",
+                  },
+                  {
+                    type: "map",
+                    data: "[item]/nested",
+                    child: [
+                      {
+                        tag: "em",
+                        type: "el",
+                        child: [
+                          {
+                            type: "text",
+                            data: "[item]/nested/item",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
     ])
   })
   it("динамический текст в условии", () => {
@@ -321,39 +409,40 @@ describe("text", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "cond",
-    //         data: "/context/show",
-    //         true: {
-    //           tag: "p",
-    //           type: "el",
-    //           child: [
-    //             {
-    //               type: "text",
-    //               data: "/context/name",
-    //               expr: "Visible: ${0}",
-    //             },
-    //           ],
-    //         },
-    //         false: {
-    //           tag: "p",
-    //           type: "el",
-    //           child: [
-    //             {
-    //               type: "text",
-    //               value: "Hidden",
-    //             },
-    //           ],
-    //         },
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "cond",
+            data: "/context/show",
+            true: {
+              tag: "p",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  data: "/context/name",
+                  expr: "Visible: ${0}",
+                },
+              ],
+            },
+            false: {
+              tag: "p",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  value: "Hidden",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ])
   })
 
   it("статический текст в элементе на одном уровне с динамическим текстом", () => {
@@ -384,28 +473,29 @@ describe("text", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         tag: "b",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             value: "Hello, ",
-    //           },
-    //         ],
-    //       },
-    //       {
-    //         type: "text",
-    //         data: "/context/name",
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "b",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "Hello, ",
+              },
+            ],
+          },
+          {
+            type: "text",
+            data: "/context/name",
+          },
+        ],
+      },
+    ])
   })
 
   it("динамический текст со статическим текстом в элементе на одном уровне", () => {
@@ -436,28 +526,29 @@ describe("text", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "text",
-    //         data: "/context/name",
-    //       },
-    //       {
-    //         tag: "b",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             value: "-hello",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "text",
+            data: "/context/name",
+          },
+          {
+            tag: "b",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "-hello",
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("динамические тексты вокруг статического текста", () => {
@@ -494,32 +585,33 @@ describe("text", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "text",
-    //         data: "/context/family",
-    //       },
-    //       {
-    //         tag: "b",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             value: "-hello",
-    //           },
-    //         ],
-    //       },
-    //       {
-    //         type: "text",
-    //         data: "/context/name",
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "text",
+            data: "/context/family",
+          },
+          {
+            tag: "b",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "-hello",
+              },
+            ],
+          },
+          {
+            type: "text",
+            data: "/context/name",
+          },
+        ],
+      },
+    ])
   })
 
   it("динамический текст в map с доступом по ключу в элементе массива, на разных уровнях", () => {
@@ -569,41 +661,42 @@ describe("text", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "ul",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "map",
-    //         data: "/core/users",
-    //         child: [
-    //           {
-    //             tag: "li",
-    //             type: "el",
-    //             child: [
-    //               {
-    //                 tag: "strong",
-    //                 type: "el",
-    //                 child: [
-    //                   {
-    //                     type: "text",
-    //                     data: "[item]/name",
-    //                   },
-    //                 ],
-    //               },
-    //               {
-    //                 type: "text",
-    //                 data: "[item]/role",
-    //                 expr: " - ${0}",
-    //               },
-    //             ],
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            data: "/core/users",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                child: [
+                  {
+                    tag: "strong",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        data: "[item]/name",
+                      },
+                    ],
+                  },
+                  {
+                    type: "text",
+                    data: "[item]/role",
+                    expr: " - ${0}",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("обрабатывает выражения в ${}", () => {
@@ -616,26 +709,26 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    // Сложные выражения не должны создавать текстовые узлы
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         tag: "p",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             data: "/context/list",
-    //             expr: "${0}.map(item => item.toUpperCase())",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                data: "/context/list",
+                expr: "${0}.map(item => item.toUpperCase())",
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("обрабатывает выражения с точками в ${} к вложенным элементам ядра", () => {
@@ -648,25 +741,25 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    // Выражения с точками не должны создавать текстовые узлы
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         tag: "p",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             data: "/core/user/name",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                data: "/core/user/name",
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it.todo("обрабатывает текст с переносами строк", () => {
@@ -683,23 +776,24 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "div",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         tag: "p",
-    //         type: "el",
-    //         child: [
-    //           {
-    //             type: "text",
-    //             value: "Первая строка\nВторая строка\nТретья строка",
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "p",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "Первая строка\nВторая строка\nТретья строка",
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 })

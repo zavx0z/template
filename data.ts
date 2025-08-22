@@ -190,11 +190,12 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
     }
   }
 
-  // Проверяем, является ли это условным выражением
+  // Проверяем, является ли это условным выражением или логическим оператором
   const hasConditionalOperators = /[?:]/.test(text)
+  const hasLogicalOperators = /[&&||]/.test(text)
 
-  if (hasConditionalOperators) {
-    // Используем общую функцию для условных выражений
+  if (hasConditionalOperators || hasLogicalOperators) {
+    // Используем общую функцию для условных выражений и логических операторов
     const templateResult = parseTemplateLiteral(text, context)
     if (templateResult) {
       return {
@@ -226,7 +227,7 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
           if (context.mapParams.length > 1) {
             // Это деструктурированное свойство (например, title в map(({ title, nested }) => ...))
             // Представляет свойство объекта в массиве
-            path = `[item]/${variable}`
+            path = `[item]/${variable.replace(/\./g, "/")}`
           } else {
             // Это простой параметр map (например, name в context.list.map((name) => ...))
             // Представляет сам элемент массива
@@ -234,14 +235,14 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
           }
         } else {
           // Переменная не найдена в mapParams - используем обычный путь
-          path = `[item]/${variable}`
+          path = `[item]/${variable.replace(/\./g, "/")}`
         }
       } else if (context.currentPath && !context.currentPath.includes("[item]")) {
         // В контексте, но не map - добавляем к текущему пути
-        path = `${context.currentPath}/${variable}`
+        path = `${context.currentPath}/${variable.replace(/\./g, "/")}`
       } else {
         // Абсолютный путь
-        path = `/${variable}`
+        path = `/${variable.replace(/\./g, "/")}`
       }
 
       return {
@@ -354,13 +355,14 @@ const parseTemplateLiteral = (
 
   if (hasConditionalOperators) {
     // Для условных выражений используем стандартную унификацию
-    // Извлекаем переменные из выражения
-    const pathMatches = value.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
-    const uniquePaths = [...new Set(pathMatches)].filter(
-      (path) =>
-        // Исключаем строковые литералы и другие не-переменные
-        !path.startsWith('"') && !path.startsWith("'") && !path.includes('"') && !path.includes("'") && path.length > 1
-    )
+    // Извлекаем переменные из выражения, исключая строковые литералы
+    // Сначала удаляем все строковые литералы из выражения, сохраняя их кавычки
+    const valueWithoutStrings = value.replace(/"[^"]*"/g, '"').replace(/'[^']*'/g, "'")
+    const pathMatches = valueWithoutStrings.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
+    const uniquePaths = [...new Set(pathMatches)].filter((path) => {
+      // Исключаем пустые и короткие строки
+      return path.length > 1 && path !== "''" && path !== '""'
+    })
 
     if (uniquePaths.length > 0) {
       // Создаем пути к данным
@@ -372,9 +374,53 @@ const parseTemplateLiteral = (
         expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
       })
 
+      // Восстанавливаем оригинальные кавычки для строковых литералов
+      expr = expr.replace(/""/g, '"').replace(/''/g, "'")
+
       return {
         data: paths.length === 1 ? paths[0] || "" : paths,
         expr,
+      }
+    }
+  }
+
+  // Проверяем, есть ли простые логические операторы без тернарного оператора
+  const hasLogicalOperators = /[&&||]/.test(value) && !/[?:]/.test(value)
+
+  if (hasLogicalOperators) {
+    // Для простых логических операторов (&&, ||) без тернарного оператора
+    // извлекаем переменные и проверяем, есть ли сложные операции
+    // Ищем переменные, исключая строковые литералы
+    // Сначала удаляем все строковые литералы из выражения
+    const valueWithoutStrings = value.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''")
+    const pathMatches = valueWithoutStrings.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
+    const uniquePaths = [...new Set(pathMatches)].filter((path) => {
+      // Исключаем пустые и короткие строки
+      return path.length > 1 && path !== "''" && path !== '""'
+    })
+
+    if (uniquePaths.length > 0) {
+      const paths = uniquePaths.map((path) => `/${path.replace(/\./g, "/")}`)
+
+      // Проверяем, есть ли сложные операции (сравнения, математические операторы)
+      const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(value)
+
+      if (hasComplexOperations) {
+        // Есть сложные операции - нужен expr
+        let expr = value.replace(/^\$\{/, "").replace(/\}$/, "")
+        uniquePaths.forEach((path, index) => {
+          expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+        })
+
+        return {
+          data: paths.length === 1 ? paths[0] || "" : paths,
+          expr,
+        }
+      } else {
+        // Только простые логические операторы - expr не нужен
+        return {
+          data: paths.length === 1 ? paths[0] || "" : paths,
+        }
       }
     }
   }
@@ -386,7 +432,7 @@ const parseTemplateLiteral = (
   }
 
   const variables = varMatches.map((match) => match.slice(2, -1).trim()).filter(Boolean)
-  const paths = variables.map((variable) => `/${variable}`)
+  const paths = variables.map((variable) => `/${variable.replace(/\./g, "/")}`)
 
   // Для простых переменных без условий - возвращаем только data
   if (variables.length === 1 && value === `\${${variables[0]}}`) {
@@ -427,7 +473,46 @@ const parseAttributesImproved = (
     const nameStart = i
     while (i < tagContent.length && /[A-Za-z0-9-:]/.test(tagContent[i]!)) i++
     const name = tagContent.slice(nameStart, i)
-    if (!name || name.length === 0) break
+    if (!name || name.length === 0) {
+      // Проверяем, есть ли template literal без имени атрибута (булевые атрибуты)
+      const valueStart = i
+      let braceCount = 0
+
+      // Ищем конец template literal или следующий атрибут
+      while (i < tagContent.length) {
+        if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
+          // Начинается template literal
+          i += 2
+          braceCount = 1
+          while (i < tagContent.length && braceCount > 0) {
+            if (tagContent[i] === "{") braceCount++
+            else if (tagContent[i] === "}") braceCount--
+            i++
+          }
+        } else if (/\s/.test(tagContent[i]!)) {
+          // Пробел - конец значения
+          break
+        } else {
+          i++
+        }
+      }
+
+      const value = tagContent.slice(valueStart, i)
+
+      // Проверяем, является ли значение template literal для булевого атрибута
+      if (value.includes("&&")) {
+        const match = value.match(/\$\{([^}]+)\s*&&\s*"([^"]+)"\}/)
+        if (match && match[1] && match[2]) {
+          const [, condition, attrName] = match
+          const trimmedCondition = condition.trim()
+          // Для булевых атрибутов с && не нужен expr, так как это просто проверка на истинность
+          attributes[attrName] = {
+            data: `/${trimmedCondition.replace(/\./g, "/")}`,
+          }
+        }
+      }
+      break
+    }
 
     // Пропускаем пробелы и знак равенства
     while (i < tagContent.length && /\s/.test(tagContent[i]!)) i++
@@ -502,7 +587,23 @@ const parseAttributesImproved = (
       // Проверяем, является ли значение template literal
       const templateResult = parseTemplateLiteral(value)
       if (templateResult) {
-        attributes[name] = templateResult
+        // Для булевых атрибутов типа ${context.flag && "disabled"}
+        // Если это условное выражение с логическим И, извлекаем имя атрибута
+        if (value.includes("&&")) {
+          const match = value.match(/\$\{([^}]+)\s*&&\s*"([^"]+)"\}/)
+          if (match && match[1] && match[2]) {
+            const [, condition, attrName] = match
+            const trimmedCondition = condition.trim()
+            // Для булевых атрибутов с && не нужен expr, так как это просто проверка на истинность
+            attributes[attrName] = {
+              data: `/${trimmedCondition.replace(/\./g, "/")}`,
+            }
+          } else {
+            attributes[name] = templateResult
+          }
+        } else {
+          attributes[name] = templateResult
+        }
       } else {
         // Булевый атрибут или обычное значение
         attributes[name] = { value: value || "" }
