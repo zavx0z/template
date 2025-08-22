@@ -33,26 +33,35 @@ const findVariableInMapStack = (variable: string, context: DataParserContext): s
       // Создаем префикс с нужным количеством "../"
       const prefix = "../".repeat(levelsUp)
 
-      // Определяем путь в зависимости от типа параметра
-      if (mapContext.params.length === 1) {
-        // Простой параметр map
-        if (variableParts.length > 1) {
-          // Свойство простого параметра (например, user.name)
-          const propertyPath = variableParts.slice(1).join("/")
-          return `${prefix}[item]/${propertyPath}`
+      // Определяем позицию параметра в map
+      const paramIndex = mapContext.params.indexOf(variableName || "")
+
+      // Определяем путь в зависимости от позиции параметра
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        if (mapContext.params.length === 1) {
+          // Простой параметр map
+          if (variableParts.length > 1) {
+            // Свойство простого параметра (например, user.name)
+            const propertyPath = variableParts.slice(1).join("/")
+            return `${prefix}[item]/${propertyPath}`
+          } else {
+            // Сам простой параметр
+            return `${prefix}[item]`
+          }
         } else {
-          // Сам простой параметр
-          return `${prefix}[item]`
+          // Деструктурированные параметры - первый параметр это элемент
+          if (variableParts.length > 1) {
+            // Свойство деструктурированного параметра
+            return `${prefix}[item]/${variable.replace(/\./g, "/")}`
+          } else {
+            // Само деструктурированное свойство
+            return `${prefix}[item]/${variable}`
+          }
         }
       } else {
-        // Деструктурированные параметры
-        if (variableParts.length > 1) {
-          // Свойство деструктурированного параметра
-          return `${prefix}[item]/${variable.replace(/\./g, "/")}`
-        } else {
-          // Само деструктурированное свойство
-          return `${prefix}[item]/${variable}`
-        }
+        // Второй и последующие параметры - индекс
+        return `${prefix}[index]`
       }
     }
   }
@@ -79,28 +88,44 @@ const resolveDataPath = (variable: string, context: DataParserContext): string =
 
     if (context.mapParams.includes(mapParamVariable)) {
       // Переменная является параметром текущего map или его свойством
-      if (context.mapParams.length > 1) {
-        // Деструктурированные параметры - переменная представляет свойство объекта
-        return `[item]/${variable.replace(/\./g, "/")}`
-      } else {
-        // Простой параметр map
-        if (variableParts.length > 1) {
-          // Свойство простого параметра (например, user.name в map((user) => ...))
-          const propertyPath = variableParts.slice(1).join("/")
-          return `[item]/${propertyPath}`
+      const paramIndex = context.mapParams.indexOf(mapParamVariable)
+
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        if (context.mapParams.length === 1) {
+          // Простой параметр map
+          if (variableParts.length > 1) {
+            // Свойство простого параметра (например, user.name в map((user) => ...))
+            const propertyPath = variableParts.slice(1).join("/")
+            return `[item]/${propertyPath}`
+          } else {
+            // Сам простой параметр (например, name в context.list.map((name) => ...))
+            return "[item]"
+          }
         } else {
-          // Сам простой параметр (например, name в context.list.map((name) => ...))
-          return "[item]"
+          // Деструктурированные параметры - переменная представляет свойство объекта
+          return `[item]/${variable.replace(/\./g, "/")}`
         }
+      } else {
+        // Второй и последующие параметры - индекс
+        return "[index]"
       }
     } else if (context.mapParams.includes(variable)) {
       // Переменная точно совпадает с параметром текущего map
-      if (context.mapParams.length > 1) {
-        // Деструктурированное свойство
-        return `[item]/${variable.replace(/\./g, "/")}`
+      const paramIndex = context.mapParams.indexOf(variable)
+
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        if (context.mapParams.length === 1) {
+          // Простой параметр
+          return "[item]"
+        } else {
+          // Деструктурированное свойство
+          return `[item]/${variable.replace(/\./g, "/")}`
+        }
       } else {
-        // Простой параметр
-        return "[item]"
+        // Второй и последующие параметры - индекс
+        return "[index]"
       }
     } else {
       // Переменная не найдена в текущих mapParams - проверяем, есть ли вложенный map
@@ -356,17 +381,18 @@ export const parseConditionData = (
   const expression = extractConditionExpression(condText)
 
   if (pathMatches.length === 1) {
-    const dataPath = pathMatches[0] || ""
-    const absolutePath = `/${dataPath.replace(/\./g, "/")}`
+    const variable = pathMatches[0] || ""
+    // Используем resolveDataPath для правильного определения пути в контексте map
+    const resolvedPath = resolveDataPath(variable, context)
 
     return {
-      path: absolutePath,
+      path: resolvedPath,
       metadata: { expression },
     }
   }
 
-  // Множественные пути
-  const paths = pathMatches.map((path) => `/${path.replace(/\./g, "/")}`)
+  // Множественные пути - используем resolveDataPath для каждого
+  const paths = pathMatches.map((variable) => resolveDataPath(variable, context))
 
   return {
     path: paths,
@@ -920,40 +946,8 @@ export const createNodeDataCondition = (
   const condData = parseConditionData(node.text, context)
   const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
 
-  // Обрабатываем пути в контексте map
-  let processedData = condData.path
-  if (context.mapParams && context.mapParams.length > 0) {
-    if (Array.isArray(condData.path)) {
-      processedData = condData.path.map((path) => {
-        const variable = path.replace(/^\//, "")
-        if (context.mapParams!.includes(variable)) {
-          // Определяем позицию параметра в map
-          const paramIndex = context.mapParams!.indexOf(variable)
-          if (paramIndex === 0) {
-            // Первый параметр - элемент массива
-            return context.mapParams!.length > 1 ? `[item]/${variable}` : "[item]"
-          } else {
-            // Второй и последующие параметры - индекс
-            return "[index]"
-          }
-        }
-        return path
-      })
-    } else {
-      const variable = condData.path.replace(/^\//, "")
-      if (context.mapParams!.includes(variable)) {
-        // Определяем позицию параметра в map
-        const paramIndex = context.mapParams!.indexOf(variable)
-        if (paramIndex === 0) {
-          // Первый параметр - элемент массива
-          processedData = context.mapParams!.length > 1 ? `[item]/${variable}` : "[item]"
-        } else {
-          // Второй и последующие параметры - индекс
-          processedData = "[index]"
-        }
-      }
-    }
-  }
+  // Используем пути, уже правильно разрешенные в parseConditionData
+  const processedData = condData.path
 
   // Проверяем наличие операторов/методов
   const hasOperatorsOrMethods =

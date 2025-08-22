@@ -104,21 +104,31 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
             mapStack.splice(mapStack.indexOf(mapInfo), 1)
           }
 
-          // Создаем NodeCondition если нужно
-          const condInfo = conditionStack.find((c) => c.parent === parentElement)
-          if (condInfo && parentElement.child && parentElement.child.length >= 2) {
-            const trueBranch = parentElement.child[parentElement.child.length - 2]
-            const falseBranch = parentElement.child[parentElement.child.length - 1]
+          // Создаем NodeCondition если нужно - ОБРАБАТЫВАЕМ ВСЕ условия для этого родителя
+          const condInfos = conditionStack.filter((c) => c.parent === parentElement)
+          for (const condInfo of condInfos) {
+            if (parentElement.child && parentElement.child.length >= 2) {
+              // Ищем последовательные пары элементов, которые могут быть true/false ветками
+              let processedAnyCondition = false
+              for (let i = parentElement.child.length - 1; i >= 1; i--) {
+                const trueBranch = parentElement.child[i - 1]
+                const falseBranch = parentElement.child[i]
 
-            if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
-              const conditionNode: NodeCondition = {
-                type: "cond",
-                text: condInfo.text,
-                true: trueBranch as NodeElement,
-                false: falseBranch as NodeElement,
+                if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
+                  const conditionNode: NodeCondition = {
+                    type: "cond",
+                    text: condInfo.text,
+                    true: trueBranch as NodeElement,
+                    false: falseBranch as NodeElement,
+                  }
+                  parentElement.child.splice(i - 1, 2, conditionNode)
+                  processedAnyCondition = true
+                  break // Обрабатываем только одну пару для этого условия
+                }
               }
-              parentElement.child.splice(-2, 2, conditionNode)
-              conditionStack.splice(conditionStack.indexOf(condInfo), 1)
+              if (processedAnyCondition) {
+                conditionStack.splice(conditionStack.indexOf(condInfo), 1)
+              }
             }
           }
 
@@ -156,19 +166,30 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
     }
   }
 
-  for (const condInfo of conditionStack) {
-    if (condInfo.parent === null && hierarchy.length >= 2) {
-      const trueBranch = hierarchy[hierarchy.length - 2]
-      const falseBranch = hierarchy[hierarchy.length - 1]
+  // Обрабатываем ВСЕ условия на верхнем уровне
+  const topLevelConditions = conditionStack.filter((c) => c.parent === null)
+  for (const condInfo of topLevelConditions) {
+    if (hierarchy.length >= 2) {
+      // Ищем последовательные пары элементов, которые могут быть true/false ветками
+      let processedAnyCondition = false
+      for (let i = hierarchy.length - 1; i >= 1; i--) {
+        const trueBranch = hierarchy[i - 1]
+        const falseBranch = hierarchy[i]
 
-      if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
-        const conditionNode: NodeCondition = {
-          type: "cond",
-          text: condInfo.text,
-          true: trueBranch as NodeElement,
-          false: falseBranch as NodeElement,
+        if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
+          const conditionNode: NodeCondition = {
+            type: "cond",
+            text: condInfo.text,
+            true: trueBranch as NodeElement,
+            false: falseBranch as NodeElement,
+          }
+          hierarchy.splice(i - 1, 2, conditionNode)
+          processedAnyCondition = true
+          break // Обрабатываем только одну пару для этого условия
         }
-        hierarchy.splice(-2, 2, conditionNode)
+      }
+      if (processedAnyCondition) {
+        conditionStack.splice(conditionStack.indexOf(condInfo), 1)
       }
     }
   }
