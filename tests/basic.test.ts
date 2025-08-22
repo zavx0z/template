@@ -167,10 +167,20 @@ describe("scanTagsFromRender / базовые случаи", () => {
           {
             tag: "img",
             type: "el",
+            attr: {
+              src: {
+                value: "x",
+              },
+            },
           },
           {
             tag: "input",
             type: "el",
+            attr: {
+              disabled: {
+                value: "",
+              },
+            },
           },
         ],
       },

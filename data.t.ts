@@ -2,6 +2,7 @@
 export interface NodeDataElement {
   tag: string
   type: "el"
+  attr?: Record<string, { value: string }>
   child?: NodeData[]
 }
 

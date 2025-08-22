@@ -24,6 +24,14 @@ describe("атрибуты", () => {
       {
         tag: "svg:use",
         type: "el",
+        attr: {
+          href: {
+            value: "#id",
+          },
+          xlink: {
+            value: "",
+          },
+        },
       },
     ])
   })
@@ -55,6 +63,14 @@ describe("атрибуты", () => {
       {
         tag: "a",
         type: "el",
+        attr: {
+          href: {
+            value: "https://e.co",
+          },
+          target: {
+            value: "_blank",
+          },
+        },
         child: [
           {
             type: "text",
@@ -85,6 +101,11 @@ describe("атрибуты", () => {
       {
         tag: "div",
         type: "el",
+        attr: {
+          title: {
+            value: "a > b, c < d",
+          },
+        },
       },
     ])
   })
@@ -110,6 +131,23 @@ describe("атрибуты", () => {
       {
         tag: "div",
         type: "el",
+        attr: {
+          title: {
+            value: "${context.flag ? ",
+          },
+          a: {
+            value: "",
+          },
+          b: {
+            value: "",
+          },
+          c: {
+            value: "",
+          },
+          d: {
+            value: "",
+          },
+        },
       },
     ])
   })
@@ -135,6 +173,26 @@ describe("атрибуты", () => {
       {
         tag: "div",
         type: "el",
+        attr: {
+          a: {
+            value: "",
+          },
+          b: {
+            value: "",
+          },
+          c: {
+            value: "",
+          },
+          context: {
+            value: "",
+          },
+          d: {
+            value: "",
+          },
+          flag: {
+            value: "",
+          },
+        },
       },
     ])
   })
@@ -161,6 +219,11 @@ describe("атрибуты", () => {
       {
         tag: "div",
         type: "el",
+        attr: {
+          title: {
+            value: '${context.flag ? "a > b" : "c < d"}',
+          },
+        },
       },
     ])
   })
@@ -186,6 +249,17 @@ describe("атрибуты", () => {
       {
         tag: "button",
         type: "el",
+        attr: {
+          context: {
+            value: "",
+          },
+          disabled: {
+            value: "",
+          },
+          flag: {
+            value: "",
+          },
+        },
       },
     ])
   })

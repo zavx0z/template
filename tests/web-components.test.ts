@@ -48,6 +48,14 @@ describe("scanTagsFromRender / web components", () => {
       {
         tag: "user-card",
         type: "el",
+        attr: {
+          name: {
+            value: "John",
+          },
+          age: {
+            value: "25",
+          },
+        },
       },
     ])
   })
@@ -108,6 +116,22 @@ describe("scanTagsFromRender / web components", () => {
         kind: "open",
       },
       { text: "</user-profile>", index: 62, name: "user-profile", kind: "close" },
+    ])
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "user-profile",
+        type: "el",
+        attr: {
+          id: {
+            value: "${context.userId}",
+          },
+          theme: {
+            value: "${context.theme}",
+          },
+        },
+      },
     ])
   })
 

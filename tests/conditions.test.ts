@@ -259,6 +259,11 @@ describe("scanTagsFromRender / conditions", () => {
             false: {
               tag: "img",
               type: "el",
+              attr: {
+                src: {
+                  value: "x",
+                },
+              },
             },
           },
         ],

@@ -322,6 +322,38 @@ export const splitTextIntoParts = (text: string): Array<{ type: "static" | "dyna
 }
 
 /**
+ * Парсер атрибутов из HTML тега.
+ */
+const parseAttributesImproved = (text: string): Record<string, { value: string }> => {
+  const tagContent = text.replace(/^<\/?[A-Za-z][A-Za-z0-9:-]*/, "").replace(/\/?>$/, "")
+  const attributes: Record<string, { value: string }> = {}
+
+  // Атрибуты с кавычками
+  const attrRegex = /([A-Za-z][A-Za-z0-9-]*)\s*=\s*(["'])(.*?)\2/g
+  let match
+  while ((match = attrRegex.exec(tagContent)) !== null) {
+    const [, name, , value] = match
+    if (name) attributes[name] = { value: value || "" }
+  }
+
+  // Булевые атрибуты
+  const processedContent = tagContent.replace(attrRegex, "")
+  const boolAttrRegex = /\b([A-Za-z][A-Za-z0-9-]*)\b/g
+  while ((match = boolAttrRegex.exec(processedContent)) !== null) {
+    const name = match[1]
+    if (name) {
+      const before = processedContent.slice(0, match.index)
+      const after = processedContent.slice(match.index + name.length)
+      if (!before.match(/[A-Za-z0-9-]*\s*=\s*$/) && !after.match(/^\s*=/)) {
+        attributes[name] = { value: "" }
+      }
+    }
+  }
+
+  return attributes
+}
+
+/**
  * Создает NodeDataMap из обычного NodeMap.
  */
 export const createNodeDataMap = (node: any, context: DataParserContext = { pathStack: [], level: 0 }): NodeDataMap => {
@@ -350,12 +382,12 @@ export const createNodeDataCondition = (
     if (Array.isArray(condData.path)) {
       processedData = condData.path.map((path) => {
         const variable = path.replace(/^\//, "")
-        if (context.mapParams.includes(variable)) {
+        if (context.mapParams!.includes(variable)) {
           // Определяем позицию параметра в map
-          const paramIndex = context.mapParams.indexOf(variable)
+          const paramIndex = context.mapParams!.indexOf(variable)
           if (paramIndex === 0) {
             // Первый параметр - элемент массива
-            return context.mapParams.length > 1 ? `[item]/${variable}` : "[item]"
+            return context.mapParams!.length > 1 ? `[item]/${variable}` : "[item]"
           } else {
             // Второй и последующие параметры - индекс
             return "[index]"
@@ -365,12 +397,12 @@ export const createNodeDataCondition = (
       })
     } else {
       const variable = condData.path.replace(/^\//, "")
-      if (context.mapParams.includes(variable)) {
+      if (context.mapParams!.includes(variable)) {
         // Определяем позицию параметра в map
-        const paramIndex = context.mapParams.indexOf(variable)
+        const paramIndex = context.mapParams!.indexOf(variable)
         if (paramIndex === 0) {
           // Первый параметр - элемент массива
-          processedData = context.mapParams.length > 1 ? `[item]/${variable}` : "[item]"
+          processedData = context.mapParams!.length > 1 ? `[item]/${variable}` : "[item]"
         } else {
           // Второй и последующие параметры - индекс
           processedData = "[index]"
@@ -379,30 +411,19 @@ export const createNodeDataCondition = (
     }
   }
 
-  // Добавляем expr только для сложных условий или если выражение содержит операторы/методы
+  // Проверяем наличие операторов/методов
   const hasOperatorsOrMethods =
-    condData.metadata?.expression &&
-    (condData.metadata.expression.includes("%") ||
-      condData.metadata.expression.includes("+") ||
-      condData.metadata.expression.includes("-") ||
-      condData.metadata.expression.includes("*") ||
-      condData.metadata.expression.includes("/") ||
-      condData.metadata.expression.includes("&&") ||
-      condData.metadata.expression.includes("||") ||
-      condData.metadata.expression.includes("===") ||
-      condData.metadata.expression.includes("!==") ||
-      condData.metadata.expression.includes("==") ||
-      condData.metadata.expression.includes("!=") ||
-      condData.metadata.expression.includes("<") ||
-      condData.metadata.expression.includes(">") ||
-      condData.metadata.expression.includes("(") ||
-      condData.metadata.expression.includes("."))
+    condData.metadata?.expression && /[%+\-*/&&||===!===!=<>().]/.test(condData.metadata.expression)
 
   const needsExpression = !isSimpleCondition || hasOperatorsOrMethods
 
   return {
     type: "cond",
-    data: isSimpleCondition ? (Array.isArray(processedData) ? processedData[0] : processedData) : processedData,
+    data: isSimpleCondition
+      ? Array.isArray(processedData)
+        ? processedData[0] || ""
+        : processedData || ""
+      : processedData || [],
     ...(needsExpression && condData.metadata?.expression ? { expr: condData.metadata.expression } : {}),
     true: createNodeDataElement(node.true, context),
     false: createNodeDataElement(node.false, context),
@@ -426,11 +447,19 @@ export const createNodeDataElement = (node: any, context: DataParserContext = { 
   }
 
   if (node.type === "el") {
-    return {
+    const result: any = {
       tag: node.tag,
       type: "el",
-      child: node.child ? node.child.map((child: any) => createNodeDataElement(child, context)) : undefined,
+      child: node.child?.map((child: any) => createNodeDataElement(child, context)),
     }
+
+    // Добавляем атрибуты если есть
+    if (node.text) {
+      const attributes = parseAttributesImproved(node.text)
+      if (Object.keys(attributes).length > 0) result.attr = attributes
+    }
+
+    return result
   }
 
   return node
