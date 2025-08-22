@@ -190,6 +190,41 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
     }
   }
 
+  // Проверяем, является ли это условным выражением
+  const hasConditionalOperators = /[?:]/.test(text)
+
+  if (hasConditionalOperators) {
+    // Для условных выражений в text используем старый формат (без унификации)
+    // Извлекаем переменные из выражения
+    const pathMatches = text.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
+    const uniquePaths = [...new Set(pathMatches)].filter(
+      (path) =>
+        // Исключаем строковые литералы и другие не-переменные
+        !path.startsWith('"') && !path.startsWith("'") && !path.includes('"') && !path.includes("'") && path.length > 1
+    )
+
+    if (uniquePaths.length > 0) {
+      // Создаем data - заменяем только первую переменную на путь и убираем ${}
+      let dataExpression = text
+      const firstPath = uniquePaths[0]
+      if (firstPath) {
+        const pathWithDots = `/${firstPath}`
+        dataExpression = dataExpression.replace(
+          new RegExp(`\\b${firstPath.replace(/\./g, "\\.")}\\b`, "g"),
+          pathWithDots
+        )
+      }
+
+      // Убираем ${} из data
+      dataExpression = dataExpression.replace(/^\$\{/, "").replace(/\}$/, "")
+
+      return {
+        type: "text",
+        data: dataExpression,
+      }
+    }
+  }
+
   // Разбираем текст на статические и динамические части
   const parts = splitTextIntoParts(text)
 
@@ -322,10 +357,13 @@ export const splitTextIntoParts = (text: string): Array<{ type: "static" | "dyna
 }
 
 /**
- * Парсит template literal в атрибуте и возвращает структуру с data и expr.
- * Использует ту же логику, что и для text узлов, но с особой обработкой условных выражений.
+ * Общая функция для обработки template literals.
+ * Используется как для text узлов, так и для атрибутов.
  */
-const parseTemplateLiteralAttribute = (value: string): { data: string | string[]; expr?: string } | null => {
+const parseTemplateLiteral = (
+  value: string,
+  context: DataParserContext = { pathStack: [], level: 0 }
+): { data: string | string[]; expr?: string } | null => {
   // Проверяем, содержит ли значение template literal
   if (!value.includes("${")) {
     return null
@@ -335,7 +373,7 @@ const parseTemplateLiteralAttribute = (value: string): { data: string | string[]
   const hasConditionalOperators = /[?:]/.test(value)
 
   if (hasConditionalOperators) {
-    // Для условных выражений в атрибутах используем стандартную унификацию
+    // Для условных выражений используем стандартную унификацию
     // Извлекаем переменные из выражения
     const pathMatches = value.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
     const uniquePaths = [...new Set(pathMatches)].filter(
@@ -361,27 +399,32 @@ const parseTemplateLiteralAttribute = (value: string): { data: string | string[]
     }
   }
 
-  // Используем обычную логику для простых переменных
-  const textResult = parseTextData(value)
+  // Для простых переменных - парсим напрямую
+  const varMatches = value.match(/\$\{([^}]+)\}/g)
+  if (!varMatches) {
+    return null
+  }
 
-  // Преобразуем результат в формат атрибута
-  if (textResult.type === "text") {
-    if (textResult.value !== undefined) {
-      // Статический текст
-      return { data: textResult.value }
-    } else if (textResult.data !== undefined) {
-      // Динамический текст
-      const result: { data: string | string[]; expr?: string } = {
-        data: textResult.data,
-      }
-      if (textResult.expr) {
-        result.expr = textResult.expr
-      }
-      return result
+  const variables = varMatches.map((match) => match.slice(2, -1).trim()).filter(Boolean)
+  const paths = variables.map((variable) => `/${variable}`)
+
+  // Для простых переменных без условий - возвращаем только data
+  if (variables.length === 1 && value === `\${${variables[0]}}`) {
+    return {
+      data: paths[0] || "",
     }
   }
 
-  return null
+  // Создаем выражение с индексами для сложных случаев
+  let expr = value
+  variables.forEach((variable, index) => {
+    expr = expr.replace(new RegExp(`\\$\\{${variable}\\}`, "g"), `\${${index}}`)
+  })
+
+  return {
+    data: paths.length === 1 ? paths[0] || "" : paths,
+    expr,
+  }
 }
 
 /**
@@ -444,7 +487,7 @@ const parseAttributesImproved = (
       if (i < tagContent.length) i++ // пропускаем закрывающую кавычку
 
       // Проверяем, является ли значение template literal
-      const templateResult = parseTemplateLiteralAttribute(value)
+      const templateResult = parseTemplateLiteral(value)
       if (templateResult) {
         attributes[name] = templateResult
       } else {
