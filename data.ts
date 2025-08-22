@@ -263,15 +263,27 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
   }
 
   // Одна переменная с дополнительным текстом
+  const hasStaticText = parts.some((part) => part.type === "static" && part.text.trim() !== "")
+  const hasWhitespace = parts.some((part) => part.type === "static" && /\s/.test(part.text))
+
+  // Добавляем expr только если есть статический текст или пробельные символы
+  if (hasStaticText || hasWhitespace) {
+    return {
+      type: "text",
+      data: mainPath,
+      expr: parts
+        .map((part) => {
+          if (part.type === "static") return part.text
+          return `\${0}`
+        })
+        .join(""),
+    }
+  }
+
+  // Только переменная без дополнительного текста
   return {
     type: "text",
     data: mainPath,
-    expr: parts
-      .map((part) => {
-        if (part.type === "static") return part.text
-        return `\${0}`
-      })
-      .join(""),
   }
 }
 
@@ -367,9 +379,26 @@ export const createNodeDataCondition = (
     }
   }
 
-  // Добавляем expr только для сложных условий или если выражение отличается от исходного текста
-  const needsExpression =
-    !isSimpleCondition || (condData.metadata?.expression && condData.metadata.expression !== node.text)
+  // Добавляем expr только для сложных условий или если выражение содержит операторы/методы
+  const hasOperatorsOrMethods =
+    condData.metadata?.expression &&
+    (condData.metadata.expression.includes("%") ||
+      condData.metadata.expression.includes("+") ||
+      condData.metadata.expression.includes("-") ||
+      condData.metadata.expression.includes("*") ||
+      condData.metadata.expression.includes("/") ||
+      condData.metadata.expression.includes("&&") ||
+      condData.metadata.expression.includes("||") ||
+      condData.metadata.expression.includes("===") ||
+      condData.metadata.expression.includes("!==") ||
+      condData.metadata.expression.includes("==") ||
+      condData.metadata.expression.includes("!=") ||
+      condData.metadata.expression.includes("<") ||
+      condData.metadata.expression.includes(">") ||
+      condData.metadata.expression.includes("(") ||
+      condData.metadata.expression.includes("."))
+
+  const needsExpression = !isSimpleCondition || hasOperatorsOrMethods
 
   return {
     type: "cond",

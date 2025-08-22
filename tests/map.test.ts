@@ -595,60 +595,61 @@ describe("map", () => {
         },
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     type: "cond",
-    //     data: "/context/flag",
-    //     true: {
-    //       tag: "ul",
-    //       type: "el",
-    //       child: [
-    //         {
-    //           type: "map",
-    //           data: "/core/list",
-    //           child: [
-    //             {
-    //               tag: "li",
-    //               type: "el",
-    //               child: [
-    //                 {
-    //                   type: "text",
-    //                   data: "[item]/title",
-    //                   expr: "${0} ",
-    //                 },
-    //                 {
-    //                   type: "map",
-    //                   data: "[item]/nested",
-    //                   child: [
-    //                     {
-    //                       tag: "em",
-    //                       type: "el",
-    //                       child: [
-    //                         {
-    //                           type: "text",
-    //                           data: "[item]",
-    //                         },
-    //                       ],
-    //                     },
-    //                   ],
-    //                 },
-    //               ],
-    //             },
-    //           ],
-    //         },
-    //       ],
-    //     },
-    //     false: {
-    //       tag: "div",
-    //       type: "el",
-    //       child: [
-    //         {
-    //           type: "text",
-    //           value: "x",
-    //         },
-    //       ],
-    //     },
-    //   },
-    // ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        type: "cond",
+        data: "/context/flag",
+        true: {
+          tag: "ul",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/list",
+              child: [
+                {
+                  tag: "li",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      data: "[item]/title",
+                      expr: "${0} ",
+                    },
+                    {
+                      type: "map",
+                      data: "[item]/nested",
+                      child: [
+                        {
+                          tag: "em",
+                          type: "el",
+                          child: [
+                            {
+                              type: "text",
+                              data: "[item]",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        false: {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "text",
+              value: "x",
+            },
+          ],
+        },
+      },
+    ])
   })
 })

@@ -226,7 +226,7 @@ describe("data-parser", () => {
       expect(enriched[0]?.type).toBe("cond")
       const condNode = enriched[0] as any
       expect(condNode.data).toBe("/context/flag")
-      expect(condNode.expr).toBe("${0}")
+      expect(condNode.expr).toBeUndefined()
     })
   })
 })
