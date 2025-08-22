@@ -35,7 +35,20 @@ describe("nested.conditions", () => {
               <section data-company="${company.id}">
                 <h1>Company: ${company.id}</h1>
                 ${company.active
-                  ? html`<div class="company-active">Active Company</div>`
+                  ? html`
+                      <div class="company-active">
+                        <h2>Active Company: ${company.id}</h2>
+                        ${company.departments.map(
+                          (dept) => html`
+                            <div class="dept-summary">
+                              ${dept.active
+                                ? html`<span class="dept-active-summary">Active Dept: ${dept.id}</span>`
+                                : html`<span class="dept-inactive-summary">Inactive Dept: ${dept.id}</span>`}
+                            </div>
+                          `
+                        )}
+                      </div>
+                    `
                   : html`<div class="company-inactive">Inactive Company</div>`}
                 ${company.departments.map(
                   (dept) => html`
@@ -122,8 +135,68 @@ describe("nested.conditions", () => {
                       },
                       child: [
                         {
-                          type: "text",
-                          value: "Active Company",
+                          tag: "h2",
+                          type: "el",
+                          child: [
+                            {
+                              type: "text",
+                              data: "[item]/id",
+                              expr: "Active Company: ${0}",
+                            },
+                          ],
+                        },
+                        {
+                          type: "map",
+                          data: "[item]/departments",
+                          child: [
+                            {
+                              tag: "div",
+                              type: "el",
+                              attr: {
+                                class: {
+                                  value: "dept-summary",
+                                },
+                              },
+                              child: [
+                                {
+                                  type: "cond",
+                                  data: "[item]/active",
+                                  true: {
+                                    tag: "span",
+                                    type: "el",
+                                    attr: {
+                                      class: {
+                                        value: "dept-active-summary",
+                                      },
+                                    },
+                                    child: [
+                                      {
+                                        type: "text",
+                                        data: "[item]/id",
+                                        expr: "Active Dept: ${0}",
+                                      },
+                                    ],
+                                  },
+                                  false: {
+                                    tag: "span",
+                                    type: "el",
+                                    attr: {
+                                      class: {
+                                        value: "dept-inactive-summary",
+                                      },
+                                    },
+                                    child: [
+                                      {
+                                        type: "text",
+                                        data: "[item]/id",
+                                        expr: "Inactive Dept: ${0}",
+                                      },
+                                    ],
+                                  },
+                                },
+                              ],
+                            },
+                          ],
                         },
                       ],
                     },
