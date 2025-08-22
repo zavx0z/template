@@ -230,7 +230,7 @@ describe("атрибуты", () => {
       },
     ])
   })
-  it("класс", () => {
+  it("класс в map", () => {
     const mainHtml = extractMainHtmlBlock<any, { items: { type: string; name: string }[] }>(
       ({ html, core }) => html`
         <ul>

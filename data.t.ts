@@ -31,6 +31,18 @@ export interface NodeDataCondition {
 export type NodeData = NodeDataMap | NodeDataCondition | NodeDataText | NodeDataElement
 
 /**
+ * Информация о контексте map.
+ */
+export type MapContext = {
+  /** Путь map */
+  path: string
+  /** Параметры map */
+  params: string[]
+  /** Уровень map */
+  level: number
+}
+
+/**
  * Контекст для парсинга данных.
  */
 export type DataParserContext = {
@@ -42,6 +54,8 @@ export type DataParserContext = {
   mapParams?: string[]
   /** Уровень вложенности */
   level: number
+  /** Стек всех map контекстов */
+  mapContextStack?: MapContext[]
 }
 
 /**

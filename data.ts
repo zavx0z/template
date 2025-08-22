@@ -5,20 +5,80 @@ import type {
   NodeDataMap,
   NodeDataCondition,
   NodeDataElement,
+  MapContext,
 } from "./data.t"
+
+/**
+ * Ищет переменную в стеке map контекстов и возвращает соответствующий путь.
+ */
+const findVariableInMapStack = (variable: string, context: DataParserContext): string | null => {
+  if (!context.mapContextStack || context.mapContextStack.length === 0) {
+    return null
+  }
+
+  // Проверяем от самого глубокого уровня к самому внешнему
+  for (let i = context.mapContextStack.length - 1; i >= 0; i--) {
+    const mapContext = context.mapContextStack[i]
+    if (!mapContext) continue
+
+    const variableParts = variable.split(".")
+    const variableName = variableParts[0]
+
+    if (mapContext.params.includes(variableName || "")) {
+      // Переменная найдена на этом уровне map
+      const currentLevel = context.mapContextStack.length - 1
+      const targetLevel = i
+      const levelsUp = currentLevel - targetLevel
+
+      // Создаем префикс с нужным количеством "../"
+      const prefix = "../".repeat(levelsUp)
+
+      // Определяем путь в зависимости от типа параметра
+      if (mapContext.params.length === 1) {
+        // Простой параметр map
+        if (variableParts.length > 1) {
+          // Свойство простого параметра (например, user.name)
+          const propertyPath = variableParts.slice(1).join("/")
+          return `${prefix}[item]/${propertyPath}`
+        } else {
+          // Сам простой параметр
+          return `${prefix}[item]`
+        }
+      } else {
+        // Деструктурированные параметры
+        if (variableParts.length > 1) {
+          // Свойство деструктурированного параметра
+          return `${prefix}[item]/${variable.replace(/\./g, "/")}`
+        } else {
+          // Само деструктурированное свойство
+          return `${prefix}[item]/${variable}`
+        }
+      }
+    }
+  }
+
+  return null
+}
 
 /**
  * Определяет путь к данным с учетом контекста map.
  * Переиспользуемая функция для обработки переменных в контексте map.
  */
 const resolveDataPath = (variable: string, context: DataParserContext): string => {
+  // Сначала пытаемся найти переменную в стеке map контекстов
+  const mapStackPath = findVariableInMapStack(variable, context)
+  if (mapStackPath !== null) {
+    return mapStackPath
+  }
+
+  // Если не найдена в стеке map, используем старую логику для обратной совместимости
   if (context.mapParams && context.mapParams.length > 0) {
     // В контексте map - различаем простые параметры и деструктурированные свойства
     const variableParts = variable.split(".")
     const mapParamVariable = variableParts[0] || ""
 
     if (context.mapParams.includes(mapParamVariable)) {
-      // Переменная является параметром map или его свойством
+      // Переменная является параметром текущего map или его свойством
       if (context.mapParams.length > 1) {
         // Деструктурированные параметры - переменная представляет свойство объекта
         return `[item]/${variable.replace(/\./g, "/")}`
@@ -34,7 +94,7 @@ const resolveDataPath = (variable: string, context: DataParserContext): string =
         }
       }
     } else if (context.mapParams.includes(variable)) {
-      // Переменная точно совпадает с параметром map
+      // Переменная точно совпадает с параметром текущего map
       if (context.mapParams.length > 1) {
         // Деструктурированное свойство
         return `[item]/${variable.replace(/\./g, "/")}`
@@ -43,10 +103,26 @@ const resolveDataPath = (variable: string, context: DataParserContext): string =
         return "[item]"
       }
     } else {
-      // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
+      // Переменная не найдена в текущих mapParams - проверяем, есть ли вложенный map
       if (context.currentPath && context.currentPath.includes("[item]")) {
-        // Вложенный map - переменная представляет элемент массива
-        return "[item]"
+        // Вложенный map - переменная может быть из внешнего контекста
+        // Проверяем, есть ли в pathStack другие map контексты
+        if (context.pathStack && context.pathStack.length > 1) {
+          // Есть внешний map - вычисляем количество уровней подъема
+          // Считаем количество map контекстов в pathStack (каждый map добавляет уровень)
+          const mapLevels = context.pathStack.filter((path) => path.includes("[item]")).length
+          const levelsUp = mapLevels - 1 // текущий уровень не считаем
+
+          // Создаем префикс с нужным количеством "../"
+          const prefix = "../".repeat(levelsUp)
+
+          // Извлекаем только свойство из переменной (например, из g.id берем только id)
+          const propertyPath = variableParts.length > 1 ? variableParts.slice(1).join("/") : variable
+          return `${prefix}[item]/${propertyPath}`
+        } else {
+          // Нет внешнего map - обычный путь
+          return `[item]/${variable.replace(/\./g, "/")}`
+        }
       } else {
         // Обычный путь
         return `[item]/${variable.replace(/\./g, "/")}`
@@ -119,12 +195,19 @@ export const parseMapData = (
     const parts = dataPath.split(".")
     const relativePath = parts[parts.length - 1] || ""
 
+    const newMapContext: MapContext = {
+      path: `[item]/${relativePath}`,
+      params: params,
+      level: context.level + 1,
+    }
+
     const newContext: DataParserContext = {
       ...context,
       currentPath: `[item]/${relativePath}`,
       pathStack: [...context.pathStack, `[item]/${relativePath}`],
       mapParams: params,
       level: context.level + 1,
+      mapContextStack: [...(context.mapContextStack || []), newMapContext],
     }
 
     return {
@@ -136,12 +219,19 @@ export const parseMapData = (
 
   // Если это вложенный map в контексте (например, nested.map)
   if (!dataPath.includes(".") && context.currentPath && context.currentPath.includes("[item]")) {
+    const newMapContext: MapContext = {
+      path: `[item]/${dataPath}`,
+      params: params,
+      level: context.level + 1,
+    }
+
     const newContext: DataParserContext = {
       ...context,
       currentPath: `[item]/${dataPath}`,
       pathStack: [...context.pathStack, `[item]/${dataPath}`],
       mapParams: params,
       level: context.level + 1,
+      mapContextStack: [...(context.mapContextStack || []), newMapContext],
     }
 
     return {
@@ -153,12 +243,19 @@ export const parseMapData = (
 
   // Если это вложенный map в контексте map (например, nested.map в контексте map)
   if (!dataPath.includes(".") && context.mapParams && context.mapParams.length > 0) {
+    const newMapContext: MapContext = {
+      path: `[item]/${dataPath}`,
+      params: params,
+      level: context.level + 1,
+    }
+
     const newContext: DataParserContext = {
       ...context,
       currentPath: `[item]/${dataPath}`,
       pathStack: [...context.pathStack, `[item]/${dataPath}`],
       mapParams: params,
       level: context.level + 1,
+      mapContextStack: [...(context.mapContextStack || []), newMapContext],
     }
 
     return {
@@ -171,12 +268,19 @@ export const parseMapData = (
   // Абсолютный путь
   const absolutePath = `/${dataPath.replace(/\./g, "/")}`
 
+  const newMapContext: MapContext = {
+    path: absolutePath,
+    params: params,
+    level: context.level + 1,
+  }
+
   const newContext: DataParserContext = {
     ...context,
     currentPath: absolutePath,
     pathStack: [...context.pathStack, absolutePath],
     mapParams: params,
     level: context.level + 1,
+    mapContextStack: [...(context.mapContextStack || []), newMapContext],
   }
 
   return {
