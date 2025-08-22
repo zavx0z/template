@@ -230,4 +230,49 @@ describe("атрибуты", () => {
       },
     ])
   })
+  it("класс", () => {
+    const mainHtml = extractMainHtmlBlock<any, { items: { type: string; name: string }[] }>(
+      ({ html, core }) => html`
+        <ul>
+          ${core.items.map((item) => html`<li class="item-${item.type}" title="${item.name}">${item.name}</li>`)}
+        </ul>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            data: "/core/items",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                attr: {
+                  class: {
+                    data: "[item]/type",
+                    expr: "item-${0}",
+                  },
+                  title: {
+                    data: "[item]/name",
+                  },
+                },
+                child: [
+                  {
+                    type: "text",
+                    data: "[item]/name",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
 })

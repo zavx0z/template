@@ -458,8 +458,61 @@ const parseTemplateLiteral = (
     })
 
     if (uniquePaths.length > 0) {
-      // Создаем пути к данным
-      const paths = uniquePaths.map((path) => `/${path.replace(/\./g, "/")}`)
+      // Создаем пути к данным с учетом контекста
+      const paths = uniquePaths.map((path) => {
+        // Определяем путь к данным с учетом контекста
+        let dataPath: string
+
+        if (context.mapParams && context.mapParams.length > 0) {
+          // В контексте map - различаем простые параметры и деструктурированные свойства
+          const variableParts = path.split(".")
+          const mapParamVariable = variableParts[0] || ""
+
+          if (context.mapParams.includes(mapParamVariable)) {
+            // Переменная является параметром map или его свойством
+            if (context.mapParams.length > 1) {
+              // Деструктурированные параметры - переменная представляет свойство объекта
+              dataPath = `[item]/${path.replace(/\./g, "/")}`
+            } else {
+              // Простой параметр map
+              if (variableParts.length > 1) {
+                // Свойство простого параметра
+                const propertyPath = variableParts.slice(1).join("/")
+                dataPath = `[item]/${propertyPath}`
+              } else {
+                // Сам простой параметр
+                dataPath = "[item]"
+              }
+            }
+          } else if (context.mapParams.includes(path)) {
+            // Переменная точно совпадает с параметром map
+            if (context.mapParams.length > 1) {
+              // Деструктурированное свойство
+              dataPath = `[item]/${path.replace(/\./g, "/")}`
+            } else {
+              // Простой параметр
+              dataPath = "[item]"
+            }
+          } else {
+            // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
+            if (context.currentPath && context.currentPath.includes("[item]")) {
+              // Вложенный map - переменная представляет элемент массива
+              dataPath = "[item]"
+            } else {
+              // Обычный путь
+              dataPath = `[item]/${path.replace(/\./g, "/")}`
+            }
+          }
+        } else if (context.currentPath && !context.currentPath.includes("[item]")) {
+          // В контексте, но не map - добавляем к текущему пути
+          dataPath = `${context.currentPath}/${path.replace(/\./g, "/")}`
+        } else {
+          // Абсолютный путь
+          dataPath = `/${path.replace(/\./g, "/")}`
+        }
+
+        return dataPath
+      })
 
       // Создаем выражение с унификацией - убираем ${} и заменяем переменные на индексы
       let expr = value.replace(/^\$\{/, "").replace(/\}$/, "")
@@ -493,7 +546,61 @@ const parseTemplateLiteral = (
     })
 
     if (uniquePaths.length > 0) {
-      const paths = uniquePaths.map((path) => `/${path.replace(/\./g, "/")}`)
+      // Создаем пути к данным с учетом контекста
+      const paths = uniquePaths.map((path) => {
+        // Определяем путь к данным с учетом контекста
+        let dataPath: string
+
+        if (context.mapParams && context.mapParams.length > 0) {
+          // В контексте map - различаем простые параметры и деструктурированные свойства
+          const variableParts = path.split(".")
+          const mapParamVariable = variableParts[0] || ""
+
+          if (context.mapParams.includes(mapParamVariable)) {
+            // Переменная является параметром map или его свойством
+            if (context.mapParams.length > 1) {
+              // Деструктурированные параметры - переменная представляет свойство объекта
+              dataPath = `[item]/${path.replace(/\./g, "/")}`
+            } else {
+              // Простой параметр map
+              if (variableParts.length > 1) {
+                // Свойство простого параметра
+                const propertyPath = variableParts.slice(1).join("/")
+                dataPath = `[item]/${propertyPath}`
+              } else {
+                // Сам простой параметр
+                dataPath = "[item]"
+              }
+            }
+          } else if (context.mapParams.includes(path)) {
+            // Переменная точно совпадает с параметром map
+            if (context.mapParams.length > 1) {
+              // Деструктурированное свойство
+              dataPath = `[item]/${path.replace(/\./g, "/")}`
+            } else {
+              // Простой параметр
+              dataPath = "[item]"
+            }
+          } else {
+            // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
+            if (context.currentPath && context.currentPath.includes("[item]")) {
+              // Вложенный map - переменная представляет элемент массива
+              dataPath = "[item]"
+            } else {
+              // Обычный путь
+              dataPath = `[item]/${path.replace(/\./g, "/")}`
+            }
+          }
+        } else if (context.currentPath && !context.currentPath.includes("[item]")) {
+          // В контексте, но не map - добавляем к текущему пути
+          dataPath = `${context.currentPath}/${path.replace(/\./g, "/")}`
+        } else {
+          // Абсолютный путь
+          dataPath = `/${path.replace(/\./g, "/")}`
+        }
+
+        return dataPath
+      })
 
       // Проверяем, есть ли сложные операции (сравнения, математические операторы)
       const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(value)
@@ -551,7 +658,61 @@ const parseTemplateLiteral = (
     return variable
   })
 
-  const paths = baseVariables.map((variable) => `/${variable.replace(/\./g, "/")}`)
+  // Обрабатываем пути с учетом контекста map
+  const paths = baseVariables.map((variable) => {
+    // Определяем путь к данным с учетом контекста
+    let path: string
+
+    if (context.mapParams && context.mapParams.length > 0) {
+      // В контексте map - различаем простые параметры и деструктурированные свойства
+      const variableParts = variable.split(".")
+      const mapParamVariable = variableParts[0] || ""
+
+      if (context.mapParams.includes(mapParamVariable)) {
+        // Переменная является параметром map или его свойством
+        if (context.mapParams.length > 1) {
+          // Деструктурированные параметры - переменная представляет свойство объекта
+          path = `[item]/${variable.replace(/\./g, "/")}`
+        } else {
+          // Простой параметр map
+          if (variableParts.length > 1) {
+            // Свойство простого параметра (например, user.name в map((user) => ...))
+            const propertyPath = variableParts.slice(1).join("/")
+            path = `[item]/${propertyPath}`
+          } else {
+            // Сам простой параметр (например, name в context.list.map((name) => ...))
+            path = "[item]"
+          }
+        }
+      } else if (context.mapParams.includes(variable)) {
+        // Переменная точно совпадает с параметром map
+        if (context.mapParams.length > 1) {
+          // Деструктурированное свойство
+          path = `[item]/${variable.replace(/\./g, "/")}`
+        } else {
+          // Простой параметр
+          path = "[item]"
+        }
+      } else {
+        // Переменная не найдена в mapParams - проверяем, есть ли вложенный map
+        if (context.currentPath && context.currentPath.includes("[item]")) {
+          // Вложенный map - переменная представляет элемент массива
+          path = "[item]"
+        } else {
+          // Обычный путь
+          path = `[item]/${variable.replace(/\./g, "/")}`
+        }
+      }
+    } else if (context.currentPath && !context.currentPath.includes("[item]")) {
+      // В контексте, но не map - добавляем к текущему пути
+      path = `${context.currentPath}/${variable.replace(/\./g, "/")}`
+    } else {
+      // Абсолютный путь
+      path = `/${variable.replace(/\./g, "/")}`
+    }
+
+    return path
+  })
 
   // Для простых переменных без условий - возвращаем только data
   if (variables.length === 1 && value === `\${${variables[0]}}`) {
@@ -563,7 +724,8 @@ const parseTemplateLiteral = (
   // Создаем выражение с индексами для сложных случаев
   let expr = value
   baseVariables.forEach((variable, index) => {
-    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+    // Заменяем переменные в ${} на индексы
+    expr = expr.replace(new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g"), `\${${index}}`)
   })
 
   return {
@@ -576,7 +738,8 @@ const parseTemplateLiteral = (
  * Парсер атрибутов из HTML тега.
  */
 const parseAttributesImproved = (
-  text: string
+  text: string,
+  context: DataParserContext = { pathStack: [], level: 0 }
 ): Record<string, { value: string } | { data: string | string[]; expr?: string }> => {
   const tagContent = text.replace(/^<\/?[A-Za-z][A-Za-z0-9:-]*/, "").replace(/\/?>$/, "")
   const attributes: Record<string, { value: string } | { data: string | string[]; expr?: string }> = {}
@@ -671,7 +834,7 @@ const parseAttributesImproved = (
       if (i < tagContent.length) i++ // пропускаем закрывающую кавычку
 
       // Проверяем, является ли значение template literal
-      const templateResult = parseTemplateLiteral(value)
+      const templateResult = parseTemplateLiteral(value, context)
       if (templateResult) {
         attributes[name] = templateResult
       } else {
@@ -704,7 +867,7 @@ const parseAttributesImproved = (
       const value = tagContent.slice(valueStart, i)
 
       // Проверяем, является ли значение template literal
-      const templateResult = parseTemplateLiteral(value)
+      const templateResult = parseTemplateLiteral(value, context)
       if (templateResult) {
         // Для булевых атрибутов типа ${context.flag && "disabled"}
         // Если это условное выражение с логическим И, извлекаем имя атрибута
@@ -835,7 +998,7 @@ export const createNodeDataElement = (node: any, context: DataParserContext = { 
 
     // Добавляем атрибуты если есть
     if (node.text) {
-      const attributes = parseAttributesImproved(node.text)
+      const attributes = parseAttributesImproved(node.text, context)
       if (Object.keys(attributes).length > 0) result.attr = attributes
     }
 
