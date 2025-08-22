@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
+import { enrichHierarchyWithData } from "../data"
 
 describe("scanTagsFromRender / базовые случаи", () => {
   it("простая пара тегов", () => {
@@ -16,6 +17,13 @@ describe("scanTagsFromRender / базовые случаи", () => {
         tag: "div",
         type: "el",
         text: "<div>",
+      },
+    ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
       },
     ])
   })
@@ -72,6 +80,35 @@ describe("scanTagsFromRender / базовые случаи", () => {
         ],
       },
     ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            tag: "li",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "a",
+              },
+            ],
+          },
+          {
+            tag: "li",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "b",
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("void и self", () => {
@@ -113,6 +150,27 @@ describe("scanTagsFromRender / базовые случаи", () => {
             tag: "input",
             type: "el",
             text: "<input disabled />",
+          },
+        ],
+      },
+    ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            tag: "br",
+            type: "el",
+          },
+          {
+            tag: "img",
+            type: "el",
+          },
+          {
+            tag: "input",
+            type: "el",
           },
         ],
       },

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
+import { enrichHierarchyWithData } from "../data"
 
 describe("внутри ${...}", () => {
   it("теги внутри тернарника", () => {
@@ -47,6 +48,39 @@ describe("внутри ${...}", () => {
                 {
                   type: "text",
                   text: "b",
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "cond",
+            data: "/context/cond",
+            true: {
+              tag: "p",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  value: "a",
+                },
+              ],
+            },
+            false: {
+              tag: "span",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  value: "b",
                 },
               ],
             },

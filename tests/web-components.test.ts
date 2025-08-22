@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
+import { enrichHierarchyWithData } from "../data"
 
 describe("scanTagsFromRender / web components", () => {
   it("базовые custom elements", () => {
@@ -16,6 +17,13 @@ describe("scanTagsFromRender / web components", () => {
         tag: "my-element",
         type: "el",
         text: "<my-element>",
+      },
+    ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "my-element",
+        type: "el",
       },
     ])
   })
@@ -35,6 +43,13 @@ describe("scanTagsFromRender / web components", () => {
         text: '<user-card name="John" age="25">',
       },
     ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "user-card",
+        type: "el",
+      },
+    ])
   })
 
   it("self-closing custom elements", () => {
@@ -47,6 +62,13 @@ describe("scanTagsFromRender / web components", () => {
         tag: "loading-spinner",
         type: "el",
         text: "<loading-spinner />",
+      },
+    ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "loading-spinner",
+        type: "el",
       },
     ])
   })

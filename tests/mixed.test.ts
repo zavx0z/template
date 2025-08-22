@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
+import { enrichHierarchyWithData } from "../data"
 
 describe("scanTagsFromRender / смешанные сценарии", () => {
   it("map + условия", () => {
@@ -75,6 +76,52 @@ describe("scanTagsFromRender / смешанные сценарии", () => {
         ],
       },
     ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            data: "/context/list",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                child: [
+                  {
+                    type: "cond",
+                    data: "[index]",
+                    expr: "${0} % 2",
+                    true: {
+                      tag: "em",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          data: '[item]/"A"',
+                        },
+                      ],
+                    },
+                    false: {
+                      tag: "strong",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          data: '[item]/"B"',
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("операторы сравнения — без тегов", () => {
@@ -90,6 +137,13 @@ describe("scanTagsFromRender / смешанные сценарии", () => {
       {
         type: "text",
         text: '${context.a < context.b && context.c > context.d ? "1" : "0"}',
+      },
+    ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        type: "text",
+        data: '/context.a < context.b && context.c > context.d ? "1" : "0"',
       },
     ])
   })
