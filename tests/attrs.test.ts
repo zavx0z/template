@@ -25,9 +25,6 @@ describe("атрибуты", () => {
         tag: "svg:use",
         type: "el",
         attr: {
-          href: {
-            value: "#id",
-          },
           xlink: {
             value: "",
           },
@@ -133,19 +130,8 @@ describe("атрибуты", () => {
         type: "el",
         attr: {
           title: {
-            value: "${context.flag ? ",
-          },
-          a: {
-            value: "",
-          },
-          b: {
-            value: "",
-          },
-          c: {
-            value: "",
-          },
-          d: {
-            value: "",
+            data: "/context/flag",
+            expr: '${0} ? "a > b" : "c < d"',
           },
         },
       },
@@ -174,22 +160,7 @@ describe("атрибуты", () => {
         tag: "div",
         type: "el",
         attr: {
-          a: {
-            value: "",
-          },
-          b: {
-            value: "",
-          },
-          c: {
-            value: "",
-          },
-          context: {
-            value: "",
-          },
-          d: {
-            value: "",
-          },
-          flag: {
+          title: {
             value: "",
           },
         },
@@ -221,7 +192,8 @@ describe("атрибуты", () => {
         type: "el",
         attr: {
           title: {
-            value: '${context.flag ? "a > b" : "c < d"}',
+            data: "/context/flag",
+            expr: '${0} ? "a > b" : "c < d"',
           },
         },
       },
@@ -249,17 +221,6 @@ describe("атрибуты", () => {
       {
         tag: "button",
         type: "el",
-        attr: {
-          context: {
-            value: "",
-          },
-          disabled: {
-            value: "",
-          },
-          flag: {
-            value: "",
-          },
-        },
       },
     ])
   })

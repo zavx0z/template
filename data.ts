@@ -322,31 +322,137 @@ export const splitTextIntoParts = (text: string): Array<{ type: "static" | "dyna
 }
 
 /**
- * Парсер атрибутов из HTML тега.
+ * Парсит template literal в атрибуте и возвращает структуру с data и expr.
+ * Использует ту же логику, что и для text узлов, но с особой обработкой условных выражений.
  */
-const parseAttributesImproved = (text: string): Record<string, { value: string }> => {
-  const tagContent = text.replace(/^<\/?[A-Za-z][A-Za-z0-9:-]*/, "").replace(/\/?>$/, "")
-  const attributes: Record<string, { value: string }> = {}
-
-  // Атрибуты с кавычками
-  const attrRegex = /([A-Za-z][A-Za-z0-9-]*)\s*=\s*(["'])(.*?)\2/g
-  let match
-  while ((match = attrRegex.exec(tagContent)) !== null) {
-    const [, name, , value] = match
-    if (name) attributes[name] = { value: value || "" }
+const parseTemplateLiteralAttribute = (value: string): { data: string | string[]; expr?: string } | null => {
+  // Проверяем, содержит ли значение template literal
+  if (!value.includes("${")) {
+    return null
   }
 
-  // Булевые атрибуты
-  const processedContent = tagContent.replace(attrRegex, "")
-  const boolAttrRegex = /\b([A-Za-z][A-Za-z0-9-]*)\b/g
-  while ((match = boolAttrRegex.exec(processedContent)) !== null) {
-    const name = match[1]
-    if (name) {
-      const before = processedContent.slice(0, match.index)
-      const after = processedContent.slice(match.index + name.length)
-      if (!before.match(/[A-Za-z0-9-]*\s*=\s*$/) && !after.match(/^\s*=/)) {
-        attributes[name] = { value: "" }
+  // Проверяем, является ли это условным выражением
+  const hasConditionalOperators = /[?:]/.test(value)
+
+  if (hasConditionalOperators) {
+    // Для условных выражений в атрибутах используем стандартную унификацию
+    // Извлекаем переменные из выражения
+    const pathMatches = value.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
+    const uniquePaths = [...new Set(pathMatches)].filter(
+      (path) =>
+        // Исключаем строковые литералы и другие не-переменные
+        !path.startsWith('"') && !path.startsWith("'") && !path.includes('"') && !path.includes("'") && path.length > 1
+    )
+
+    if (uniquePaths.length > 0) {
+      // Создаем пути к данным
+      const paths = uniquePaths.map((path) => `/${path.replace(/\./g, "/")}`)
+
+      // Создаем выражение с унификацией - убираем ${} и заменяем переменные на индексы
+      let expr = value.replace(/^\$\{/, "").replace(/\}$/, "")
+      uniquePaths.forEach((path, index) => {
+        expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+      })
+
+      return {
+        data: paths.length === 1 ? paths[0] || "" : paths,
+        expr,
       }
+    }
+  }
+
+  // Используем обычную логику для простых переменных
+  const textResult = parseTextData(value)
+
+  // Преобразуем результат в формат атрибута
+  if (textResult.type === "text") {
+    if (textResult.value !== undefined) {
+      // Статический текст
+      return { data: textResult.value }
+    } else if (textResult.data !== undefined) {
+      // Динамический текст
+      const result: { data: string | string[]; expr?: string } = {
+        data: textResult.data,
+      }
+      if (textResult.expr) {
+        result.expr = textResult.expr
+      }
+      return result
+    }
+  }
+
+  return null
+}
+
+/**
+ * Парсер атрибутов из HTML тега.
+ */
+const parseAttributesImproved = (
+  text: string
+): Record<string, { value: string } | { data: string | string[]; expr?: string }> => {
+  const tagContent = text.replace(/^<\/?[A-Za-z][A-Za-z0-9:-]*/, "").replace(/\/?>$/, "")
+  const attributes: Record<string, { value: string } | { data: string | string[]; expr?: string }> = {}
+
+  // Парсим атрибуты вручную
+  let i = 0
+  while (i < tagContent.length) {
+    // Пропускаем пробелы
+    while (i < tagContent.length && /\s/.test(tagContent[i])) i++
+    if (i >= tagContent.length) break
+
+    // Ищем имя атрибута
+    const nameStart = i
+    while (i < tagContent.length && /[A-Za-z0-9-]/.test(tagContent[i])) i++
+    const name = tagContent.slice(nameStart, i)
+    if (!name || name.length === 0) break
+
+    // Пропускаем пробелы и знак равенства
+    while (i < tagContent.length && /\s/.test(tagContent[i])) i++
+    if (i < tagContent.length && tagContent[i] === "=") i++
+    while (i < tagContent.length && /\s/.test(tagContent[i])) i++
+
+    if (i >= tagContent.length) {
+      // Булевый атрибут
+      attributes[name] = { value: "" }
+      break
+    }
+
+    // Ищем значение в кавычках
+    if (tagContent[i] === '"' || tagContent[i] === "'") {
+      const quote = tagContent[i]
+      i++
+      const valueStart = i
+
+      // Ищем закрывающую кавычку, учитывая template literals
+      while (i < tagContent.length) {
+        if (tagContent[i] === quote) break
+        if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
+          // Пропускаем template literal
+          i += 2
+          let braceCount = 1
+          while (i < tagContent.length && braceCount > 0) {
+            if (tagContent[i] === "{") braceCount++
+            else if (tagContent[i] === "}") braceCount--
+            i++
+          }
+        } else {
+          i++
+        }
+      }
+
+      const value = tagContent.slice(valueStart, i)
+      if (i < tagContent.length) i++ // пропускаем закрывающую кавычку
+
+      // Проверяем, является ли значение template literal
+      const templateResult = parseTemplateLiteralAttribute(value)
+      if (templateResult) {
+        attributes[name] = templateResult
+      } else {
+        attributes[name] = { value: value || "" }
+      }
+    } else {
+      // Булевый атрибут
+      attributes[name] = { value: "" }
     }
   }
 

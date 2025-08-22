@@ -125,10 +125,10 @@ describe("scanTagsFromRender / web components", () => {
         type: "el",
         attr: {
           id: {
-            value: "${context.userId}",
+            data: "/context.userId",
           },
           theme: {
-            value: "${context.theme}",
+            data: "/context.theme",
           },
         },
       },
