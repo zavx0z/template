@@ -194,33 +194,13 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
   const hasConditionalOperators = /[?:]/.test(text)
 
   if (hasConditionalOperators) {
-    // Для условных выражений в text используем старый формат (без унификации)
-    // Извлекаем переменные из выражения
-    const pathMatches = text.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
-    const uniquePaths = [...new Set(pathMatches)].filter(
-      (path) =>
-        // Исключаем строковые литералы и другие не-переменные
-        !path.startsWith('"') && !path.startsWith("'") && !path.includes('"') && !path.includes("'") && path.length > 1
-    )
-
-    if (uniquePaths.length > 0) {
-      // Создаем data - заменяем только первую переменную на путь и убираем ${}
-      let dataExpression = text
-      const firstPath = uniquePaths[0]
-      if (firstPath) {
-        const pathWithDots = `/${firstPath}`
-        dataExpression = dataExpression.replace(
-          new RegExp(`\\b${firstPath.replace(/\./g, "\\.")}\\b`, "g"),
-          pathWithDots
-        )
-      }
-
-      // Убираем ${} из data
-      dataExpression = dataExpression.replace(/^\$\{/, "").replace(/\}$/, "")
-
+    // Используем общую функцию для условных выражений
+    const templateResult = parseTemplateLiteral(text, context)
+    if (templateResult) {
       return {
         type: "text",
-        data: dataExpression,
+        data: templateResult.data,
+        ...(templateResult.expr && { expr: templateResult.expr }),
       }
     }
   }
@@ -440,19 +420,19 @@ const parseAttributesImproved = (
   let i = 0
   while (i < tagContent.length) {
     // Пропускаем пробелы
-    while (i < tagContent.length && /\s/.test(tagContent[i])) i++
+    while (i < tagContent.length && /\s/.test(tagContent[i]!)) i++
     if (i >= tagContent.length) break
 
     // Ищем имя атрибута
     const nameStart = i
-    while (i < tagContent.length && /[A-Za-z0-9-]/.test(tagContent[i])) i++
+    while (i < tagContent.length && /[A-Za-z0-9-]/.test(tagContent[i]!)) i++
     const name = tagContent.slice(nameStart, i)
     if (!name || name.length === 0) break
 
     // Пропускаем пробелы и знак равенства
-    while (i < tagContent.length && /\s/.test(tagContent[i])) i++
+    while (i < tagContent.length && /\s/.test(tagContent[i]!)) i++
     if (i < tagContent.length && tagContent[i] === "=") i++
-    while (i < tagContent.length && /\s/.test(tagContent[i])) i++
+    while (i < tagContent.length && /\s/.test(tagContent[i]!)) i++
 
     if (i >= tagContent.length) {
       // Булевый атрибут

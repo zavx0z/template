@@ -143,7 +143,8 @@ describe("scanTagsFromRender / смешанные сценарии", () => {
     expect(enrichedHierarchy).toEqual([
       {
         type: "text",
-        data: '/context.a < context.b && context.c > context.d ? "1" : "0"',
+        data: ["/context/a", "/context/b", "/context/c", "/context/d"],
+        expr: '${0} < ${1} && ${2} > ${3} ? "1" : "0"',
       },
     ])
   })
