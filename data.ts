@@ -166,7 +166,29 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
     // Заменяем переменные в ${} на индексы
     expr = expr.replace(new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g"), `\${${index}}`)
   })
-  return expr
+
+  // Форматируем выражение: удаляем лишние пробелы и переносы строк, но сохраняем строковые литералы
+  // Сначала защищаем строковые литералы
+  const stringLiterals: string[] = []
+  let protectedExpr = expr
+    .replace(/"[^"]*"/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
+  // Удаляем лишние пробелы и переносы строк в выражениях
+  protectedExpr = protectedExpr.replace(/\s+/g, " ").trim()
+
+  // Восстанавливаем строковые литералы
+  stringLiterals.forEach((literal, index) => {
+    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
+  })
+
+  return protectedExpr
 }
 
 /**
@@ -369,6 +391,34 @@ export const extractConditionExpression = (condText: string): string => {
 }
 
 /**
+ * Форматирует текст по стандартам HTML (схлопывание пробельных символов).
+ */
+const formatTextByHtmlStandards = (text: string): string => {
+  // Схлопываем последовательные пробельные символы в один пробел
+  // и удаляем пробелы в начале и конце
+  return text.replace(/\s+/g, " ").trim()
+}
+
+/**
+ * Форматирует статический текст, сохраняя важные пробелы.
+ */
+const formatStaticText = (text: string): string => {
+  // Если текст содержит только пробельные символы - удаляем их полностью
+  if (text.trim().length === 0) {
+    return ""
+  }
+
+  // Если текст содержит не-пробельные символы - форматируем по стандартам HTML
+  // НО только если это многострочный текст или содержит много пробелов
+  if (text.includes("\n") || text.includes("\t") || /\s{3,}/.test(text)) {
+    return formatTextByHtmlStandards(text)
+  }
+
+  // Иначе оставляем как есть
+  return text
+}
+
+/**
  * Парсит текстовые данные с путями.
  */
 export const parseTextData = (text: string, context: DataParserContext = { pathStack: [], level: 0 }): NodeDataText => {
@@ -376,7 +426,7 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
   if (!text.includes("${")) {
     return {
       type: "text",
-      value: text,
+      value: formatStaticText(text),
     }
   }
 
@@ -451,7 +501,7 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
     if (staticText) {
       return {
         type: "text",
-        value: staticText,
+        value: formatStaticText(staticText),
       }
     }
   }
@@ -597,6 +647,9 @@ const parseTemplateLiteral = (
 
       // Восстанавливаем оригинальные кавычки для строковых литералов
       expr = expr.replace(/""/g, '"').replace(/''/g, "'")
+
+      // Применяем форматирование к выражению
+      expr = createUnifiedExpression(expr, uniquePaths)
 
       return {
         data: paths.length === 1 ? paths[0] || "" : paths,

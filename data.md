@@ -447,3 +447,164 @@ import { enrichHierarchyWithData } from "./data"
 // Обогащаем иерархию данными
 const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
 ```
+
+## Форматирование выражений и текста
+
+Система автоматически форматирует выражения и текст по стандартам HTML для улучшения читаемости и производительности.
+
+### Форматирование тернарных выражений
+
+Система удаляет лишние пробелы и переносы строк в тернарных выражениях, сохраняя при этом строковые литералы.
+
+#### Функция `createUnifiedExpression`
+
+```typescript
+const createUnifiedExpression = (value: string, variables: string[]): string => {
+  let expr = value
+  variables.forEach((variable, index) => {
+    expr = expr.replace(new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g"), `\${${index}}`)
+  })
+
+  // Форматируем выражение: удаляем лишние пробелы и переносы строк, но сохраняем строковые литералы
+  const stringLiterals: string[] = []
+  let protectedExpr = expr
+    .replace(/"[^"]*"/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
+  // Удаляем лишние пробелы и переносы строк в выражениях
+  protectedExpr = protectedExpr.replace(/\s+/g, " ").trim()
+
+  // Восстанавливаем строковые литералы
+  stringLiterals.forEach((literal, index) => {
+    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
+  })
+
+  return protectedExpr
+}
+```
+
+#### Примеры форматирования выражений
+
+**До форматирования:**
+
+```typescript
+// Многострочное выражение с лишними пробелами
+;`${context.flag ? "active" : "inactive"}`
+```
+
+**После форматирования:**
+
+```typescript
+// Чистое однострочное выражение
+;`${0} ? "active" : "inactive"`
+```
+
+**Сохранение строковых литералов:**
+
+```typescript
+// Сложное выражение с длинными строками
+;`${0} ? "This is a very long text that should be formatted properly" : "Short text"`
+```
+
+### Форматирование текста по стандартам HTML
+
+Система применяет стандартные правила HTML для схлопывания пробельных символов в тексте.
+
+#### Функция `formatTextByHtmlStandards`
+
+```typescript
+const formatTextByHtmlStandards = (text: string): string => {
+  // Схлопываем последовательные пробельные символы в один пробел
+  // и удаляем пробелы в начале и конце
+  return text.replace(/\s+/g, " ").trim()
+}
+```
+
+#### Функция `formatStaticText`
+
+```typescript
+const formatStaticText = (text: string): string => {
+  // Если текст содержит только пробельные символы - удаляем их полностью
+  if (text.trim().length === 0) {
+    return ""
+  }
+
+  // Если текст содержит не-пробельные символы - форматируем по стандартам HTML
+  // НО только если это многострочный текст или содержит много пробелов
+  if (text.includes("\n") || text.includes("\t") || /\s{3,}/.test(text)) {
+    return formatTextByHtmlStandards(text)
+  }
+
+  // Иначе оставляем как есть
+  return text
+}
+```
+
+#### Правила форматирования текста
+
+**Схлопывание пробельных символов:**
+
+- Последовательные пробелы → один пробел
+- Переносы строк → один пробел
+- Табуляции → один пробел
+- Комбинации → один пробел
+
+**Удаление пробелов:**
+
+- Пробелы в начале и конце текстового содержимого удаляются
+
+**Сохранение важных пробелов:**
+
+- Пробелы между переменными в выражениях сохраняются
+- Строковые литералы остаются нетронутыми
+
+#### Примеры форматирования текста
+
+**До форматирования:**
+
+```html
+<p>Hello World</p>
+```
+
+**После форматирования:**
+
+```html
+<p>Hello World</p>
+```
+
+**Сохранение важных пробелов:**
+
+```html
+<!-- Пробелы между переменными сохраняются -->
+<p>Hello, ${name} ${surname}!</p>
+<!-- Результат: "Hello, ${0} ${1}!" -->
+```
+
+**Многострочный текст:**
+
+```html
+<div>Welcome to our site!</div>
+<!-- Результат: "Welcome to our site!" -->
+```
+
+### Интеграция с парсингом
+
+Форматирование интегрировано в процесс парсинга и применяется автоматически:
+
+1. **В `parseTextData`** - для статического текста
+2. **В `splitTextIntoParts`** - для статических частей смешанного текста
+3. **В `createUnifiedExpression`** - для тернарных выражений
+4. **В `parseTemplateLiteral`** - для сложных выражений
+
+### Преимущества форматирования
+
+- **Читаемость**: Выражения становятся более компактными и читаемыми
+- **Производительность**: Меньше пробельных символов для обработки
+- **Стандартность**: Соответствие стандартам HTML
+- **Совместимость**: Сохранение важных пробелов и строковых литералов
