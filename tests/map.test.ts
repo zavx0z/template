@@ -259,7 +259,7 @@ describe("map", () => {
                     child: [
                       {
                         type: "text",
-                        data: "[item]",
+                        data: "[item]/title",
                       },
                     ],
                   },
@@ -358,7 +358,8 @@ describe("map", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    // expect(enrichedHierarchy).toEqual([
     //   {
     //     tag: "ul",
     //     type: "el",
@@ -474,46 +475,48 @@ describe("map", () => {
         ],
       },
     ])
-    // expect(hierarchy).toEqual([
-    //   {
-    //     tag: "ul",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "map",
-    //         data: "/core/list",
-    //         child: [
-    //           {
-    //             tag: "li",
-    //             type: "el",
-    //             child: [
-    //               {
-    //                 type: "text",
-    //                 data: "[item]/title",
-    //               },
-    //               {
-    //                 type: "map",
-    //                 data: "[item]/nested",
-    //                 child: [
-    //                   {
-    //                     tag: "em",
-    //                     type: "el",
-    //                     child: [
-    //                       {
-    //                         type: "text",
-    //                         data: "[item]",
-    //                       },
-    //                     ],
-    //                   },
-    //                 ],
-    //               },
-    //             ],
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            data: "/core/list",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                child: [
+                  {
+                    type: "text",
+                    data: "[item]/title",
+                    expr: "${0} ",
+                  },
+                  {
+                    type: "map",
+                    data: "[item]/nested",
+                    child: [
+                      {
+                        tag: "em",
+                        type: "el",
+                        child: [
+                          {
+                            type: "text",
+                            data: "[item]",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
   it("map в условии", () => {
     const mainHtml = extractMainHtmlBlock<{ flag: boolean }, { list: { title: string; nested: string[] }[] }>(

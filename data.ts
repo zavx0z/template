@@ -208,8 +208,23 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
       let path: string
 
       if (context.mapParams && context.mapParams.length > 0) {
-        // В контексте map - используем [item]
-        path = "[item]"
+        // В контексте map - различаем простые параметры и деструктурированные свойства
+        if (context.mapParams.includes(variable)) {
+          // Проверяем, является ли это деструктуризацией
+          // Если mapParams содержит переменную и их больше одного, то это деструктуризация
+          if (context.mapParams.length > 1) {
+            // Это деструктурированное свойство (например, title в map(({ title, nested }) => ...))
+            // Представляет свойство объекта в массиве
+            path = `[item]/${variable}`
+          } else {
+            // Это простой параметр map (например, name в context.list.map((name) => ...))
+            // Представляет сам элемент массива
+            path = "[item]"
+          }
+        } else {
+          // Переменная не найдена в mapParams - используем обычный путь
+          path = `[item]/${variable}`
+        }
       } else if (context.currentPath && !context.currentPath.includes("[item]")) {
         // В контексте, но не map - добавляем к текущему пути
         path = `${context.currentPath}/${variable}`
