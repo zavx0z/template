@@ -359,57 +359,51 @@ describe("map", () => {
       },
     ])
     const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    // expect(enrichedHierarchy).toEqual([
-    //   {
-    //     tag: "ul",
-    //     type: "el",
-    //     child: [
-    //       {
-    //         type: "map",
-    //         data: "/context/list",
-    //         child: [
-    //           {
-    //             type: "cond",
-    //             data: "[index]",
-    //             expr: "${0} % 2",
-    //             true: {
-    //               tag: "li",
-    //               type: "el",
-    //               child: [
-    //                 {
-    //                   tag: "em",
-    //                   type: "el",
-    //                   child: [
-    //                     {
-    //                       type: "text",
-    //                       value: "A",
-    //                     },
-    //                   ],
-    //                 },
-    //               ],
-    //               false: {
-    //                 tag: "li",
-    //                 type: "el",
-    //                 child: [
-    //                   {
-    //                     tag: "strong",
-    //                     type: "el",
-    //                     child: [
-    //                       {
-    //                         type: "text",
-    //                         value: "B",
-    //                       },
-    //                     ],
-    //                   },
-    //                 ],
-    //               },
-    //             },
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   },
-    // ])
+    expect(enrichedHierarchy).toEqual([
+      {
+        tag: "ul",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            data: "/context/list",
+            child: [
+              {
+                tag: "li",
+                type: "el",
+                child: [
+                  {
+                    type: "cond",
+                    data: "[index]",
+                    expr: "${0} % 2",
+                    true: {
+                      tag: "em",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          value: "A",
+                        },
+                      ],
+                    },
+                    false: {
+                      tag: "strong",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          value: "B",
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
   })
 
   it("map в text вложенный в map", () => {

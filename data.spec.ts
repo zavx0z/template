@@ -73,7 +73,7 @@ describe("data-parser", () => {
     it("парсит простое условие", () => {
       const result = parseConditionData("context.flag")
       expect(result.path).toBe("/context/flag")
-      expect(result.metadata?.expression).toBe("context.flag")
+      expect(result.metadata?.expression).toBe("${0}")
     })
 
     it("парсит сложное условие", () => {
@@ -226,7 +226,7 @@ describe("data-parser", () => {
       expect(enriched[0]?.type).toBe("cond")
       const condNode = enriched[0] as any
       expect(condNode.data).toBe("/context/flag")
-      expect(condNode.expr).toBeUndefined()
+      expect(condNode.expr).toBe("${0}")
     })
   })
 })

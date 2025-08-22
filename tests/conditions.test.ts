@@ -54,6 +54,7 @@ describe("scanTagsFromRender / conditions", () => {
           {
             type: "cond",
             data: "/context/cond",
+            expr: "${0}",
             true: {
               tag: "em",
               type: "el",

@@ -133,8 +133,8 @@ export const parseConditionData = (
   condText: string,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): DataParseResult => {
-  // Ищем паттерны: identifier.identifier
-  const pathMatches = condText.match(/(\w+(?:\.\w+)*)/g) || []
+  // Ищем паттерны: identifier.identifier (но не числа)
+  const pathMatches = condText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
   if (pathMatches.length === 0) {
     return { path: "" }
@@ -166,12 +166,8 @@ export const parseConditionData = (
  * Извлекает выражение условия.
  */
 export const extractConditionExpression = (condText: string): string => {
-  // Ищем все переменные в условии
-  const pathMatches = condText.match(/(\w+(?:\.\w+)*)/g) || []
-
-  if (pathMatches.length <= 1) {
-    return condText.replace(/\s+/g, " ").trim()
-  }
+  // Ищем все переменные в условии (но не числа)
+  const pathMatches = condText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
   // Заменяем переменные на индексы ${0}, ${1}, и т.д.
   let expression = condText
@@ -336,10 +332,49 @@ export const createNodeDataCondition = (
   const condData = parseConditionData(node.text, context)
   const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
 
+  // Обрабатываем пути в контексте map
+  let processedData = condData.path
+  if (context.mapParams && context.mapParams.length > 0) {
+    if (Array.isArray(condData.path)) {
+      processedData = condData.path.map((path) => {
+        const variable = path.replace(/^\//, "")
+        if (context.mapParams.includes(variable)) {
+          // Определяем позицию параметра в map
+          const paramIndex = context.mapParams.indexOf(variable)
+          if (paramIndex === 0) {
+            // Первый параметр - элемент массива
+            return context.mapParams.length > 1 ? `[item]/${variable}` : "[item]"
+          } else {
+            // Второй и последующие параметры - индекс
+            return "[index]"
+          }
+        }
+        return path
+      })
+    } else {
+      const variable = condData.path.replace(/^\//, "")
+      if (context.mapParams.includes(variable)) {
+        // Определяем позицию параметра в map
+        const paramIndex = context.mapParams.indexOf(variable)
+        if (paramIndex === 0) {
+          // Первый параметр - элемент массива
+          processedData = context.mapParams.length > 1 ? `[item]/${variable}` : "[item]"
+        } else {
+          // Второй и последующие параметры - индекс
+          processedData = "[index]"
+        }
+      }
+    }
+  }
+
+  // Добавляем expr только для сложных условий или если выражение отличается от исходного текста
+  const needsExpression =
+    !isSimpleCondition || (condData.metadata?.expression && condData.metadata.expression !== node.text)
+
   return {
     type: "cond",
-    data: isSimpleCondition ? (Array.isArray(condData.path) ? condData.path[0] : condData.path) : condData.path,
-    ...(isSimpleCondition ? {} : { expr: condData.metadata?.expression || "" }),
+    data: isSimpleCondition ? (Array.isArray(processedData) ? processedData[0] : processedData) : processedData,
+    ...(needsExpression && condData.metadata?.expression ? { expr: condData.metadata.expression } : {}),
     true: createNodeDataElement(node.true, context),
     false: createNodeDataElement(node.false, context),
   }
