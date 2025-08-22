@@ -423,9 +423,9 @@ const parseAttributesImproved = (
     while (i < tagContent.length && /\s/.test(tagContent[i]!)) i++
     if (i >= tagContent.length) break
 
-    // Ищем имя атрибута
+    // Ищем имя атрибута (включая namespace)
     const nameStart = i
-    while (i < tagContent.length && /[A-Za-z0-9-]/.test(tagContent[i]!)) i++
+    while (i < tagContent.length && /[A-Za-z0-9-:]/.test(tagContent[i]!)) i++
     const name = tagContent.slice(nameStart, i)
     if (!name || name.length === 0) break
 
@@ -474,8 +474,39 @@ const parseAttributesImproved = (
         attributes[name] = { value: value || "" }
       }
     } else {
-      // Булевый атрибут
-      attributes[name] = { value: "" }
+      // Проверяем, есть ли template literal без кавычек
+      const valueStart = i
+      let braceCount = 0
+
+      // Ищем конец template literal или следующий атрибут
+      while (i < tagContent.length) {
+        if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
+          // Начинается template literal
+          i += 2
+          braceCount = 1
+          while (i < tagContent.length && braceCount > 0) {
+            if (tagContent[i] === "{") braceCount++
+            else if (tagContent[i] === "}") braceCount--
+            i++
+          }
+        } else if (/\s/.test(tagContent[i]!)) {
+          // Пробел - конец значения
+          break
+        } else {
+          i++
+        }
+      }
+
+      const value = tagContent.slice(valueStart, i)
+
+      // Проверяем, является ли значение template literal
+      const templateResult = parseTemplateLiteral(value)
+      if (templateResult) {
+        attributes[name] = templateResult
+      } else {
+        // Булевый атрибут или обычное значение
+        attributes[name] = { value: value || "" }
+      }
     }
   }
 

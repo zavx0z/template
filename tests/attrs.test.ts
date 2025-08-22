@@ -25,8 +25,8 @@ describe("атрибуты", () => {
         tag: "svg:use",
         type: "el",
         attr: {
-          xlink: {
-            value: "",
+          "xlink:href": {
+            value: "#id",
           },
         },
       },
@@ -161,7 +161,8 @@ describe("атрибуты", () => {
         type: "el",
         attr: {
           title: {
-            value: "",
+            data: "/context/flag",
+            expr: '${0} ? "a > b" : "c < d"',
           },
         },
       },
