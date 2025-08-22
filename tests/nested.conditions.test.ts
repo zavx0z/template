@@ -51,23 +51,26 @@ describe("nested.conditions", () => {
                     `
                   : html`<div class="company-inactive">Inactive Company</div>`}
                 ${company.departments.map(
-                  (dept) => html`
+                  (dept, deptIndex) => html`
                     <article data-dept="${dept.id}">
-                      <h2>Dept: ${dept.id}</h2>
+                      <h2>Dept: ${dept.id} (Index: ${deptIndex})</h2>
                       ${company.active && dept.active
                         ? html`<div class="dept-active">Active Department</div>`
                         : html`<div class="dept-inactive">Inactive Department</div>`}
                       ${dept.teams.map(
-                        (team) => html`
+                        (team, teamIndex) => html`
                           <div data-team="${team.id}">
-                            <h3>Team: ${team.id}</h3>
+                            <h3>Team: ${team.id} (Dept Index: ${deptIndex}, Team Index: ${teamIndex})</h3>
                             ${company.active && dept.active && team.active
                               ? html`<div class="team-active">Active Team</div>`
                               : html`<div class="team-inactive">Inactive Team</div>`}
                             ${team.members.map(
-                              (member) => html`
+                              (member, memberIndex) => html`
                                 <p data-member="${member.id}">
                                   <span class="member-name">${member.name}</span>
+                                  <span class="member-indices"
+                                    >Indices: Dept=${deptIndex}, Team=${teamIndex}, Member=${memberIndex}</span
+                                  >
                                   ${company.active && dept.active && team.active && member.active
                                     ? html`<span class="member-status-active">Fully Active</span>`
                                     : html`<span class="member-status-inactive">Not Fully Active</span>`}
@@ -235,8 +238,8 @@ describe("nested.conditions", () => {
                             child: [
                               {
                                 type: "text",
-                                data: "[item]/id",
-                                expr: "Dept: ${0}",
+                                data: ["[item]/id", "[index]"],
+                                expr: "Dept: ${0} (Index: ${1})",
                               },
                             ],
                           },
@@ -294,8 +297,8 @@ describe("nested.conditions", () => {
                                     child: [
                                       {
                                         type: "text",
-                                        data: "[item]/id",
-                                        expr: "Team: ${0}",
+                                        data: ["[item]/id", "../[index]", "[index]"],
+                                        expr: "Team: ${0} (Dept Index: ${1}, Team Index: ${2})",
                                       },
                                     ],
                                   },
@@ -359,6 +362,22 @@ describe("nested.conditions", () => {
                                               {
                                                 type: "text",
                                                 data: "[item]/name",
+                                              },
+                                            ],
+                                          },
+                                          {
+                                            tag: "span",
+                                            type: "el",
+                                            attr: {
+                                              class: {
+                                                value: "member-indices",
+                                              },
+                                            },
+                                            child: [
+                                              {
+                                                type: "text",
+                                                data: ["../../[index]", "../[index]", "[index]"],
+                                                expr: "Indices: Dept=${0}, Team=${1}, Member=${2}",
                                               },
                                             ],
                                           },

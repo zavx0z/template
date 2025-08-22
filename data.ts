@@ -52,10 +52,11 @@ const findVariableInMapStack = (variable: string, context: DataParserContext): s
         } else {
           // Деструктурированные параметры - первый параметр это элемент
           if (variableParts.length > 1) {
-            // Свойство деструктурированного параметра
-            return `${prefix}[item]/${variable.replace(/\./g, "/")}`
+            // Свойство деструктурированного параметра (например, dept.id -> [item]/id)
+            const propertyPath = variableParts.slice(1).join("/")
+            return `${prefix}[item]/${propertyPath}`
           } else {
-            // Само деструктурированное свойство
+            // Само деструктурированное свойство (например, title -> [item]/title)
             return `${prefix}[item]/${variable}`
           }
         }
@@ -86,25 +87,36 @@ const resolveDataPath = (variable: string, context: DataParserContext): string =
     const variableParts = variable.split(".")
     const mapParamVariable = variableParts[0] || ""
 
+    // Проверяем, является ли первая часть переменной параметром map
     if (context.mapParams.includes(mapParamVariable)) {
-      // Переменная является параметром текущего map или его свойством
       const paramIndex = context.mapParams.indexOf(mapParamVariable)
 
       if (paramIndex === 0) {
         // Первый параметр - элемент массива
-        if (context.mapParams.length === 1) {
-          // Простой параметр map
-          if (variableParts.length > 1) {
-            // Свойство простого параметра (например, user.name в map((user) => ...))
-            const propertyPath = variableParts.slice(1).join("/")
-            return `[item]/${propertyPath}`
-          } else {
-            // Сам простой параметр (например, name в context.list.map((name) => ...))
-            return "[item]"
-          }
+        if (variableParts.length > 1) {
+          // Свойство первого параметра (например, dept.id -> [item]/id)
+          const propertyPath = variableParts.slice(1).join("/")
+          return `[item]/${propertyPath}`
         } else {
-          // Деструктурированные параметры - переменная представляет свойство объекта
-          return `[item]/${variable.replace(/\./g, "/")}`
+          // Сам первый параметр (например, dept -> [item])
+          return "[item]"
+        }
+      } else {
+        // Второй и последующие параметры - индекс
+        return "[index]"
+      }
+    } else if (variableParts[0] && context.mapParams.includes(variableParts[0])) {
+      // Переменная начинается с имени параметра, но не содержит точку (например, dept в map((dept) => ...))
+      const paramIndex = context.mapParams.indexOf(variableParts[0])
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        if (variableParts.length > 1) {
+          // Свойство первого параметра (например, dept.id)
+          const propertyPath = variableParts.slice(1).join("/")
+          return `[item]/${propertyPath}`
+        } else {
+          // Сам первый параметр (например, dept)
+          return "[item]"
         }
       } else {
         // Второй и последующие параметры - индекс

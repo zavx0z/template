@@ -43,7 +43,7 @@
 
 **Логика путей данных в контексте map:**
 
-При обработке переменных внутри map контекста, система различает два типа параметров:
+При обработке переменных внутри map контекста, система различает несколько типов параметров и случаев использования:
 
 #### Простые параметры (один параметр)
 
@@ -84,14 +84,73 @@
 }
 ```
 
+#### Параметры с индексом
+
+Когда map имеет несколько параметров, второй и последующие параметры представляют индекс:
+
+```typescript
+// context.list.map((name, index) => html`<li>${name} (${index})</li>`)
+// name - это сам элемент массива
+{
+  type: "text",
+  data: "[item]"  // Сам элемент массива
+}
+// index - это индекс элемента
+{
+  type: "text",
+  data: "[index]"  // Индекс элемента
+}
+```
+
+#### Доступ к свойствам через точку
+
+Когда переменная начинается с имени параметра и содержит точку, система извлекает только путь к свойству:
+
+```typescript
+// company.departments.map((dept, deptIndex) => html`<div>${dept.id}</div>`)
+// dept.id - это свойство id объекта dept
+{
+  type: "text",
+  data: "[item]/id"  // Только путь к свойству, без имени параметра
+}
+
+// nested.map((team, teamIndex) => html`<span>${team.name}</span>`)
+// team.name - это свойство name объекта team
+{
+  type: "text",
+  data: "[item]/name"  // Только путь к свойству, без имени параметра
+}
+```
+
 **Определение типа параметра:**
 
-Система определяет тип параметра по количеству параметров в `mapParams`:
+Система определяет тип параметра по позиции в `mapParams`:
 
-- `mapParams.length === 1` → простой параметр → `[item]`
-- `mapParams.length > 1` → деструктуризация → `[item]/variable`
+- **Первый параметр** (`paramIndex === 0`):
+  - Если `mapParams.length === 1` → простой параметр → `[item]`
+  - Если `mapParams.length > 1` → деструктуризация → `[item]/variable`
+- **Второй и последующие параметры** (`paramIndex > 0`) → `[index]`
 
-Это позволяет корректно обрабатывать как массивы примитивов, так и массивы объектов.
+**Универсальность путей:**
+
+Независимо от того, как обращаемся к данным - через деструктуризацию или по ключу - путь остается одинаковым:
+
+```typescript
+// Оба случая генерируют одинаковый путь [item]/id:
+// 1. Через деструктуризацию:
+${company.departments.map(({ id }) => html`<div>${id}</div>`)}
+
+// 2. Через доступ по ключу:
+${company.departments.map((dept) => html`<div>${dept.id}</div>`)}
+
+// Результат в обоих случаях:
+{
+  type: "text",
+  data: "[item]/id"
+}
+```
+
+Это позволяет корректно обрабатывать как массивы примитивов, так и массивы объектов с единообразными путями.
 
 ### 2. Condition узлы
 
@@ -403,41 +462,316 @@
 
 ### Контекст вложенности
 
-Каждый map создает контекст для относительных путей:
+Каждый map создает контекст для относительных путей. Система автоматически определяет правильные пути на основе структуры параметров:
 
 #### Простые параметры (массивы примитивов)
 
-- В контексте `context.list.map((name) => ...)`:
+```typescript
+// context.list.map((name) => html`<li>${name}</li>`)
+// name - это сам элемент массива
+{
+  type: "text",
+  data: "[item]"  // Сам элемент массива
+}
 
-  - `${name}` → `[item]` (сам элемент массива)
-
-- В контексте `nested.map((n) => ...)`:
-  - `${n}` → `[item]` (сам элемент массива)
+// nested.map((n) => html`<em>${n}</em>`)
+// n - это сам элемент массива
+{
+  type: "text",
+  data: "[item]"  // Сам элемент массива
+}
+```
 
 #### Параметры с индексом
 
-- В контексте `context.list.map((_, i) => ...)`:
-
-  - `${i}` → `[index]` (индекс элемента в массиве)
-
-- В контексте `context.list.map((name, index) => ...)`:
-  - `${name}` → `[item]` (сам элемент массива)
-  - `${index}` → `[index]` (индекс элемента в массиве)
+```typescript
+// context.list.map((name, index) => html`<li>${name} (${index})</li>`)
+// name - это сам элемент массива
+{
+  type: "text",
+  data: "[item]"  // Сам элемент массива
+}
+// index - это индекс элемента
+{
+  type: "text",
+  data: "[index]"  // Индекс элемента
+}
+```
 
 #### Деструктурированные свойства (массивы объектов)
 
-- В контексте `core.list.map(({ title, nested }) => ...)`:
-  - `${title}` → `[item]/title` (свойство объекта)
-  - `${nested}` → `[item]/nested` (свойство объекта)
+```typescript
+// core.list.map(({ title, nested }) => html`<li>${title}</li>`)
+// title - это свойство объекта
+{
+  type: "text",
+  data: "[item]/title"  // Свойство объекта
+}
 
-### Определение типа пути
+// nested - это свойство объекта
+{
+  type: "map",
+  data: "[item]/nested"  // Свойство объекта
+}
+```
+
+#### Доступ к свойствам через точку
+
+```typescript
+// company.departments.map((dept) => html`<div>${dept.id}</div>`)
+// dept.id - это свойство id объекта dept
+{
+  type: "text",
+  data: "[item]/id"  // Только путь к свойству
+}
+
+// nested.map((team) => html`<span>${team.name}</span>`)
+// team.name - это свойство name объекта team
+{
+  type: "text",
+  data: "[item]/name"  // Только путь к свойству
+}
+```
+
+### Автоматическое определение типа пути
 
 Система автоматически определяет тип пути по позиции параметра в map:
 
-- **Первый параметр** → элемент массива:
-  - Один параметр → `[item]` (простой параметр)
-  - Несколько параметров → `[item]/property` (деструктуризация)
-- **Второй и последующие параметры** → `[index]` (индекс элемента)
+- **Первый параметр** (`paramIndex === 0`):
+  - Если `mapParams.length === 1` → простой параметр → `[item]`
+  - Если `mapParams.length > 1` → деструктуризация → `[item]/variable`
+- **Второй и последующие параметры** (`paramIndex > 0`) → `[index]`
+
+### Вложенные map контексты
+
+В сложных вложенных структурах система правильно обрабатывает относительные пути, создавая иерархию контекстов:
+
+#### Пример 1: Простая вложенность
+
+```typescript
+// company.departments.map((dept, deptIndex) => html`
+//   ${dept.teams.map((team, teamIndex) => html`
+//     ${team.members.map((member, memberIndex) => html`
+//       <p>${member.name} (${memberIndex})</p>
+//     `)}
+//   `)}
+// `)
+
+// Результат:
+// member.name → [item]/name (в контексте members map)
+// memberIndex → [index] (в контексте members map)
+// teamIndex → ../[index] (в контексте teams map)
+// deptIndex → ../../[index] (в контексте departments map)
+```
+
+#### Пример 2: Доступ к свойствам через точку
+
+```typescript
+// company.departments.map((dept, deptIndex) => html`
+//   ${dept.teams.map((team, teamIndex) => html`
+//     ${team.members.map((member, memberIndex) => html`
+//       <p>${member.name} (${memberIndex})</p>
+//       <span>${dept.name} - ${team.name}</span>
+//     `)}
+//   `)}
+// `)
+
+// Результат:
+// member.name → [item]/name (в контексте members map)
+// memberIndex → [index] (в контексте members map)
+// dept.name → ../../[item]/name (в контексте departments map)
+// team.name → ../[item]/name (в контексте teams map)
+```
+
+#### Пример 3: Деструктуризация в вложенных контекстах
+
+```typescript
+// company.departments.map(({ id: deptId, name: deptName }, deptIndex) => html`
+//   ${dept.teams.map(({ id: teamId, name: teamName }, teamIndex) => html`
+//     ${team.members.map(({ id: memberId, name: memberName }, memberIndex) => html`
+//       <p>${memberName} (${memberIndex})</p>
+//       <span>${deptName} - ${teamName}</span>
+//     `)}
+//   `)}
+// `)
+
+// Результат:
+// memberName → [item]/name (в контексте members map)
+// memberIndex → [index] (в контексте members map)
+// deptName → ../../[item]/name (в контексте departments map)
+// teamName → ../[item]/name (в контексте teams map)
+```
+
+#### Пример 4: Условия в вложенных контекстах
+
+```typescript
+// company.departments.map((dept, deptIndex) => html`
+//   ${dept.teams.map((team, teamIndex) => html`
+//     ${team.members.map((member, memberIndex) => html`
+//       ${dept.active && team.active && member.active
+//         ? html`<p class="active">${member.name}</p>`
+//         : html`<p class="inactive">${member.name}</p>`
+//       }
+//     `)}
+//   `)}
+// `)
+
+// Результат для условия:
+// dept.active → ../../[item]/active (в контексте departments map)
+// team.active → ../[item]/active (в контексте teams map)
+// member.active → [item]/active (в контексте members map)
+```
+
+### Алгоритм разрешения путей
+
+Система использует следующий алгоритм для определения правильных путей:
+
+1. **Поиск в стеке map контекстов**: Система ищет переменную в стеке всех map контекстов от самого глубокого к самому внешнему
+2. **Определение позиции параметра**: По позиции параметра в `mapParams` определяется тип пути
+3. **Вычисление относительности**: Количество уровней подъема вычисляется как разность между текущим уровнем и уровнем найденной переменной
+4. **Генерация пути**: Создается путь с правильным количеством `../` префиксов
+
+Это обеспечивает корректную обработку любых уровней вложенности с единообразными путями.
+
+## Технические детали реализации
+
+### Функция `findVariableInMapStack`
+
+Основная функция для поиска переменных в стеке map контекстов:
+
+```typescript
+const findVariableInMapStack = (variable: string, context: DataParserContext): string | null => {
+  if (!context.mapContextStack || context.mapContextStack.length === 0) {
+    return null
+  }
+
+  // Проверяем от самого глубокого уровня к самому внешнему
+  for (let i = context.mapContextStack.length - 1; i >= 0; i--) {
+    const mapContext = context.mapContextStack[i]
+    if (!mapContext) continue
+
+    const variableParts = variable.split(".")
+    const variableName = variableParts[0]
+
+    if (mapContext.params.includes(variableName || "")) {
+      // Переменная найдена на этом уровне map
+      const currentLevel = context.mapContextStack.length - 1
+      const targetLevel = i
+      const levelsUp = currentLevel - targetLevel
+
+      // Создаем префикс с нужным количеством "../"
+      const prefix = "../".repeat(levelsUp)
+
+      // Определяем позицию параметра в map
+      const paramIndex = mapContext.params.indexOf(variableName || "")
+
+      // Определяем путь в зависимости от позиции параметра
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        if (mapContext.params.length === 1) {
+          // Простой параметр map
+          if (variableParts.length > 1) {
+            // Свойство простого параметра (например, user.name)
+            const propertyPath = variableParts.slice(1).join("/")
+            return `${prefix}[item]/${propertyPath}`
+          } else {
+            // Сам простой параметр
+            return `${prefix}[item]`
+          }
+        } else {
+          // Деструктурированные параметры - первый параметр это элемент
+          if (variableParts.length > 1) {
+            // Свойство деструктурированного параметра (например, dept.id -> [item]/id)
+            const propertyPath = variableParts.slice(1).join("/")
+            return `${prefix}[item]/${propertyPath}`
+          } else {
+            // Само деструктурированное свойство (например, title -> [item]/title)
+            return `${prefix}[item]/${variable}`
+          }
+        }
+      } else {
+        // Второй и последующие параметры - индекс
+        return `${prefix}[index]`
+      }
+    }
+  }
+
+  return null
+}
+```
+
+### Функция `resolveDataPath`
+
+Универсальная функция для разрешения путей к данным:
+
+```typescript
+const resolveDataPath = (variable: string, context: DataParserContext): string => {
+  // Сначала пытаемся найти переменную в стеке map контекстов
+  const mapStackPath = findVariableInMapStack(variable, context)
+  if (mapStackPath !== null) {
+    return mapStackPath
+  }
+
+  // Если не найдена в стеке map, используем старую логику для обратной совместимости
+  if (context.mapParams && context.mapParams.length > 0) {
+    // В контексте map - различаем простые параметры и деструктурированные свойства
+    const variableParts = variable.split(".")
+    const mapParamVariable = variableParts[0] || ""
+
+    // Проверяем, является ли первая часть переменной параметром map
+    if (context.mapParams.includes(mapParamVariable)) {
+      const paramIndex = context.mapParams.indexOf(mapParamVariable)
+
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        if (variableParts.length > 1) {
+          // Свойство первого параметра (например, dept.id -> [item]/id)
+          const propertyPath = variableParts.slice(1).join("/")
+          return `[item]/${propertyPath}`
+        } else {
+          // Сам первый параметр (например, dept -> [item])
+          return "[item]"
+        }
+      } else {
+        // Второй и последующие параметры - индекс
+        return "[index]"
+      }
+    }
+  }
+
+  // Остальная логика для абсолютных путей...
+}
+```
+
+### Структура MapContext
+
+```typescript
+export type MapContext = {
+  /** Путь map */
+  path: string
+  /** Параметры map */
+  params: string[]
+  /** Уровень map */
+  level: number
+}
+```
+
+### Структура DataParserContext
+
+```typescript
+export type DataParserContext = {
+  /** Текущий путь к данным */
+  currentPath?: string
+  /** Стек путей */
+  pathStack: string[]
+  /** Параметры текущего map */
+  mapParams?: string[]
+  /** Уровень вложенности */
+  level: number
+  /** Стек всех map контекстов */
+  mapContextStack?: MapContext[]
+}
+```
 
 ## Использование
 
