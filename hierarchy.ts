@@ -180,6 +180,34 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
               }
             }
 
+            // Создаем NodeHierarchyCondition если нужно (для meta-тегов)
+            const condInfos = conditionStack.filter((c) => c.parent === parentElement)
+            for (const condInfo of condInfos) {
+              if (parentElement.child && parentElement.child.length >= 2) {
+                // Ищем последовательные пары элементов, которые могут быть true/false ветками
+                let processedAnyCondition = false
+                for (let i = parentElement.child.length - 1; i >= 1; i--) {
+                  const trueBranch = parentElement.child[i - 1]
+                  const falseBranch = parentElement.child[i]
+
+                  if (trueBranch && falseBranch && trueBranch.type === "meta" && falseBranch.type === "meta") {
+                    const conditionNode: NodeHierarchyCondition = {
+                      type: "cond",
+                      text: condInfo.text,
+                      true: trueBranch as NodeHierarchyMeta,
+                      false: falseBranch as NodeHierarchyMeta,
+                    }
+                    parentElement.child.splice(i - 1, 2, conditionNode)
+                    processedAnyCondition = true
+                    break // Обрабатываем только одну пару для этого условия
+                  }
+                }
+                if (processedAnyCondition) {
+                  conditionStack.splice(conditionStack.indexOf(condInfo), 1)
+                }
+              }
+            }
+
             stack.pop()
           }
         }
@@ -289,12 +317,17 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
         const trueBranch = hierarchy[i - 1]
         const falseBranch = hierarchy[i]
 
-        if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
+        if (
+          trueBranch &&
+          falseBranch &&
+          ((trueBranch.type === "el" && falseBranch.type === "el") ||
+            (trueBranch.type === "meta" && falseBranch.type === "meta"))
+        ) {
           const conditionNode: NodeHierarchyCondition = {
             type: "cond",
             text: condInfo.text,
-            true: trueBranch as NodeHierarchyElement,
-            false: falseBranch as NodeHierarchyElement,
+            true: trueBranch as NodeHierarchyElement | NodeHierarchyMeta,
+            false: falseBranch as NodeHierarchyElement | NodeHierarchyMeta,
           }
           hierarchy.splice(i - 1, 2, conditionNode)
           processedAnyCondition = true

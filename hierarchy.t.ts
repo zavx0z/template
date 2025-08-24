@@ -83,9 +83,9 @@ export type NodeHierarchyCondition = {
   /** Исходный текст условия */
   text: string
   /** Элемент, рендерящийся когда условие истинно */
-  true: NodeHierarchyElement | NodeHierarchyCondition
+  true: NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMeta
   /** Элемент, рендерящийся когда условие ложно */
-  false: NodeHierarchyElement | NodeHierarchyCondition
+  false: NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMeta
 }
 
 /**

@@ -115,5 +115,33 @@ describe("meta", () => {
         ])
       })
     })
+    describe("meta-тег в тренарном операторе", () => {
+      const data = parse(
+        ({ html, core }) => html`${core.items.length > 0 ? html`<meta-${core.tag} />` : html`<meta-${core.tag} />`}`
+      )
+      it("парсинг", () => {
+        expect(data, "meta-тег в тренарном операторе").toEqual([
+          {
+            type: "cond",
+            data: "/core/items/length",
+            expr: "${0} > 0",
+            true: {
+              tag: {
+                data: "/core/tag",
+                expr: "meta-${0}",
+              },
+              type: "meta",
+            },
+            false: {
+              tag: {
+                data: "/core/tag",
+                expr: "meta-${0}",
+              },
+              type: "meta",
+            },
+          },
+        ])
+      })
+    })
   })
 })
