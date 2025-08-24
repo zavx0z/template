@@ -82,6 +82,7 @@ type DataParserContext = {
 2. **События с параметрами** - `onclick=${() => core.onClick()}`
 3. **События с аргументами** - `onclick=${(e) => core.onClick(e)}`
 4. **События в контексте map** - `onclick=${() => item.handleClick(item.id)}`
+5. **Функции обновления контекста** - `onclick=${() => update({ name: "John" })}`
 
 ### Алгоритм обработки событий
 
@@ -100,11 +101,80 @@ type DataParserContext = {
 <!-- Событие с параметрами -->
 <button onclick=${(e) => core.handleClick(e, item.id)}>Click</button>
 
+<!-- Функция обновления контекста -->
+<button onclick=${() => update({ name: "Jane Doe" })}>Update Name</button>
+
+<!-- Функция обновления нескольких ключей -->
+<button onclick=${() => update({ name: "John", age: 25, active: true })}>Update All</button>
+```
+
+## Обработка функции update
+
+### Специальная обработка update функций
+
+Функция `update` используется для обновления контекста в реактивных системах. Система парсинга специально обрабатывает такие функции, извлекая ключи контекста, которые будут обновлены.
+
+### Поддерживаемые форматы update функций
+
+1. **Обновление одного ключа** - `() => update({ name: "John" })`
+2. **Обновление нескольких ключей** - `() => update({ name: "John", age: 25, active: true })`
+3. **Обновление с динамическими значениями** - `() => update({ count: item.count + 1 })`
+
+### Алгоритм обработки update функций
+
+1. **Определение update выражения** - проверка наличия `update(`
+2. **Извлечение объекта** - поиск объекта в `update({ ... })`
+3. **Парсинг ключей** - извлечение всех ключей из объекта
+4. **Создание результата** - формирование поля `upd` с ключами
+
+### Результат обработки update функций
+
+Для update функций система создает специальную структуру:
+
+```typescript
+{
+  data: [], // Пустой массив, так как нет путей к данным
+  expr: "() => update({ name: \"John\" })", // Исходное выражение
+  upd: "name" // Ключ контекста (строка для одного ключа)
+}
+
+// Или для нескольких ключей:
+{
+  data: [],
+  expr: "() => update({ name: \"John\", age: 25, active: true })",
+  upd: ["name", "age", "active"] // Массив ключей
+}
+```
+
+### Примеры работы с update функциями
+
+```html
+<!-- Обновление одного ключа -->
+<button onclick=${() => update({ name: "Jane Doe" })}>OK</button>
+
+<!-- Обновление нескольких ключей -->
+<button onclick=${() => update({ name: "John", age: 25, active: true })}>Update</button>
+
+<!-- Обновление в контексте map -->
+${items.map((item) => html`
+  <button onclick=${() => update({ selectedId: item.id })}>Select</button>
+`)}
+```
+
+**Результат обработки:**
+
+- `update({ name: "Jane Doe" })` → `upd: "name"`
+- `update({ name: "John", age: 25, active: true })` → `upd: ["name", "age", "active"]`
+- `update({ selectedId: item.id })` → `upd: "selectedId"` (в контексте map)
+  <button onclick=${(e) => core.handleClick(e, item.id)}>Click</button>
+
 <!-- Событие в map контексте -->
+
 ${items.map((item) => html`
   <button onclick=${() => item.handleClick(item.id)}>${item.name}</button>
 `)}
-```
+
+````
 
 ### Вложенные события
 
@@ -128,7 +198,7 @@ ${companies.map((company) => html`
     `)}
   </section>
 `)}
-```
+````
 
 **Результат обработки:**
 

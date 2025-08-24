@@ -253,4 +253,56 @@ describe("извлечение тегов", () => {
       ])
     })
   })
+
+  describe("восстановление минифицированных булевых значений", () => {
+    it("восстанавливает !0 в true", () => {
+      const mainHtml = extractMainHtmlBlock<{ active: boolean }>(
+        ({ html, update }) => html`<button onclick=${() => update({ active: true })}>Click</button>`
+      )
+      expect(mainHtml).toContain("active: true")
+      expect(mainHtml).not.toContain("active: !0")
+    })
+
+    it("восстанавливает !1 в false", () => {
+      const mainHtml = extractMainHtmlBlock<{ disabled: boolean }>(
+        ({ html, update }) => html`<button onclick=${() => update({ disabled: false })}>Click</button>`
+      )
+      expect(mainHtml).toContain("disabled: false")
+      expect(mainHtml).not.toContain("disabled: !1")
+    })
+
+    it("восстанавливает множественные булевые значения", () => {
+      const mainHtml = extractMainHtmlBlock<{ active: boolean; disabled: boolean; visible: boolean }>(
+        ({ html, update }) =>
+          html`<button onclick=${() => update({ active: true, disabled: false, visible: true })}>Click</button>`
+      )
+      expect(mainHtml).toContain("active: true")
+      expect(mainHtml).toContain("disabled: false")
+      expect(mainHtml).toContain("visible: true")
+      expect(mainHtml).not.toContain("!0")
+      expect(mainHtml).not.toContain("!1")
+    })
+
+    it("восстанавливает булевые значения в сложных выражениях", () => {
+      const mainHtml = extractMainHtmlBlock<{ count: number; active: boolean; flag: boolean }, { count: number }>(
+        ({ html, update, context }) =>
+          html`<button onclick=${() => update({ count: context.count + 1, active: true, flag: false })}>Click</button>`
+      )
+      expect(mainHtml).toContain("active: true")
+      expect(mainHtml).toContain("flag: false")
+      expect(mainHtml).not.toContain("!0")
+      expect(mainHtml).not.toContain("!1")
+    })
+
+    it("не изменяет другие части выражения", () => {
+      const mainHtml = extractMainHtmlBlock<{ name: string; age: number; active: boolean }>(
+        ({ html, update }) =>
+          html`<button onclick=${() => update({ name: "John", age: 25, active: true })}>Click</button>`
+      )
+      expect(mainHtml).toContain('name: "John"')
+      expect(mainHtml).toContain("age: 25")
+      expect(mainHtml).toContain("active: true")
+      expect(mainHtml).not.toContain("!0")
+    })
+  })
 })

@@ -61,7 +61,10 @@ export function extractMainHtmlBlock<C extends Content = Content, I extends Core
   if (firstIndex === -1) throw new Error("функция render не содержит html`")
   const lastBacktick = src.lastIndexOf("`")
   if (lastBacktick === -1 || lastBacktick <= firstIndex) throw new Error("render function does not contain html`")
-  return src.slice(firstIndex + 5, lastBacktick)
+  const htmlContent = src.slice(firstIndex + 5, lastBacktick)
+
+  // Восстанавливаем минифицированные булевые значения
+  return htmlContent.replace(/!0/g, "true").replace(/!1/g, "false")
 }
 
 /**

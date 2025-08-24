@@ -176,7 +176,13 @@ const resolveDataPath = (variable: string, context: DataParserContext): string =
         return "[index]"
       }
     } else {
-      // Переменная не найдена в текущих mapParams - проверяем, есть ли вложенный map
+      // Переменная не найдена в текущих mapParams
+      // Если переменная начинается с core., то это абсолютный путь
+      if (variable.startsWith("core.")) {
+        return `/${variable.replace(/\./g, "/")}`
+      }
+
+      // Проверяем, есть ли вложенный map
       if (context.currentPath && context.currentPath.includes("[item]")) {
         // Вложенный map - переменная может быть из внешнего контекста
         // Проверяем, есть ли в pathStack другие map контексты
@@ -244,8 +250,63 @@ const extractBaseVariable = (variable: string): string => {
 const parseEventExpression = (
   eventValue: string,
   context: DataParserContext = { pathStack: [], level: 0 }
-): { data: string | string[]; expr?: string } | null => {
-  // Проверяем, является ли это событийным выражением
+): { data: string | string[]; expr?: string; upd?: string | string[] } | null => {
+  // Проверяем, является ли это update выражением
+  if (eventValue.includes("update(")) {
+    // Ищем объект в update({ ... })
+    const objectMatch = eventValue.match(/update\(\s*\{([^}]+)\}\s*\)/)
+    if (objectMatch) {
+      const objectContent = objectMatch[1] || ""
+
+      // Извлекаем ключи из объекта
+      const keyMatches = objectContent.match(/([a-zA-Z_$][\w$]*)\s*:/g) || []
+      const keys = keyMatches.map((match) => match.replace(/\s*:$/, "").trim())
+
+      if (keys.length > 0) {
+        // Ищем переменные в значениях (например, core.name, context.count)
+        const variableMatches = objectContent.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+        const uniqueVariables = [...new Set(variableMatches)].filter((variable) => {
+          // Исключаем строковые литералы, короткие идентификаторы и булевые литералы
+          return (
+            variable.length > 1 &&
+            !variable.startsWith('"') &&
+            !variable.startsWith("'") &&
+            !variable.includes('"') &&
+            !variable.includes("'") &&
+            variable !== "true" &&
+            variable !== "false"
+          )
+        })
+
+        let result: { data: string | string[]; expr?: string; upd: string | string[] } = {
+          data: [],
+          upd: keys.length === 1 ? keys[0] || "" : keys,
+        }
+
+        // Если есть переменные, добавляем пути к данным
+        if (uniqueVariables.length > 0) {
+          const paths = uniqueVariables
+            .map((variable) => resolveDataPath(variable, context))
+            .filter(Boolean) as string[]
+          result.data = paths.length === 1 ? paths[0] || "" : paths
+        }
+
+        // Обрабатываем выражение напрямую
+        let expr = eventValue
+        if (uniqueVariables.length > 0) {
+          uniqueVariables.forEach((variable, index) => {
+            expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+          })
+        }
+
+        result.expr = expr.replace(/^\$\{/, "").replace(/\}$/, "").replace(/\s+/g, " ").trim()
+
+        return result
+      }
+    }
+  }
+
+  // Проверяем, является ли это обычным событийным выражением
   if (!eventValue.includes("=>")) {
     return null
   }
