@@ -1,12 +1,12 @@
 // Базовые типы для обогащенных узлов
-export interface NodeDataElement {
+export interface NodeElement {
   tag: string
   type: "el"
   attr?: Record<string, { value: string } | { data: string | string[]; expr?: string }>
-  child?: NodeData[]
+  child?: Node[]
 }
 
-export interface NodeDataText {
+export interface NodeText {
   type: "text"
   data?: string | string[] // Путь(и) к данным (если динамический)
   value?: string // Статическое значение (если статический)
@@ -14,21 +14,21 @@ export interface NodeDataText {
 }
 
 // Типы для обогащенных узлов
-export interface NodeDataMap {
+export interface NodeMap {
   type: "map"
   data: string // Путь к массиву данных
-  child: NodeData[]
+  child: Node[]
 }
 
-export interface NodeDataCondition {
+export interface NodeCondition {
   type: "cond"
   data: string | string[] // Путь(и) к данным
   expr?: string // Выражение с индексами (если несколько переменных)
-  true: NodeData
-  false: NodeData
+  true: Node
+  false: Node
 }
 
-export type NodeData = NodeDataMap | NodeDataCondition | NodeDataText | NodeDataElement
+export type Node = NodeMap | NodeCondition | NodeText | NodeElement
 
 /**
  * Информация о контексте map.

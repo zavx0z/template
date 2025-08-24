@@ -1,5 +1,12 @@
 import type { ElementToken } from "./splitter"
-import type { NodeMap, NodeCondition, NodeElement, NodeHierarchy, StackItem, NodeText } from "./hierarchy.t"
+import type {
+  NodeHierarchyMap,
+  NodeHierarchyCondition,
+  NodeHierarchyElement,
+  NodeHierarchy,
+  StackItem,
+  NodeHierarchyText,
+} from "./hierarchy.t"
 
 /**
  * Формирует иерархию элементов на основе последовательности тегов.
@@ -7,7 +14,7 @@ import type { NodeMap, NodeCondition, NodeElement, NodeHierarchy, StackItem, Nod
  * ПРОСТОЙ АЛГОРИТМ:
  * 1. Один проход по элементам
  * 2. Строим иерархию сразу при обнаружении map/condition
- * 3. Создаем NodeMap/NodeCondition на правильном уровне
+ * 3. Создаем NodeHierarchyMap/NodeHierarchyCondition на правильном уровне
  *
  * @param html Полный HTML-текст
  * @param elements Токены элементов (теги + текст)
@@ -16,9 +23,9 @@ import type { NodeMap, NodeCondition, NodeElement, NodeHierarchy, StackItem, Nod
 export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeHierarchy => {
   const hierarchy: NodeHierarchy = []
   const stack: StackItem[] = []
-  const conditionStack: { parent: NodeElement | null; text: string }[] = []
+  const conditionStack: { parent: NodeHierarchyElement | null; text: string }[] = []
   // Запоминаем у какого родителя начался map и с какого индекса его дети должны быть обернуты
-  const mapStack: { parent: NodeElement | null; text: string; startChildIndex: number }[] = []
+  const mapStack: { parent: NodeHierarchyElement | null; text: string; startChildIndex: number }[] = []
 
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i]
@@ -26,7 +33,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
 
     if (element.kind === "open" || element.kind === "self") {
       // Создаем HTML элемент
-      const nodeElement: NodeElement = {
+      const nodeElement: NodeHierarchyElement = {
         tag: element.name || "",
         type: "el",
         text: element.text || "",
@@ -86,14 +93,14 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
         if (lastStackItem && lastStackItem.tag.name === (element.name || "")) {
           const parentElement = lastStackItem.element
 
-          // Создаем NodeMap если нужно
+          // Создаем NodeHierarchyMap если нужно
           const mapInfo = mapStack.find((m) => m.parent === parentElement)
           if (mapInfo && parentElement.child && parentElement.child.length > 0) {
             const startIdx = Math.max(0, mapInfo.startChildIndex)
             const beforeChildren = parentElement.child.slice(0, startIdx)
-            const mapChildren = parentElement.child.slice(startIdx) as (NodeElement | NodeText)[]
+            const mapChildren = parentElement.child.slice(startIdx) as (NodeHierarchyElement | NodeHierarchyText)[]
 
-            const mapNode: NodeMap = {
+            const mapNode: NodeHierarchyMap = {
               type: "map",
               text: mapInfo.text,
               child: mapChildren,
@@ -103,7 +110,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
             mapStack.splice(mapStack.indexOf(mapInfo), 1)
           }
 
-          // Создаем NodeCondition если нужно - ОБРАБАТЫВАЕМ ВСЕ условия для этого родителя
+          // Создаем NodeHierarchyCondition если нужно - ОБРАБАТЫВАЕМ ВСЕ условия для этого родителя
           const condInfos = conditionStack.filter((c) => c.parent === parentElement)
           for (const condInfo of condInfos) {
             if (parentElement.child && parentElement.child.length >= 2) {
@@ -114,11 +121,11 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
                 const falseBranch = parentElement.child[i]
 
                 if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
-                  const conditionNode: NodeCondition = {
+                  const conditionNode: NodeHierarchyCondition = {
                     type: "cond",
                     text: condInfo.text,
-                    true: trueBranch as NodeElement,
-                    false: falseBranch as NodeElement,
+                    true: trueBranch as NodeHierarchyElement,
+                    false: falseBranch as NodeHierarchyElement,
                   }
                   parentElement.child.splice(i - 1, 2, conditionNode)
                   processedAnyCondition = true
@@ -136,7 +143,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
       }
     } else if (element.kind === "text") {
       // Текстовый элемент - добавляем к текущему родителю
-      const textNode: NodeText = {
+      const textNode: NodeHierarchyText = {
         type: "text",
         text: element.text || "",
       }
@@ -156,10 +163,13 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
   // Обрабатываем map/condition на верхнем уровне
   for (const mapInfo of mapStack) {
     if (mapInfo.parent === null && hierarchy.length > 0) {
-      const mapNode: NodeMap = {
+      const mapNode: NodeHierarchyMap = {
         type: "map",
         text: mapInfo.text,
-        child: hierarchy.filter((item) => item.type === "el" || item.type === "text") as (NodeElement | NodeText)[],
+        child: hierarchy.filter((item) => item.type === "el" || item.type === "text") as (
+          | NodeHierarchyElement
+          | NodeHierarchyText
+        )[],
       }
       hierarchy.splice(0, hierarchy.length, mapNode)
     }
@@ -176,11 +186,11 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
         const falseBranch = hierarchy[i]
 
         if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
-          const conditionNode: NodeCondition = {
+          const conditionNode: NodeHierarchyCondition = {
             type: "cond",
             text: condInfo.text,
-            true: trueBranch as NodeElement,
-            false: falseBranch as NodeElement,
+            true: trueBranch as NodeHierarchyElement,
+            false: falseBranch as NodeHierarchyElement,
           }
           hierarchy.splice(i - 1, 2, conditionNode)
           processedAnyCondition = true

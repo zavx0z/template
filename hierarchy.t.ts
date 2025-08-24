@@ -11,13 +11,13 @@ import type { ElementToken } from "./splitter"
  *
  * @example
  * ```typescript
- * const textNode: NodeText = {
+ * const textNode: NodeHierarchyText = {
  *   type: "text",
  *   text: "Hello ${name}"
  * }
  * ```
  */
-export type NodeText = {
+export type NodeHierarchyText = {
   /** Тип узла */
   type: "text"
   /** Исходный текст */
@@ -33,11 +33,11 @@ export type NodeText = {
  *
  * @property {string} type - Тип узла, всегда "map"
  * @property {string} text - Исходный текст map-выражения
- * @property {(NodeElement | NodeText)[]} child - Дочерние элементы, повторяемые для каждого элемента коллекции
+ * @property {(NodeHierarchyElement | NodeHierarchyText)[]} child - Дочерние элементы, повторяемые для каждого элемента коллекции
  *
  * @example
  * ```typescript
- * const mapNode: NodeMap = {
+ * const mapNode: NodeHierarchyMap = {
  *   type: "map",
  *   text: "core.list.map(({ title, nested }) => html`",
  *   child: [
@@ -46,13 +46,13 @@ export type NodeText = {
  * }
  * ```
  */
-export type NodeMap = {
+export type NodeHierarchyMap = {
   /** Тип узла */
   type: "map"
   /** Исходный текст map-выражения */
   text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (NodeElement | NodeText | NodeMap | NodeCondition)[]
+  child: (NodeHierarchyElement | NodeHierarchyText | NodeHierarchyMap | NodeHierarchyCondition)[]
 }
 
 /**
@@ -64,12 +64,12 @@ export type NodeMap = {
  *
  * @property {string} type - Тип узла, всегда "cond"
  * @property {string} text - Исходный текст условия
- * @property {NodeElement} true - Элемент, рендерящийся когда условие истинно
- * @property {NodeElement} false - Элемент, рендерящийся когда условие ложно
+ * @property {NodeHierarchyElement} true - Элемент, рендерящийся когда условие истинно
+ * @property {NodeHierarchyElement} false - Элемент, рендерящийся когда условие ложно
  *
  * @example
  * ```typescript
- * const conditionNode: NodeCondition = {
+ * const conditionNode: NodeHierarchyCondition = {
  *   type: "cond",
  *   text: "context.flag ?",
  *   true: { tag: "div", type: "el", text: "<div>", child: [...] },
@@ -77,15 +77,15 @@ export type NodeMap = {
  * }
  * ```
  */
-export type NodeCondition = {
+export type NodeHierarchyCondition = {
   /** Тип узла */
   type: "cond"
   /** Исходный текст условия */
   text: string
   /** Элемент, рендерящийся когда условие истинно */
-  true: NodeElement | NodeCondition
+  true: NodeHierarchyElement | NodeHierarchyCondition
   /** Элемент, рендерящийся когда условие ложно */
-  false: NodeElement | NodeCondition
+  false: NodeHierarchyElement | NodeHierarchyCondition
 }
 
 /**
@@ -98,11 +98,11 @@ export type NodeCondition = {
  * @property {string} tag - Имя HTML тега (например, "div", "span", "p")
  * @property {string} type - Тип узла, всегда "el"
  * @property {string} text - Исходный текст тега
- * @property {(NodeElement | NodeCondition | NodeMap | NodeText)[]} [child] - Дочерние элементы (опционально)
+ * @property {(NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText)[]} [child] - Дочерние элементы (опционально)
  *
  * @example
  * ```typescript
- * const elementNode: NodeElement = {
+ * const elementNode: NodeHierarchyElement = {
  *   tag: "div",
  *   type: "el",
  *   text: "<div>",
@@ -113,7 +113,7 @@ export type NodeCondition = {
  * }
  * ```
  */
-export type NodeElement = {
+export type NodeHierarchyElement = {
   /** Имя HTML тега */
   tag: string
   /** Тип узла */
@@ -121,7 +121,7 @@ export type NodeElement = {
   /** Исходный текст тега */
   text: string
   /** Дочерние элементы (опционально) */
-  child?: (NodeElement | NodeCondition | NodeMap | NodeText)[]
+  child?: (NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText)[]
 }
 
 /**
@@ -140,7 +140,7 @@ export type NodeElement = {
  * ]
  * ```
  */
-export type NodeHierarchy = (NodeElement | NodeCondition | NodeMap | NodeText)[]
+export type NodeHierarchy = (NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText)[]
 
 /**
  * Элемент стека для отслеживания открытых тегов.
@@ -149,13 +149,13 @@ export type NodeHierarchy = (NodeElement | NodeCondition | NodeMap | NodeText)[]
  * Используется внутренне для построения иерархии элементов.
  *
  * @property {ElementToken} tag - Токен открывающего тега
- * @property {NodeElement} element - Соответствующий элемент иерархии
+ * @property {NodeHierarchyElement} element - Соответствующий элемент иерархии
  */
 export type StackItem = {
   /** Токен открывающего тега */
   tag: ElementToken
   /** Соответствующий элемент иерархии */
-  element: NodeElement
+  element: NodeHierarchyElement
 }
 
 /**

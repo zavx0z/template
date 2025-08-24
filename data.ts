@@ -1,13 +1,20 @@
 import type {
   DataParserContext,
   DataParseResult,
-  NodeDataText,
-  NodeDataMap,
-  NodeDataCondition,
-  NodeDataElement,
+  NodeText,
+  NodeMap,
+  NodeCondition,
+  NodeElement,
+  Node,
   MapContext,
 } from "./data.t"
-import type { NodeElement, NodeCondition, NodeMap, NodeText, NodeHierarchy } from "./hierarchy.t"
+import type {
+  NodeHierarchyElement,
+  NodeHierarchyCondition,
+  NodeHierarchyMap,
+  NodeHierarchyText,
+  NodeHierarchy,
+} from "./hierarchy.t"
 
 /**
  * Ищет переменную в стеке map контекстов и возвращает соответствующий путь.
@@ -660,7 +667,7 @@ const formatStaticText = (text: string): string => {
 /**
  * Парсит текстовые данные с путями.
  */
-export const parseTextData = (text: string, context: DataParserContext = { pathStack: [], level: 0 }): NodeDataText => {
+export const parseTextData = (text: string, context: DataParserContext = { pathStack: [], level: 0 }): NodeText => {
   // Если текст не содержит переменных - возвращаем статический
   if (!text.includes("${")) {
     return {
@@ -1143,12 +1150,12 @@ const parseAttributesImproved = (
 }
 
 /**
- * Создает NodeDataMap из обычного NodeMap.
+ * Создает NodeMap из обычного NodeHierarchyMap.
  */
 export const createNodeDataMap = (
-  node: NodeMap,
+  node: NodeHierarchyMap,
   context: DataParserContext = { pathStack: [], level: 0 }
-): NodeDataMap => {
+): NodeMap => {
   const mapData = parseMapData(node.text, context)
 
   return {
@@ -1159,12 +1166,12 @@ export const createNodeDataMap = (
 }
 
 /**
- * Создает NodeDataCondition из обычного NodeCondition.
+ * Создает NodeCondition из обычного NodeHierarchyCondition.
  */
 export const createNodeDataCondition = (
-  node: NodeCondition,
+  node: NodeHierarchyCondition,
   context: DataParserContext = { pathStack: [], level: 0 }
-): NodeDataCondition => {
+): NodeCondition => {
   const condData = parseConditionData(node.text, context)
   const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
 
@@ -1191,12 +1198,12 @@ export const createNodeDataCondition = (
 }
 
 /**
- * Создает NodeDataElement из обычного NodeElement.
+ * Создает NodeElement из обычного NodeHierarchyElement.
  */
 export const createNodeDataElement = (
-  node: NodeElement | NodeCondition | NodeMap | NodeText,
+  node: NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText,
   context: DataParserContext = { pathStack: [], level: 0 }
-): NodeDataElement | NodeDataText | NodeDataMap | NodeDataCondition => {
+): NodeElement | NodeText | NodeMap | NodeCondition => {
   if (node.type === "map") {
     return createNodeDataMap(node, context)
   }
@@ -1210,7 +1217,7 @@ export const createNodeDataElement = (
   }
 
   if (node.type === "el") {
-    const result: NodeDataElement = {
+    const result: NodeElement = {
       tag: node.tag,
       type: "el",
       child: node.child?.map((child) => createNodeDataElement(child, context)),
@@ -1258,8 +1265,8 @@ export const createNodeDataElement = (
  * // Возвращает обогащенную иерархию с путями к данным и унифицированными выражениями
  */
 export const enrichHierarchyWithData = (
-  hierarchy: any[],
+  hierarchy: NodeHierarchy,
   context: DataParserContext = { pathStack: [], level: 0 }
-): (NodeDataElement | NodeDataText | NodeDataMap | NodeDataCondition)[] => {
+): Node[] => {
   return hierarchy.map((node) => createNodeDataElement(node, context))
 }
