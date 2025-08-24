@@ -275,4 +275,30 @@ describe("атрибуты", () => {
       },
     ])
   })
+  it("сложные условные атрибуты class", () => {
+    const mainHtml = extractMainHtmlBlock<{ active: boolean }>(
+      ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"}">Content</div>`
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const data = enrichHierarchyWithData(hierarchy)
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        attr: {
+          class: {
+            data: "/core/active",
+            expr: 'div-${0} ? "active" : "inactive"',
+          },
+        },
+        child: [
+          {
+            type: "text",
+            value: "Content",
+          },
+        ],
+      },
+    ])
+  })
 })

@@ -83,6 +83,8 @@ export interface NodeMeta {
   tag: string | AttributeParseResult
   /** Тип узла - всегда "meta" для мета-узлов */
   type: "meta"
+  /** Атрибуты элемента с путями к данным или статическими значениями */
+  attr?: Record<string, { value: string } | AttributeParseResult>
   /** Дочерние элементы (опционально) */
   child?: Node[]
 }
