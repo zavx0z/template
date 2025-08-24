@@ -53,5 +53,25 @@ describe("meta", () => {
         ])
       })
     })
+    describe("meta-тег в meta-теге", () => {
+      const data = parse(({ html, core }) => html`<meta-hash><meta-${core.tag} /></meta-hash>`)
+      it("парсинг", () => {
+        expect(data, "meta-тег в meta-теге").toEqual([
+          {
+            tag: "meta-hash",
+            type: "meta",
+            child: [
+              {
+                tag: {
+                  data: "/core/tag",
+                  expr: "meta-${0}",
+                },
+                type: "meta",
+              },
+            ],
+          },
+        ])
+      })
+    })
   })
 })

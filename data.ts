@@ -1258,6 +1258,8 @@ export const createNodeDataMeta = (
   node: NodeHierarchyMeta,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeMeta => {
+  let result: NodeMeta
+
   // Проверяем, является ли тег динамическим (содержит ${...})
   if (node.text.includes("${")) {
     // Парсим динамический тег
@@ -1270,23 +1272,45 @@ export const createNodeDataMeta = (
         const variable = variableMatch[1]
         const dataPath = resolveDataPath(variable, context)
         if (dataPath) {
-          return {
+          result = {
             tag: {
               data: dataPath,
               expr: createUnifiedExpression(`meta-${dynamicTag}`, [variable]),
             },
             type: "meta",
           }
+        } else {
+          result = {
+            tag: node.tag,
+            type: "meta",
+          }
+        }
+      } else {
+        result = {
+          tag: node.tag,
+          type: "meta",
         }
       }
+    } else {
+      result = {
+        tag: node.tag,
+        type: "meta",
+      }
+    }
+  } else {
+    // Статический тег
+    result = {
+      tag: node.tag,
+      type: "meta",
     }
   }
 
-  // Статический тег
-  return {
-    tag: node.tag,
-    type: "meta",
+  // Добавляем дочерние элементы, если они есть
+  if (node.child && node.child.length > 0) {
+    result.child = node.child.map((child) => createNodeDataElement(child, context))
   }
+
+  return result
 }
 
 /**

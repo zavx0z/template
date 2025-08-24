@@ -151,6 +151,8 @@ export type NodeHierarchyMeta = {
   type: "meta"
   /** Исходный текст тега */
   text: string
+  /** Дочерние элементы (опционально) */
+  child?: (NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText | NodeHierarchyMeta)[]
 }
 
 export type NodeHierarchy = (

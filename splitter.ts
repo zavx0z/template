@@ -173,7 +173,7 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
     let kind: TagKind
     if (full.startsWith("</")) kind = "close"
     else if (full.endsWith("/>")) kind = "self"
-    else if (VOID_TAGS.has(name)) kind = "void"
+    else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) kind = "void"
     else kind = "open"
 
     out.push({ text: full, index: offset + localIndex, name, kind })

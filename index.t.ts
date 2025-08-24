@@ -83,6 +83,8 @@ export interface NodeMeta {
   tag: string | AttributeParseResult
   /** Тип узла - всегда "meta" для мета-узлов */
   type: "meta"
+  /** Дочерние элементы (опционально) */
+  child?: Node[]
 }
 
 export type Node = NodeMap | NodeCondition | NodeText | NodeElement | NodeMeta

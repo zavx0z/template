@@ -46,7 +46,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
         // Добавляем мета-узел в иерархию
         if (stack.length > 0) {
           const parent = stack[stack.length - 1]
-          if (parent && parent.element && parent.element.type === "el") {
+          if (parent && parent.element && (parent.element.type === "el" || parent.element.type === "meta")) {
             if (!parent.element.child) parent.element.child = []
             parent.element.child.push(metaNode)
           }
@@ -103,7 +103,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
       // Добавляем элемент в иерархию
       if (stack.length > 0) {
         const parent = stack[stack.length - 1]
-        if (parent && parent.element && parent.element.type === "el") {
+        if (parent && parent.element && (parent.element.type === "el" || parent.element.type === "meta")) {
           if (!parent.element.child) parent.element.child = []
           parent.element.child.push(nodeElement)
         }
@@ -195,7 +195,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
 
       if (stack.length > 0) {
         const parent = stack[stack.length - 1]
-        if (parent && parent.element && parent.element.type === "el") {
+        if (parent && parent.element && (parent.element.type === "el" || parent.element.type === "meta")) {
           if (!parent.element.child) parent.element.child = []
           parent.element.child.push(textNode)
         }
