@@ -43,6 +43,39 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
           text: element.text || "",
         }
 
+        // Проверяем map/condition перед этим meta-тегом
+        const sliceStart = i === 0 ? 0 : (elements[i - 1]?.index || 0) + (elements[i - 1]?.text?.length || 0)
+        const sliceEnd = element.index || 0
+        const slice = html.slice(sliceStart, sliceEnd)
+
+        // Ищем map паттерны
+        const mapMatch = slice.match(/(\w+(?:\.\w+)*\.map\([^)]*\))/)
+        if (mapMatch) {
+          // Проверяем что после map-выражения есть символ `
+          const mapText = mapMatch[1] || ""
+          const mapEnd = slice.indexOf(mapText) + mapText.length
+          const afterMap = slice.slice(mapEnd)
+
+          let finalMapText = mapText
+          if (afterMap.match(/^\s*=>\s*html`/)) {
+            finalMapText += "`" // Добавляем символ ` в конец
+          }
+
+          // Запоминаем что нужно создать map для родителя и с какого индекса детей
+          const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
+          const startChildIndex =
+            parent && (parent.type === "el" || parent.type === "meta") && parent.child ? parent.child.length : 0
+          mapStack.push({ parent, text: finalMapText, startChildIndex })
+        }
+
+        // Ищем condition паттерны
+        const condMatch = slice.match(/\$\{([^?]+)\?/)
+        if (condMatch) {
+          // Запоминаем что нужно создать condition для родителя
+          const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
+          conditionStack.push({ parent, text: (condMatch[1] || "").trim() })
+        }
+
         // Добавляем мета-узел в иерархию
         if (stack.length > 0) {
           const parent = stack[stack.length - 1]
@@ -118,10 +151,35 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
     } else if (element.kind === "close") {
       // Проверяем, является ли это закрывающим meta-тегом
       if (element.name && element.name.startsWith("meta-")) {
-        // Закрываем meta-тег, убирая его из стека
+        // Закрывающий meta-тег - создаем map/condition если нужно
         if (stack.length > 0) {
           const lastStackItem = stack[stack.length - 1]
           if (lastStackItem && lastStackItem.tag.name === (element.name || "")) {
+            const parentElement = lastStackItem.element
+
+            // Создаем NodeHierarchyMap если нужно (для meta-тегов)
+            if (parentElement.type === "meta") {
+              const mapInfo = mapStack.find((m) => m.parent === parentElement)
+              if (mapInfo && parentElement.child && parentElement.child.length > 0) {
+                const startIdx = Math.max(0, mapInfo.startChildIndex)
+                const beforeChildren = parentElement.child.slice(0, startIdx)
+                const mapChildren = parentElement.child.slice(startIdx) as (
+                  | NodeHierarchyElement
+                  | NodeHierarchyText
+                  | NodeHierarchyMeta
+                )[]
+
+                const mapNode: NodeHierarchyMap = {
+                  type: "map",
+                  text: mapInfo.text,
+                  child: mapChildren,
+                }
+
+                parentElement.child = [...beforeChildren, mapNode]
+                mapStack.splice(mapStack.indexOf(mapInfo), 1)
+              }
+            }
+
             stack.pop()
           }
         }
@@ -211,9 +269,10 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
       const mapNode: NodeHierarchyMap = {
         type: "map",
         text: mapInfo.text,
-        child: hierarchy.filter((item) => item.type === "el" || item.type === "text") as (
+        child: hierarchy.filter((item) => item.type === "el" || item.type === "text" || item.type === "meta") as (
           | NodeHierarchyElement
           | NodeHierarchyText
+          | NodeHierarchyMeta
         )[],
       }
       hierarchy.splice(0, hierarchy.length, mapNode)

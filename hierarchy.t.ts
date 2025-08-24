@@ -52,7 +52,7 @@ export type NodeHierarchyMap = {
   /** Исходный текст map-выражения */
   text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (NodeHierarchyElement | NodeHierarchyText | NodeHierarchyMap | NodeHierarchyCondition)[]
+  child: (NodeHierarchyElement | NodeHierarchyText | NodeHierarchyMap | NodeHierarchyCondition | NodeHierarchyMeta)[]
 }
 
 /**
