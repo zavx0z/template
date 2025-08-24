@@ -824,7 +824,7 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
       return {
         type: "text",
         data: mainPath,
-        expr,
+        expr: createUnifiedExpression(expr, []),
       }
     }
 
@@ -836,16 +836,18 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
 
   // Если несколько переменных или смешанный текст
   if (dynamicParts.length > 1) {
+    const expr = parts
+      .map((part) => {
+        if (part.type === "static") return part.text
+        const index = dynamicParts.findIndex((dp) => dp.text === part.text)
+        return `\${${index}}`
+      })
+      .join("")
+
     return {
       type: "text",
       data: dynamicParts.map((part) => part.path),
-      expr: parts
-        .map((part) => {
-          if (part.type === "static") return part.text
-          const index = dynamicParts.findIndex((dp) => dp.text === part.text)
-          return `\${${index}}`
-        })
-        .join(""),
+      expr: createUnifiedExpression(expr, []),
     }
   }
 
@@ -855,15 +857,17 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
 
   // Добавляем expr если есть статический текст или пробельные символы
   if (hasStaticText || hasWhitespace) {
+    const expr = parts
+      .map((part) => {
+        if (part.type === "static") return part.text
+        return `\${0}`
+      })
+      .join("")
+
     return {
       type: "text",
       data: mainPath,
-      expr: parts
-        .map((part) => {
-          if (part.type === "static") return part.text
-          return `\${0}`
-        })
-        .join(""),
+      expr: createUnifiedExpression(expr, []),
     }
   }
 

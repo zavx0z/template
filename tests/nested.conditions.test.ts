@@ -64,13 +64,14 @@ describe("nested.conditions", () => {
                             ${company.active && dept.active && team.active
                               ? html`<div class="team-active">Active Team</div>`
                               : html`<div class="team-inactive">Inactive Team</div>`}
+                            <meta-${team.id} />
                             ${team.members.map(
                               (member, memberIndex) => html`
                                 <p data-member="${member.id}">
                                   <span class="member-name">${member.name}</span>
-                                  <span class="member-indices"
-                                    >Indices: Dept=${deptIndex}, Team=${teamIndex}, Member=${memberIndex}</span
-                                  >
+                                  <span class="member-indices">
+                                    Indices: Dept=${deptIndex}, Team=${teamIndex}, Member=${memberIndex}
+                                  </span>
                                   ${company.active && dept.active && team.active && member.active
                                     ? html`<span class="member-status-active">Fully Active</span>`
                                     : html`<span class="member-status-inactive">Not Fully Active</span>`}
@@ -336,6 +337,13 @@ describe("nested.conditions", () => {
                                         },
                                       ],
                                     },
+                                  },
+                                  {
+                                    tag: {
+                                      data: "[item]/id",
+                                      expr: "meta-${0}",
+                                    },
+                                    type: "meta",
                                   },
                                   {
                                     type: "map",

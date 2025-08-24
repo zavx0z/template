@@ -487,7 +487,7 @@ describe("стандартные события on*", () => {
                                             {
                                               type: "text",
                                               data: "[item]/name",
-                                              expr: "\n                                  Member: ${0}\n                                ",
+                                              expr: "Member: ${0}",
                                             },
                                           ],
                                         },

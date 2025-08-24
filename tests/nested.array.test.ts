@@ -240,7 +240,7 @@ describe("nested.array", () => {
                                               "[item]/id",
                                               "[item]/name",
                                             ],
-                                            expr: "\n                                  Member: ${0}-${1}-${2}-${3} (${4})\n                                  ",
+                                            expr: "Member: ${0}-${1}-${2}-${3} (${4})",
                                           },
                                           {
                                             tag: "span",

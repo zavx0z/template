@@ -486,7 +486,7 @@ describe("map", () => {
                   {
                     type: "text",
                     data: "[item]/title",
-                    expr: "${0} ",
+                    expr: "${0}",
                   },
                   {
                     type: "map",
@@ -615,7 +615,7 @@ describe("map", () => {
                     {
                       type: "text",
                       data: "[item]/title",
-                      expr: "${0} ",
+                      expr: "${0}",
                     },
                     {
                       type: "map",

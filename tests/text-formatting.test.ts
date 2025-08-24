@@ -33,7 +33,7 @@ describe("text-formatting", () => {
     expect(spanElement).toHaveProperty("tag", "span")
     const spanText = spanElement?.child?.[0] as any
     expect(spanText).toHaveProperty("type", "text")
-    expect(spanText?.expr).toBe(" ${0} - ${1} ")
+    expect(spanText?.expr).toBe("${0} - ${1}")
 
     // Проверяем форматирование многострочного статического текста
     const divElement2 = divElement?.child?.[2] as any

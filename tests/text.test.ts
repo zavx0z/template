@@ -341,7 +341,7 @@ describe("text", () => {
                   {
                     type: "text",
                     data: "[item]/title",
-                    expr: "${0} ",
+                    expr: "${0}",
                   },
                   {
                     type: "map",
@@ -595,7 +595,7 @@ describe("text", () => {
           {
             type: "text",
             data: "/context/family",
-            expr: "${0} ",
+            expr: "${0}",
           },
           {
             tag: "b",
@@ -690,7 +690,7 @@ describe("text", () => {
                   {
                     type: "text",
                     data: "[item]/role",
-                    expr: " - ${0}",
+                    expr: "- ${0}",
                   },
                 ],
               },
