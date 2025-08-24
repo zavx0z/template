@@ -459,15 +459,39 @@ export const parseConditionData = (
   condText: string,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): DataParseResult => {
-  // Ищем паттерны: identifier.identifier (но не числа)
-  const pathMatches = condText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+  // Для тернарных операторов с html тегами, извлекаем только переменные из условия
+  // Убираем html`...` части и оставляем только логическое выражение
+  let cleanCondText = condText
+
+  // Удаляем html`...` части из тернарного оператора
+  cleanCondText = cleanCondText.replace(/html`[^`]*`/g, "")
+
+  // Для условий с индексами, извлекаем все логические выражения
+  if (cleanCondText.includes("Index")) {
+    const indexMatches = cleanCondText.match(/([a-zA-Z_$][\w$]*\s*[=!<>]+\s*[0-9]+)/g) || []
+    if (indexMatches.length > 0) {
+      // Собираем все логические выражения с &&
+      cleanCondText = indexMatches.join(" && ")
+    }
+  } else {
+    // Для обычных условий, убираем всё после ? для извлечения только условной части
+    if (cleanCondText.includes("?")) {
+      const beforeQuestion = cleanCondText.split("?")[0]
+      if (beforeQuestion) {
+        cleanCondText = beforeQuestion.trim()
+      }
+    }
+  }
+
+  // Ищем паттерны: identifier.identifier (включая индексы)
+  const pathMatches = cleanCondText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
   if (pathMatches.length === 0) {
     return { path: "" }
   }
 
-  // Извлекаем выражение условия
-  const expression = extractConditionExpression(condText)
+  // Извлекаем выражение условия из очищенного текста
+  const expression = extractConditionExpression(cleanCondText)
 
   if (pathMatches.length === 1) {
     const variable = pathMatches[0] || ""
@@ -493,8 +517,40 @@ export const parseConditionData = (
  * Извлекает выражение условия.
  */
 export const extractConditionExpression = (condText: string): string => {
+  // Для условий с индексами, извлекаем только логическое выражение
+  if (condText.includes("Index")) {
+    // Ищем все логические выражения с индексами
+    const indexMatches = condText.match(/([a-zA-Z_$][\w$]*\s*[=!<>]+\s*[0-9]+)/g) || []
+    if (indexMatches.length > 0) {
+      // Собираем все логические выражения
+      let logicalExpression = indexMatches.join(" && ")
+
+      // Ищем переменные в логическом выражении
+      const pathMatches = logicalExpression.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+      // Заменяем переменные на индексы ${0}, ${1}, и т.д.
+      pathMatches.forEach((path, index) => {
+        logicalExpression = logicalExpression.replace(
+          new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"),
+          `\${${index}}`
+        )
+      })
+
+      return logicalExpression.replace(/\s+/g, " ").trim()
+    }
+  }
+
   // Ищем все переменные в условии (но не числа)
   const pathMatches = condText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+  // Проверяем, есть ли математические операции или другие сложные операции
+  const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(condText)
+  const hasLogicalOperators = /[&&||]/.test(condText)
+
+  // Если найдена только одна переменная и нет сложных операций, возвращаем простое выражение
+  if (pathMatches.length === 1 && !hasComplexOperations && !hasLogicalOperators) {
+    return `\${0}`
+  }
 
   // Заменяем переменные на индексы ${0}, ${1}, и т.д.
   let expression = condText

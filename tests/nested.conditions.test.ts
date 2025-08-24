@@ -475,4 +475,380 @@ describe("nested.conditions", () => {
       },
     ])
   })
+
+  it("условия с индексами разных уровней вложенности", () => {
+    const mainHtml = extractMainHtmlBlock<
+      any,
+      {
+        companies: {
+          id: string
+          departments: {
+            id: string
+            teams: {
+              id: string
+              members: {
+                id: string
+                name: string
+              }[]
+            }[]
+          }[]
+        }[]
+      }
+    >(
+      ({ html, core }) => html`
+        <div>
+          ${core.companies.map(
+            (company, companyIndex) => html`
+              <section data-company="${company.id}">
+                <h1>Company ${companyIndex}: ${company.id}</h1>
+                ${company.departments.map(
+                  (dept, deptIndex) => html`
+                    <article data-dept="${dept.id}">
+                      <h2>Dept ${deptIndex} in Company ${companyIndex}: ${dept.id}</h2>
+                      ${deptIndex === 0 && companyIndex === 0
+                        ? html`<div class="first-dept-first-company">First Dept in First Company</div>`
+                        : html`<div class="other-dept">Other Department</div>`}
+                      ${dept.teams.map(
+                        (team, teamIndex) => html`
+                          <div data-team="${team.id}">
+                            <h3>Team ${teamIndex} in Dept ${deptIndex}: ${team.id}</h3>
+                            ${teamIndex === 0 && deptIndex === 0
+                              ? html`<div class="first-team-first-dept">First Team in First Dept</div>`
+                              : html`<div class="other-team">Other Team</div>`}
+                            ${team.members.map(
+                              (member, memberIndex) => html`
+                                <p data-member="${member.id}">
+                                  <span class="member-name">${member.name}</span>
+                                  ${memberIndex === 0 && teamIndex === 0 && deptIndex === 0
+                                    ? html`<span class="first-member-first-team-first-dept"
+                                        >First Member in First Team in First Dept</span
+                                      >`
+                                    : html`<span class="other-member">Other Member</span>`}
+                                  ${memberIndex > 0 && teamIndex > 0
+                                    ? html`<span class="not-first-member-not-first-team"
+                                        >Not First Member and Not First Team</span
+                                      >`
+                                    : html`<span class="first-member-or-first-team">First Member or First Team</span>`}
+                                  ${companyIndex === 0 && deptIndex === 0 && teamIndex === 0 && memberIndex === 0
+                                    ? html`<span class="all-first">All First</span>`
+                                    : html`<span class="not-all-first">Not All First</span>`}
+                                </p>
+                              `
+                            )}
+                          </div>
+                        `
+                      )}
+                    </article>
+                  `
+                )}
+              </section>
+            `
+          )}
+        </div>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const data = enrichHierarchyWithData(hierarchy)
+
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            data: "/core/companies",
+            child: [
+              {
+                tag: "section",
+                type: "el",
+                attr: {
+                  "data-company": {
+                    data: "[item]/id",
+                  },
+                },
+                child: [
+                  {
+                    tag: "h1",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        data: ["[index]", "[item]/id"],
+                        expr: "Company ${0}: ${1}",
+                      },
+                    ],
+                  },
+                  {
+                    type: "map",
+                    data: "[item]/departments",
+                    child: [
+                      {
+                        tag: "article",
+                        type: "el",
+                        attr: {
+                          "data-dept": {
+                            data: "[item]/id",
+                          },
+                        },
+                        child: [
+                          {
+                            tag: "h2",
+                            type: "el",
+                            child: [
+                              {
+                                type: "text",
+                                data: ["[index]", "../[index]", "[item]/id"],
+                                expr: "Dept ${0} in Company ${1}: ${2}",
+                              },
+                            ],
+                          },
+                          {
+                            type: "cond",
+                            data: ["[index]", "../[index]"],
+                            expr: "${0} === 0 && ${1} === 0",
+                            true: {
+                              tag: "div",
+                              type: "el",
+                              attr: {
+                                class: {
+                                  value: "first-dept-first-company",
+                                },
+                              },
+                              child: [
+                                {
+                                  type: "text",
+                                  value: "First Dept in First Company",
+                                },
+                              ],
+                            },
+                            false: {
+                              tag: "div",
+                              type: "el",
+                              attr: {
+                                class: {
+                                  value: "other-dept",
+                                },
+                              },
+                              child: [
+                                {
+                                  type: "text",
+                                  value: "Other Department",
+                                },
+                              ],
+                            },
+                          },
+                          {
+                            type: "map",
+                            data: "[item]/teams",
+                            child: [
+                              {
+                                tag: "div",
+                                type: "el",
+                                attr: {
+                                  "data-team": {
+                                    data: "[item]/id",
+                                  },
+                                },
+                                child: [
+                                  {
+                                    tag: "h3",
+                                    type: "el",
+                                    child: [
+                                      {
+                                        type: "text",
+                                        data: ["[index]", "../[index]", "[item]/id"],
+                                        expr: "Team ${0} in Dept ${1}: ${2}",
+                                      },
+                                    ],
+                                  },
+                                  {
+                                    type: "cond",
+                                    data: ["[index]", "../[index]"],
+                                    expr: "${0} === 0 && ${1} === 0",
+                                    true: {
+                                      tag: "div",
+                                      type: "el",
+                                      attr: {
+                                        class: {
+                                          value: "first-team-first-dept",
+                                        },
+                                      },
+                                      child: [
+                                        {
+                                          type: "text",
+                                          value: "First Team in First Dept",
+                                        },
+                                      ],
+                                    },
+                                    false: {
+                                      tag: "div",
+                                      type: "el",
+                                      attr: {
+                                        class: {
+                                          value: "other-team",
+                                        },
+                                      },
+                                      child: [
+                                        {
+                                          type: "text",
+                                          value: "Other Team",
+                                        },
+                                      ],
+                                    },
+                                  },
+                                  {
+                                    type: "map",
+                                    data: "[item]/members",
+                                    child: [
+                                      {
+                                        tag: "p",
+                                        type: "el",
+                                        attr: {
+                                          "data-member": {
+                                            data: "[item]/id",
+                                          },
+                                        },
+                                        child: [
+                                          {
+                                            tag: "span",
+                                            type: "el",
+                                            attr: {
+                                              class: {
+                                                value: "member-name",
+                                              },
+                                            },
+                                            child: [
+                                              {
+                                                type: "text",
+                                                data: "[item]/name",
+                                              },
+                                            ],
+                                          },
+                                          {
+                                            type: "cond",
+                                            data: ["../../../[index]", "../../[index]", "../[index]", "[index]"],
+                                            expr: "${0} === 0 && ${1} === 0 && ${2} === 0 && ${3} === 0",
+                                            true: {
+                                              tag: "span",
+                                              type: "el",
+                                              attr: {
+                                                class: {
+                                                  value: "first-member-first-team-first-dept",
+                                                },
+                                              },
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  value: "First Member in First Team in First Dept",
+                                                },
+                                              ],
+                                            },
+                                            false: {
+                                              tag: "span",
+                                              type: "el",
+                                              attr: {
+                                                class: {
+                                                  value: "other-member",
+                                                },
+                                              },
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  value: "Other Member",
+                                                },
+                                              ],
+                                            },
+                                          },
+                                          {
+                                            type: "cond",
+                                            data: ["[index]", "../[index]"],
+                                            expr: "${0} > 0 && ${1} > 0",
+                                            true: {
+                                              tag: "span",
+                                              type: "el",
+                                              attr: {
+                                                class: {
+                                                  value: "not-first-member-not-first-team",
+                                                },
+                                              },
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  value: "Not First Member and Not First Team",
+                                                },
+                                              ],
+                                            },
+                                            false: {
+                                              tag: "span",
+                                              type: "el",
+                                              attr: {
+                                                class: {
+                                                  value: "first-member-or-first-team",
+                                                },
+                                              },
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  value: "First Member or First Team",
+                                                },
+                                              ],
+                                            },
+                                          },
+                                          {
+                                            type: "cond",
+                                            data: ["[index]", "../[index]", "../../[index]"],
+                                            expr: "${0} === 0 && ${1} === 0 && ${2} === 0",
+                                            true: {
+                                              tag: "span",
+                                              type: "el",
+                                              attr: {
+                                                class: {
+                                                  value: "all-first",
+                                                },
+                                              },
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  value: "All First",
+                                                },
+                                              ],
+                                            },
+                                            false: {
+                                              tag: "span",
+                                              type: "el",
+                                              attr: {
+                                                class: {
+                                                  value: "not-all-first",
+                                                },
+                                              },
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  value: "Not All First",
+                                                },
+                                              ],
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    ],
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
 })
