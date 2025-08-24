@@ -37,10 +37,11 @@ const VOID_TAGS = new Set([
 ])
 
 // Упрощенное регулярное выражение для поиска тегов
-const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>)/gi
+const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>|<\/?meta-[^>]*>|<\/?meta-\$\{[^}]*\}[^>]*>)/gi
 
 // Функция для валидации имени тега
-const isValidTagName = (name: string) => /^[A-Za-z][A-Za-z0-9:-]*$/.test(name) && !name.includes("*")
+const isValidTagName = (name: string) =>
+  (/^[A-Za-z][A-Za-z0-9:-]*$/.test(name) && !name.includes("*")) || name.startsWith("meta-")
 
 const shouldIgnoreAt = (input: string, i: number) => input[i + 1] === "!" || input[i + 1] === "?"
 
@@ -144,16 +145,26 @@ export function scanHtmlTags(input: string, offset = 0): TagToken[] {
     const full = input.slice(tagStart, tagEnd)
 
     // Извлекаем имя тега вручную
+    let name = ""
+    let isValidName = false
+
+    // Проверяем обычные теги
     const tagNameMatch = full.match(/^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s|>|\/)/i)
-    if (!tagNameMatch) {
-      TAG_LOOKAHEAD.lastIndex = localIndex + 1
-      continue
+    if (tagNameMatch) {
+      name = (tagNameMatch[1] || "").toLowerCase()
+      isValidName = isValidTagName(tagNameMatch[1] || "")
     }
 
-    const name = (tagNameMatch[1] || "").toLowerCase()
+    // Проверяем динамические meta-теги
+    if (!isValidName) {
+      const metaMatch = full.match(/^<\/?(meta-\$\{[^}]+\})/i)
+      if (metaMatch) {
+        name = metaMatch[1] || ""
+        isValidName = true
+      }
+    }
 
-    // Проверяем валидность имени тега
-    if (!isValidTagName(tagNameMatch[1] || "")) {
+    if (!isValidName) {
       TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
     }

@@ -121,7 +121,7 @@ export type NodeHierarchyElement = {
   /** Исходный текст тега */
   text: string
   /** Дочерние элементы (опционально) */
-  child?: (NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText)[]
+  child?: (NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText | NodeHierarchyMeta)[]
 }
 
 /**
@@ -140,7 +140,26 @@ export type NodeHierarchyElement = {
  * ]
  * ```
  */
-export type NodeHierarchy = (NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText)[]
+/**
+ * Мета-узел иерархии.
+ * Представляет мета-тег в иерархии элементов.
+ */
+export type NodeHierarchyMeta = {
+  /** Имя мета-тега */
+  tag: string
+  /** Тип узла */
+  type: "meta"
+  /** Исходный текст тега */
+  text: string
+}
+
+export type NodeHierarchy = (
+  | NodeHierarchyElement
+  | NodeHierarchyCondition
+  | NodeHierarchyMap
+  | NodeHierarchyText
+  | NodeHierarchyMeta
+)[]
 
 /**
  * Элемент стека для отслеживания открытых тегов.
@@ -155,7 +174,7 @@ export type StackItem = {
   /** Токен открывающего тега */
   tag: ElementToken
   /** Соответствующий элемент иерархии */
-  element: NodeHierarchyElement
+  element: NodeHierarchyElement | NodeHierarchyMeta
 }
 
 /**

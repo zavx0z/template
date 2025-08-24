@@ -71,6 +71,24 @@ describe("извлечение тегов", () => {
         { text: "</div>", index: 105, name: "div", kind: "close" },
       ])
     })
+
+    it("meta-теги", () => {
+      const mainHtml = extractMainHtmlBlock(
+        ({ html, core }) => html`
+          <meta-hash></meta-hash>
+          <meta-hash />
+          <meta-${core.tag}></meta-${core.tag}>
+        `
+      )
+      const elements = extractHtmlElements(mainHtml)
+      expect(elements).toEqual([
+        { text: "<meta-hash>", index: 11, name: "meta-hash", kind: "open" },
+        { text: "</meta-hash>", index: 22, name: "meta-hash", kind: "close" },
+        { text: "<meta-hash />", index: 45, name: "meta-hash", kind: "self" },
+        { text: "<meta-${core.tag}>", index: 69, name: "meta-${core.tag}", kind: "open" },
+        { text: "</meta-${core.tag}>", index: 87, name: "meta-${core.tag}", kind: "close" },
+      ])
+    })
   })
   describe("атрибуты", () => {
     it("namespace", () => {

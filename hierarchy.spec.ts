@@ -533,4 +533,48 @@ describe("hierarchy", () => {
       },
     ])
   })
+
+  it("meta-элементы", () => {
+    const mainHtml = extractMainHtmlBlock<any, { tag: string }>(
+      ({ html, core }) => html`
+        <div>
+          <meta-hash></meta-hash>
+          <meta-hash />
+          <meta-${core.tag}></meta-${core.tag}>
+          <meta-${core.tag} />
+        </div>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    expect(hierarchy).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        text: "<div>",
+        child: [
+          {
+            tag: "meta-hash",
+            type: "meta",
+            text: "<meta-hash>",
+          },
+          {
+            tag: "meta-hash",
+            type: "meta",
+            text: "<meta-hash />",
+          },
+          {
+            tag: "meta-${core.tag}",
+            type: "meta",
+            text: "<meta-${core.tag}>",
+          },
+          {
+            tag: "meta-${core.tag}",
+            type: "meta",
+            text: "<meta-${core.tag} />",
+          },
+        ],
+      },
+    ])
+  })
 })

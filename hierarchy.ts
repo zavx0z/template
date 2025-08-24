@@ -3,6 +3,7 @@ import type {
   NodeHierarchyMap,
   NodeHierarchyCondition,
   NodeHierarchyElement,
+  NodeHierarchyMeta,
   NodeHierarchy,
   StackItem,
   NodeHierarchyText,
@@ -23,15 +24,43 @@ import type {
 export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeHierarchy => {
   const hierarchy: NodeHierarchy = []
   const stack: StackItem[] = []
-  const conditionStack: { parent: NodeHierarchyElement | null; text: string }[] = []
+  const conditionStack: { parent: NodeHierarchyElement | NodeHierarchyMeta | null; text: string }[] = []
   // Запоминаем у какого родителя начался map и с какого индекса его дети должны быть обернуты
-  const mapStack: { parent: NodeHierarchyElement | null; text: string; startChildIndex: number }[] = []
+  const mapStack: { parent: NodeHierarchyElement | NodeHierarchyMeta | null; text: string; startChildIndex: number }[] =
+    []
 
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i]
     if (!element) continue
 
     if (element.kind === "open" || element.kind === "self") {
+      // Проверяем, является ли это мета-тегом
+      if (element.name && element.name.startsWith("meta-")) {
+        // Создаем мета-узел
+        const metaNode: NodeHierarchyMeta = {
+          tag: element.name,
+          type: "meta",
+          text: element.text || "",
+        }
+
+        // Добавляем мета-узел в иерархию
+        if (stack.length > 0) {
+          const parent = stack[stack.length - 1]
+          if (parent && parent.element && parent.element.type === "el") {
+            if (!parent.element.child) parent.element.child = []
+            parent.element.child.push(metaNode)
+          }
+        } else {
+          hierarchy.push(metaNode)
+        }
+
+        // Добавляем мета-теги в стек, если это открывающий тег
+        if (element.kind === "open") {
+          stack.push({ tag: element, element: metaNode })
+        }
+        continue
+      }
+
       // Создаем HTML элемент
       const nodeElement: NodeHierarchyElement = {
         tag: element.name || "",
@@ -59,7 +88,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
 
         // Запоминаем что нужно создать map для родителя и с какого индекса детей
         const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
-        const startChildIndex = parent && parent.child ? parent.child.length : 0
+        const startChildIndex = parent && parent.type === "el" && parent.child ? parent.child.length : 0
         mapStack.push({ parent, text: finalMapText, startChildIndex })
       }
 
@@ -74,7 +103,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
       // Добавляем элемент в иерархию
       if (stack.length > 0) {
         const parent = stack[stack.length - 1]
-        if (parent && parent.element) {
+        if (parent && parent.element && parent.element.type === "el") {
           if (!parent.element.child) parent.element.child = []
           parent.element.child.push(nodeElement)
         }
@@ -87,53 +116,69 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
         stack.push({ tag: element, element: nodeElement })
       }
     } else if (element.kind === "close") {
+      // Проверяем, является ли это закрывающим meta-тегом
+      if (element.name && element.name.startsWith("meta-")) {
+        // Закрываем meta-тег, убирая его из стека
+        if (stack.length > 0) {
+          const lastStackItem = stack[stack.length - 1]
+          if (lastStackItem && lastStackItem.tag.name === (element.name || "")) {
+            stack.pop()
+          }
+        }
+        continue
+      }
+
       // Закрывающий тег - создаем map/condition если нужно
       if (stack.length > 0) {
         const lastStackItem = stack[stack.length - 1]
         if (lastStackItem && lastStackItem.tag.name === (element.name || "")) {
           const parentElement = lastStackItem.element
 
-          // Создаем NodeHierarchyMap если нужно
-          const mapInfo = mapStack.find((m) => m.parent === parentElement)
-          if (mapInfo && parentElement.child && parentElement.child.length > 0) {
-            const startIdx = Math.max(0, mapInfo.startChildIndex)
-            const beforeChildren = parentElement.child.slice(0, startIdx)
-            const mapChildren = parentElement.child.slice(startIdx) as (NodeHierarchyElement | NodeHierarchyText)[]
+          // Создаем NodeHierarchyMap если нужно (только для обычных элементов)
+          if (parentElement.type === "el") {
+            const mapInfo = mapStack.find((m) => m.parent === parentElement)
+            if (mapInfo && parentElement.child && parentElement.child.length > 0) {
+              const startIdx = Math.max(0, mapInfo.startChildIndex)
+              const beforeChildren = parentElement.child.slice(0, startIdx)
+              const mapChildren = parentElement.child.slice(startIdx) as (NodeHierarchyElement | NodeHierarchyText)[]
 
-            const mapNode: NodeHierarchyMap = {
-              type: "map",
-              text: mapInfo.text,
-              child: mapChildren,
+              const mapNode: NodeHierarchyMap = {
+                type: "map",
+                text: mapInfo.text,
+                child: mapChildren,
+              }
+
+              parentElement.child = [...beforeChildren, mapNode]
+              mapStack.splice(mapStack.indexOf(mapInfo), 1)
             }
-
-            parentElement.child = [...beforeChildren, mapNode]
-            mapStack.splice(mapStack.indexOf(mapInfo), 1)
           }
 
           // Создаем NodeHierarchyCondition если нужно - ОБРАБАТЫВАЕМ ВСЕ условия для этого родителя
-          const condInfos = conditionStack.filter((c) => c.parent === parentElement)
-          for (const condInfo of condInfos) {
-            if (parentElement.child && parentElement.child.length >= 2) {
-              // Ищем последовательные пары элементов, которые могут быть true/false ветками
-              let processedAnyCondition = false
-              for (let i = parentElement.child.length - 1; i >= 1; i--) {
-                const trueBranch = parentElement.child[i - 1]
-                const falseBranch = parentElement.child[i]
+          if (parentElement.type === "el") {
+            const condInfos = conditionStack.filter((c) => c.parent === parentElement)
+            for (const condInfo of condInfos) {
+              if (parentElement.child && parentElement.child.length >= 2) {
+                // Ищем последовательные пары элементов, которые могут быть true/false ветками
+                let processedAnyCondition = false
+                for (let i = parentElement.child.length - 1; i >= 1; i--) {
+                  const trueBranch = parentElement.child[i - 1]
+                  const falseBranch = parentElement.child[i]
 
-                if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
-                  const conditionNode: NodeHierarchyCondition = {
-                    type: "cond",
-                    text: condInfo.text,
-                    true: trueBranch as NodeHierarchyElement,
-                    false: falseBranch as NodeHierarchyElement,
+                  if (trueBranch && falseBranch && trueBranch.type === "el" && falseBranch.type === "el") {
+                    const conditionNode: NodeHierarchyCondition = {
+                      type: "cond",
+                      text: condInfo.text,
+                      true: trueBranch as NodeHierarchyElement,
+                      false: falseBranch as NodeHierarchyElement,
+                    }
+                    parentElement.child.splice(i - 1, 2, conditionNode)
+                    processedAnyCondition = true
+                    break // Обрабатываем только одну пару для этого условия
                   }
-                  parentElement.child.splice(i - 1, 2, conditionNode)
-                  processedAnyCondition = true
-                  break // Обрабатываем только одну пару для этого условия
                 }
-              }
-              if (processedAnyCondition) {
-                conditionStack.splice(conditionStack.indexOf(condInfo), 1)
+                if (processedAnyCondition) {
+                  conditionStack.splice(conditionStack.indexOf(condInfo), 1)
+                }
               }
             }
           }
@@ -150,7 +195,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
 
       if (stack.length > 0) {
         const parent = stack[stack.length - 1]
-        if (parent && parent.element) {
+        if (parent && parent.element && parent.element.type === "el") {
           if (!parent.element.child) parent.element.child = []
           parent.element.child.push(textNode)
         }

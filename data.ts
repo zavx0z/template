@@ -1,10 +1,11 @@
 import type { DataParserContext, DataParseResult, MapContext, AttributeParseResult, TextPart } from "./data.t"
-import type { NodeText, NodeMap, NodeCondition, NodeElement, Node } from "./index.t"
+import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node } from "./index.t"
 import type {
   NodeHierarchyElement,
   NodeHierarchyCondition,
   NodeHierarchyMap,
   NodeHierarchyText,
+  NodeHierarchyMeta,
   NodeHierarchy,
 } from "./hierarchy.t"
 
@@ -1251,12 +1252,50 @@ export const createNodeDataCondition = (
 }
 
 /**
+ * Создает NodeMeta из обычного NodeHierarchyMeta.
+ */
+export const createNodeDataMeta = (
+  node: NodeHierarchyMeta,
+  context: DataParserContext = { pathStack: [], level: 0 }
+): NodeMeta => {
+  // Проверяем, является ли тег динамическим (содержит ${...})
+  if (node.text.includes("${")) {
+    // Парсим динамический тег
+    const tagMatch = node.text.match(/<meta-(\${[^}]+})/)
+    if (tagMatch && tagMatch[1]) {
+      const dynamicTag = tagMatch[1]
+      // Извлекаем переменную из ${...}
+      const variableMatch = dynamicTag.match(/\${([^}]+)}/)
+      if (variableMatch && variableMatch[1]) {
+        const variable = variableMatch[1]
+        const dataPath = resolveDataPath(variable, context)
+        if (dataPath) {
+          return {
+            tag: {
+              data: dataPath,
+              expr: createUnifiedExpression(`meta-${dynamicTag}`, [variable]),
+            },
+            type: "meta",
+          }
+        }
+      }
+    }
+  }
+
+  // Статический тег
+  return {
+    tag: node.tag,
+    type: "meta",
+  }
+}
+
+/**
  * Создает NodeElement из обычного NodeHierarchyElement.
  */
 export const createNodeDataElement = (
-  node: NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText,
+  node: NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText | NodeHierarchyMeta,
   context: DataParserContext = { pathStack: [], level: 0 }
-): NodeElement | NodeText | NodeMap | NodeCondition => {
+): NodeElement | NodeText | NodeMap | NodeCondition | NodeMeta => {
   if (node.type === "map") {
     return createNodeDataMap(node, context)
   }
@@ -1283,6 +1322,10 @@ export const createNodeDataElement = (
     }
 
     return result
+  }
+
+  if (node.type === "meta") {
+    return createNodeDataMeta(node, context)
   }
 
   return node

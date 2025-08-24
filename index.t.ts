@@ -1,3 +1,5 @@
+import type { AttributeParseResult } from "./data.t"
+
 // Входные данные
 export type Content = Record<string, string | number | boolean | null | Array<string | number | boolean | null>>
 export type Core = Record<string, any>
@@ -72,4 +74,15 @@ export interface NodeCondition {
   false: Node
 }
 
-export type Node = NodeMap | NodeCondition | NodeText | NodeElement
+/**
+ * Мета-узел.
+ * Представляет мета-тег с динамическим именем тега.
+ */
+export interface NodeMeta {
+  /** Имя мета-тега (может быть динамическим) */
+  tag: string | AttributeParseResult
+  /** Тип узла - всегда "meta" для мета-узлов */
+  type: "meta"
+}
+
+export type Node = NodeMap | NodeCondition | NodeText | NodeElement | NodeMeta
