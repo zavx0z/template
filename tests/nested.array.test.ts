@@ -59,6 +59,7 @@ describe("nested.array", () => {
                               class="${company.active && dept.active && team.active ? "active-team" : "inactive-team"}">
                               Status: ${company.active && dept.active && team.active ? "Active" : "Inactive"}
                             </div>
+                            <meta-${team.id} />
                             ${team.members.map(
                               (member) => html`
                                 <p
@@ -214,6 +215,13 @@ describe("nested.array", () => {
                                         expr: '${0} && ${1} && ${2} ? "active-team" : "inactive-team"',
                                       },
                                     },
+                                  },
+                                  {
+                                    tag: {
+                                      data: "[item]/id",
+                                      expr: "meta-${0}",
+                                    },
+                                    type: "meta",
                                   },
                                   {
                                     type: "map",
