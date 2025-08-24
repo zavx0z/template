@@ -1,6 +1,5 @@
 import type { ElementToken } from "./splitter"
-import type { NodeMap, NodeCondition, NodeElement, NodeHierarchy, StackItem } from "./hierarchy.t"
-import type { NodeText } from "./text.t"
+import type { NodeMap, NodeCondition, NodeElement, NodeHierarchy, StackItem, NodeText } from "./hierarchy.t"
 
 /**
  * Формирует иерархию элементов на основе последовательности тегов.
@@ -62,7 +61,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): NodeH
       if (condMatch) {
         // Запоминаем что нужно создать condition для родителя
         const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
-        conditionStack.push({ parent, text: condMatch[1].trim() || "" })
+        conditionStack.push({ parent, text: (condMatch[1] || "").trim() })
       }
 
       // Добавляем элемент в иерархию

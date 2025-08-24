@@ -1,4 +1,28 @@
-import type { NodeText } from "./text.t"
+import type { ElementToken } from "./splitter"
+
+/**
+ * Текстовый узел.
+ *
+ * @description
+ * Представляет текстовое содержимое в иерархии элементов.
+ *
+ * @property {string} type - Тип узла, всегда "text"
+ * @property {string} text - Исходный текст
+ *
+ * @example
+ * ```typescript
+ * const textNode: NodeText = {
+ *   type: "text",
+ *   text: "Hello ${name}"
+ * }
+ * ```
+ */
+export type NodeText = {
+  /** Тип узла */
+  type: "text"
+  /** Исходный текст */
+  text: string
+}
 
 /**
  * Узел map-операции с шаблоном элемента.
@@ -129,7 +153,7 @@ export type NodeHierarchy = (NodeElement | NodeCondition | NodeMap | NodeText)[]
  */
 export type StackItem = {
   /** Токен открывающего тега */
-  tag: import("./splitter").ElementToken
+  tag: ElementToken
   /** Соответствующий элемент иерархии */
   element: NodeElement
 }
@@ -146,9 +170,9 @@ export type StackItem = {
  */
 export type MapStackItem = {
   /** Элемент начала map-операции */
-  startElement: import("./splitter").ElementToken
+  startElement: ElementToken
   /** Элемент конца map-операции */
-  endElement: import("./splitter").ElementToken
+  endElement: ElementToken
   /** Исходный текст map-выражения */
   text: string
 }
@@ -165,9 +189,9 @@ export type MapStackItem = {
  */
 export type ConditionStackItem = {
   /** Элемент начала условия */
-  startElement: import("./splitter").ElementToken
+  startElement: ElementToken
   /** Элемент конца условия */
-  endElement: import("./splitter").ElementToken
+  endElement: ElementToken
   /** Исходный текст условия */
   text: string
 }

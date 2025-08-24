@@ -163,7 +163,7 @@ describe("data-parser", () => {
 
   describe("enrichHierarchyWithData", () => {
     it("обогащает простую иерархию", () => {
-      const hierarchy = [
+      const enriched = enrichHierarchyWithData([
         {
           type: "el",
           tag: "div",
@@ -175,9 +175,7 @@ describe("data-parser", () => {
             },
           ],
         },
-      ]
-
-      const enriched = enrichHierarchyWithData(hierarchy)
+      ])
       expect(enriched[0]?.type).toBe("el")
       const element = enriched[0] as any
       expect(element.child?.[0]?.type).toBe("text")
@@ -185,7 +183,7 @@ describe("data-parser", () => {
     })
 
     it("обогащает иерархию с map", () => {
-      const hierarchy = [
+      const enriched = enrichHierarchyWithData([
         {
           type: "map",
           text: "context.list.map((name) => html`",
@@ -203,9 +201,7 @@ describe("data-parser", () => {
             },
           ],
         },
-      ]
-
-      const enriched = enrichHierarchyWithData(hierarchy)
+      ])
       expect(enriched[0]?.type).toBe("map")
       const mapNode = enriched[0] as any
       expect(mapNode.data).toBe("/context/list")
@@ -213,16 +209,14 @@ describe("data-parser", () => {
     })
 
     it("обогащает иерархию с условием", () => {
-      const hierarchy = [
+      const enriched = enrichHierarchyWithData([
         {
           type: "cond",
           text: "context.flag",
           true: { type: "el", tag: "div", text: "<div>", child: [] },
           false: { type: "el", tag: "span", text: "<span>", child: [] },
         },
-      ]
-
-      const enriched = enrichHierarchyWithData(hierarchy)
+      ])
       expect(enriched[0]?.type).toBe("cond")
       const condNode = enriched[0] as any
       expect(condNode.data).toBe("/context/flag")

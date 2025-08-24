@@ -7,6 +7,7 @@ import type {
   NodeDataElement,
   MapContext,
 } from "./data.t"
+import type { NodeElement, NodeCondition, NodeMap, NodeText, NodeHierarchy } from "./hierarchy.t"
 
 /**
  * Ищет переменную в стеке map контекстов и возвращает соответствующий путь.
@@ -1144,7 +1145,10 @@ const parseAttributesImproved = (
 /**
  * Создает NodeDataMap из обычного NodeMap.
  */
-export const createNodeDataMap = (node: any, context: DataParserContext = { pathStack: [], level: 0 }): NodeDataMap => {
+export const createNodeDataMap = (
+  node: NodeMap,
+  context: DataParserContext = { pathStack: [], level: 0 }
+): NodeDataMap => {
   const mapData = parseMapData(node.text, context)
 
   return {
@@ -1158,7 +1162,7 @@ export const createNodeDataMap = (node: any, context: DataParserContext = { path
  * Создает NodeDataCondition из обычного NodeCondition.
  */
 export const createNodeDataCondition = (
-  node: any,
+  node: NodeCondition,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeDataCondition => {
   const condData = parseConditionData(node.text, context)
@@ -1189,7 +1193,10 @@ export const createNodeDataCondition = (
 /**
  * Создает NodeDataElement из обычного NodeElement.
  */
-export const createNodeDataElement = (node: any, context: DataParserContext = { pathStack: [], level: 0 }): any => {
+export const createNodeDataElement = (
+  node: NodeElement | NodeCondition | NodeMap | NodeText,
+  context: DataParserContext = { pathStack: [], level: 0 }
+): NodeDataElement | NodeDataText | NodeDataMap | NodeDataCondition => {
   if (node.type === "map") {
     return createNodeDataMap(node, context)
   }
@@ -1203,10 +1210,10 @@ export const createNodeDataElement = (node: any, context: DataParserContext = { 
   }
 
   if (node.type === "el") {
-    const result: any = {
+    const result: NodeDataElement = {
       tag: node.tag,
       type: "el",
-      child: node.child?.map((child: any) => createNodeDataElement(child, context)),
+      child: node.child?.map((child) => createNodeDataElement(child, context)),
     }
 
     // Добавляем атрибуты если есть
