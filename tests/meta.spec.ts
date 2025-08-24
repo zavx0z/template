@@ -53,6 +53,26 @@ describe("meta", () => {
         ])
       })
     })
+    describe("meta-тег в простом элементе", () => {
+      const data = parse(({ html, core }) => html`<div><meta-${core.tag} /></div>`)
+      it("парсинг", () => {
+        expect(data, "meta-тег в meta-теге").toEqual([
+          {
+            tag: "div",
+            type: "el",
+            child: [
+              {
+                tag: {
+                  data: "/core/tag",
+                  expr: "meta-${0}",
+                },
+                type: "meta",
+              },
+            ],
+          },
+        ])
+      })
+    })
     describe("meta-тег в meta-теге", () => {
       const data = parse(({ html, core }) => html`<meta-hash><meta-${core.tag} /></meta-hash>`)
       it("парсинг", () => {
@@ -64,6 +84,28 @@ describe("meta", () => {
               {
                 tag: {
                   data: "/core/tag",
+                  expr: "meta-${0}",
+                },
+                type: "meta",
+              },
+            ],
+          },
+        ])
+      })
+    })
+    describe("meta-тег в map", () => {
+      const data = parse<any, { items: { tag: string }[] }>(
+        ({ html, core }) => html`${core.items.map((item) => html`<meta-${item.tag} />`)}`
+      )
+      it("парсинг", () => {
+        expect(data, "meta-тег в map").toEqual([
+          {
+            type: "map",
+            data: "/core/items",
+            child: [
+              {
+                tag: {
+                  data: "[item]/tag",
                   expr: "meta-${0}",
                 },
                 type: "meta",
