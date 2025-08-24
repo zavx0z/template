@@ -1,13 +1,5 @@
-import type {
-  DataParserContext,
-  DataParseResult,
-  NodeText,
-  NodeMap,
-  NodeCondition,
-  NodeElement,
-  Node,
-  MapContext,
-} from "./data.t"
+import type { DataParserContext, DataParseResult, MapContext } from "./data.t"
+import type { NodeText, NodeMap, NodeCondition, NodeElement, Node } from "./index.t"
 import type {
   NodeHierarchyElement,
   NodeHierarchyCondition,

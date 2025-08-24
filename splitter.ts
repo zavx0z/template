@@ -1,3 +1,6 @@
+import type { TagKind, TagToken } from "./splitter.t"
+import type { Content, Core, State, Render } from "./index.t"
+
 /**
  * @fileoverview HTML Tag Scanner
  *
@@ -15,20 +18,6 @@
  *  - Атрибуты с кавычками и спецсимволами
  * Игнорируются: комментарии, DOCTYPE, processing instructions
  */
-
-export type Content = Record<string, string | number | boolean | null | Array<string | number | boolean | null>>
-export type Core = Record<string, any>
-export type State = string
-
-export type Render<C extends Content = Content, I extends Core = Core, S extends State = State> = (args: {
-  html: (strings: TemplateStringsArray, ...values: any[]) => string
-  core: I
-  context: C
-  state: State
-}) => void
-
-export type TagKind = "open" | "close" | "self" | "void"
-export type TagToken = { text: string; index: number; name: string; kind: TagKind }
 
 const VOID_TAGS = new Set([
   "area",

@@ -1,9 +1,8 @@
 import { extractMainHtmlBlock, extractHtmlElements } from "./splitter"
 import { elementsHierarchy } from "./hierarchy"
 import { enrichHierarchyWithData } from "./data"
-import type { Node } from "./data.t"
-
-import type { Render, Content, Core, State } from "./splitter"
+import type { Node } from "./index.t"
+import type { Render, Content, Core, State } from "./index.t"
 
 /**
  * Парсит HTML-шаблон и возвращает обогащенную иерархию с метаданными о путях к данным.
@@ -77,7 +76,3 @@ export const parse = <C extends Content = Content, I extends Core = Core, S exte
 
   return enrichedHierarchy
 }
-
-// Экспортируем только входные и выходные типы для parse
-export type { Render, Content, Core, State } from "./splitter"
-export type { Node, NodeCondition, NodeElement, NodeMap, NodeText } from "./data.t"
