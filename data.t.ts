@@ -37,3 +37,25 @@ export type DataParseResult = {
   /** Дополнительные метаданные */
   metadata?: Record<string, any>
 }
+
+/**
+ * Результат парсинга атрибута.
+ */
+export type AttributeParseResult = {
+  /** Путь(и) к данным (необязательное) */
+  data?: string | string[]
+  /** Унифицированное выражение (необязательное) */
+  expr?: string
+  /** Ключи для обновления (необязательное) */
+  upd?: string | string[]
+}
+
+/**
+ * Часть текста (статическая или динамическая).
+ */
+export type TextPart = {
+  /** Тип части: "static" для статического текста, "dynamic" для динамического */
+  type: "static" | "dynamic"
+  /** Содержимое части */
+  text: string
+}

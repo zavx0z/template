@@ -1,4 +1,4 @@
-import type { DataParserContext, DataParseResult, MapContext } from "./data.t"
+import type { DataParserContext, DataParseResult, MapContext, AttributeParseResult, TextPart } from "./data.t"
 import type { NodeText, NodeMap, NodeCondition, NodeElement, Node } from "./index.t"
 import type {
   NodeHierarchyElement,
@@ -250,7 +250,7 @@ const extractBaseVariable = (variable: string): string => {
 const parseEventExpression = (
   eventValue: string,
   context: DataParserContext = { pathStack: [], level: 0 }
-): { data: string | string[]; expr?: string; upd?: string | string[] } | null => {
+): AttributeParseResult | null => {
   // Проверяем, является ли это update выражением
   if (eventValue.includes("update(")) {
     // Ищем объект в update({ ... })
@@ -278,7 +278,7 @@ const parseEventExpression = (
           )
         })
 
-        let result: { data: string | string[]; expr?: string; upd: string | string[] } = {
+        let result: AttributeParseResult = {
           data: [],
           upd: keys.length === 1 ? keys[0] || "" : keys,
         }
@@ -876,8 +876,8 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
 /**
  * Разбивает текст на статические и динамические части.
  */
-export const splitTextIntoParts = (text: string): Array<{ type: "static" | "dynamic"; text: string }> => {
-  const parts: Array<{ type: "static" | "dynamic"; text: string }> = []
+export const splitTextIntoParts = (text: string): TextPart[] => {
+  const parts: TextPart[] = []
   let currentIndex = 0
 
   // Ищем все переменные
@@ -914,7 +914,7 @@ export const splitTextIntoParts = (text: string): Array<{ type: "static" | "dyna
 const parseTemplateLiteral = (
   value: string,
   context: DataParserContext = { pathStack: [], level: 0 }
-): { data: string | string[]; expr?: string } | null => {
+): AttributeParseResult | null => {
   // Проверяем, содержит ли значение template literal
   if (!value.includes("${")) {
     return null
@@ -1046,9 +1046,9 @@ const parseTemplateLiteral = (
 const parseAttributesImproved = (
   text: string,
   context: DataParserContext = { pathStack: [], level: 0 }
-): Record<string, { value: string } | { data: string | string[]; expr?: string }> => {
+): Record<string, { value: string } | AttributeParseResult> => {
   const tagContent = text.replace(/^<\/?[A-Za-z][A-Za-z0-9:-]*/, "").replace(/\/?>$/, "")
-  const attributes: Record<string, { value: string } | { data: string | string[]; expr?: string }> = {}
+  const attributes: Record<string, { value: string } | AttributeParseResult> = {}
 
   // Парсим атрибуты вручную
   let i = 0

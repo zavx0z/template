@@ -22,7 +22,7 @@ export interface NodeElement {
   /** Тип узла - всегда "el" для элементов */
   type: "el"
   /** Атрибуты элемента с путями к данным или статическими значениями */
-  attr?: Record<string, { value: string } | { data: string | string[]; expr?: string; upd?: string | string[] }>
+  attr?: Record<string, { value: string } | import("./data.t").AttributeParseResult>
   /** Дочерние узлы элемента */
   child?: Node[]
 }
