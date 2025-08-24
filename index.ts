@@ -80,4 +80,4 @@ export const parse = <C extends Content = Content, I extends Core = Core, S exte
 
 // Экспортируем только входные и выходные типы для parse
 export type { Render, Content, Core, State } from "./splitter"
-export type { Node } from "./data.t"
+export type { Node, NodeCondition, NodeElement, NodeMap, NodeText } from "./data.t"
