@@ -88,11 +88,11 @@ describe("стандартные события on*", () => {
           attr: {
             onclick: {
               data: "/core/onClick",
-              expr: "() => {0}()",
+              expr: "() => ${0}()",
             },
             oninput: {
               data: "/core/onInput",
-              expr: "(e) => {0}(e)",
+              expr: "(e) => ${0}(e)",
             },
           },
         },
@@ -113,7 +113,7 @@ describe("стандартные события on*", () => {
           attr: {
             oninput: {
               data: "/core/onInput",
-              expr: "(e) => {0}(e)",
+              expr: "(e) => ${0}(e)",
             },
           },
         },
@@ -148,7 +148,7 @@ describe("стандартные события on*", () => {
                   attr: {
                     onclick: {
                       data: "[item]/onClick",
-                      expr: "() => {0}()",
+                      expr: "() => ${0}()",
                     },
                   },
                   child: [
@@ -198,7 +198,7 @@ describe("стандартные события on*", () => {
                   attr: {
                     onclick: {
                       data: ["[item]/handleClick", "[item]/id"],
-                      expr: "(e, id) => {0}(e, id)",
+                      expr: "(e) => ${0}(e, ${1})",
                     },
                   },
                   child: [
@@ -239,7 +239,7 @@ describe("стандартные события on*", () => {
           attr: {
             onsubmit: {
               data: "/core/handleSubmit",
-              expr: "(e) => {0}(e)",
+              expr: "(e) => ${0}(e)",
             },
             class: {
               value: "form",
@@ -258,7 +258,7 @@ describe("стандартные события on*", () => {
                 },
                 onchange: {
                   data: "/core/handleChange",
-                  expr: "(e) => {0}(e)",
+                  expr: "(e) => ${0}(e)",
                 },
               },
             },
@@ -271,7 +271,7 @@ describe("стандартные события on*", () => {
                 },
                 onclick: {
                   data: "/core/onClick",
-                  expr: "() => {0}()",
+                  expr: "() => ${0}()",
                 },
               },
               child: [
@@ -304,7 +304,7 @@ describe("стандартные события on*", () => {
           attr: {
             onclick: {
               data: "/core/onClick",
-              expr: "() => {0}()",
+              expr: "() => ${0}()",
             },
             disabled: {
               data: "/core/isDisabled",
@@ -314,6 +314,196 @@ describe("стандартные события on*", () => {
             {
               type: "text",
               value: "Click me",
+            },
+          ],
+        },
+      ])
+    })
+  })
+
+  describe("вложенные события с несколькими уровнями map", () => {
+    const mainHtml = extractMainHtmlBlock<
+      any,
+      {
+        companies: {
+          id: string
+          name: string
+          handleCompanyClick: (id: string) => void
+          departments: {
+            id: string
+            name: string
+            handleDeptClick: (companyId: string, deptId: string) => void
+            teams: {
+              id: string
+              name: string
+              handleTeamClick: (companyId: string, deptId: string, teamId: string) => void
+              members: {
+                id: string
+                name: string
+                handleMemberClick: (companyId: string, deptId: string, teamId: string, memberId: string) => void
+              }[]
+            }[]
+          }[]
+        }[]
+      }
+    >(
+      ({ html, core }) => html`
+        <div>
+          ${core.companies.map(
+            (company) => html`
+              <section onclick=${() => company.handleCompanyClick(company.id)}>
+                <h1>Company: ${company.name}</h1>
+                ${company.departments.map(
+                  (dept) => html`
+                    <article onclick=${() => dept.handleDeptClick(company.id, dept.id)}>
+                      <h2>Dept: ${dept.name}</h2>
+                      ${dept.teams.map(
+                        (team) => html`
+                          <div onclick=${() => team.handleTeamClick(company.id, dept.id, team.id)}>
+                            <h3>Team: ${team.name}</h3>
+                            ${team.members.map(
+                              (member) => html`
+                                <p onclick=${() => member.handleMemberClick(company.id, dept.id, team.id, member.id)}>
+                                  Member: ${member.name}
+                                </p>
+                              `
+                            )}
+                          </div>
+                        `
+                      )}
+                    </article>
+                  `
+                )}
+              </section>
+            `
+          )}
+        </div>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const data = enrichHierarchyWithData(hierarchy)
+    it("парсинг вложенных событий", () => {
+      expect(data, "вложенные события с правильными путями").toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/companies",
+              child: [
+                {
+                  tag: "section",
+                  type: "el",
+                  attr: {
+                    onclick: {
+                      data: ["[item]/handleCompanyClick", "[item]/id"],
+                      expr: "() => ${0}(${1})",
+                    },
+                  },
+                  child: [
+                    {
+                      tag: "h1",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          data: "[item]/name",
+                          expr: "Company: ${0}",
+                        },
+                      ],
+                    },
+                    {
+                      type: "map",
+                      data: "[item]/departments",
+                      child: [
+                        {
+                          tag: "article",
+                          type: "el",
+                          attr: {
+                            onclick: {
+                              data: ["[item]/handleDeptClick", "../[item]/id", "[item]/id"],
+                              expr: "() => ${0}(${1}, ${2})",
+                            },
+                          },
+                          child: [
+                            {
+                              tag: "h2",
+                              type: "el",
+                              child: [
+                                {
+                                  type: "text",
+                                  data: "[item]/name",
+                                  expr: "Dept: ${0}",
+                                },
+                              ],
+                            },
+                            {
+                              type: "map",
+                              data: "[item]/teams",
+                              child: [
+                                {
+                                  tag: "div",
+                                  type: "el",
+                                  attr: {
+                                    onclick: {
+                                      data: ["[item]/handleTeamClick", "../../[item]/id", "../[item]/id", "[item]/id"],
+                                      expr: "() => ${0}(${1}, ${2}, ${3})",
+                                    },
+                                  },
+                                  child: [
+                                    {
+                                      tag: "h3",
+                                      type: "el",
+                                      child: [
+                                        {
+                                          type: "text",
+                                          data: "[item]/name",
+                                          expr: "Team: ${0}",
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      type: "map",
+                                      data: "[item]/members",
+                                      child: [
+                                        {
+                                          tag: "p",
+                                          type: "el",
+                                          attr: {
+                                            onclick: {
+                                              data: [
+                                                "[item]/handleMemberClick",
+                                                "../../../[item]/id",
+                                                "../../[item]/id",
+                                                "../[item]/id",
+                                                "[item]/id",
+                                              ],
+                                              expr: "() => ${0}(${1}, ${2}, ${3}, ${4})",
+                                            },
+                                          },
+                                          child: [
+                                            {
+                                              type: "text",
+                                              data: "[item]/name",
+                                              expr: "\n                                  Member: ${0}\n                                ",
+                                            },
+                                          ],
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },

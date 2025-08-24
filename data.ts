@@ -230,6 +230,73 @@ const extractBaseVariable = (variable: string): string => {
 }
 
 /**
+ * Парсит событийные выражения и извлекает пути к данным.
+ *
+ * Эта функция специально предназначена для обработки событий типа:
+ * - () => core.onClick()
+ * - (e) => core.onInput(e)
+ * - () => item.handleClick(item.id)
+ *
+ * @param eventValue - Значение события для парсинга
+ * @param context - Контекст парсера с информацией о текущем map контексте
+ * @returns Результат парсинга с путями к данным и унифицированным выражением
+ */
+const parseEventExpression = (
+  eventValue: string,
+  context: DataParserContext = { pathStack: [], level: 0 }
+): { data: string | string[]; expr?: string } | null => {
+  // Проверяем, является ли это событийным выражением
+  if (!eventValue.includes("=>")) {
+    return null
+  }
+
+  // Извлекаем переменные из события
+  // Ищем все переменные в формате identifier.identifier
+  const variableMatches = eventValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+
+  if (variableMatches.length === 0) {
+    return null
+  }
+
+  // Фильтруем уникальные переменные и исключаем строковые литералы
+  const uniqueVariables = [...new Set(variableMatches)].filter((variable) => {
+    // Исключаем строковые литералы и короткие идентификаторы
+    return (
+      variable.length > 1 &&
+      !variable.startsWith('"') &&
+      !variable.startsWith("'") &&
+      !variable.includes('"') &&
+      !variable.includes("'")
+    )
+  })
+
+  if (uniqueVariables.length === 0) {
+    return null
+  }
+
+  // Разрешаем пути к данным с учетом контекста
+  const paths = uniqueVariables.map((variable) => resolveDataPath(variable, context))
+
+  // Создаем унифицированное выражение
+  let expr = eventValue
+  uniqueVariables.forEach((variable, index) => {
+    // Заменяем переменные на индексы, учитывая границы слов
+    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+  })
+
+  // Убираем ${} обертку если она есть
+  expr = expr.replace(/^\$\{/, "").replace(/\}$/, "")
+
+  // Применяем форматирование
+  expr = expr.replace(/\s+/g, " ").trim()
+
+  return {
+    data: paths.length === 1 ? paths[0] || "" : paths,
+    expr,
+  }
+}
+
+/**
  * Создает унифицированное выражение с заменой переменных на индексы.
  *
  * Эта функция выполняет две ключевые задачи:
@@ -790,6 +857,12 @@ const parseTemplateLiteral = (
   // Проверяем, содержит ли значение template literal
   if (!value.includes("${")) {
     return null
+  }
+
+  // Проверяем, является ли это событийным выражением
+  const eventResult = parseEventExpression(value, context)
+  if (eventResult) {
+    return eventResult
   }
 
   // Проверяем, является ли это условным выражением
