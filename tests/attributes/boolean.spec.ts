@@ -371,5 +371,138 @@ describe.each([
         },
       })
     })
+    it("", () => {
+      const attrs = parseAttributes(tag + " {context.disabled && 'disabled'} {context.value > 10 && 'enabled'}>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "context.disabled" },
+          enabled: { type: "dynamic", value: "context.value > 10" },
+        },
+      })
+    })
+  })
+
+  describe("булевые атрибуты в фигурных скобках", () => {
+    it("простое условие", () => {
+      const attrs = parseAttributes(tag + " {context.disabled && 'disabled'}>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "context.disabled" },
+        },
+      })
+    })
+
+    it("условие с оператором И", () => {
+      const attrs = parseAttributes(tag + " {context.disabled && context.loading && 'disabled'}>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "context.disabled && context.loading" },
+        },
+      })
+    })
+
+    it("условие с оператором ИЛИ", () => {
+      const attrs = parseAttributes(tag + " {context.disabled || context.error && 'disabled'}>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "context.disabled || context.error" },
+        },
+      })
+    })
+
+    it("условие с оператором НЕ", () => {
+      const attrs = parseAttributes(tag + " {!context.enabled && 'disabled'}>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "!context.enabled" },
+        },
+      })
+    })
+
+    it("оператор равенства", () => {
+      const attrs = parseAttributes(tag + ' {context.status === "loading" && "disabled"}>')
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: 'context.status === "loading"' },
+        },
+      })
+    })
+
+    it("оператор неравенства", () => {
+      const attrs = parseAttributes(tag + ' {context.status !== "ready" && "disabled"}>')
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: 'context.status !== "ready"' },
+        },
+      })
+    })
+
+    it("оператор больше", () => {
+      const attrs = parseAttributes(tag + ' {context.count > 5 && "disabled"}>')
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "context.count > 5" },
+        },
+      })
+    })
+
+    it("оператор больше или равно", () => {
+      const attrs = parseAttributes(tag + ' {context.count >= 10 && "disabled"}>')
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "context.count >= 10" },
+        },
+      })
+    })
+
+    it("тернарный оператор", () => {
+      const attrs = parseAttributes(tag + ' {context.disabled ? true : false && "disabled"}>')
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "context.disabled ? true : false" },
+        },
+      })
+    })
+
+    it("несколько атрибутов в фигурных скобках", () => {
+      const attrs = parseAttributes(tag + " {context.disabled && 'disabled'} {context.value > 10 && 'enabled'}>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "dynamic", value: "context.disabled" },
+          enabled: { type: "dynamic", value: "context.value > 10" },
+        },
+      })
+    })
+
+    it("кастомные атрибуты в фигурных скобках", () => {
+      const attrs = parseAttributes(tag + " {context.isCustom && 'custom'} {context.debug && 'debug'}>")
+      expect(attrs).toEqual({
+        boolean: {
+          custom: { type: "dynamic", value: "context.isCustom" },
+          debug: { type: "dynamic", value: "context.debug" },
+        },
+      })
+    })
+
+    it("data-атрибуты в фигурных скобках", () => {
+      const attrs = parseAttributes(tag + " {context.isTest && 'data-test'} {context.debug && 'data-debug'}>")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-test": { type: "dynamic", value: "context.isTest" },
+          "data-debug": { type: "dynamic", value: "context.debug" },
+        },
+      })
+    })
+
+    it("смешанные синтаксисы", () => {
+      const attrs = parseAttributes(tag + " disabled {context.loading && 'loading'} readonly>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "static", value: true },
+          loading: { type: "dynamic", value: "context.loading" },
+          readonly: { type: "static", value: true },
+        },
+      })
+    })
   })
 })

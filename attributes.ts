@@ -18,6 +18,20 @@ function matchBalancedBraces(s: string, startAfterBraceIndex: number): number {
   return -1
 }
 
+/** Найти позицию ПОСЛЕ закрывающей '}' для простых фигурных скобок {condition && 'attribute'} */
+function matchSimpleBraces(s: string, startIndex: number): number {
+  let depth = 1
+  for (let i = startIndex + 1; i < s.length; i++) {
+    const ch = s[i]
+    if (ch === "{") depth++
+    else if (ch === "}") {
+      depth--
+      if (depth === 0) return i + 1
+    }
+  }
+  return -1
+}
+
 /** Полностью ли токен — одиночный ${...} без префикса/суффикса */
 function isFullyDynamicToken(token: string): boolean {
   const v = token.trim()
@@ -302,6 +316,18 @@ function sliceInsideTag(tagSource: string): string {
       continue
     }
 
+    // Обрабатываем фигурные скобки {condition && 'attribute'}
+    if (ch === "{") {
+      const end = matchSimpleBraces(tagSource, j)
+      if (end === -1) {
+        out += tagSource.slice(j)
+        break
+      }
+      out += tagSource.slice(j, end)
+      j = end
+      continue
+    }
+
     // Только после этого переключаем кавычки (но уже гарантированно вне ${...})
     if (!inDouble && ch === "'") {
       inSingle = !inSingle
@@ -357,6 +383,34 @@ export function parseAttributes(tagSource: string): {
   while (i < len) {
     while (i < len && /\s/.test(inside[i] || "")) i++
     if (i >= len) break
+
+    // Обработка фигурных скобок {condition && 'attribute'}
+    if (inside[i] === "{") {
+      const braceStart = i
+      const braceEnd = matchSimpleBraces(inside, i)
+      if (braceEnd === -1) break
+
+      const braceContent = inside.slice(braceStart + 1, braceEnd - 1)
+      const parts = braceContent.split("&&").map((s) => s.trim())
+
+      if (parts.length >= 2) {
+        // Последняя часть - это имя атрибута в кавычках
+        const attributeName = parts[parts.length - 1]?.replace(/['"]/g, "") // убираем кавычки
+
+        if (attributeName) {
+          // Все части кроме последней - это условие
+          const condition = parts.slice(0, -1).join(" && ")
+
+          ensure.boolean()[attributeName] = {
+            type: "dynamic",
+            value: condition || "",
+          }
+        }
+      }
+
+      i = braceEnd
+      continue
+    }
 
     const nameStart = i
     while (i < len) {
