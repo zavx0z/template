@@ -1,10 +1,15 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "./attributes.ts"
+import { parseAttributes } from "../../attributes.ts"
 
-describe("разделение аттрибутов", () => {
+describe.each([
+  ["element", "<div"],
+  ["web-component", "<my-component"],
+  ["meta-hash", "<meta-hash"],
+  ["meta-${...}", "<meta-${core.meta}>"],
+])("классы для %s", (_, tag) => {
   describe("статические значения", () => {
     it("class в элементе с одним статическим значением", () => {
-      const attrs = parseAttributes('<div class="div-active">')
+      const attrs = parseAttributes(tag + ' class="div-active">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "static", value: "div-active" }],
@@ -13,7 +18,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с одним статическим значением без кавычек", () => {
-      const attrs = parseAttributes("<div class=div-active>")
+      const attrs = parseAttributes(tag + " class=div-active>")
       expect(attrs).toEqual({
         array: {
           class: [{ type: "static", value: "div-active" }],
@@ -21,7 +26,7 @@ describe("разделение аттрибутов", () => {
       })
     })
     it("class в элементе с несколькими статическими значениями", () => {
-      const attrs = parseAttributes('<div class="div-active div-inactive">')
+      const attrs = parseAttributes(tag + ' class="div-active div-inactive">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -35,7 +40,7 @@ describe("разделение аттрибутов", () => {
 
   describe("динамические значения", () => {
     it("class в элементе с одним динамическим значением", () => {
-      const attrs = parseAttributes('<div class="${core.active ? "active" : "inactive"}">')
+      const attrs = parseAttributes(tag + ' class="${core.active ? "active" : "inactive"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.active ? "active" : "inactive"' }],
@@ -44,7 +49,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с одним динамическим значением без кавычек", () => {
-      const attrs = parseAttributes('<div class=${core.active ? "active" : "inactive"}>')
+      const attrs = parseAttributes(tag + ' class=${core.active ? "active" : "inactive"}>')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.active ? "active" : "inactive"' }],
@@ -54,7 +59,7 @@ describe("разделение аттрибутов", () => {
 
     it("class в элементе с несколькими динамическими значениями", () => {
       const attrs = parseAttributes(
-        '<div class="${core.active ? "active" : "inactive"} ${core.active ? "active" : "inactive"}">'
+        tag + ' class="${core.active ? "active" : "inactive"} ${core.active ? "active" : "inactive"}">'
       )
       expect(attrs).toEqual({
         array: {
@@ -67,7 +72,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с операторами сравнения", () => {
-      const attrs = parseAttributes('<div class="${core.count > 5 ? "large" : "small"}">')
+      const attrs = parseAttributes(tag + ' class="${core.count > 5 ? "large" : "small"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.count > 5 ? "large" : "small"' }],
@@ -76,7 +81,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с операторами равенства", () => {
-      const attrs = parseAttributes('<div class="${core.status === "loading" ? "loading" : "ready"}">')
+      const attrs = parseAttributes(tag + ' class="${core.status === "loading" ? "loading" : "ready"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.status === "loading" ? "loading" : "ready"' }],
@@ -85,7 +90,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с логическими операторами", () => {
-      const attrs = parseAttributes('<div class="${core.active && core.visible ? "show" : "hide"}">')
+      const attrs = parseAttributes(tag + ' class="${core.active && core.visible ? "show" : "hide"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.active && core.visible ? "show" : "hide"' }],
@@ -94,7 +99,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором ИЛИ", () => {
-      const attrs = parseAttributes('<div class="${core.error || core.warning ? "alert" : "normal"}">')
+      const attrs = parseAttributes(tag + ' class="${core.error || core.warning ? "alert" : "normal"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.error || core.warning ? "alert" : "normal"' }],
@@ -103,7 +108,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором НЕ", () => {
-      const attrs = parseAttributes('<div class="${!core.disabled ? "enabled" : "disabled"}">')
+      const attrs = parseAttributes(tag + ' class="${!core.disabled ? "enabled" : "disabled"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: '!core.disabled ? "enabled" : "disabled"' }],
@@ -112,7 +117,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором И &&", () => {
-      const attrs = parseAttributes('<div class="${core.active && "active"}">')
+      const attrs = parseAttributes(tag + ' class="${core.active && "active"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -126,7 +131,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с операторами сравнения", () => {
-      const attrs = parseAttributes('<div class="${core.value >= 10 ? "high" : "low"}">')
+      const attrs = parseAttributes(tag + ' class="${core.value >= 10 ? "high" : "low"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.value >= 10 ? "high" : "low"' }],
@@ -135,7 +140,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором неравенства", () => {
-      const attrs = parseAttributes('<div class="${core.type !== "admin" ? "user" : "admin"}">')
+      const attrs = parseAttributes(tag + ' class="${core.type !== "admin" ? "user" : "admin"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.type !== "admin" ? "user" : "admin"' }],
@@ -144,7 +149,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором меньше или равно", () => {
-      const attrs = parseAttributes('<div class="${core.age <= 18 ? "minor" : "adult"}">')
+      const attrs = parseAttributes(tag + ' class="${core.age <= 18 ? "minor" : "adult"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.age <= 18 ? "minor" : "adult"' }],
@@ -153,7 +158,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором меньше", () => {
-      const attrs = parseAttributes('<div class="${core.score < 50 ? "fail" : "pass"}">')
+      const attrs = parseAttributes(tag + ' class="${core.score < 50 ? "fail" : "pass"}">')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "dynamic", value: 'core.score < 50 ? "fail" : "pass"' }],
@@ -164,7 +169,7 @@ describe("разделение аттрибутов", () => {
 
   describe("смешанные значения", () => {
     it("class в элементе с одним смешанным значением", () => {
-      const attrs = parseAttributes('<div class="div-${core.active ? "active" : "inactive"}">')
+      const attrs = parseAttributes(tag + ' class="div-${core.active ? "active" : "inactive"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -178,7 +183,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с одним смешанным значением без кавычек", () => {
-      const attrs = parseAttributes('<div class=div-${core.active ? "active" : "inactive"}>')
+      const attrs = parseAttributes(tag + ' class=div-${core.active ? "active" : "inactive"}>')
       expect(attrs).toEqual({
         array: {
           class: [{ type: "mixed", value: 'div-${core.active ? "active" : "inactive"}' }],
@@ -188,7 +193,7 @@ describe("разделение аттрибутов", () => {
 
     it("class в элементе с несколькими смешанными значениями", () => {
       const attrs = parseAttributes(
-        '<div class="div-${core.active ? "active" : "inactive"} div-${core.active ? "active" : "inactive"}">'
+        tag + ' class="div-${core.active ? "active" : "inactive"} div-${core.active ? "active" : "inactive"}">'
       )
       expect(attrs).toEqual({
         array: {
@@ -201,7 +206,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с операторами сравнения в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="size-${core.count > 5 ? "large" : "small"}">')
+      const attrs = parseAttributes(tag + ' class="size-${core.count > 5 ? "large" : "small"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -215,7 +220,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с операторами равенства в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="status-${core.status === "loading" ? "loading" : "ready"}">')
+      const attrs = parseAttributes(tag + ' class="status-${core.status === "loading" ? "loading" : "ready"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -229,7 +234,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с логическими операторами в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="visibility-${core.active && core.visible ? "show" : "hide"}">')
+      const attrs = parseAttributes(tag + ' class="visibility-${core.active && core.visible ? "show" : "hide"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -243,7 +248,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором ИЛИ в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="alert-${core.error || core.warning ? "alert" : "normal"}">')
+      const attrs = parseAttributes(tag + ' class="alert-${core.error || core.warning ? "alert" : "normal"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -257,7 +262,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором НЕ в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="state-${!core.disabled ? "enabled" : "disabled"}">')
+      const attrs = parseAttributes(tag + ' class="state-${!core.disabled ? "enabled" : "disabled"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -271,7 +276,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором больше или равно в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="level-${core.value >= 10 ? "high" : "low"}">')
+      const attrs = parseAttributes(tag + ' class="level-${core.value >= 10 ? "high" : "low"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -285,7 +290,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором неравенства в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="role-${core.type !== "admin" ? "user" : "admin"}">')
+      const attrs = parseAttributes(tag + ' class="role-${core.type !== "admin" ? "user" : "admin"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -299,7 +304,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором меньше или равно в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="age-${core.age <= 18 ? "minor" : "adult"}">')
+      const attrs = parseAttributes(tag + ' class="age-${core.age <= 18 ? "minor" : "adult"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -313,7 +318,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором меньше в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="result-${core.score < 50 ? "fail" : "pass"}">')
+      const attrs = parseAttributes(tag + ' class="result-${core.score < 50 ? "fail" : "pass"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -328,7 +333,7 @@ describe("разделение аттрибутов", () => {
 
     it("class в элементе с множественными операторами в смешанном значении", () => {
       const attrs = parseAttributes(
-        '<div class="complex-${core.active && core.count > 5 || core.admin ? "special" : "regular"}">'
+        tag + ' class="complex-${core.active && core.count > 5 || core.admin ? "special" : "regular"}">'
       )
       expect(attrs).toEqual({
         array: {
@@ -343,7 +348,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с оператором И && в смешанном значении", () => {
-      const attrs = parseAttributes('<div class="element${context.active && "-active"}">')
+      const attrs = parseAttributes(tag + ' class="element${context.active && "-active"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -359,7 +364,7 @@ describe("разделение аттрибутов", () => {
 
   describe("различные варианты", () => {
     it("class в элементе с смешанным и статическим значениями", () => {
-      const attrs = parseAttributes('<div class="div-${core.active ? "active" : "inactive"} visible">')
+      const attrs = parseAttributes(tag + ' class="div-${core.active ? "active" : "inactive"} visible">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -377,7 +382,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с динамическим и статическим значениями", () => {
-      const attrs = parseAttributes('<div class="${core.active ? "active" : "inactive"} visible">')
+      const attrs = parseAttributes(tag + ' class="${core.active ? "active" : "inactive"} visible">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -396,7 +401,7 @@ describe("разделение аттрибутов", () => {
 
     it("class в элементе с тремя различными типами значений", () => {
       const attrs = parseAttributes(
-        '<div class="static-value ${core.active ? "active" : "inactive"} mixed-${core.type}">'
+        tag + ' class="static-value ${core.active ? "active" : "inactive"} mixed-${core.type}">'
       )
       expect(attrs).toEqual({
         array: {
@@ -419,7 +424,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с несколькими смешанными значениями", () => {
-      const attrs = parseAttributes('<div class="btn-${core.variant} text-${core.size} bg-${core.theme}">')
+      const attrs = parseAttributes(tag + ' class="btn-${core.variant} text-${core.size} bg-${core.theme}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -442,7 +447,7 @@ describe("разделение аттрибутов", () => {
 
     it("class в элементе с условными классами", () => {
       const attrs = parseAttributes(
-        '<div class="base-class ${core.active ? "active" : "inactive"} ${core.disabled ? "disabled" : ""}">'
+        tag + ' class="base-class ${core.active ? "active" : "inactive"} ${core.disabled ? "disabled" : ""}">'
       )
       expect(attrs).toEqual({
         array: {
@@ -465,7 +470,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с вложенными выражениями", () => {
-      const attrs = parseAttributes('<div class="container ${core.nested ? "nested" : "default"}">')
+      const attrs = parseAttributes(tag + ' class="container ${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
         array: {
           class: [
@@ -483,7 +488,9 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с пустыми значениями", () => {
-      const attrs = parseAttributes('<div class="visible ${core.hidden ? "" : "show"} ${core.active ? "active" : ""}">')
+      const attrs = parseAttributes(
+        tag + ' class="visible ${core.hidden ? "" : "show"} ${core.active ? "active" : ""}">'
+      )
       expect(attrs).toEqual({
         array: {
           class: [
@@ -505,7 +512,7 @@ describe("разделение аттрибутов", () => {
     })
 
     it("class в элементе с атрибутом без кавычек", () => {
-      const attrs = parseAttributes('<div class=static-value-${core.active ? "active" : "inactive"}>')
+      const attrs = parseAttributes(tag + ' class=static-value-${core.active ? "active" : "inactive"}>')
       expect(attrs).toEqual({
         array: {
           class: [

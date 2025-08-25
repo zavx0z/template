@@ -118,7 +118,11 @@ function splitClassTopLevel(value: string): string[] {
       flush()
       // пропускаем последовательные пробелы
       i++
-      while (i < value.length && /\s/.test(value[i])) i++
+      while (i < value.length) {
+        const char = value[i]
+        if (char === undefined || !/\s/.test(char)) break
+        i++
+      }
       continue
     }
 
@@ -141,7 +145,11 @@ function splitClassTopLevel(value: string): string[] {
 function readAttributeRawValue(tag: string, cursor: number): { value: string; nextIndex: number } {
   const len = tag.length
   // пропустим пробелы
-  while (cursor < len && /\s/.test(tag[cursor])) cursor++
+  while (cursor < len) {
+    const char = tag[cursor]
+    if (char === undefined || !/\s/.test(char)) break
+    cursor++
+  }
   if (cursor >= len) return { value: "", nextIndex: cursor }
 
   const first = tag[cursor]
@@ -179,7 +187,7 @@ function readAttributeRawValue(tag: string, cursor: number): { value: string; ne
   let v = ""
   while (cursor < len) {
     const c = tag[cursor]
-    if (c === ">" || /\s/.test(c)) break
+    if (c === ">" || (c && /\s/.test(c))) break
     if (c === "$" && tag[cursor + 1] === "{") {
       const end = matchBalancedBraces(tag, cursor + 2)
       if (end === -1) {
@@ -273,17 +281,29 @@ export function parseAttributes(tagSource: string): {
   // мелкий сканер: name[=value]
   while (i < len) {
     // пропуск пробелов
-    while (i < len && /\s/.test(inside[i])) i++
+    while (i < len) {
+      const char = inside[i]
+      if (char === undefined || !/\s/.test(char)) break
+      i++
+    }
     if (i >= len) break
 
     // читаем имя
     const nameStart = i
-    while (i < len && !/\s/.test(inside[i]) && inside[i] !== "=") i++
+    while (i < len) {
+      const char = inside[i]
+      if (char === undefined || /\s/.test(char) || char === "=") break
+      i++
+    }
     const name = inside.slice(nameStart, i)
     if (!name) break
 
     // пропуск пробелов
-    while (i < len && /\s/.test(inside[i])) i++
+    while (i < len) {
+      const char = inside[i]
+      if (char === undefined || !/\s/.test(char)) break
+      i++
+    }
 
     // есть ли '='
     let value: string | null = null
