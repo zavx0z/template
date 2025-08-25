@@ -5,7 +5,11 @@ import type {
   AttributeString,
   AttributeBoolean,
   AttributeObject,
+  PartAttrs,
+  PartAttrElement,
+  PartAttrMeta,
 } from "./attributes.t"
+import type { NodeHierarchy } from "./hierarchy.t"
 
 // ============================
 // ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
@@ -621,4 +625,61 @@ export function parseAttributes(tagSource: string): {
   }
 
   return result
+}
+
+/** Извлечь атрибуты из дерева */
+export function extractAttributes(hierarchy: NodeHierarchy): PartAttrs {
+  return hierarchy.map((node) => {
+    if (node.type === "el") {
+      // Извлекаем атрибуты из текста элемента
+      const parsedAttributes = parseAttributes(node.text)
+
+      // Создаем новый объект с добавленными атрибутами
+      const result: PartAttrElement = {
+        tag: node.tag,
+        type: "el",
+        ...parsedAttributes,
+      }
+
+      // Рекурсивно обрабатываем дочерние элементы
+      if (node.child) {
+        result.child = node.child.map((child) => {
+          if (child.type === "el") {
+            return extractAttributes([child])[0] as PartAttrElement
+          }
+          // Обрабатываем map и condition узлы
+          if (child.type === "map" || child.type === "cond") {
+            return extractAttributes([child])[0] as PartAttrElement | PartAttrMeta
+          }
+          return child
+        }) as PartAttrs
+      }
+
+      return result
+    }
+
+    // Для map и condition рекурсивно обрабатываем дочерние элементы
+    if (node.type === "map" && node.child) {
+      return {
+        ...node,
+        child: node.child.map((child) => {
+          if (child.type === "el") {
+            return extractAttributes([child])[0]
+          }
+          return child
+        }) as PartAttrs,
+      }
+    }
+
+    if (node.type === "cond") {
+      return {
+        ...node,
+        true: extractAttributes([node.true])[0],
+        false: extractAttributes([node.false])[0],
+      }
+    }
+
+    // Для остальных типов узлов возвращаем как есть
+    return node
+  }) as PartAttrs
 }

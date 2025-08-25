@@ -1,4 +1,4 @@
-import type { NodeHierarchyCondition, NodeHierarchyMap, NodeHierarchyText } from "./hierarchy.t"
+import type { NodeHierarchyText } from "./hierarchy.t"
 
 export type Attribute = "boolean" | "array" | "event" | "string"
 
@@ -20,7 +20,7 @@ export type AttributeBoolean = Record<string, { type: "dynamic" | "static"; valu
 
 export type AttributeObject = Record<string, string>
 
-export type NodeAttributeElement = {
+export type PartAttrElement = {
   /** Имя HTML тега */
   tag: string
   /** Тип узла */
@@ -34,10 +34,10 @@ export type NodeAttributeElement = {
   /** Строковые аттрибуты */
   string?: AttributeString
   /** Дочерние элементы (опционально) */
-  child?: (NodeAttributeElement | NodeAttributeMeta | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText)[]
+  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
 }
 
-export type NodeAttributeMeta = {
+export type PartAttrMeta = {
   /** Имя мета-тега */
   tag: string
   /** Тип узла */
@@ -45,13 +45,27 @@ export type NodeAttributeMeta = {
   /** Аттрибуты */
   attr: AttributeValue[]
   /** Дочерние элементы (опционально) */
-  child?: (NodeAttributeElement | NodeAttributeMeta | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText)[]
+  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
 }
 
-export type NodeAttributes = (
-  | NodeAttributeElement
-  | NodeAttributeMeta
-  | NodeHierarchyCondition
-  | NodeHierarchyMap
-  | NodeHierarchyText
-)[]
+export type PartAttributeMap = {
+  /** Тип узла */
+  type: "map"
+  /** Исходный текст map-выражения */
+  text: string
+  /** Дочерние элементы, повторяемые для каждого элемента коллекции */
+  child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
+}
+
+export type PartAttrCondition = {
+  /** Тип узла */
+  type: "cond"
+  /** Исходный текст условия */
+  text: string
+  /** Элемент, рендерящийся когда условие истинно */
+  true: PartAttrElement | PartAttrMeta | PartAttrCondition
+  /** Элемент, рендерящийся когда условие ложно */
+  false: PartAttrElement | PartAttrMeta | PartAttrCondition
+}
+
+export type PartAttrs = (PartAttrElement | PartAttrMeta | PartAttributeMap | PartAttrCondition | NodeHierarchyText)[]
