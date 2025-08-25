@@ -413,6 +413,11 @@ export function parseAttributes(tagSource: string): {
       const resolved = getBuiltinResolved(name) ?? (value ? detectSplitter(value) : null)
       if (resolved) {
         const tokens = resolved.fn(value ?? "")
+        // Если только одно значение, обрабатываем как строку
+        if (tokens.length === 1) {
+          ensure.string()[name] = value ?? ""
+          continue
+        }
         const out = tokens.map((tok) => ({
           type: classifyValue(tok),
           value: normalizeValueForOutput(tok),

@@ -1,21 +1,29 @@
 import { describe, it, expect } from "bun:test"
 import { parseAttributes } from "../../attributes.ts"
 
-describe.each([["element","<a"],["area","<area"]])("ping для %s", (_, tag) => {
+describe.each([
+  ["element", "<a"],
+  ["area", "<area"],
+])("ping для %s", (_, tag) => {
   describe("статические значения", () => {
     it("одно", () => {
       const attrs = parseAttributes(tag + ' ping="https://a.example">')
       expect(attrs).toEqual({
-        array: { ping: { splitter: " ", values: [{ type: "static", value: "https://a.example" }] } },
+        string: { ping: "https://a.example" },
       })
     })
     it("несколько", () => {
       const attrs = parseAttributes(tag + ' ping="https://a.example https://b.example">')
       expect(attrs).toEqual({
-        array: { ping: { splitter: " ", values: [
-          { type: "static", value: "https://a.example" },
-          { type: "static", value: "https://b.example" },
-        ] } },
+        array: {
+          ping: {
+            splitter: " ",
+            values: [
+              { type: "static", value: "https://a.example" },
+              { type: "static", value: "https://b.example" },
+            ],
+          },
+        },
       })
     })
   })
@@ -24,7 +32,7 @@ describe.each([["element","<a"],["area","<area"]])("ping для %s", (_, tag) =>
     it("одно", () => {
       const attrs = parseAttributes(tag + ' ping="${core.url}">')
       expect(attrs).toEqual({
-        array: { ping: { splitter: " ", values: [{ type: "dynamic", value: "core.url" }] } },
+        string: { ping: "${core.url}" },
       })
     })
   })
@@ -33,10 +41,15 @@ describe.each([["element","<a"],["area","<area"]])("ping для %s", (_, tag) =>
     it("одно", () => {
       const attrs = parseAttributes(tag + ' ping="https://a.example ${core.url}">')
       expect(attrs).toEqual({
-        array: { ping: { splitter: " ", values: [
-          { type: "static", value: "https://a.example" },
-          { type: "dynamic", value: "core.url" },
-        ] } },
+        array: {
+          ping: {
+            splitter: " ",
+            values: [
+              { type: "static", value: "https://a.example" },
+              { type: "dynamic", value: "core.url" },
+            ],
+          },
+        },
       })
     })
   })
