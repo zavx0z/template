@@ -215,4 +215,161 @@ describe.each([
       })
     })
   })
+
+  describe("кастомные булевые атрибуты (data-*)", () => {
+    it("простой data-атрибут без значения", () => {
+      const attrs = parseAttributes(tag + " data-test>")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-test": { type: "static", value: true },
+        },
+      })
+    })
+
+    it("data-атрибут со значением true", () => {
+      const attrs = parseAttributes(tag + " data-test=true>")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-test": { type: "static", value: true },
+        },
+      })
+    })
+
+    it("data-атрибут со значением false", () => {
+      const attrs = parseAttributes(tag + " data-test=false>")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-test": { type: "static", value: false },
+        },
+      })
+    })
+
+    it("data-атрибут с динамическим значением", () => {
+      const attrs = parseAttributes(tag + " data-test=${context.isTest}>")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-test": { type: "dynamic", value: "context.isTest" },
+        },
+      })
+    })
+
+    it("data-атрибут с тернарным оператором", () => {
+      const attrs = parseAttributes(tag + " data-test=${context.isTest ? true : false}>")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-test": { type: "dynamic", value: "context.isTest ? true : false" },
+        },
+      })
+    })
+
+    it("data-атрибут с оператором сравнения", () => {
+      const attrs = parseAttributes(tag + " data-test=${context.count > 5}>")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-test": { type: "dynamic", value: "context.count > 5" },
+        },
+      })
+    })
+
+    it("несколько data-атрибутов", () => {
+      const attrs = parseAttributes(tag + " data-test data-debug=${context.debug} data-verbose=false>")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-test": { type: "static", value: true },
+          "data-debug": { type: "dynamic", value: "context.debug" },
+          "data-verbose": { type: "static", value: false },
+        },
+      })
+    })
+
+    it("смешанные стандартные и data-атрибуты", () => {
+      const attrs = parseAttributes(tag + " disabled data-test=${context.isTest} readonly>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "static", value: true },
+          "data-test": { type: "dynamic", value: "context.isTest" },
+          readonly: { type: "static", value: true },
+        },
+      })
+    })
+  })
+
+  describe("кастомные булевые атрибуты (одно слово)", () => {
+    it("простой кастомный атрибут без значения", () => {
+      const attrs = parseAttributes(tag + " custom>")
+      expect(attrs).toEqual({
+        boolean: {
+          custom: { type: "static", value: true },
+        },
+      })
+    })
+
+    it("кастомный атрибут со значением true", () => {
+      const attrs = parseAttributes(tag + " custom=true>")
+      expect(attrs).toEqual({
+        boolean: {
+          custom: { type: "static", value: true },
+        },
+      })
+    })
+
+    it("кастомный атрибут со значением false", () => {
+      const attrs = parseAttributes(tag + " custom=false>")
+      expect(attrs).toEqual({
+        boolean: {
+          custom: { type: "static", value: false },
+        },
+      })
+    })
+
+    it("кастомный атрибут с динамическим значением", () => {
+      const attrs = parseAttributes(tag + " custom=${context.isCustom}>")
+      expect(attrs).toEqual({
+        boolean: {
+          custom: { type: "dynamic", value: "context.isCustom" },
+        },
+      })
+    })
+
+    it("кастомный атрибут с тернарным оператором", () => {
+      const attrs = parseAttributes(tag + " custom=${context.isCustom ? true : false}>")
+      expect(attrs).toEqual({
+        boolean: {
+          custom: { type: "dynamic", value: "context.isCustom ? true : false" },
+        },
+      })
+    })
+
+    it("кастомный атрибут с оператором сравнения", () => {
+      const attrs = parseAttributes(tag + " custom=${context.count > 5}>")
+      expect(attrs).toEqual({
+        boolean: {
+          custom: { type: "dynamic", value: "context.count > 5" },
+        },
+      })
+    })
+
+    it("несколько кастомных атрибутов", () => {
+      const attrs = parseAttributes(tag + " custom debug=${context.debug} verbose=false>")
+      expect(attrs).toEqual({
+        boolean: {
+          custom: { type: "static", value: true },
+          debug: { type: "dynamic", value: "context.debug" },
+          verbose: { type: "static", value: false },
+        },
+      })
+    })
+
+    it("смешанные стандартные, data- и кастомные атрибуты", () => {
+      const attrs = parseAttributes(tag + " disabled data-test=${context.isTest} custom readonly>")
+      expect(attrs).toEqual({
+        boolean: {
+          disabled: { type: "static", value: true },
+          "data-test": { type: "dynamic", value: "context.isTest" },
+          custom: { type: "static", value: true },
+          readonly: { type: "static", value: true },
+        },
+      })
+    })
+  })
 })
