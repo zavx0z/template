@@ -75,15 +75,7 @@ describe("комплексные тесты с множественными ат
         string: {
           shape: "rect",
           coords: '${isLarge ? "0,0,300,300" : "0,0,100,100"}',
-        },
-        array: {
-          alt: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "Условный" },
-              { type: "static", value: "прямоугольник" },
-            ],
-          },
+          alt: "Условный прямоугольник",
         },
       })
     })
@@ -139,15 +131,9 @@ describe("комплексные тесты с множественными ат
       expect(attrs).toEqual({
         string: {
           src: "base.jpg",
+          alt: "Фото ${user.name}",
         },
         array: {
-          alt: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "Фото" },
-              { type: "dynamic", value: "user.name" },
-            ],
-          },
           class: {
             splitter: " ",
             values: [

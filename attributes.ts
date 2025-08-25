@@ -192,17 +192,6 @@ function getBuiltinResolved(name: string): SplitterResolved | null {
   return BUILTIN_LIST_SPLITTERS[lower] || null
 }
 
-/** Эвристика для кастомных списков: ',', затем ';', затем пробел */
-function detectSplitter(raw: string): SplitterResolved | null {
-  const byComma = splitByComma(raw)
-  if (byComma.length > 1) return { fn: splitByComma, delim: "," }
-  const bySemi = splitBySemicolon(raw)
-  if (bySemi.length > 1) return { fn: splitBySemicolon, delim: ";" }
-  const bySpace = splitBySpace(raw)
-  if (bySpace.length > 1) return { fn: splitBySpace, delim: " " }
-  return null
-}
-
 /** Прочитать "сырое" значение атрибута из строки inside, начиная с позиции cursor */
 function readAttributeRawValue(inside: string, cursor: number): { value: string; nextIndex: number } {
   const len = inside.length
@@ -413,9 +402,9 @@ export function parseAttributes(tagSource: string): {
       continue
     }
 
-    // списковые (встроенные + авто-детект)
+    // списковые (только встроенные)
     {
-      const resolved = getBuiltinResolved(name) ?? (value ? detectSplitter(value) : null)
+      const resolved = getBuiltinResolved(name)
       if (resolved) {
         const tokens = resolved.fn(value ?? "")
         // Если только одно значение, обрабатываем как строку
