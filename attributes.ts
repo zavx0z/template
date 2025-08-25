@@ -421,6 +421,23 @@ export function parseAttributes(tagSource: string): {
     const name = inside.slice(nameStart, i)
     if (!name) break
 
+    // события - обрабатываем в первую очередь
+    if (name.startsWith("on")) {
+      while (i < len && /\s/.test(inside[i] || "")) i++
+
+      let value: string | null = null
+      if (inside[i] === "=") {
+        i++
+        const r = readAttributeRawValue(inside, i)
+        value = r.value
+        i = r.nextIndex
+      }
+
+      const eventValue = value ? value.slice(2, -1) : ""
+      ensure.event()[name] = eventValue
+      continue
+    }
+
     while (i < len && /\s/.test(inside[i] || "")) i++
 
     let value: string | null = null
@@ -452,12 +469,6 @@ export function parseAttributes(tagSource: string): {
       }))
       // @ts-ignore
       ensure.array()[name] = out
-      continue
-    }
-
-    // события
-    if (name.startsWith("on")) {
-      ensure.event()[name] = value ?? ""
       continue
     }
 
