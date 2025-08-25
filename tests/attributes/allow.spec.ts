@@ -11,13 +11,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' allow="camera">')
       expect(attrs).toEqual({
-        string: { allow: "camera" },
+        string: { allow: { type: "static", value: "camera" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " allow=camera>")
       expect(attrs).toEqual({
-        string: { allow: "camera" },
+        string: { allow: { type: "static", value: "camera" } },
       })
     })
     it("одно значение с точкой с запятой внутри", () => {
@@ -100,13 +100,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' allow="${core.permission}">')
       expect(attrs).toEqual({
-        string: { allow: "${core.permission}" },
+        string: { allow: { type: "dynamic", value: "core.permission" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " allow=${core.permission}>")
       expect(attrs).toEqual({
-        string: { allow: "${core.permission}" },
+        string: { allow: { type: "dynamic", value: "core.permission" } },
       })
     })
     it("несколько", () => {
@@ -127,7 +127,7 @@ describe.each([
     it("с операторами сравнения", () => {
       const attrs = parseAttributes(tag + ' allow="${core.type === "media" ? "camera;microphone" : "geolocation"}">')
       expect(attrs).toEqual({
-        string: { allow: '${core.type === "media" ? "camera;microphone" : "geolocation"}' },
+        string: { allow: { type: "dynamic", value: 'core.type === "media" ? "camera;microphone" : "geolocation"' } },
       })
     })
 
@@ -136,7 +136,9 @@ describe.each([
         tag + ' allow="${core.allowCamera && core.allowMic ? "camera;microphone" : "geolocation"}">'
       )
       expect(attrs).toEqual({
-        string: { allow: '${core.allowCamera && core.allowMic ? "camera;microphone" : "geolocation"}' },
+        string: {
+          allow: { type: "dynamic", value: 'core.allowCamera && core.allowMic ? "camera;microphone" : "geolocation"' },
+        },
       })
     })
 
@@ -145,21 +147,23 @@ describe.each([
         tag + ' allow="${core.allowCamera || core.allowMic ? "camera;microphone" : "geolocation"}">'
       )
       expect(attrs).toEqual({
-        string: { allow: '${core.allowCamera || core.allowMic ? "camera;microphone" : "geolocation"}' },
+        string: {
+          allow: { type: "dynamic", value: 'core.allowCamera || core.allowMic ? "camera;microphone" : "geolocation"' },
+        },
       })
     })
 
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' allow="${!core.restricted ? "camera;microphone" : "geolocation"}">')
       expect(attrs).toEqual({
-        string: { allow: '${!core.restricted ? "camera;microphone" : "geolocation"}' },
+        string: { allow: { type: "dynamic", value: '!core.restricted ? "camera;microphone" : "geolocation"' } },
       })
     })
 
     it("сложное выражение с точками с запятой", () => {
       const attrs = parseAttributes(tag + ' allow="${core.type === "media" ? "camera;microphone" : "geolocation"}">')
       expect(attrs).toEqual({
-        string: { allow: '${core.type === "media" ? "camera;microphone" : "geolocation"}' },
+        string: { allow: { type: "dynamic", value: 'core.type === "media" ? "camera;microphone" : "geolocation"' } },
       })
     })
 
@@ -168,7 +172,12 @@ describe.each([
         tag + ' allow="${core.allowCamera && core.allowMic ? "camera;microphone;geolocation" : "geolocation"}">'
       )
       expect(attrs).toEqual({
-        string: { allow: '${core.allowCamera && core.allowMic ? "camera;microphone;geolocation" : "geolocation"}' },
+        string: {
+          allow: {
+            type: "dynamic",
+            value: 'core.allowCamera && core.allowMic ? "camera;microphone;geolocation" : "geolocation"',
+          },
+        },
       })
     })
 
@@ -240,14 +249,14 @@ describe.each([
     it("с операторами сравнения в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' allow="permission-${core.type === "admin" ? "all" : "basic"}">')
       expect(attrs).toEqual({
-        string: { allow: 'permission-${core.type === "admin" ? "all" : "basic"}' },
+        string: { allow: { type: "mixed", value: 'permission-${core.type === "admin" ? "all" : "basic"}' } },
       })
     })
 
     it("с логическими операторами в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' allow="access-${core.allowCamera && core.allowMic ? "media" : "basic"}">')
       expect(attrs).toEqual({
-        string: { allow: 'access-${core.allowCamera && core.allowMic ? "media" : "basic"}' },
+        string: { allow: { type: "mixed", value: 'access-${core.allowCamera && core.allowMic ? "media" : "basic"}' } },
       })
     })
 
@@ -256,7 +265,9 @@ describe.each([
         tag + ' allow="perm-${core.type === "media" ? "camera;microphone" : "geolocation"}">'
       )
       expect(attrs).toEqual({
-        string: { allow: 'perm-${core.type === "media" ? "camera;microphone" : "geolocation"}' },
+        string: {
+          allow: { type: "mixed", value: 'perm-${core.type === "media" ? "camera;microphone" : "geolocation"}' },
+        },
       })
     })
 
@@ -315,7 +326,7 @@ describe.each([
     it("с вложенными выражениями", () => {
       const attrs = parseAttributes(tag + ' allow="permission/${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
-        string: { allow: 'permission/${core.nested ? "nested" : "default"}' },
+        string: { allow: { type: "mixed", value: 'permission/${core.nested ? "nested" : "default"}' } },
       })
     })
 
@@ -339,7 +350,12 @@ describe.each([
         tag + ' allow="${core.type === "media" && core.secure ? "camera;microphone" : "geolocation"}">'
       )
       expect(attrs).toEqual({
-        string: { allow: '${core.type === "media" && core.secure ? "camera;microphone" : "geolocation"}' },
+        string: {
+          allow: {
+            type: "dynamic",
+            value: 'core.type === "media" && core.secure ? "camera;microphone" : "geolocation"',
+          },
+        },
       })
     })
 
@@ -348,7 +364,12 @@ describe.each([
         tag + ' allow="${core.allowMedia ? (core.secure ? "camera;microphone" : "camera") : "geolocation"}">'
       )
       expect(attrs).toEqual({
-        string: { allow: '${core.allowMedia ? (core.secure ? "camera;microphone" : "camera") : "geolocation"}' },
+        string: {
+          allow: {
+            type: "dynamic",
+            value: 'core.allowMedia ? (core.secure ? "camera;microphone" : "camera") : "geolocation"',
+          },
+        },
       })
     })
 

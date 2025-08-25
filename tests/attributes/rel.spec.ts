@@ -9,13 +9,13 @@ describe.each([
     it("одно значение", () => {
       const attrs = parseAttributes(tag + ' rel="nofollow">')
       expect(attrs).toEqual({
-        string: { rel: "nofollow" },
+        string: { rel: { type: "static", value: "nofollow" } },
       })
     })
     it("одно значение без кавычек", () => {
       const attrs = parseAttributes(tag + " rel=nofollow>")
       expect(attrs).toEqual({
-        string: { rel: "nofollow" },
+        string: { rel: { type: "static", value: "nofollow" } },
       })
     })
     it("несколько значений", () => {
@@ -39,13 +39,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' rel="${core.rel}">')
       expect(attrs).toEqual({
-        string: { rel: "${core.rel}" },
+        string: { rel: { type: "dynamic", value: "core.rel" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " rel=${core.rel}>")
       expect(attrs).toEqual({
-        string: { rel: "${core.rel}" },
+        string: { rel: { type: "dynamic", value: "core.rel" } },
       })
     })
     it("несколько", () => {
@@ -66,7 +66,7 @@ describe.each([
     it("с операторами сравнения", () => {
       const attrs = parseAttributes(tag + ' rel="${core.type === "external" ? "nofollow noopener" : "nofollow"}">')
       expect(attrs).toEqual({
-        string: { rel: '${core.type === "external" ? "nofollow noopener" : "nofollow"}' },
+        string: { rel: { type: "dynamic", value: 'core.type === "external" ? "nofollow noopener" : "nofollow"' } },
       })
     })
 
@@ -75,21 +75,23 @@ describe.each([
         tag + ' rel="${core.external && core.secure ? "nofollow noopener noreferrer" : "nofollow"}">'
       )
       expect(attrs).toEqual({
-        string: { rel: '${core.external && core.secure ? "nofollow noopener noreferrer" : "nofollow"}' },
+        string: {
+          rel: { type: "dynamic", value: 'core.external && core.secure ? "nofollow noopener noreferrer" : "nofollow"' },
+        },
       })
     })
 
     it("с оператором ИЛИ", () => {
       const attrs = parseAttributes(tag + ' rel="${core.external || core.secure ? "nofollow noopener" : "nofollow"}">')
       expect(attrs).toEqual({
-        string: { rel: '${core.external || core.secure ? "nofollow noopener" : "nofollow"}' },
+        string: { rel: { type: "dynamic", value: 'core.external || core.secure ? "nofollow noopener" : "nofollow"' } },
       })
     })
 
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' rel="${!core.trusted ? "nofollow" : ""}">')
       expect(attrs).toEqual({
-        string: { rel: '${!core.trusted ? "nofollow" : ""}' },
+        string: { rel: { type: "dynamic", value: '!core.trusted ? "nofollow" : ""' } },
       })
     })
   })
@@ -98,7 +100,7 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' rel="pre-${core.rel}">')
       expect(attrs).toEqual({
-        string: { rel: "pre-${core.rel}" },
+        string: { rel: { type: "mixed", value: "pre-${core.rel}" } },
       })
     })
     it("несколько", () => {
@@ -119,14 +121,14 @@ describe.each([
     it("с операторами сравнения в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' rel="rel-${core.type === "external" ? "external" : "internal"}">')
       expect(attrs).toEqual({
-        string: { rel: 'rel-${core.type === "external" ? "external" : "internal"}' },
+        string: { rel: { type: "mixed", value: 'rel-${core.type === "external" ? "external" : "internal"}' } },
       })
     })
 
     it("с логическими операторами в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' rel="link-${core.external && core.secure ? "secure" : "normal"}">')
       expect(attrs).toEqual({
-        string: { rel: 'link-${core.external && core.secure ? "secure" : "normal"}' },
+        string: { rel: { type: "mixed", value: 'link-${core.external && core.secure ? "secure" : "normal"}' } },
       })
     })
   })
@@ -153,7 +155,7 @@ describe.each([
     it("с вложенными выражениями", () => {
       const attrs = parseAttributes(tag + ' rel="link/${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
-        string: { rel: 'link/${core.nested ? "nested" : "default"}' },
+        string: { rel: { type: "mixed", value: 'link/${core.nested ? "nested" : "default"}' } },
       })
     })
 

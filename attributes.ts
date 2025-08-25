@@ -384,7 +384,10 @@ export function parseAttributes(tagSource: string): {
       const tokens = splitBySpace(value ?? "")
       // Если только одно значение, обрабатываем как строку
       if (tokens.length === 1) {
-        ensure.string()[name] = value ?? ""
+        ensure.string()[name] = {
+          type: classifyValue(value ?? ""),
+          value: normalizeValueForOutput(value ?? ""),
+        }
         continue
       }
       const out = tokens.map((tok) => ({
@@ -409,7 +412,10 @@ export function parseAttributes(tagSource: string): {
         const tokens = resolved.fn(value ?? "")
         // Если только одно значение, обрабатываем как строку
         if (tokens.length === 1) {
-          ensure.string()[name] = value ?? ""
+          ensure.string()[name] = {
+            type: classifyValue(value ?? ""),
+            value: normalizeValueForOutput(value ?? ""),
+          }
           continue
         }
         const out = tokens.map((tok) => ({
@@ -429,7 +435,10 @@ export function parseAttributes(tagSource: string): {
     }
 
     // string
-    ensure.string()[name] = value ?? ""
+    ensure.string()[name] = {
+      type: classifyValue(value ?? ""),
+      value: normalizeValueForOutput(value ?? ""),
+    }
   }
 
   return result

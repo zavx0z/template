@@ -7,8 +7,8 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<area shape="rect" coords="0,0,100,100" alt="Прямоугольник">')
       expect(attrs).toEqual({
         string: {
-          shape: "rect",
-          alt: "Прямоугольник",
+          shape: { type: "static", value: "rect" },
+          alt: { type: "static", value: "Прямоугольник" },
         },
         array: {
           coords: {
@@ -28,8 +28,8 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<area shape="circle" coords="${center.x},${center.y},${radius}" alt="Круг">')
       expect(attrs).toEqual({
         string: {
-          shape: "circle",
-          alt: "Круг",
+          shape: { type: "static", value: "circle" },
+          alt: { type: "static", value: "Круг" },
         },
         array: {
           coords: {
@@ -48,8 +48,8 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<area shape="poly" coords="0,0,${width},${height},50,50" alt="Многоугольник">')
       expect(attrs).toEqual({
         string: {
-          shape: "poly",
-          alt: "Многоугольник",
+          shape: { type: "static", value: "poly" },
+          alt: { type: "static", value: "Многоугольник" },
         },
         array: {
           coords: {
@@ -73,9 +73,9 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          shape: "rect",
-          coords: '${isLarge ? "0,0,300,300" : "0,0,100,100"}',
-          alt: "Условный прямоугольник",
+          shape: { type: "static", value: "rect" },
+          coords: { type: "dynamic", value: 'isLarge ? "0,0,300,300" : "0,0,100,100"' },
+          alt: { type: "static", value: "Условный прямоугольник" },
         },
       })
     })
@@ -88,8 +88,8 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: "image.jpg",
-          alt: "Изображение",
+          src: { type: "static", value: "image.jpg" },
+          alt: { type: "static", value: "Изображение" },
         },
         array: {
           class: {
@@ -116,10 +116,10 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: "${image.url}",
-          alt: "${image.alt}",
-          class: "${image.classes}",
-          srcset: "${image.srcset}",
+          src: { type: "dynamic", value: "image.url" },
+          alt: { type: "dynamic", value: "image.alt" },
+          class: { type: "dynamic", value: "image.classes" },
+          srcset: { type: "dynamic", value: "image.srcset" },
         },
       })
     })
@@ -130,8 +130,8 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: "base.jpg",
-          alt: "Фото ${user.name}",
+          src: { type: "static", value: "base.jpg" },
+          alt: { type: "mixed", value: "Фото ${user.name}" },
         },
         array: {
           class: {
@@ -160,7 +160,7 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: "page.html",
+          src: { type: "static", value: "page.html" },
         },
         array: {
           allow: {
@@ -187,9 +187,9 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: "${page.url}",
-          allow: '${permissions.join(";")}',
-          sandbox: "allow-scripts",
+          src: { type: "dynamic", value: "page.url" },
+          allow: { type: "dynamic", value: 'permissions.join(";")' },
+          sandbox: { type: "static", value: "allow-scripts" },
         },
       })
     })
@@ -200,7 +200,7 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<input type="file" accept="image/png,image/jpeg" class="file-input required">')
       expect(attrs).toEqual({
         string: {
-          type: "file",
+          type: { type: "static", value: "file" },
         },
         array: {
           accept: {
@@ -227,8 +227,8 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          type: "file",
-          accept: '${allowedTypes.join(",")}',
+          type: { type: "static", value: "file" },
+          accept: { type: "dynamic", value: 'allowedTypes.join(",")' },
         },
         array: {
           class: {
@@ -248,8 +248,8 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<link rel="stylesheet preload" href="style.css" class="main-styles">')
       expect(attrs).toEqual({
         string: {
-          href: "style.css",
-          class: "main-styles",
+          href: { type: "static", value: "style.css" },
+          class: { type: "static", value: "main-styles" },
         },
         array: {
           rel: {
@@ -269,9 +269,9 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          rel: '${isPreload ? "preload" : "stylesheet"}',
-          href: "${style.url}",
-          class: "styles",
+          rel: { type: "dynamic", value: 'isPreload ? "preload" : "stylesheet"' },
+          href: { type: "dynamic", value: "style.url" },
+          class: { type: "static", value: "styles" },
         },
       })
     })
@@ -282,8 +282,8 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<a href="https://example.com" ping="/analytics" rel="noopener noreferrer">')
       expect(attrs).toEqual({
         string: {
-          href: "https://example.com",
-          ping: "/analytics",
+          href: { type: "static", value: "https://example.com" },
+          ping: { type: "static", value: "/analytics" },
         },
         array: {
           rel: {
@@ -301,9 +301,9 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<a href="${link.url}" ping="${analytics.urls.join(" ")}" rel="noopener">')
       expect(attrs).toEqual({
         string: {
-          href: "${link.url}",
-          ping: '${analytics.urls.join(" ")}',
-          rel: "noopener",
+          href: { type: "dynamic", value: "link.url" },
+          ping: { type: "dynamic", value: 'analytics.urls.join(" ")' },
+          rel: { type: "static", value: "noopener" },
         },
       })
     })
@@ -314,7 +314,7 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<meta charset="UTF-8" accept-charset="UTF-8 ISO-8859-1">')
       expect(attrs).toEqual({
         string: {
-          charset: "UTF-8",
+          charset: { type: "static", value: "UTF-8" },
         },
         array: {
           "accept-charset": {
@@ -358,7 +358,7 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<ol itemref="item1 item2" class="numbered-list">')
       expect(attrs).toEqual({
         string: {
-          class: "numbered-list",
+          class: { type: "static", value: "numbered-list" },
         },
         array: {
           itemref: {
@@ -378,7 +378,7 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<video sizes="(max-width: 600px) 100vw, 50vw" class="responsive-video">')
       expect(attrs).toEqual({
         string: {
-          class: "responsive-video",
+          class: { type: "static", value: "responsive-video" },
         },
         array: {
           sizes: {
@@ -402,8 +402,8 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          shape: "rect",
-          coords: '${isLarge ? "0,0,300,300" : "0,0,100,100"}',
+          shape: { type: "static", value: "rect" },
+          coords: { type: "dynamic", value: 'isLarge ? "0,0,300,300" : "0,0,100,100"' },
         },
         array: {
           class: {
@@ -423,11 +423,11 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: "${image.url}",
-          alt: "${image.alt}",
-          class: "${image.classes}",
-          srcset: "${image.srcset}",
-          sizes: "${image.sizes}",
+          src: { type: "dynamic", value: "image.url" },
+          alt: { type: "dynamic", value: "image.alt" },
+          class: { type: "dynamic", value: "image.classes" },
+          srcset: { type: "dynamic", value: "image.srcset" },
+          sizes: { type: "dynamic", value: "image.sizes" },
         },
       })
     })
@@ -438,9 +438,9 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: "https://example.com",
-          allow: '${permissions.join(";")}',
-          class: "embed",
+          src: { type: "static", value: "https://example.com" },
+          allow: { type: "dynamic", value: 'permissions.join(";")' },
+          class: { type: "static", value: "embed" },
         },
         array: {
           sandbox: {
@@ -460,9 +460,9 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<div id="main" title="Заголовок" data-test="value">')
       expect(attrs).toEqual({
         string: {
-          id: "main",
-          title: "Заголовок",
-          "data-test": "value",
+          id: { type: "static", value: "main" },
+          title: { type: "static", value: "Заголовок" },
+          "data-test": { type: "static", value: "value" },
         },
       })
     })
@@ -471,8 +471,8 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<div class="container" rel="nofollow noopener" ping="/analytics">')
       expect(attrs).toEqual({
         string: {
-          class: "container",
-          ping: "/analytics",
+          class: { type: "static", value: "container" },
+          ping: { type: "static", value: "/analytics" },
         },
         array: {
           rel: {

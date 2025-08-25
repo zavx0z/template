@@ -9,13 +9,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' srcset="a.jpg 1x">')
       expect(attrs).toEqual({
-        string: { srcset: "a.jpg 1x" },
+        string: { srcset: { type: "static", value: "a.jpg 1x" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " srcset=a.jpg>")
       expect(attrs).toEqual({
-        string: { srcset: "a.jpg" },
+        string: { srcset: { type: "static", value: "a.jpg" } },
       })
     })
     it("несколько", () => {
@@ -38,13 +38,13 @@ describe.each([
     it("одно (чисто динамический токен)", () => {
       const attrs = parseAttributes(tag + ' srcset="${core.src}">')
       expect(attrs).toEqual({
-        string: { srcset: "${core.src}" },
+        string: { srcset: { type: "dynamic", value: "core.src" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " srcset=${core.src}>")
       expect(attrs).toEqual({
-        string: { srcset: "${core.src}" },
+        string: { srcset: { type: "dynamic", value: "core.src" } },
       })
     })
     it("несколько", () => {
@@ -65,7 +65,7 @@ describe.each([
     it("с операторами сравнения", () => {
       const attrs = parseAttributes(tag + ' srcset="${core.type === "retina" ? "image@2x.jpg 2x" : "image.jpg 1x"}">')
       expect(attrs).toEqual({
-        string: { srcset: '${core.type === "retina" ? "image@2x.jpg 2x" : "image.jpg 1x"}' },
+        string: { srcset: { type: "dynamic", value: 'core.type === "retina" ? "image@2x.jpg 2x" : "image.jpg 1x"' } },
       })
     })
 
@@ -74,21 +74,23 @@ describe.each([
         tag + ' srcset="${core.retina && core.webp ? "image@2x.webp 2x" : "image.jpg 1x"}">'
       )
       expect(attrs).toEqual({
-        string: { srcset: '${core.retina && core.webp ? "image@2x.webp 2x" : "image.jpg 1x"}' },
+        string: {
+          srcset: { type: "dynamic", value: 'core.retina && core.webp ? "image@2x.webp 2x" : "image.jpg 1x"' },
+        },
       })
     })
 
     it("с оператором ИЛИ", () => {
       const attrs = parseAttributes(tag + ' srcset="${core.retina || core.webp ? "image@2x.jpg 2x" : "image.jpg 1x"}">')
       expect(attrs).toEqual({
-        string: { srcset: '${core.retina || core.webp ? "image@2x.jpg 2x" : "image.jpg 1x"}' },
+        string: { srcset: { type: "dynamic", value: 'core.retina || core.webp ? "image@2x.jpg 2x" : "image.jpg 1x"' } },
       })
     })
 
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' srcset="${!core.lowBandwidth ? "image@2x.jpg 2x" : "image.jpg 1x"}">')
       expect(attrs).toEqual({
-        string: { srcset: '${!core.lowBandwidth ? "image@2x.jpg 2x" : "image.jpg 1x"}' },
+        string: { srcset: { type: "dynamic", value: '!core.lowBandwidth ? "image@2x.jpg 2x" : "image.jpg 1x"' } },
       })
     })
   })
@@ -97,7 +99,7 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' srcset="${core.src} 2x">')
       expect(attrs).toEqual({
-        string: { srcset: "${core.src} 2x" },
+        string: { srcset: { type: "mixed", value: "${core.src} 2x" } },
       })
     })
     it("несколько", () => {
@@ -118,14 +120,14 @@ describe.each([
     it("с операторами сравнения в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' srcset="image-${core.type === "retina" ? "2x" : "1x"}.jpg">')
       expect(attrs).toEqual({
-        string: { srcset: 'image-${core.type === "retina" ? "2x" : "1x"}.jpg' },
+        string: { srcset: { type: "mixed", value: 'image-${core.type === "retina" ? "2x" : "1x"}.jpg' } },
       })
     })
 
     it("с логическими операторами в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' srcset="image-${core.retina && core.webp ? "2x.webp" : "1x.jpg"}">')
       expect(attrs).toEqual({
-        string: { srcset: 'image-${core.retina && core.webp ? "2x.webp" : "1x.jpg"}' },
+        string: { srcset: { type: "mixed", value: 'image-${core.retina && core.webp ? "2x.webp" : "1x.jpg"}' } },
       })
     })
   })
@@ -152,7 +154,7 @@ describe.each([
     it("с вложенными выражениями", () => {
       const attrs = parseAttributes(tag + ' srcset="image/${core.nested ? "nested" : "default"}.jpg">')
       expect(attrs).toEqual({
-        string: { srcset: 'image/${core.nested ? "nested" : "default"}.jpg' },
+        string: { srcset: { type: "mixed", value: 'image/${core.nested ? "nested" : "default"}.jpg' } },
       })
     })
 

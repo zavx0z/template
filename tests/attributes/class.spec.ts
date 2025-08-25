@@ -12,7 +12,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="div-active">')
       expect(attrs).toEqual({
         string: {
-          class: "div-active",
+          class: { type: "static", value: "div-active" },
         },
       })
     })
@@ -21,7 +21,7 @@ describe.each([
       const attrs = parseAttributes(tag + " class=div-active>")
       expect(attrs).toEqual({
         string: {
-          class: "div-active",
+          class: { type: "static", value: "div-active" },
         },
       })
     })
@@ -46,7 +46,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.active ? "active" : "inactive"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.active ? "active" : "inactive"}',
+          class: { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
         },
       })
     })
@@ -55,7 +55,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class=${core.active ? "active" : "inactive"}>')
       expect(attrs).toEqual({
         string: {
-          class: '${core.active ? "active" : "inactive"}',
+          class: { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
         },
       })
     })
@@ -81,7 +81,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.count > 5 ? "large" : "small"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.count > 5 ? "large" : "small"}',
+          class: { type: "dynamic", value: 'core.count > 5 ? "large" : "small"' },
         },
       })
     })
@@ -90,7 +90,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.status === "loading" ? "loading" : "ready"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.status === "loading" ? "loading" : "ready"}',
+          class: { type: "dynamic", value: 'core.status === "loading" ? "loading" : "ready"' },
         },
       })
     })
@@ -99,7 +99,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.active && core.visible ? "show" : "hide"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.active && core.visible ? "show" : "hide"}',
+          class: { type: "dynamic", value: 'core.active && core.visible ? "show" : "hide"' },
         },
       })
     })
@@ -108,7 +108,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.error || core.warning ? "alert" : "normal"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.error || core.warning ? "alert" : "normal"}',
+          class: { type: "dynamic", value: 'core.error || core.warning ? "alert" : "normal"' },
         },
       })
     })
@@ -117,7 +117,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${!core.disabled ? "enabled" : "disabled"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${!core.disabled ? "enabled" : "disabled"}',
+          class: { type: "dynamic", value: '!core.disabled ? "enabled" : "disabled"' },
         },
       })
     })
@@ -126,7 +126,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.active && "active"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.active && "active"}',
+          class: { type: "dynamic", value: 'core.active && "active"' },
         },
       })
     })
@@ -135,7 +135,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.value >= 10 ? "high" : "low"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.value >= 10 ? "high" : "low"}',
+          class: { type: "dynamic", value: 'core.value >= 10 ? "high" : "low"' },
         },
       })
     })
@@ -144,7 +144,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.type !== "admin" ? "user" : "admin"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.type !== "admin" ? "user" : "admin"}',
+          class: { type: "dynamic", value: 'core.type !== "admin" ? "user" : "admin"' },
         },
       })
     })
@@ -153,7 +153,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.age <= 18 ? "minor" : "adult"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.age <= 18 ? "minor" : "adult"}',
+          class: { type: "dynamic", value: 'core.age <= 18 ? "minor" : "adult"' },
         },
       })
     })
@@ -162,7 +162,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.score < 50 ? "fail" : "pass"}">')
       expect(attrs).toEqual({
         string: {
-          class: '${core.score < 50 ? "fail" : "pass"}',
+          class: { type: "dynamic", value: 'core.score < 50 ? "fail" : "pass"' },
         },
       })
     })
@@ -173,7 +173,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="div-${core.active ? "active" : "inactive"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'div-${core.active ? "active" : "inactive"}',
+          class: { type: "mixed", value: 'div-${core.active ? "active" : "inactive"}' },
         },
       })
     })
@@ -182,7 +182,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class=div-${core.active ? "active" : "inactive"}>')
       expect(attrs).toEqual({
         string: {
-          class: 'div-${core.active ? "active" : "inactive"}',
+          class: { type: "mixed", value: 'div-${core.active ? "active" : "inactive"}' },
         },
       })
     })
@@ -208,7 +208,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="size-${core.count > 5 ? "large" : "small"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'size-${core.count > 5 ? "large" : "small"}',
+          class: { type: "mixed", value: 'size-${core.count > 5 ? "large" : "small"}' },
         },
       })
     })
@@ -217,7 +217,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="status-${core.status === "loading" ? "loading" : "ready"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'status-${core.status === "loading" ? "loading" : "ready"}',
+          class: { type: "mixed", value: 'status-${core.status === "loading" ? "loading" : "ready"}' },
         },
       })
     })
@@ -226,7 +226,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="visibility-${core.active && core.visible ? "show" : "hide"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'visibility-${core.active && core.visible ? "show" : "hide"}',
+          class: { type: "mixed", value: 'visibility-${core.active && core.visible ? "show" : "hide"}' },
         },
       })
     })
@@ -235,7 +235,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="alert-${core.error || core.warning ? "alert" : "normal"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'alert-${core.error || core.warning ? "alert" : "normal"}',
+          class: { type: "mixed", value: 'alert-${core.error || core.warning ? "alert" : "normal"}' },
         },
       })
     })
@@ -244,7 +244,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="state-${!core.disabled ? "enabled" : "disabled"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'state-${!core.disabled ? "enabled" : "disabled"}',
+          class: { type: "mixed", value: 'state-${!core.disabled ? "enabled" : "disabled"}' },
         },
       })
     })
@@ -253,7 +253,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="level-${core.value >= 10 ? "high" : "low"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'level-${core.value >= 10 ? "high" : "low"}',
+          class: { type: "mixed", value: 'level-${core.value >= 10 ? "high" : "low"}' },
         },
       })
     })
@@ -262,7 +262,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="role-${core.type !== "admin" ? "user" : "admin"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'role-${core.type !== "admin" ? "user" : "admin"}',
+          class: { type: "mixed", value: 'role-${core.type !== "admin" ? "user" : "admin"}' },
         },
       })
     })
@@ -271,7 +271,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="age-${core.age <= 18 ? "minor" : "adult"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'age-${core.age <= 18 ? "minor" : "adult"}',
+          class: { type: "mixed", value: 'age-${core.age <= 18 ? "minor" : "adult"}' },
         },
       })
     })
@@ -280,7 +280,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="result-${core.score < 50 ? "fail" : "pass"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'result-${core.score < 50 ? "fail" : "pass"}',
+          class: { type: "mixed", value: 'result-${core.score < 50 ? "fail" : "pass"}' },
         },
       })
     })
@@ -291,7 +291,10 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          class: 'complex-${core.active && core.count > 5 || core.admin ? "special" : "regular"}',
+          class: {
+            type: "mixed",
+            value: 'complex-${core.active && core.count > 5 || core.admin ? "special" : "regular"}',
+          },
         },
       })
     })
@@ -300,7 +303,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="element${context.active && "-active"}">')
       expect(attrs).toEqual({
         string: {
-          class: 'element${context.active && "-active"}',
+          class: { type: "mixed", value: 'element${context.active && "-active"}' },
         },
       })
     })
@@ -480,7 +483,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class=static-value-${core.active ? "active" : "inactive"}>')
       expect(attrs).toEqual({
         string: {
-          class: 'static-value-${core.active ? "active" : "inactive"}',
+          class: { type: "mixed", value: 'static-value-${core.active ? "active" : "inactive"}' },
         },
       })
     })

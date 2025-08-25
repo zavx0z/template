@@ -9,13 +9,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' ping="https://a.example">')
       expect(attrs).toEqual({
-        string: { ping: "https://a.example" },
+        string: { ping: { type: "static", value: "https://a.example" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " ping=https://a.example>")
       expect(attrs).toEqual({
-        string: { ping: "https://a.example" },
+        string: { ping: { type: "static", value: "https://a.example" } },
       })
     })
     it("несколько", () => {
@@ -38,13 +38,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' ping="${core.url}">')
       expect(attrs).toEqual({
-        string: { ping: "${core.url}" },
+        string: { ping: { type: "dynamic", value: "core.url" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " ping=${core.url}>")
       expect(attrs).toEqual({
-        string: { ping: "${core.url}" },
+        string: { ping: { type: "dynamic", value: "core.url" } },
       })
     })
     it("несколько", () => {
@@ -67,7 +67,12 @@ describe.each([
         tag + ' ping="${core.type === "external" ? "https://tracker.example" : "https://internal.example"}">'
       )
       expect(attrs).toEqual({
-        string: { ping: '${core.type === "external" ? "https://tracker.example" : "https://internal.example"}' },
+        string: {
+          ping: {
+            type: "dynamic",
+            value: 'core.type === "external" ? "https://tracker.example" : "https://internal.example"',
+          },
+        },
       })
     })
 
@@ -78,7 +83,11 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          ping: '${core.tracking && core.analytics ? "https://tracker.example https://analytics.example" : "https://basic.example"}',
+          ping: {
+            type: "dynamic",
+            value:
+              'core.tracking && core.analytics ? "https://tracker.example https://analytics.example" : "https://basic.example"',
+          },
         },
       })
     })
@@ -88,14 +97,19 @@ describe.each([
         tag + ' ping="${core.tracking || core.analytics ? "https://tracker.example" : "https://basic.example"}">'
       )
       expect(attrs).toEqual({
-        string: { ping: '${core.tracking || core.analytics ? "https://tracker.example" : "https://basic.example"}' },
+        string: {
+          ping: {
+            type: "dynamic",
+            value: 'core.tracking || core.analytics ? "https://tracker.example" : "https://basic.example"',
+          },
+        },
       })
     })
 
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' ping="${!core.privacy ? "https://tracker.example" : ""}">')
       expect(attrs).toEqual({
-        string: { ping: '${!core.privacy ? "https://tracker.example" : ""}' },
+        string: { ping: { type: "dynamic", value: '!core.privacy ? "https://tracker.example" : ""' } },
       })
     })
   })
@@ -137,7 +151,9 @@ describe.each([
         tag + ' ping="https://${core.type === "external" ? "tracker" : "internal"}.example">'
       )
       expect(attrs).toEqual({
-        string: { ping: 'https://${core.type === "external" ? "tracker" : "internal"}.example' },
+        string: {
+          ping: { type: "mixed", value: 'https://${core.type === "external" ? "tracker" : "internal"}.example' },
+        },
       })
     })
 
@@ -146,7 +162,9 @@ describe.each([
         tag + ' ping="https://${core.tracking && core.analytics ? "full" : "basic"}.example">'
       )
       expect(attrs).toEqual({
-        string: { ping: 'https://${core.tracking && core.analytics ? "full" : "basic"}.example' },
+        string: {
+          ping: { type: "mixed", value: 'https://${core.tracking && core.analytics ? "full" : "basic"}.example' },
+        },
       })
     })
   })
@@ -174,7 +192,7 @@ describe.each([
     it("с вложенными выражениями", () => {
       const attrs = parseAttributes(tag + ' ping="https://${core.nested ? "nested" : "default"}.example">')
       expect(attrs).toEqual({
-        string: { ping: 'https://${core.nested ? "nested" : "default"}.example' },
+        string: { ping: { type: "mixed", value: 'https://${core.nested ? "nested" : "default"}.example' } },
       })
     })
 

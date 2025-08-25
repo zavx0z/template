@@ -11,13 +11,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' accept="image/png">')
       expect(attrs).toEqual({
-        string: { accept: "image/png" },
+        string: { accept: { type: "static", value: "image/png" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " accept=image/png>")
       expect(attrs).toEqual({
-        string: { accept: "image/png" },
+        string: { accept: { type: "static", value: "image/png" } },
       })
     })
     it("одно значение с запятой внутри", () => {
@@ -100,13 +100,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' accept="${core.mime}">')
       expect(attrs).toEqual({
-        string: { accept: "${core.mime}" },
+        string: { accept: { type: "dynamic", value: "core.mime" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " accept=${core.mime}>")
       expect(attrs).toEqual({
-        string: { accept: "${core.mime}" },
+        string: { accept: { type: "dynamic", value: "core.mime" } },
       })
     })
     it("несколько", () => {
@@ -127,7 +127,7 @@ describe.each([
     it("с операторами сравнения", () => {
       const attrs = parseAttributes(tag + ' accept="${core.type === "image" ? "image/*" : "text/*"}">')
       expect(attrs).toEqual({
-        string: { accept: '${core.type === "image" ? "image/*" : "text/*"}' },
+        string: { accept: { type: "dynamic", value: 'core.type === "image" ? "image/*" : "text/*"' } },
       })
     })
 
@@ -136,7 +136,9 @@ describe.each([
         tag + ' accept="${core.allowImages && core.allowDocs ? "image/*,.pdf" : "text/*"}">'
       )
       expect(attrs).toEqual({
-        string: { accept: '${core.allowImages && core.allowDocs ? "image/*,.pdf" : "text/*"}' },
+        string: {
+          accept: { type: "dynamic", value: 'core.allowImages && core.allowDocs ? "image/*,.pdf" : "text/*"' },
+        },
       })
     })
 
@@ -145,21 +147,23 @@ describe.each([
         tag + ' accept="${core.allowImages || core.allowVideos ? "image/*,video/*" : "text/*"}">'
       )
       expect(attrs).toEqual({
-        string: { accept: '${core.allowImages || core.allowVideos ? "image/*,video/*" : "text/*"}' },
+        string: {
+          accept: { type: "dynamic", value: 'core.allowImages || core.allowVideos ? "image/*,video/*" : "text/*"' },
+        },
       })
     })
 
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' accept="${!core.restricted ? "image/*,video/*" : "text/*"}">')
       expect(attrs).toEqual({
-        string: { accept: '${!core.restricted ? "image/*,video/*" : "text/*"}' },
+        string: { accept: { type: "dynamic", value: '!core.restricted ? "image/*,video/*" : "text/*"' } },
       })
     })
 
     it("сложное выражение с запятыми", () => {
       const attrs = parseAttributes(tag + ' accept="${core.type === "image" ? "image/png,image/jpeg" : "text/plain"}">')
       expect(attrs).toEqual({
-        string: { accept: '${core.type === "image" ? "image/png,image/jpeg" : "text/plain"}' },
+        string: { accept: { type: "dynamic", value: 'core.type === "image" ? "image/png,image/jpeg" : "text/plain"' } },
       })
     })
 
@@ -168,7 +172,9 @@ describe.each([
         tag + ' accept="${core.allowImages && core.allowDocs ? "image/*,.pdf,.doc" : "text/*"}">'
       )
       expect(attrs).toEqual({
-        string: { accept: '${core.allowImages && core.allowDocs ? "image/*,.pdf,.doc" : "text/*"}' },
+        string: {
+          accept: { type: "dynamic", value: 'core.allowImages && core.allowDocs ? "image/*,.pdf,.doc" : "text/*"' },
+        },
       })
     })
 
@@ -240,21 +246,21 @@ describe.each([
     it("с операторами сравнения в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' accept="image-${core.type === "png" ? "png" : "jpeg"}">')
       expect(attrs).toEqual({
-        string: { accept: 'image-${core.type === "png" ? "png" : "jpeg"}' },
+        string: { accept: { type: "mixed", value: 'image-${core.type === "png" ? "png" : "jpeg"}' } },
       })
     })
 
     it("с логическими операторами в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' accept="file-${core.allowImages && core.allowVideos ? "media" : "doc"}">')
       expect(attrs).toEqual({
-        string: { accept: 'file-${core.allowImages && core.allowVideos ? "media" : "doc"}' },
+        string: { accept: { type: "mixed", value: 'file-${core.allowImages && core.allowVideos ? "media" : "doc"}' } },
       })
     })
 
     it("смешанное значение с запятыми", () => {
       const attrs = parseAttributes(tag + ' accept="type-${core.format === "image" ? "png,jpeg" : "pdf,doc"}">')
       expect(attrs).toEqual({
-        string: { accept: 'type-${core.format === "image" ? "png,jpeg" : "pdf,doc"}' },
+        string: { accept: { type: "mixed", value: 'type-${core.format === "image" ? "png,jpeg" : "pdf,doc"}' } },
       })
     })
 
@@ -313,7 +319,7 @@ describe.each([
     it("с вложенными выражениями", () => {
       const attrs = parseAttributes(tag + ' accept="media/${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
-        string: { accept: 'media/${core.nested ? "nested" : "default"}' },
+        string: { accept: { type: "mixed", value: 'media/${core.nested ? "nested" : "default"}' } },
       })
     })
 
@@ -337,7 +343,12 @@ describe.each([
         tag + ' accept="${core.type === "image" && core.quality === "high" ? "image/png,image/jpeg" : "image/*"}">'
       )
       expect(attrs).toEqual({
-        string: { accept: '${core.type === "image" && core.quality === "high" ? "image/png,image/jpeg" : "image/*"}' },
+        string: {
+          accept: {
+            type: "dynamic",
+            value: 'core.type === "image" && core.quality === "high" ? "image/png,image/jpeg" : "image/*"',
+          },
+        },
       })
     })
 
@@ -346,7 +357,12 @@ describe.each([
         tag + ' accept="${core.allowImages ? (core.highQuality ? "image/png,image/jpeg" : "image/*") : "text/*"}">'
       )
       expect(attrs).toEqual({
-        string: { accept: '${core.allowImages ? (core.highQuality ? "image/png,image/jpeg" : "image/*") : "text/*"}' },
+        string: {
+          accept: {
+            type: "dynamic",
+            value: 'core.allowImages ? (core.highQuality ? "image/png,image/jpeg" : "image/*") : "text/*"',
+          },
+        },
       })
     })
 

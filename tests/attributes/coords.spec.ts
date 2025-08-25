@@ -12,8 +12,8 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="100">')
       expect(attrs).toEqual({
         string: {
-          coords: "100",
-          shape: shape,
+          coords: { type: "static", value: "100" },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -21,8 +21,8 @@ describe.each([
       const attrs = parseAttributes(tag + " coords=100>")
       expect(attrs).toEqual({
         string: {
-          coords: "100",
-          shape: shape,
+          coords: { type: "static", value: "100" },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -41,7 +41,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -60,7 +60,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -81,7 +81,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -92,8 +92,8 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="${core.x}">')
       expect(attrs).toEqual({
         string: {
-          coords: "${core.x}",
-          shape: shape,
+          coords: { type: "dynamic", value: "core.x" },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -101,8 +101,8 @@ describe.each([
       const attrs = parseAttributes(tag + " coords=${core.x}>")
       expect(attrs).toEqual({
         string: {
-          coords: "${core.x}",
-          shape: shape,
+          coords: { type: "dynamic", value: "core.x" },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -121,7 +121,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -129,8 +129,8 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="${core.type === "large" ? "0,0,200,200" : "0,0,100,100"}">')
       expect(attrs).toEqual({
         string: {
-          coords: '${core.type === "large" ? "0,0,200,200" : "0,0,100,100"}',
-          shape: shape,
+          coords: { type: "dynamic", value: 'core.type === "large" ? "0,0,200,200" : "0,0,100,100"' },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -138,8 +138,8 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="${core.visible && core.active ? "10,10,90,90" : "0,0,50,50"}">')
       expect(attrs).toEqual({
         string: {
-          coords: '${core.visible && core.active ? "10,10,90,90" : "0,0,50,50"}',
-          shape: shape,
+          coords: { type: "dynamic", value: 'core.visible && core.active ? "10,10,90,90" : "0,0,50,50"' },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -149,8 +149,8 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          coords: '${core.fullscreen || core.expanded ? "0,0,300,300" : "0,0,100,100"}',
-          shape: shape,
+          coords: { type: "dynamic", value: 'core.fullscreen || core.expanded ? "0,0,300,300" : "0,0,100,100"' },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -158,8 +158,8 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="${!core.hidden ? "10,10,110,110" : "0,0,0,0"}">')
       expect(attrs).toEqual({
         string: {
-          coords: '${!core.hidden ? "10,10,110,110" : "0,0,0,0"}',
-          shape: shape,
+          coords: { type: "dynamic", value: '!core.hidden ? "10,10,110,110" : "0,0,0,0"' },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -177,7 +177,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -197,7 +197,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -216,7 +216,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -224,8 +224,8 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="pos-${core.type === "center" ? "50" : "0"}">')
       expect(attrs).toEqual({
         string: {
-          coords: 'pos-${core.type === "center" ? "50" : "0"}',
-          shape: shape,
+          coords: { type: "mixed", value: 'pos-${core.type === "center" ? "50" : "0"}' },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -233,8 +233,8 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="offset-${core.visible && core.active ? "10" : "0"}">')
       expect(attrs).toEqual({
         string: {
-          coords: 'offset-${core.visible && core.active ? "10" : "0"}',
-          shape: shape,
+          coords: { type: "mixed", value: 'offset-${core.visible && core.active ? "10" : "0"}' },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -253,7 +253,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -277,7 +277,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -285,8 +285,8 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="pos-${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
         string: {
-          coords: 'pos-${core.nested ? "nested" : "default"}',
-          shape: shape,
+          coords: { type: "mixed", value: 'pos-${core.nested ? "nested" : "default"}' },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -304,7 +304,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -314,8 +314,8 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          coords: '${core.type === "large" && core.visible ? "0,0,300,300" : "0,0,100,100"}',
-          shape: shape,
+          coords: { type: "dynamic", value: 'core.type === "large" && core.visible ? "0,0,300,300" : "0,0,100,100"' },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -325,8 +325,11 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          coords: '${core.visible ? (core.fullscreen ? "0,0,400,400" : "0,0,200,200") : "0,0,0,0"}',
-          shape: shape,
+          coords: {
+            type: "dynamic",
+            value: 'core.visible ? (core.fullscreen ? "0,0,400,400" : "0,0,200,200") : "0,0,0,0"',
+          },
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -344,7 +347,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -363,7 +366,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })
@@ -384,7 +387,7 @@ describe.each([
           },
         },
         string: {
-          shape: shape,
+          shape: { type: "static", value: shape },
         },
       })
     })

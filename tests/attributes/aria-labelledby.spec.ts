@@ -9,13 +9,13 @@ describe.each([
     it("aria-labelledby одно", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="title">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": "title" },
+        string: { "aria-labelledby": { type: "static", value: "title" } },
       })
     })
     it("aria-labelledby одно без кавычек", () => {
       const attrs = parseAttributes(tag + " aria-labelledby=title>")
       expect(attrs).toEqual({
-        string: { "aria-labelledby": "title" },
+        string: { "aria-labelledby": { type: "static", value: "title" } },
       })
     })
     it("aria-labelledby несколько", () => {
@@ -52,13 +52,13 @@ describe.each([
     it("aria-labelledby одно", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="${core.id}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": "${core.id}" },
+        string: { "aria-labelledby": { type: "dynamic", value: "core.id" } },
       })
     })
     it("aria-labelledby одно без кавычек", () => {
       const attrs = parseAttributes(tag + " aria-labelledby=${core.id}>")
       expect(attrs).toEqual({
-        string: { "aria-labelledby": "${core.id}" },
+        string: { "aria-labelledby": { type: "dynamic", value: "core.id" } },
       })
     })
     it("aria-labelledby несколько", () => {
@@ -79,7 +79,9 @@ describe.each([
     it("с операторами сравнения", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="${core.type === "admin" ? "admin-title" : "user-title"}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": '${core.type === "admin" ? "admin-title" : "user-title"}' },
+        string: {
+          "aria-labelledby": { type: "dynamic", value: 'core.type === "admin" ? "admin-title" : "user-title"' },
+        },
       })
     })
 
@@ -88,7 +90,12 @@ describe.each([
         tag + ' aria-labelledby="${core.hasTitle && core.hasSubtitle ? "title subtitle" : "title"}">'
       )
       expect(attrs).toEqual({
-        string: { "aria-labelledby": '${core.hasTitle && core.hasSubtitle ? "title subtitle" : "title"}' },
+        string: {
+          "aria-labelledby": {
+            type: "dynamic",
+            value: 'core.hasTitle && core.hasSubtitle ? "title subtitle" : "title"',
+          },
+        },
       })
     })
 
@@ -97,14 +104,19 @@ describe.each([
         tag + ' aria-labelledby="${core.hasTitle || core.hasSubtitle ? "title subtitle" : "default"}">'
       )
       expect(attrs).toEqual({
-        string: { "aria-labelledby": '${core.hasTitle || core.hasSubtitle ? "title subtitle" : "default"}' },
+        string: {
+          "aria-labelledby": {
+            type: "dynamic",
+            value: 'core.hasTitle || core.hasSubtitle ? "title subtitle" : "default"',
+          },
+        },
       })
     })
 
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="${!core.hidden ? "title" : ""}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": '${!core.hidden ? "title" : ""}' },
+        string: { "aria-labelledby": { type: "dynamic", value: '!core.hidden ? "title" : ""' } },
       })
     })
   })
@@ -143,7 +155,7 @@ describe.each([
     it("с операторами сравнения в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="title-${core.type === "admin" ? "admin" : "user"}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": 'title-${core.type === "admin" ? "admin" : "user"}' },
+        string: { "aria-labelledby": { type: "mixed", value: 'title-${core.type === "admin" ? "admin" : "user"}' } },
       })
     })
 
@@ -152,7 +164,9 @@ describe.each([
         tag + ' aria-labelledby="label-${core.hasTitle && core.hasSubtitle ? "full" : "simple"}">'
       )
       expect(attrs).toEqual({
-        string: { "aria-labelledby": 'label-${core.hasTitle && core.hasSubtitle ? "full" : "simple"}' },
+        string: {
+          "aria-labelledby": { type: "mixed", value: 'label-${core.hasTitle && core.hasSubtitle ? "full" : "simple"}' },
+        },
       })
     })
   })
@@ -180,7 +194,7 @@ describe.each([
     it("с вложенными выражениями", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="label/${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": 'label/${core.nested ? "nested" : "default"}' },
+        string: { "aria-labelledby": { type: "mixed", value: 'label/${core.nested ? "nested" : "default"}' } },
       })
     })
 

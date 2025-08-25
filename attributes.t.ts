@@ -17,7 +17,7 @@ export type AttributeArray = Record<
   { splitter: string; values: { value: string; type: ValueType }[] } | { value: string; type: ValueType }[]
 >
 
-export type AttributeString = Record<string, string>
+export type AttributeString = Record<string, { type: ValueType; value: string }>
 
 export type AttributeBoolean = Record<string, string>
 
