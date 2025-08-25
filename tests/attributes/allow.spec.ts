@@ -20,8 +20,67 @@ describe.each([
         string: { allow: "camera" },
       })
     })
+    it("одно значение с точкой с запятой внутри", () => {
+      const attrs = parseAttributes(tag + ' allow="camera;microphone">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "static", value: "camera" },
+              { type: "static", value: "microphone" },
+            ],
+          },
+        },
+      })
+    })
+    it("одно значение с пробелами и точками с запятой", () => {
+      const attrs = parseAttributes(tag + ' allow="camera; microphone">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "static", value: "camera" },
+              { type: "static", value: "microphone" },
+            ],
+          },
+        },
+      })
+    })
     it("несколько", () => {
       const attrs = parseAttributes(tag + ' allow="camera; microphone; geolocation">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "static", value: "camera" },
+              { type: "static", value: "microphone" },
+              { type: "static", value: "geolocation" },
+            ],
+          },
+        },
+      })
+    })
+    it("несколько с разными разрешениями", () => {
+      const attrs = parseAttributes(tag + ' allow="camera; microphone; geolocation; payment">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "static", value: "camera" },
+              { type: "static", value: "microphone" },
+              { type: "static", value: "geolocation" },
+              { type: "static", value: "payment" },
+            ],
+          },
+        },
+      })
+    })
+    it("несколько с пробелами", () => {
+      const attrs = parseAttributes(tag + ' allow="camera ; microphone ; geolocation">')
       expect(attrs).toEqual({
         array: {
           allow: {
@@ -96,6 +155,54 @@ describe.each([
         string: { allow: '${!core.restricted ? "camera;microphone" : "geolocation"}' },
       })
     })
+
+    it("сложное выражение с точками с запятой", () => {
+      const attrs = parseAttributes(tag + ' allow="${core.type === "media" ? "camera;microphone" : "geolocation"}">')
+      expect(attrs).toEqual({
+        string: { allow: '${core.type === "media" ? "camera;microphone" : "geolocation"}' },
+      })
+    })
+
+    it("выражение с множественными условиями", () => {
+      const attrs = parseAttributes(
+        tag + ' allow="${core.allowCamera && core.allowMic ? "camera;microphone;geolocation" : "geolocation"}">'
+      )
+      expect(attrs).toEqual({
+        string: { allow: '${core.allowCamera && core.allowMic ? "camera;microphone;geolocation" : "geolocation"}' },
+      })
+    })
+
+    it("несколько динамических значений", () => {
+      const attrs = parseAttributes(tag + ' allow="${core.permission1}; ${core.permission2}; ${core.permission3}">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "dynamic", value: "core.permission1" },
+              { type: "dynamic", value: "core.permission2" },
+              { type: "dynamic", value: "core.permission3" },
+            ],
+          },
+        },
+      })
+    })
+
+    it("динамические значения с пробелами", () => {
+      const attrs = parseAttributes(tag + ' allow="${core.perm1} ; ${core.perm2} ; ${core.perm3}">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "dynamic", value: "core.perm1" },
+              { type: "dynamic", value: "core.perm2" },
+              { type: "dynamic", value: "core.perm3" },
+            ],
+          },
+        },
+      })
+    })
   })
 
   describe("смешанные значения", () => {
@@ -143,6 +250,47 @@ describe.each([
         string: { allow: 'access-${core.allowCamera && core.allowMic ? "media" : "basic"}' },
       })
     })
+
+    it("смешанное значение с точками с запятой", () => {
+      const attrs = parseAttributes(
+        tag + ' allow="perm-${core.type === "media" ? "camera;microphone" : "geolocation"}">'
+      )
+      expect(attrs).toEqual({
+        string: { allow: 'perm-${core.type === "media" ? "camera;microphone" : "geolocation"}' },
+      })
+    })
+
+    it("несколько смешанных значений", () => {
+      const attrs = parseAttributes(tag + ' allow="media-${core.type}; access-${core.level}; perm-${core.role}">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "mixed", value: "media-${core.type}" },
+              { type: "mixed", value: "access-${core.level}" },
+              { type: "mixed", value: "perm-${core.role}" },
+            ],
+          },
+        },
+      })
+    })
+
+    it("смешанные значения с пробелами", () => {
+      const attrs = parseAttributes(tag + ' allow="media-${core.type} ; access-${core.level} ; perm-${core.role}">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "mixed", value: "media-${core.type}" },
+              { type: "mixed", value: "access-${core.level}" },
+              { type: "mixed", value: "perm-${core.role}" },
+            ],
+          },
+        },
+      })
+    })
   })
 
   describe("различные варианты", () => {
@@ -180,6 +328,79 @@ describe.each([
             values: [
               { type: "static", value: "camera" },
               { type: "dynamic", value: 'core.allowMic ? "microphone" : ""' },
+            ],
+          },
+        },
+      })
+    })
+
+    it("сложное условное выражение как строка", () => {
+      const attrs = parseAttributes(
+        tag + ' allow="${core.type === "media" && core.secure ? "camera;microphone" : "geolocation"}">'
+      )
+      expect(attrs).toEqual({
+        string: { allow: '${core.type === "media" && core.secure ? "camera;microphone" : "geolocation"}' },
+      })
+    })
+
+    it("выражение с вложенными условиями", () => {
+      const attrs = parseAttributes(
+        tag + ' allow="${core.allowMedia ? (core.secure ? "camera;microphone" : "camera") : "geolocation"}">'
+      )
+      expect(attrs).toEqual({
+        string: { allow: '${core.allowMedia ? (core.secure ? "camera;microphone" : "camera") : "geolocation"}' },
+      })
+    })
+
+    it("массив с тремя типами значений", () => {
+      const attrs = parseAttributes(tag + ' allow="camera; ${core.mediaType}; access-${core.level}">')
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "static", value: "camera" },
+              { type: "dynamic", value: "core.mediaType" },
+              { type: "mixed", value: "access-${core.level}" },
+            ],
+          },
+        },
+      })
+    })
+
+    it("массив с четырьмя типами значений", () => {
+      const attrs = parseAttributes(
+        tag + ' allow="camera; ${core.mediaType}; access-${core.level}; perm-${core.role}">'
+      )
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "static", value: "camera" },
+              { type: "dynamic", value: "core.mediaType" },
+              { type: "mixed", value: "access-${core.level}" },
+              { type: "mixed", value: "perm-${core.role}" },
+            ],
+          },
+        },
+      })
+    })
+
+    it("массив с условными значениями", () => {
+      const attrs = parseAttributes(
+        tag +
+          ' allow="camera; ${core.allowMic ? "microphone" : ""}; ${core.allowGeo ? "geolocation" : ""}; ${core.allowPay ? "payment" : ""}">'
+      )
+      expect(attrs).toEqual({
+        array: {
+          allow: {
+            splitter: ";",
+            values: [
+              { type: "static", value: "camera" },
+              { type: "dynamic", value: 'core.allowMic ? "microphone" : ""' },
+              { type: "dynamic", value: 'core.allowGeo ? "geolocation" : ""' },
+              { type: "dynamic", value: 'core.allowPay ? "payment" : ""' },
             ],
           },
         },
