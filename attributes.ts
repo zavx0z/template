@@ -180,7 +180,7 @@ const BUILTIN_LIST_SPLITTERS: Record<string, SplitterResolved> = {
   coords: {
     fn: (raw) =>
       splitTopLevel(raw, ",")
-        .flatMap((t) => t.split(/\s+/))
+        .map((s) => s.trim())
         .filter(Boolean),
     delim: ",",
   },
