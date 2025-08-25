@@ -18,6 +18,8 @@ export type AttributeString = Record<string, { type: ValueType; value: string }>
 
 export type AttributeBoolean = Record<string, { type: "dynamic" | "static"; value: boolean | string }>
 
+export type AttributeObject = Record<string, string>
+
 export type NodeAttributeElement = {
   /** Имя HTML тега */
   tag: string

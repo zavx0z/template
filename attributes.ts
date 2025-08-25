@@ -1,4 +1,11 @@
-import type { ValueType, AttributeEvent, AttributeArray, AttributeString, AttributeBoolean } from "./attributes.t"
+import type {
+  ValueType,
+  AttributeEvent,
+  AttributeArray,
+  AttributeString,
+  AttributeBoolean,
+  AttributeObject,
+} from "./attributes.t"
 
 // ============================
 // ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
@@ -22,6 +29,20 @@ function matchBalancedBraces(s: string, startAfterBraceIndex: number): number {
 function matchSimpleBraces(s: string, startIndex: number): number {
   let depth = 1
   for (let i = startIndex + 1; i < s.length; i++) {
+    const ch = s[i]
+    if (ch === "{") depth++
+    else if (ch === "}") {
+      depth--
+      if (depth === 0) return i + 1
+    }
+  }
+  return -1
+}
+
+/** Найти позицию ПОСЛЕ закрывающей '}' для двойных фигурных скобок ${{...}} */
+function matchDoubleBraces(s: string, startIndex: number): number {
+  let depth = 1
+  for (let i = startIndex + 2; i < s.length; i++) {
     const ch = s[i]
     if (ch === "{") depth++
     else if (ch === "}") {
@@ -220,14 +241,28 @@ function readAttributeRawValue(inside: string, cursor: number): { value: string;
     while (cursor < len) {
       const c = inside[cursor]
       if (c === "$" && inside[cursor + 1] === "{") {
-        const end = matchBalancedBraces(inside, cursor + 2)
-        if (end === -1) {
-          v += inside.slice(cursor)
-          return { value: v, nextIndex: len }
+        // Проверяем двойные фигурные скобки ${{...}}
+        if (inside[cursor + 2] === "{") {
+          const end = matchDoubleBraces(inside, cursor)
+          if (end === -1) {
+            v += inside.slice(cursor)
+            return { value: v, nextIndex: len }
+          } else {
+            v += inside.slice(cursor, end)
+            cursor = end
+            continue
+          }
         } else {
-          v += inside.slice(cursor, end)
-          cursor = end
-          continue
+          // Обычные фигурные скобки ${...}
+          const end = matchBalancedBraces(inside, cursor + 2)
+          if (end === -1) {
+            v += inside.slice(cursor)
+            return { value: v, nextIndex: len }
+          } else {
+            v += inside.slice(cursor, end)
+            cursor = end
+            continue
+          }
         }
       }
       if (c === quote) {
@@ -245,14 +280,28 @@ function readAttributeRawValue(inside: string, cursor: number): { value: string;
     const c = inside[cursor]
     if (c === ">" || (c && /\s/.test(c))) break
     if (c === "$" && inside[cursor + 1] === "{") {
-      const end = matchBalancedBraces(inside, cursor + 2)
-      if (end === -1) {
-        v += inside.slice(cursor)
-        return { value: v, nextIndex: len }
+      // Проверяем двойные фигурные скобки ${{...}}
+      if (inside[cursor + 2] === "{") {
+        const end = matchDoubleBraces(inside, cursor)
+        if (end === -1) {
+          v += inside.slice(cursor)
+          return { value: v, nextIndex: len }
+        } else {
+          v += inside.slice(cursor, end)
+          cursor = end
+          continue
+        }
       } else {
-        v += inside.slice(cursor, end)
-        cursor = end
-        continue
+        // Обычные фигурные скобки ${...}
+        const end = matchBalancedBraces(inside, cursor + 2)
+        if (end === -1) {
+          v += inside.slice(cursor)
+          return { value: v, nextIndex: len }
+        } else {
+          v += inside.slice(cursor, end)
+          cursor = end
+          continue
+        }
       }
     }
     v += c
@@ -361,6 +410,7 @@ export function parseAttributes(tagSource: string): {
   array?: AttributeArray
   string?: AttributeString
   boolean?: AttributeBoolean
+  object?: AttributeObject
 } {
   const inside = sliceInsideTag(tagSource)
   const len = inside.length
@@ -371,6 +421,7 @@ export function parseAttributes(tagSource: string): {
     array?: AttributeArray
     string?: AttributeString
     boolean?: AttributeBoolean
+    object?: AttributeObject
   } = {}
 
   const ensure = {
@@ -378,6 +429,7 @@ export function parseAttributes(tagSource: string): {
     array: () => (result.array ??= {}),
     string: () => (result.string ??= {}),
     boolean: () => (result.boolean ??= {}),
+    object: () => (result.object ??= {}),
   }
 
   while (i < len) {
@@ -435,6 +487,40 @@ export function parseAttributes(tagSource: string): {
 
       const eventValue = value ? value.slice(2, -1) : ""
       ensure.event()[name] = eventValue
+      continue
+    }
+
+    // стили - обрабатываем как объекты
+    if (name === "style") {
+      while (i < len && /\s/.test(inside[i] || "")) i++
+
+      let value: string | null = null
+      if (inside[i] === "=") {
+        i++
+        const r = readAttributeRawValue(inside, i)
+        value = r.value
+        i = r.nextIndex
+      }
+
+      const styleValue = value ? (value.startsWith("${{") ? value.slice(3, -2) : value.slice(2, -1)) : ""
+      ensure.object()[name] = styleValue
+      continue
+    }
+
+    // context и core для meta-компонентов - обрабатываем как объекты
+    if (name === "context" || name === "core") {
+      while (i < len && /\s/.test(inside[i] || "")) i++
+
+      let value: string | null = null
+      if (inside[i] === "=") {
+        i++
+        const r = readAttributeRawValue(inside, i)
+        value = r.value
+        i = r.nextIndex
+      }
+
+      const objectValue = value ? (value.startsWith("${{") ? value.slice(3, -2) : value.slice(2, -1)) : ""
+      ensure.object()[name] = objectValue
       continue
     }
 
