@@ -1,198 +1,328 @@
 import type { ValueType, AttributeEvent, AttributeArray, AttributeString, AttributeBoolean } from "./attributes.t"
 
-/**
- * Определяет, является ли значение полностью динамическим (только ${...})
- */
-const isFullyDynamic = (value: string): boolean => {
-  return /^\$\{.*\}$/.test(value.trim())
-}
+// ============================
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ============================
 
 /**
- * Определяет, содержит ли значение динамическую часть (${...})
+ * Возвращает индекс символа ПОСЛЕ закрывающей '}' для сбалансированного блока,
+ * начиная с позиции после '${' (то есть указатель должен указывать на первый символ ПОСЛЕ '{').
+ * Если не найдено — возвращает -1.
  */
-const hasDynamicPart = (value: string): boolean => {
-  return /\$\{.*\}/.test(value)
-}
-
-/**
- * Определяет тип значения: static, dynamic или mixed
- */
-const getValueType = (value: string): ValueType => {
-  if (isFullyDynamic(value)) {
-    return "dynamic"
-  } else if (hasDynamicPart(value)) {
-    return "mixed"
-  } else {
-    return "static"
+function matchBalancedBraces(s: string, startAfterBraceIndex: number): number {
+  // ожидается, что s[startAfterBraceIndex-2:startAfterBraceIndex] === "${"
+  let depth = 1 // уже внутри одного '{'
+  for (let i = startAfterBraceIndex; i < s.length; i++) {
+    const ch = s[i]
+    if (ch === "{") {
+      depth++
+    } else if (ch === "}") {
+      depth--
+      if (depth === 0) {
+        return i + 1 // позиция после закрывающей '}'
+      }
+    }
   }
+  return -1
 }
 
 /**
- * Извлекает содержимое динамического выражения (убирает ${ и })
+ * Проверка: вся строка — один ${...} (без префиксов/суффиксов).
  */
-const extractDynamicContent = (value: string): string => {
-  if (isFullyDynamic(value)) {
-    return value.slice(2, -1) // убираем ${ и }
+function isFullyDynamicToken(token: string): boolean {
+  const v = token.trim()
+  if (!(v.startsWith("${") && v.endsWith("}"))) return false
+  const end = matchBalancedBraces(v, 2)
+  return end === v.length
+}
+
+/**
+ * Тип токена class-значения.
+ */
+function classifyValue(token: string): ValueType {
+  if (isFullyDynamicToken(token)) return "dynamic"
+  if (token.includes("${")) return "mixed"
+  return "static"
+}
+
+/**
+ * Если токен полностью динамический (${...}), возвращаем внутреннее содержимое без ${}.
+ * Иначе оставляем как есть.
+ */
+function normalizeValueForOutput(token: string): string {
+  if (isFullyDynamicToken(token)) {
+    const v = token.trim()
+    return v.slice(2, -1)
   }
-  return value
+  return token
 }
 
 /**
- * Разбивает значение атрибута class на отдельные части
+ * Разбивает class-значение на токены по пробелам верхнего уровня, учитывая кавычки и ${...}.
+ * ВАЖНО: сюда уже приходит чистое значение БЕЗ внешних кавычек атрибута.
+ *
+ * Примеры:
+ *  - '${a? "x":"y"}'                -> ['${a? "x":"y"}']
+ *  - 'div-${a} btn ${b? "x":"y"}'   -> ['div-${a}', 'btn', '${b? "x":"y"}']
+ *  - '${a} ${b}'                    -> ['${a}', '${b}']
  */
-const splitClassValue = (value: string): { value: string; type: ValueType }[] => {
-  const result: { value: string; type: ValueType }[] = []
-  let currentPart = ""
+function splitClassTopLevel(value: string): string[] {
+  const parts: string[] = []
+  let buf = ""
   let i = 0
-  let inDynamic = false
-  let braceCount = 0
+  let inQuote: '"' | "'" | null = null
+
+  const flush = () => {
+    const t = buf.trim()
+    if (t.length) parts.push(t)
+    buf = ""
+  }
 
   while (i < value.length) {
-    const char = value[i]
+    const ch = value[i]
 
-    if (char === "$" && i + 1 < value.length && value[i + 1] === "{") {
-      inDynamic = true
-      braceCount = 1
-      currentPart += char
+    // Внутри строкового литерала (внутри самого значения class, не внешние кавычки атрибута)
+    if (inQuote) {
+      buf += ch
+      if (ch === inQuote) {
+        inQuote = null
+      }
       i++
-      currentPart += value[i]
-    } else if (inDynamic) {
-      currentPart += char
-      if (char === "{") braceCount++
-      if (char === "}") {
-        braceCount--
-        if (braceCount === 0) {
-          inDynamic = false
-        }
-      }
-    } else if (char === " " || char === "\t" || char === "\n") {
-      // Пробельный символ - завершаем текущую часть
-      if (currentPart.trim()) {
-        const trimmedPart = currentPart.trim()
-        result.push({
-          type: getValueType(trimmedPart),
-          value: extractDynamicContent(trimmedPart),
-        })
-        currentPart = ""
-      }
-    } else {
-      currentPart += char
+      continue
     }
 
+    if (ch === '"' || ch === "'") {
+      inQuote = ch
+      buf += ch
+      i++
+      continue
+    }
+
+    // Динамический фрагмент
+    if (ch === "$" && value[i + 1] === "{") {
+      const end = matchBalancedBraces(value, i + 2)
+      if (end === -1) {
+        // деградируем: забираем остаток как есть
+        buf += value.slice(i)
+        i = value.length
+        break
+      } else {
+        buf += value.slice(i, end)
+        i = end
+        continue
+      }
+    }
+
+    // Разделение по верхнеуровневым пробелам
+    if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") {
+      flush()
+      // пропускаем последовательные пробелы
+      i++
+      while (i < value.length && /\s/.test(value[i])) i++
+      continue
+    }
+
+    buf += ch
     i++
   }
-
-  // Добавляем последнюю часть
-  if (currentPart.trim()) {
-    const trimmedPart = currentPart.trim()
-    result.push({
-      type: getValueType(trimmedPart),
-      value: extractDynamicContent(trimmedPart),
-    })
-  }
-
-  return result
+  flush()
+  return parts
 }
 
 /**
- * Извлекает атрибуты из HTML-строки посимвольно
+ * Читает "сырое" значение атрибута, начиная с позиции cursor в tag,
+ * поддерживая три варианта: "quoted", 'quoted', unquoted.
+ * В процессе чтения корректно пропускает ${...}.
+ *
+ * Возвращает: { value, nextIndex }
+ *  - value: без внешних кавычек (если были)
+ *  - nextIndex: позиция первого символа после значения (на пробеле/>, следующем атрибуте и т.п.)
  */
-const extractAttributes = (tagContent: string): Array<{ name: string; value: string }> => {
-  const attributes: Array<{ name: string; value: string }> = []
-  let i = 0
+function readAttributeRawValue(tag: string, cursor: number): { value: string; nextIndex: number } {
+  const len = tag.length
+  // пропустим пробелы
+  while (cursor < len && /\s/.test(tag[cursor])) cursor++
+  if (cursor >= len) return { value: "", nextIndex: cursor }
 
-  while (i < tagContent.length) {
-    // Ищем начало атрибута (пробел + имя атрибута + =)
-    const attrMatch = tagContent.slice(i).match(/\s+(\w+)=["']?/)
-    if (!attrMatch) break
-
-    const attrStart = i + (attrMatch.index || 0) + attrMatch[0].length
-    const attrName = attrMatch[1] || ""
-
-    // Определяем тип кавычки или отсутствие кавычек
-    const quote = tagContent[attrStart - 1]
-    let value = ""
-    let j = attrStart
-    let braceCount = 0
-
-    // Читаем значение до закрывающей кавычки или пробела/закрывающего тега
-    while (j < tagContent.length) {
-      const char = tagContent[j]
-
-      // Отслеживаем скобки внутри ${...}
-      if (char === "{") braceCount++
-      if (char === "}") braceCount--
-
-      if (quote === '"' || quote === "'") {
-        // Атрибут в кавычках
-        if (char === quote && braceCount === 0) {
-          // Проверяем, не экранирована ли кавычка
-          if (j > 0 && tagContent[j - 1] !== "\\") {
-            break
-          }
-        }
-      } else {
-        // Атрибут без кавычек - читаем до пробела или закрывающего тега
-        if ((char === " " || char === "\t" || char === "\n" || char === ">") && braceCount === 0) {
-          break
+  const first = tag[cursor]
+  // Кавычечные значения
+  if (first === '"' || first === "'") {
+    const quote = first as '"' | "'"
+    cursor++ // пропускаем открывающую кавычку
+    let v = ""
+    while (cursor < len) {
+      const c = tag[cursor]
+      // динамика
+      if (c === "$" && tag[cursor + 1] === "{") {
+        const end = matchBalancedBraces(tag, cursor + 2)
+        if (end === -1) {
+          v += tag.slice(cursor)
+          return { value: v, nextIndex: len }
+        } else {
+          v += tag.slice(cursor, end)
+          cursor = end
+          continue
         }
       }
-
-      value += char
-      j++
+      if (c === quote) {
+        // закрывающая кавычка атрибута
+        cursor++
+        break
+      }
+      v += c
+      cursor++
     }
-
-    attributes.push({ name: attrName, value })
-    i = j + 1
+    return { value: v, nextIndex: cursor }
   }
 
-  return attributes
+  // Без кавычек: до пробела/'>'
+  let v = ""
+  while (cursor < len) {
+    const c = tag[cursor]
+    if (c === ">" || /\s/.test(c)) break
+    if (c === "$" && tag[cursor + 1] === "{") {
+      const end = matchBalancedBraces(tag, cursor + 2)
+      if (end === -1) {
+        v += tag.slice(cursor)
+        return { value: v, nextIndex: len }
+      } else {
+        v += tag.slice(cursor, end)
+        cursor = end
+        continue
+      }
+    }
+    v += c
+    cursor++
+  }
+  return { value: v, nextIndex: cursor }
 }
 
 /**
- * Извлекает атрибуты из HTML-строки и разделяет их по типам
+ * Возвращает срез "внутренности" тега (после имени тега и до символа '>'),
+ * не включая '>', при этом корректно пропуская кавычки и ${...}.
  */
-export const parseAttributes = (
-  htmlText: string
-): {
-  boolean?: AttributeBoolean
-  array?: AttributeArray
+function sliceInsideTag(tagSource: string): string {
+  // стартуем после имени тега — на первом пробеле
+  const firstSpace = tagSource.indexOf(" ")
+  if (firstSpace === -1) return ""
+  let i = firstSpace + 1
+  let inQuote: '"' | "'" | null = null
+  let out = ""
+
+  while (i < tagSource.length) {
+    const ch = tagSource[i]
+    if (inQuote) {
+      out += ch
+      if (ch === inQuote) inQuote = null
+      i++
+      continue
+    }
+    if (ch === '"' || ch === "'") {
+      inQuote = ch
+      out += ch
+      i++
+      continue
+    }
+    if (ch === "$" && tagSource[i + 1] === "{") {
+      const end = matchBalancedBraces(tagSource, i + 2)
+      if (end === -1) {
+        out += tagSource.slice(i)
+        i = tagSource.length
+        break
+      } else {
+        out += tagSource.slice(i, end)
+        i = end
+        continue
+      }
+    }
+    if (ch === ">") break
+    out += ch
+    i++
+  }
+  return out
+}
+
+// ============================
+// ОСНОВНАЯ ФУНКЦИЯ
+// ============================
+
+export function parseAttributes(tagSource: string): {
   event?: AttributeEvent
+  array?: AttributeArray
   string?: AttributeString
-} => {
+  boolean?: AttributeBoolean
+} {
+  const inside = sliceInsideTag(tagSource)
+  const len = inside.length
+  let i = 0
+
   const result: {
-    boolean?: AttributeBoolean
-    array?: AttributeArray
     event?: AttributeEvent
+    array?: AttributeArray
     string?: AttributeString
+    boolean?: AttributeBoolean
   } = {}
 
-  // Извлекаем атрибуты из HTML-строки
-  const attrMatch = htmlText.match(/<[^>]*>/)
-  if (!attrMatch) return result
+  const ensure = {
+    event: () => (result.event ??= {}),
+    array: () => (result.array ??= {}),
+    string: () => (result.string ??= {}),
+    boolean: () => (result.boolean ??= {}),
+  }
 
-  const tagContent = attrMatch[0]
-  const attributes = extractAttributes(tagContent)
+  // мелкий сканер: name[=value]
+  while (i < len) {
+    // пропуск пробелов
+    while (i < len && /\s/.test(inside[i])) i++
+    if (i >= len) break
 
-  for (const { name, value } of attributes) {
-    // Определяем тип атрибута
-    if (name.startsWith("on") && name.length > 2) {
-      // События (onclick, onchange, etc.)
-      if (!result.event) result.event = {}
-      result.event[name] = value || ""
-    } else if (name === "class" || name === "style") {
-      // Массивы (class может содержать несколько значений)
-      if (!result.array) result.array = {}
-      result.array[name] = splitClassValue(value || "")
-    } else if (value === "" || value === "true" || value === "false") {
-      // Булевые атрибуты
-      if (!result.boolean) result.boolean = {}
-      result.boolean[name] = value || "true"
+    // читаем имя
+    const nameStart = i
+    while (i < len && !/\s/.test(inside[i]) && inside[i] !== "=") i++
+    const name = inside.slice(nameStart, i)
+    if (!name) break
+
+    // пропуск пробелов
+    while (i < len && /\s/.test(inside[i])) i++
+
+    // есть ли '='
+    let value: string | null = null
+    if (inside[i] === "=") {
+      i++
+      // читаем сырое значение из оригинального tagSource (а не только из 'inside'),
+      // чтобы избежать возможных краевых несоответствий. Но у нас уже есть inside.
+      const { value: v, nextIndex } = readAttributeRawValue(inside, i)
+      value = v
+      i = nextIndex
     } else {
-      // Строковые атрибуты
-      if (!result.string) result.string = {}
-      result.string[name] = value || ""
+      // булев атрибут
+      value = ""
     }
+
+    // === Запись в результат по категориям ===
+    if (name === "class") {
+      const tokens = splitClassTopLevel(value ?? "")
+      const out = tokens.map((tok) => ({
+        type: classifyValue(tok),
+        value: normalizeValueForOutput(tok),
+      }))
+      ensure.array()[name] = out
+      continue
+    }
+
+    if (name.startsWith("on")) {
+      ensure.event()[name] = value ?? ""
+      continue
+    }
+
+    // boolean: отсутствие значения или явные 'true'/'false'
+    if (value === "" || value === "true" || value === "false") {
+      ensure.boolean()[name] = value || "true"
+      continue
+    }
+
+    // прочие строковые атрибуты
+    ensure.string()[name] = value ?? ""
   }
 
   return result
