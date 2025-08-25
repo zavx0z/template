@@ -428,9 +428,51 @@ export function parseAttributes(tagSource: string): {
       }
     }
 
-    // boolean
-    if (value === "" || value === "true" || value === "false") {
-      ensure.boolean()[name] = value || "true"
+    // boolean - только для стандартных булевых атрибутов HTML
+    const booleanAttributes = [
+      "disabled",
+      "readonly",
+      "required",
+      "checked",
+      "selected",
+      "multiple",
+      "autoplay",
+      "loop",
+      "muted",
+      "controls",
+      "autofocus",
+      "novalidate",
+      "formnovalidate",
+      "open",
+      "reversed",
+      "scoped",
+      "seamless",
+      "async",
+      "defer",
+      "download",
+      "hidden",
+      "ismap",
+      "noshade",
+      "nowrap",
+      "compact",
+    ]
+
+    if (
+      booleanAttributes.includes(name) &&
+      (value === "" ||
+        value === "true" ||
+        value === "false" ||
+        (isFullyDynamicToken(value) && !value.includes("?") && !value.includes(":")) ||
+        (isFullyDynamicToken(value) &&
+          value.includes("?") &&
+          value.includes(":") &&
+          (value.includes("true") || value.includes("false"))))
+    ) {
+      if (isFullyDynamicToken(value)) {
+        ensure.boolean()[name] = { type: "dynamic", value: normalizeValueForOutput(value) }
+      } else {
+        ensure.boolean()[name] = { type: "static", value: value === "true" || value === "" }
+      }
       continue
     }
 

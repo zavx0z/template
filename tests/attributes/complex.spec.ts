@@ -423,8 +423,11 @@ describe("комплексные тесты с множественными ат
     it("элемент с пустыми значениями", () => {
       const attrs = parseAttributes('<div class="" rel="" title="">')
       expect(attrs).toEqual({
-        boolean: {
-          title: "true",
+        string: {
+          title: {
+            type: "static",
+            value: "",
+          },
         },
         array: {
           class: [],

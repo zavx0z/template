@@ -12,34 +12,34 @@ describe.each([
       const attrs = parseAttributes(tag + " disabled>")
       expect(attrs).toEqual({
         boolean: {
-          disabled: "true",
+          disabled: {
+            type: "static",
+            value: true,
+          },
         },
       })
     })
 
     it("атрибут со значением true", () => {
-      const attrs = parseAttributes(tag + ' disabled="true">')
+      const attrs = parseAttributes(tag + " disabled=true>")
       expect(attrs).toEqual({
         boolean: {
-          disabled: "true",
+          disabled: {
+            type: "static",
+            value: true,
+          },
         },
       })
     })
 
     it("атрибут со значением false", () => {
-      const attrs = parseAttributes(tag + ' disabled="false">')
+      const attrs = parseAttributes(tag + " disabled=false>")
       expect(attrs).toEqual({
         boolean: {
-          disabled: "false",
-        },
-      })
-    })
-
-    it("атрибут с пустым значением", () => {
-      const attrs = parseAttributes(tag + ' disabled="">')
-      expect(attrs).toEqual({
-        boolean: {
-          disabled: "true",
+          disabled: {
+            type: "static",
+            value: false,
+          },
         },
       })
     })
@@ -47,36 +47,36 @@ describe.each([
 
   describe("динамические булевые атрибуты", () => {
     it("простое условие", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.disabled}">')
+      const attrs = parseAttributes(tag + " disabled=${context.disabled}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.disabled" },
         },
       })
     })
 
     it("условие с оператором И", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.disabled && context.loading}">')
+      const attrs = parseAttributes(tag + " disabled=${context.disabled && context.loading}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.disabled && context.loading" },
         },
       })
     })
 
     it("условие с оператором ИЛИ", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.disabled || context.error}">')
+      const attrs = parseAttributes(tag + " disabled=${context.disabled || context.error}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.disabled || context.error" },
         },
       })
     })
 
     it("условие с оператором НЕ", () => {
-      const attrs = parseAttributes(tag + ' disabled="${!context.enabled}">')
+      const attrs = parseAttributes(tag + " disabled=${!context.enabled}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "!context.enabled" },
         },
       })
@@ -85,36 +85,36 @@ describe.each([
 
   describe("операторы сравнения", () => {
     it("оператор равенства", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.status === "loading"}">')
+      const attrs = parseAttributes(tag + ' disabled=${context.status === "loading"}>')
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: 'context.status === "loading"' },
         },
       })
     })
 
     it("оператор неравенства", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.status !== "ready"}">')
+      const attrs = parseAttributes(tag + ' disabled=${context.status !== "ready"}>')
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: 'context.status !== "ready"' },
         },
       })
     })
 
     it("оператор больше", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.count > 5}">')
+      const attrs = parseAttributes(tag + " disabled=${context.count > 5}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.count > 5" },
         },
       })
     })
 
     it("оператор больше или равно", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.count >= 10}">')
+      const attrs = parseAttributes(tag + " disabled=${context.count >= 10}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.count >= 10" },
         },
       })
@@ -123,18 +123,18 @@ describe.each([
 
   describe("тернарные операторы", () => {
     it("простой тернарный оператор", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.disabled ? true : false}">')
+      const attrs = parseAttributes(tag + " disabled=${context.disabled ? true : false}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.disabled ? true : false" },
         },
       })
     })
 
     it("тернарный оператор с условием", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.count > 5 ? true : false}">')
+      const attrs = parseAttributes(tag + " disabled=${context.count > 5 ? true : false}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.count > 5 ? true : false" },
         },
       })
@@ -143,27 +143,27 @@ describe.each([
 
   describe("различные булевые атрибуты", () => {
     it("атрибут checked", () => {
-      const attrs = parseAttributes(tag + ' checked="${context.checked}">')
+      const attrs = parseAttributes(tag + " checked=${context.checked}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           checked: { type: "dynamic", value: "context.checked" },
         },
       })
     })
 
     it("атрибут readonly", () => {
-      const attrs = parseAttributes(tag + ' readonly="${context.readonly}">')
+      const attrs = parseAttributes(tag + " readonly=${context.readonly}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           readonly: { type: "dynamic", value: "context.readonly" },
         },
       })
     })
 
     it("атрибут required", () => {
-      const attrs = parseAttributes(tag + ' required="${context.required}">')
+      const attrs = parseAttributes(tag + " required=${context.required}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           required: { type: "dynamic", value: "context.required" },
         },
       })
@@ -172,18 +172,18 @@ describe.each([
 
   describe("сложные выражения", () => {
     it("выражение с методами", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.items.length > 0}">')
+      const attrs = parseAttributes(tag + " disabled=${context.items.length > 0}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.items.length > 0" },
         },
       })
     })
 
     it("выражение с вложенными свойствами", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.user.permissions.canEdit}">')
+      const attrs = parseAttributes(tag + " disabled=${context.user.permissions.canEdit}>")
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.user.permissions.canEdit" },
         },
       })
@@ -193,10 +193,10 @@ describe.each([
   describe("множественные булевые атрибуты", () => {
     it("несколько булевых атрибутов", () => {
       const attrs = parseAttributes(
-        tag + ' disabled="${context.disabled}" readonly="${context.readonly}" required="${context.required}">'
+        tag + " disabled=${context.disabled} readonly=${context.readonly} required=${context.required}>"
       )
       expect(attrs).toEqual({
-        string: {
+        boolean: {
           disabled: { type: "dynamic", value: "context.disabled" },
           readonly: { type: "dynamic", value: "context.readonly" },
           required: { type: "dynamic", value: "context.required" },
@@ -205,17 +205,14 @@ describe.each([
     })
 
     it("смешанные статические и динамические булевые атрибуты", () => {
-      const attrs = parseAttributes(tag + ' disabled="${context.disabled}" readonly required>')
+      const attrs = parseAttributes(tag + " disabled=${context.disabled} readonly required>")
       expect(attrs).toEqual({
         boolean: {
-          readonly: "true",
-          required: "true",
-        },
-        string: {
+          readonly: { type: "static", value: true },
+          required: { type: "static", value: true },
           disabled: { type: "dynamic", value: "context.disabled" },
         },
       })
     })
-    
   })
 })

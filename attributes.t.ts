@@ -16,7 +16,7 @@ export type AttributeArray = Record<string, { value: string; type: ValueType }[]
 
 export type AttributeString = Record<string, { type: ValueType; value: string }>
 
-export type AttributeBoolean = Record<string, string>
+export type AttributeBoolean = Record<string, { type: "dynamic" | "static"; value: boolean | string }>
 
 export type NodeAttributeElement = {
   /** Имя HTML тега */
