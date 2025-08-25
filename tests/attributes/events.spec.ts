@@ -304,7 +304,7 @@ describe("события (events) с атрибутами on...", () => {
   describe("события с булевыми атрибутами в фигурных скобках", () => {
     it("события с условными булевыми атрибутами", () => {
       const attrs = parseAttributes(
-        '<button onclick="${(e) => handleClick(e)}" {isLoading && "disabled"} {hasError && "data-error"}>'
+        '<button onclick="${(e) => handleClick(e)}" ${isLoading && "disabled"} ${hasError && "data-error"}>'
       )
       expect(attrs).toEqual({
         event: {
@@ -319,7 +319,7 @@ describe("события (events) с атрибутами on...", () => {
 
     it("события с множественными условными атрибутами", () => {
       const attrs = parseAttributes(
-        '<input onchange="${(e) => setValue(e.target.value)}" {isValid && "data-valid"} {isRequired && "required"} {isDisabled && "disabled"} onfocus="${() => showHelp()}">'
+        '<input onchange="${(e) => setValue(e.target.value)}" ${isValid && "data-valid"} ${isRequired && "required"} ${isDisabled && "disabled"} onfocus="${() => showHelp()}">'
       )
       expect(attrs).toEqual({
         event: {

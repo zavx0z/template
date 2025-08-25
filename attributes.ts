@@ -436,13 +436,13 @@ export function parseAttributes(tagSource: string): {
     while (i < len && /\s/.test(inside[i] || "")) i++
     if (i >= len) break
 
-    // Обработка фигурных скобок {condition && 'attribute'}
-    if (inside[i] === "{") {
+    // Обработка условных булевых атрибутов ${condition && 'attribute'}
+    if (inside[i] === "$" && inside[i + 1] === "{") {
       const braceStart = i
-      const braceEnd = matchSimpleBraces(inside, i)
+      const braceEnd = matchBalancedBraces(inside, i + 2)
       if (braceEnd === -1) break
 
-      const braceContent = inside.slice(braceStart + 1, braceEnd - 1)
+      const braceContent = inside.slice(braceStart + 2, braceEnd - 1)
       const parts = braceContent.split("&&").map((s) => s.trim())
 
       if (parts.length >= 2) {
@@ -502,7 +502,13 @@ export function parseAttributes(tagSource: string): {
         i = r.nextIndex
       }
 
-      const styleValue = value ? (value.startsWith("${{") ? value.slice(3, -2) : value.slice(2, -1)) : ""
+      const styleValue = value
+        ? value.startsWith("${{")
+          ? value.slice(3, -2).trim()
+            ? `{ ${value.slice(3, -2)} }`
+            : "{}"
+          : value.slice(2, -1)
+        : "{}"
       ensure.object()[name] = styleValue
       continue
     }
@@ -519,7 +525,13 @@ export function parseAttributes(tagSource: string): {
         i = r.nextIndex
       }
 
-      const objectValue = value ? (value.startsWith("${{") ? value.slice(3, -2) : value.slice(2, -1)) : ""
+      const objectValue = value
+        ? value.startsWith("${{")
+          ? value.slice(3, -2).trim()
+            ? `{ ${value.slice(3, -2)} }`
+            : "{}"
+          : value.slice(2, -1)
+        : "{}"
       ensure.object()[name] = objectValue
       continue
     }

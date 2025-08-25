@@ -27,7 +27,7 @@ describe("комплексные тесты с множественными ат
 
     it("динамические значения в coords", () => {
       const attrs = parseAttributes(
-        '<area shape="circle" coords="${center.x},${center.y},${radius}" alt="Круг" disabled=${context.disabled} {context.loading && "loading"}>'
+        '<area shape="circle" coords="${center.x},${center.y},${radius}" alt="Круг" disabled=${context.disabled} ${context.loading && "loading"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -50,7 +50,7 @@ describe("комплексные тесты с множественными ат
 
     it("смешанные значения в coords", () => {
       const attrs = parseAttributes(
-        '<area shape="poly" coords="0,0,${width},${height},50,50" alt="Многоугольник" checked=${isChecked} {context.visible && "visible"} {context.active && "active"}>'
+        '<area shape="poly" coords="0,0,${width},${height},50,50" alt="Многоугольник" checked=${isChecked} ${context.visible && "visible"} ${context.active && "active"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -77,7 +77,7 @@ describe("комплексные тесты с множественными ат
 
     it("сложные условные выражения в coords", () => {
       const attrs = parseAttributes(
-        '<area shape="rect" coords="${isLarge ? "0,0,300,300" : "0,0,100,100"}" alt="Условный прямоугольник" disabled=${context.status === "loading"} {context.isLarge && "large"} {context.isActive && "active"}>'
+        '<area shape="rect" coords="${isLarge ? "0,0,300,300" : "0,0,100,100"}" alt="Условный прямоугольник" disabled=${context.status === "loading"} ${context.isLarge && "large"} ${context.isActive && "active"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -97,7 +97,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент img с множественными атрибутами", () => {
     it("src, alt, class, srcset", () => {
       const attrs = parseAttributes(
-        '<img src="image.jpg" alt="Изображение" class="photo main" srcset="image.jpg 1x, image@2x.jpg 2x" loading="lazy" {context.visible && "visible"} {context.loaded && "loaded"}>'
+        '<img src="image.jpg" alt="Изображение" class="photo main" srcset="image.jpg 1x, image@2x.jpg 2x" loading="lazy" ${context.visible && "visible"} ${context.loaded && "loaded"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -124,7 +124,7 @@ describe("комплексные тесты с множественными ат
 
     it("динамические значения в нескольких атрибутах", () => {
       const attrs = parseAttributes(
-        '<img src="${image.url}" alt="${image.alt}" class="${image.classes}" srcset="${image.srcset}" disabled=${context.disabled} {context.loading && "loading"} {context.error && "error"}>'
+        '<img src="${image.url}" alt="${image.alt}" class="${image.classes}" srcset="${image.srcset}" disabled=${context.disabled} ${context.loading && "loading"} ${context.error && "error"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -143,7 +143,7 @@ describe("комплексные тесты с множественными ат
 
     it("смешанные значения в разных атрибутах", () => {
       const attrs = parseAttributes(
-        '<img src="base.jpg" alt="Фото ${user.name}" class="avatar ${user.status}" srcset="base.jpg 1x, ${user.highResImage} 2x" readonly={user.readonly} {user.isAdmin && "admin"} {user.isVerified && "verified"}>'
+        '<img src="base.jpg" alt="Фото ${user.name}" class="avatar ${user.status}" srcset="base.jpg 1x, ${user.highResImage} 2x" readonly={user.readonly} ${user.isAdmin && "admin"} ${user.isVerified && "verified"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -172,7 +172,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент iframe с allow и sandbox", () => {
     it("простые статические значения", () => {
       const attrs = parseAttributes(
-        '<iframe src="page.html" allow="camera;microphone" sandbox="allow-scripts allow-same-origin" loading="lazy" {context.trusted && "trusted"} {context.secure && "secure"}>'
+        '<iframe src="page.html" allow="camera;microphone" sandbox="allow-scripts allow-same-origin" loading="lazy" ${context.trusted && "trusted"} ${context.secure && "secure"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -198,7 +198,7 @@ describe("комплексные тесты с множественными ат
 
     it("динамические значения в allow", () => {
       const attrs = parseAttributes(
-        '<iframe src="${page.url}" allow="${permissions.join(";")}" sandbox="allow-scripts" disabled=${context.disabled} {context.loading && "loading"} {context.error && "error"}>'
+        '<iframe src="${page.url}" allow="${permissions.join(";")}" sandbox="allow-scripts" disabled=${context.disabled} ${context.loading && "loading"} ${context.error && "error"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -218,7 +218,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент input с accept и class", () => {
     it("простые статические значения", () => {
       const attrs = parseAttributes(
-        '<input type="file" accept="image/png,image/jpeg" class="file-input required" required disabled {context.valid && "valid"} {context.invalid && "invalid"}>'
+        '<input type="file" accept="image/png,image/jpeg" class="file-input required" required disabled ${context.valid && "valid"} ${context.invalid && "invalid"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -245,7 +245,7 @@ describe("комплексные тесты с множественными ат
 
     it("динамические значения в accept", () => {
       const attrs = parseAttributes(
-        '<input type="file" accept="${allowedTypes.join(",")}" class="file-input ${isRequired ? "required" : ""}" checked=${isChecked} {context.valid && "valid"} {context.invalid && "invalid"}>'
+        '<input type="file" accept="${allowedTypes.join(",")}" class="file-input ${isRequired ? "required" : ""}" checked=${isChecked} ${context.valid && "valid"} ${context.invalid && "invalid"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -270,7 +270,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент link с rel и class", () => {
     it("простые статические значения", () => {
       const attrs = parseAttributes(
-        '<link rel="stylesheet preload" href="style.css" class="main-styles" disabled {context.loaded && "loaded"} {context.cached && "cached"}>'
+        '<link rel="stylesheet preload" href="style.css" class="main-styles" disabled ${context.loaded && "loaded"} ${context.cached && "cached"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -293,7 +293,7 @@ describe("комплексные тесты с множественными ат
 
     it("динамические значения в rel", () => {
       const attrs = parseAttributes(
-        '<link rel="${isPreload ? "preload" : "stylesheet"}" href="${style.url}" class="styles" disabled=${context.disabled} {context.loading && "loading"} {context.error && "error"}>'
+        '<link rel="${isPreload ? "preload" : "stylesheet"}" href="${style.url}" class="styles" disabled=${context.disabled} ${context.loading && "loading"} ${context.error && "error"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -313,7 +313,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент a с ping и rel", () => {
     it("простые статические значения", () => {
       const attrs = parseAttributes(
-        '<a href="https://example.com" ping="/analytics" rel="noopener noreferrer" disabled {context.external && "external"} {context.secure && "secure"}>'
+        '<a href="https://example.com" ping="/analytics" rel="noopener noreferrer" disabled ${context.external && "external"} ${context.secure && "secure"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -336,7 +336,7 @@ describe("комплексные тесты с множественными ат
 
     it("динамические значения в ping", () => {
       const attrs = parseAttributes(
-        '<a href="${link.url}" ping="${analytics.urls.join(" ")}" rel="noopener" disabled=${context.disabled} {context.external && "external"} {context.secure && "secure"}>'
+        '<a href="${link.url}" ping="${analytics.urls.join(" ")}" rel="noopener" disabled=${context.disabled} ${context.external && "external"} ${context.secure && "secure"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -356,7 +356,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент meta с accept-charset", () => {
     it("простые статические значения", () => {
       const attrs = parseAttributes(
-        '<meta charset="UTF-8" accept-charset="UTF-8 ISO-8859-1" disabled {context.valid && "valid"} {context.invalid && "invalid"}>'
+        '<meta charset="UTF-8" accept-charset="UTF-8 ISO-8859-1" disabled ${context.valid && "valid"} ${context.invalid && "invalid"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -380,7 +380,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент th с headers и class", () => {
     it("простые статические значения", () => {
       const attrs = parseAttributes(
-        '<th headers="col1 col2" class="header-cell sortable" disabled {context.sortable && "sortable"} {context.active && "active"}>'
+        '<th headers="col1 col2" class="header-cell sortable" disabled ${context.sortable && "sortable"} ${context.active && "active"}>'
       )
       expect(attrs).toEqual({
         array: {
@@ -405,7 +405,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент ol с itemref и class", () => {
     it("простые статические значения", () => {
       const attrs = parseAttributes(
-        '<ol itemref="item1 item2" class="numbered-list" disabled {context.ordered && "ordered"} {context.active && "active"}>'
+        '<ol itemref="item1 item2" class="numbered-list" disabled ${context.ordered && "ordered"} ${context.active && "active"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -429,7 +429,7 @@ describe("комплексные тесты с множественными ат
   describe("элемент video с sizes и class", () => {
     it("простые статические значения", () => {
       const attrs = parseAttributes(
-        '<video sizes="(max-width: 600px) 100vw, 50vw" class="responsive-video" disabled {context.playing && "playing"} {context.paused && "paused"}>'
+        '<video sizes="(max-width: 600px) 100vw, 50vw" class="responsive-video" disabled ${context.playing && "playing"} ${context.paused && "paused"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -455,7 +455,7 @@ describe("комплексные тесты с множественными ат
   describe("сложные случаи с множественными условными атрибутами", () => {
     it("элемент с условными классами и координатами", () => {
       const attrs = parseAttributes(
-        '<area shape="rect" coords="${isLarge ? "0,0,300,300" : "0,0,100,100"}" class="${isActive ? "active" : "inactive"} ${isVisible ? "visible" : "hidden"}" disabled=${context.disabled} {context.isLarge && "large"} {context.isActive && "active"} {context.isVisible && "visible"}>'
+        '<area shape="rect" coords="${isLarge ? "0,0,300,300" : "0,0,100,100"}" class="${isActive ? "active" : "inactive"} ${isVisible ? "visible" : "hidden"}" disabled=${context.disabled} ${context.isLarge && "large"} ${context.isActive && "active"} ${context.isVisible && "visible"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -479,7 +479,7 @@ describe("комплексные тесты с множественными ат
 
     it("элемент с множественными динамическими атрибутами", () => {
       const attrs = parseAttributes(
-        '<img src="${image.url}" alt="${image.alt}" class="${image.classes}" srcset="${image.srcset}" sizes="${image.sizes}" disabled=${context.disabled} {context.loading && "loading"} {context.error && "error"} {context.visible && "visible"}>'
+        '<img src="${image.url}" alt="${image.alt}" class="${image.classes}" srcset="${image.srcset}" sizes="${image.sizes}" disabled=${context.disabled} ${context.loading && "loading"} ${context.error && "error"} ${context.visible && "visible"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -500,7 +500,7 @@ describe("комплексные тесты с множественными ат
 
     it("элемент с смешанными статическими и динамическими атрибутами", () => {
       const attrs = parseAttributes(
-        '<iframe src="https://example.com" allow="${permissions.join(";")}" sandbox="allow-scripts ${user.canAccess ? "allow-same-origin" : ""}" class="embed" disabled=${context.disabled} {context.trusted && "trusted"} {context.secure && "secure"} {context.loading && "loading"}>'
+        '<iframe src="https://example.com" allow="${permissions.join(";")}" sandbox="allow-scripts ${user.canAccess ? "allow-same-origin" : ""}" class="embed" disabled=${context.disabled} ${context.trusted && "trusted"} ${context.secure && "secure"} ${context.loading && "loading"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -527,7 +527,7 @@ describe("комплексные тесты с множественными ат
   describe("граничные случаи", () => {
     it("элемент только с строковыми атрибутами", () => {
       const attrs = parseAttributes(
-        '<div id="main" title="Заголовок" data-test="value" disabled {context.visible && "visible"} {context.active && "active"}>'
+        '<div id="main" title="Заголовок" data-test="value" disabled ${context.visible && "visible"} ${context.active && "active"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -545,7 +545,7 @@ describe("комплексные тесты с множественными ат
 
     it("элемент только с массивными атрибутами", () => {
       const attrs = parseAttributes(
-        '<div class="container" rel="nofollow noopener" ping="/analytics" disabled {context.visible && "visible"} {context.active && "active"}>'
+        '<div class="container" rel="nofollow noopener" ping="/analytics" disabled ${context.visible && "visible"} ${context.active && "active"}>'
       )
       expect(attrs).toEqual({
         string: {
@@ -568,7 +568,7 @@ describe("комплексные тесты с множественными ат
 
     it("элемент с пустыми значениями", () => {
       const attrs = parseAttributes(
-        '<div class="" rel="" title="" disabled {context.visible && "visible"} {context.active && "active"}>'
+        '<div class="" rel="" title="" disabled ${context.visible && "visible"} ${context.active && "active"}>'
       )
       expect(attrs).toEqual({
         string: {

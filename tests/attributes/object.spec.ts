@@ -7,7 +7,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<div style=${{backgroundColor: "red", color: "white"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'backgroundColor: "red", color: "white"',
+          style: '{ backgroundColor: "red", color: "white" }',
         },
       })
     })
@@ -16,7 +16,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<div style=${{width: 100, height: 200, fontSize: 16}}>")
       expect(attrs).toEqual({
         object: {
-          style: "width: 100, height: 200, fontSize: 16",
+          style: "{ width: 100, height: 200, fontSize: 16 }",
         },
       })
     })
@@ -25,7 +25,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<div style=${{width: "100px", height: "200px", margin: "10px 20px"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'width: "100px", height: "200px", margin: "10px 20px"',
+          style: '{ width: "100px", height: "200px", margin: "10px 20px" }',
         },
       })
     })
@@ -36,7 +36,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<div style=${{backgroundColor: theme.primary, color: theme.text}}>")
       expect(attrs).toEqual({
         object: {
-          style: "backgroundColor: theme.primary, color: theme.text",
+          style: "{ backgroundColor: theme.primary, color: theme.text }",
         },
       })
     })
@@ -45,7 +45,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<div style=${{backgroundColor: isActive ? "green" : "red", color: "white"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'backgroundColor: isActive ? "green" : "red", color: "white"',
+          style: '{ backgroundColor: isActive ? "green" : "red", color: "white" }',
         },
       })
     })
@@ -54,7 +54,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<div style=${{width: `${100 + 50}px`, height: `${200 * 2}px`}}>")
       expect(attrs).toEqual({
         object: {
-          style: "width: `${100 + 50}px`, height: `${200 * 2}px`",
+          style: "{ width: `${100 + 50}px`, height: `${200 * 2}px` }",
         },
       })
     })
@@ -67,7 +67,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          style: 'backgroundColor: "blue", border: { width: "2px", style: "solid", color: "black" }',
+          style: '{ backgroundColor: "blue", border: { width: "2px", style: "solid", color: "black" } }',
         },
       })
     })
@@ -76,7 +76,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<div style=${{transform: `translateX(${getOffset()}px)`, opacity: getOpacity()}}>")
       expect(attrs).toEqual({
         object: {
-          style: "transform: `translateX(${getOffset()}px)`, opacity: getOpacity()",
+          style: "{ transform: `translateX(${getOffset()}px)`, opacity: getOpacity() }",
         },
       })
     })
@@ -88,7 +88,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       expect(attrs).toEqual({
         object: {
           style:
-            'backgroundColor: isActive ? "green" : isDisabled ? "gray" : "blue", color: isActive ? "white" : "black", fontSize: isLarge ? "18px" : "14px"',
+            '{ backgroundColor: isActive ? "green" : isDisabled ? "gray" : "blue", color: isActive ? "white" : "black", fontSize: isLarge ? "18px" : "14px" }',
         },
       })
     })
@@ -99,7 +99,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<div class="container" style=${{backgroundColor: "red", color: "white"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'backgroundColor: "red", color: "white"',
+          style: '{ backgroundColor: "red", color: "white" }',
         },
         string: {
           class: { type: "static", value: "container" },
@@ -111,7 +111,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<button style=${{backgroundColor: "blue"}} onclick="${(e) => handleClick(e)}">')
       expect(attrs).toEqual({
         object: {
-          style: 'backgroundColor: "blue"',
+          style: '{ backgroundColor: "blue" }',
         },
         event: {
           onclick: "(e) => handleClick(e)",
@@ -120,13 +120,13 @@ describe("стили в виде JavaScript объекта (styled components)",
     })
 
     it("стили с булевыми атрибутами", () => {
-      const attrs = parseAttributes('<button style=${{backgroundColor: "green"}} disabled={isLoading}>')
+      const attrs = parseAttributes('<button style=${{backgroundColor: "green"}} disabled=${isLoading}>')
       expect(attrs).toEqual({
         object: {
-          style: 'backgroundColor: "green"',
+          style: '{ backgroundColor: "green" }',
         },
-        string: {
-          disabled: { type: "static", value: "{isLoading}" },
+        boolean: {
+          disabled: { type: "dynamic", value: "isLoading" },
         },
       })
     })
@@ -137,7 +137,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<div style=${{}}>")
       expect(attrs).toEqual({
         object: {
-          style: "",
+          style: "{}",
         },
       })
     })
@@ -146,7 +146,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<div style=${{color: "red"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'color: "red"',
+          style: '{ color: "red" }',
         },
       })
     })
@@ -155,7 +155,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<div style=${{backgroundImage: `url(${imageUrl})`, color: `#${colorHex}`}}>")
       expect(attrs).toEqual({
         object: {
-          style: "backgroundImage: `url(${imageUrl})`, color: `#${colorHex}`",
+          style: "{ backgroundImage: `url(${imageUrl})`, color: `#${colorHex}` }",
         },
       })
     })
@@ -166,7 +166,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<button style=${{backgroundColor: "blue", color: "white", padding: "10px"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'backgroundColor: "blue", color: "white", padding: "10px"',
+          style: '{ backgroundColor: "blue", color: "white", padding: "10px" }',
         },
       })
     })
@@ -175,7 +175,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<input style=${{border: "1px solid gray", borderRadius: "4px", padding: "8px"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'border: "1px solid gray", borderRadius: "4px", padding: "8px"',
+          style: '{ border: "1px solid gray", borderRadius: "4px", padding: "8px" }',
         },
       })
     })
@@ -184,7 +184,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<img style=${{width: "100px", height: "100px", objectFit: "cover"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'width: "100px", height: "100px", objectFit: "cover"',
+          style: '{ width: "100px", height: "100px", objectFit: "cover" }',
         },
       })
     })
@@ -193,7 +193,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes('<span style=${{fontSize: "14px", fontWeight: "bold", color: "red"}}>')
       expect(attrs).toEqual({
         object: {
-          style: 'fontSize: "14px", fontWeight: "bold", color: "red"',
+          style: '{ fontSize: "14px", fontWeight: "bold", color: "red" }',
         },
       })
     })
@@ -204,7 +204,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<meta-component context=${{user: currentUser, theme: currentTheme}}>")
       expect(attrs).toEqual({
         object: {
-          context: "user: currentUser, theme: currentTheme",
+          context: "{ user: currentUser, theme: currentTheme }",
         },
       })
     })
@@ -213,7 +213,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<meta-component core=${{state: appState, actions: appActions}}>")
       expect(attrs).toEqual({
         object: {
-          core: "state: appState, actions: appActions",
+          core: "{ state: appState, actions: appActions }",
         },
       })
     })
@@ -224,8 +224,8 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: "user: currentUser, theme: currentTheme",
-          core: "state: appState, actions: appActions",
+          context: "{ user: currentUser, theme: currentTheme }",
+          core: "{ state: appState, actions: appActions }",
         },
       })
     })
@@ -236,8 +236,8 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: "user: currentUser, theme: currentTheme",
-          core: "state: appState, actions: appActions",
+          context: "{ user: currentUser, theme: currentTheme }",
+          core: "{ state: appState, actions: appActions }",
         },
       })
     })
@@ -246,7 +246,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<meta-component context=${{user: ${getCurrentUser()}, theme: ${getTheme()}}}>")
       expect(attrs).toEqual({
         object: {
-          context: "user: ${getCurrentUser()}, theme: ${getTheme()}",
+          context: "{ user: ${getCurrentUser()}, theme: ${getTheme()} }",
         },
       })
     })
@@ -255,7 +255,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<meta-component context=${{user: ${getCurrentUser()}, theme: ${getTheme()}}}>")
       expect(attrs).toEqual({
         object: {
-          context: "user: ${getCurrentUser()}, theme: ${getTheme()}",
+          context: "{ user: ${getCurrentUser()}, theme: ${getTheme()} }",
         },
       })
     })
@@ -266,7 +266,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: "user: isLoggedIn ? currentUser : null, theme: isDark ? darkTheme : lightTheme",
+          context: "{ user: isLoggedIn ? currentUser : null, theme: isDark ? darkTheme : lightTheme }",
         },
       })
     })
@@ -277,7 +277,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: "user: isLoggedIn ? currentUser : null, theme: isDark ? darkTheme : lightTheme",
+          context: "{ user: isLoggedIn ? currentUser : null, theme: isDark ? darkTheme : lightTheme }",
         },
       })
     })
@@ -288,7 +288,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: 'user: { id: currentUser.id, name: currentUser.name }, settings: { theme: "dark", lang: "ru" }',
+          context: '{ user: { id: currentUser.id, name: currentUser.name }, settings: { theme: "dark", lang: "ru" } }',
         },
       })
     })
@@ -299,7 +299,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: 'user: { id: currentUser.id, name: currentUser.name }, settings: { theme: "dark", lang: "ru" }',
+          context: '{ user: { id: currentUser.id, name: currentUser.name }, settings: { theme: "dark", lang: "ru" } }',
         },
       })
     })
@@ -310,7 +310,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          core: "actions: { save: saveData, delete: deleteData }, utils: { format: formatText }",
+          core: "{ actions: { save: saveData, delete: deleteData }, utils: { format: formatText } }",
         },
       })
     })
@@ -321,7 +321,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          core: "actions: { save: saveData, delete: deleteData }, utils: { format: formatText }",
+          core: "{ actions: { save: saveData, delete: deleteData }, utils: { format: formatText } }",
         },
       })
     })
@@ -332,7 +332,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: 'apiUrl: `${baseUrl}/api`, wsUrl: `${baseUrl.replace("http", "ws")}/ws`',
+          context: '{ apiUrl: `${baseUrl}/api`, wsUrl: `${baseUrl.replace("http", "ws")}/ws` }',
         },
       })
     })
@@ -343,7 +343,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: 'apiUrl: `${baseUrl}/api`, wsUrl: `${baseUrl.replace("http", "ws")}/ws`',
+          context: '{ apiUrl: `${baseUrl}/api`, wsUrl: `${baseUrl.replace("http", "ws")}/ws` }',
         },
       })
     })
@@ -352,7 +352,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<meta-component context=${{}}>")
       expect(attrs).toEqual({
         object: {
-          context: "",
+          context: "{}",
         },
       })
     })
@@ -361,7 +361,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<meta-component context=${{}}>")
       expect(attrs).toEqual({
         object: {
-          context: "",
+          context: "{}",
         },
       })
     })
@@ -370,7 +370,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<meta-component core=${{}}>")
       expect(attrs).toEqual({
         object: {
-          core: "",
+          core: "{}",
         },
       })
     })
@@ -379,7 +379,7 @@ describe("стили в виде JavaScript объекта (styled components)",
       const attrs = parseAttributes("<meta-component core=${{}}>")
       expect(attrs).toEqual({
         object: {
-          core: "",
+          core: "{}",
         },
       })
     })
@@ -390,8 +390,8 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: "user: currentUser",
-          core: "state: appState",
+          context: "{ user: currentUser }",
+          core: "{ state: appState }",
         },
         string: {
           class: { type: "static", value: "container" },
@@ -406,8 +406,8 @@ describe("стили в виде JavaScript объекта (styled components)",
       )
       expect(attrs).toEqual({
         object: {
-          context: "user: currentUser",
-          core: "state: appState",
+          context: "{ user: currentUser }",
+          core: "{ state: appState }",
         },
         string: {
           class: { type: "static", value: "container" },
