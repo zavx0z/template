@@ -11,15 +11,12 @@ describe("комплексные тесты с множественными ат
           alt: { type: "static", value: "Прямоугольник" },
         },
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "0" },
-              { type: "static", value: "0" },
-              { type: "static", value: "100" },
-              { type: "static", value: "100" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "0" },
+            { type: "static", value: "0" },
+            { type: "static", value: "100" },
+            { type: "static", value: "100" },
+          ],
         },
       })
     })
@@ -32,14 +29,11 @@ describe("комплексные тесты с множественными ат
           alt: { type: "static", value: "Круг" },
         },
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "dynamic", value: "center.x" },
-              { type: "dynamic", value: "center.y" },
-              { type: "dynamic", value: "radius" },
-            ],
-          },
+          coords: [
+            { type: "dynamic", value: "center.x" },
+            { type: "dynamic", value: "center.y" },
+            { type: "dynamic", value: "radius" },
+          ],
         },
       })
     })
@@ -52,17 +46,14 @@ describe("комплексные тесты с множественными ат
           alt: { type: "static", value: "Многоугольник" },
         },
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "0" },
-              { type: "static", value: "0" },
-              { type: "dynamic", value: "width" },
-              { type: "dynamic", value: "height" },
-              { type: "static", value: "50" },
-              { type: "static", value: "50" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "0" },
+            { type: "static", value: "0" },
+            { type: "dynamic", value: "width" },
+            { type: "dynamic", value: "height" },
+            { type: "static", value: "50" },
+            { type: "static", value: "50" },
+          ],
         },
       })
     })
@@ -92,20 +83,14 @@ describe("комплексные тесты с множественными ат
           alt: { type: "static", value: "Изображение" },
         },
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "photo" },
-              { type: "static", value: "main" },
-            ],
-          },
-          srcset: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image.jpg 1x" },
-              { type: "static", value: "image@2x.jpg 2x" },
-            ],
-          },
+          class: [
+            { type: "static", value: "photo" },
+            { type: "static", value: "main" },
+          ],
+          srcset: [
+            { type: "static", value: "image.jpg 1x" },
+            { type: "static", value: "image@2x.jpg 2x" },
+          ],
         },
       })
     })
@@ -134,20 +119,14 @@ describe("комплексные тесты с множественными ат
           alt: { type: "mixed", value: "Фото ${user.name}" },
         },
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "avatar" },
-              { type: "dynamic", value: "user.status" },
-            ],
-          },
-          srcset: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "base.jpg 1x" },
-              { type: "mixed", value: "${user.highResImage} 2x" },
-            ],
-          },
+          class: [
+            { type: "static", value: "avatar" },
+            { type: "dynamic", value: "user.status" },
+          ],
+          srcset: [
+            { type: "static", value: "base.jpg 1x" },
+            { type: "mixed", value: "${user.highResImage} 2x" },
+          ],
         },
       })
     })
@@ -163,20 +142,14 @@ describe("комплексные тесты с множественными ат
           src: { type: "static", value: "page.html" },
         },
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "static", value: "microphone" },
-            ],
-          },
-          sandbox: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "allow-scripts" },
-              { type: "static", value: "allow-same-origin" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "static", value: "microphone" },
+          ],
+          sandbox: [
+            { type: "static", value: "allow-scripts" },
+            { type: "static", value: "allow-same-origin" },
+          ],
         },
       })
     })
@@ -203,20 +176,14 @@ describe("комплексные тесты с множественными ат
           type: { type: "static", value: "file" },
         },
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/png" },
-              { type: "static", value: "image/jpeg" },
-            ],
-          },
-          class: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "file-input" },
-              { type: "static", value: "required" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/png" },
+            { type: "static", value: "image/jpeg" },
+          ],
+          class: [
+            { type: "static", value: "file-input" },
+            { type: "static", value: "required" },
+          ],
         },
       })
     })
@@ -231,13 +198,10 @@ describe("комплексные тесты с множественными ат
           accept: { type: "dynamic", value: 'allowedTypes.join(",")' },
         },
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "file-input" },
-              { type: "dynamic", value: 'isRequired ? "required" : ""' },
-            ],
-          },
+          class: [
+            { type: "static", value: "file-input" },
+            { type: "dynamic", value: 'isRequired ? "required" : ""' },
+          ],
         },
       })
     })
@@ -252,13 +216,10 @@ describe("комплексные тесты с множественными ат
           class: { type: "static", value: "main-styles" },
         },
         array: {
-          rel: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "stylesheet" },
-              { type: "static", value: "preload" },
-            ],
-          },
+          rel: [
+            { type: "static", value: "stylesheet" },
+            { type: "static", value: "preload" },
+          ],
         },
       })
     })
@@ -286,13 +247,10 @@ describe("комплексные тесты с множественными ат
           ping: { type: "static", value: "/analytics" },
         },
         array: {
-          rel: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "noopener" },
-              { type: "static", value: "noreferrer" },
-            ],
-          },
+          rel: [
+            { type: "static", value: "noopener" },
+            { type: "static", value: "noreferrer" },
+          ],
         },
       })
     })
@@ -317,13 +275,10 @@ describe("комплексные тесты с множественными ат
           charset: { type: "static", value: "UTF-8" },
         },
         array: {
-          "accept-charset": {
-            splitter: " ",
-            values: [
-              { type: "static", value: "UTF-8" },
-              { type: "static", value: "ISO-8859-1" },
-            ],
-          },
+          "accept-charset": [
+            { type: "static", value: "UTF-8" },
+            { type: "static", value: "ISO-8859-1" },
+          ],
         },
       })
     })
@@ -334,20 +289,14 @@ describe("комплексные тесты с множественными ат
       const attrs = parseAttributes('<th headers="col1 col2" class="header-cell sortable">')
       expect(attrs).toEqual({
         array: {
-          headers: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "col1" },
-              { type: "static", value: "col2" },
-            ],
-          },
-          class: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "header-cell" },
-              { type: "static", value: "sortable" },
-            ],
-          },
+          headers: [
+            { type: "static", value: "col1" },
+            { type: "static", value: "col2" },
+          ],
+          class: [
+            { type: "static", value: "header-cell" },
+            { type: "static", value: "sortable" },
+          ],
         },
       })
     })
@@ -361,13 +310,10 @@ describe("комплексные тесты с множественными ат
           class: { type: "static", value: "numbered-list" },
         },
         array: {
-          itemref: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "item1" },
-              { type: "static", value: "item2" },
-            ],
-          },
+          itemref: [
+            { type: "static", value: "item1" },
+            { type: "static", value: "item2" },
+          ],
         },
       })
     })
@@ -381,15 +327,12 @@ describe("комплексные тесты с множественными ат
           class: { type: "static", value: "responsive-video" },
         },
         array: {
-          sizes: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "(max-width:" },
-              { type: "static", value: "600px)" },
-              { type: "static", value: "100vw," },
-              { type: "static", value: "50vw" },
-            ],
-          },
+          sizes: [
+            { type: "static", value: "(max-width:" },
+            { type: "static", value: "600px)" },
+            { type: "static", value: "100vw," },
+            { type: "static", value: "50vw" },
+          ],
         },
       })
     })
@@ -406,13 +349,10 @@ describe("комплексные тесты с множественными ат
           coords: { type: "dynamic", value: 'isLarge ? "0,0,300,300" : "0,0,100,100"' },
         },
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              { type: "dynamic", value: 'isActive ? "active" : "inactive"' },
-              { type: "dynamic", value: 'isVisible ? "visible" : "hidden"' },
-            ],
-          },
+          class: [
+            { type: "dynamic", value: 'isActive ? "active" : "inactive"' },
+            { type: "dynamic", value: 'isVisible ? "visible" : "hidden"' },
+          ],
         },
       })
     })
@@ -443,13 +383,10 @@ describe("комплексные тесты с множественными ат
           class: { type: "static", value: "embed" },
         },
         array: {
-          sandbox: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "allow-scripts" },
-              { type: "dynamic", value: 'user.canAccess ? "allow-same-origin" : ""' },
-            ],
-          },
+          sandbox: [
+            { type: "static", value: "allow-scripts" },
+            { type: "dynamic", value: 'user.canAccess ? "allow-same-origin" : ""' },
+          ],
         },
       })
     })
@@ -475,13 +412,10 @@ describe("комплексные тесты с множественными ат
           ping: { type: "static", value: "/analytics" },
         },
         array: {
-          rel: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "nofollow" },
-              { type: "static", value: "noopener" },
-            ],
-          },
+          rel: [
+            { type: "static", value: "nofollow" },
+            { type: "static", value: "noopener" },
+          ],
         },
       })
     })
@@ -493,14 +427,8 @@ describe("комплексные тесты с множественными ат
           title: "true",
         },
         array: {
-          class: {
-            splitter: " ",
-            values: [],
-          },
-          rel: {
-            splitter: " ",
-            values: [],
-          },
+          class: [],
+          rel: [],
         },
       })
     })

@@ -29,13 +29,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="div-active div-inactive">')
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "div-active" },
-              { type: "static", value: "div-inactive" },
-            ],
-          },
+          class: [
+            { type: "static", value: "div-active" },
+            { type: "static", value: "div-inactive" },
+          ],
         },
       })
     })
@@ -66,13 +63,10 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
-              { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
-            ],
-          },
+          class: [
+            { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
+            { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
+          ],
         },
       })
     })
@@ -193,13 +187,10 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              { type: "mixed", value: 'div-${core.active ? "active" : "inactive"}' },
-              { type: "mixed", value: 'div-${core.active ? "active" : "inactive"}' },
-            ],
-          },
+          class: [
+            { type: "mixed", value: 'div-${core.active ? "active" : "inactive"}' },
+            { type: "mixed", value: 'div-${core.active ? "active" : "inactive"}' },
+          ],
         },
       })
     })
@@ -314,19 +305,16 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="div-${core.active ? "active" : "inactive"} visible">')
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              {
-                type: "mixed",
-                value: 'div-${core.active ? "active" : "inactive"}',
-              },
-              {
-                type: "static",
-                value: "visible",
-              },
-            ],
-          },
+          class: [
+            {
+              type: "mixed",
+              value: 'div-${core.active ? "active" : "inactive"}',
+            },
+            {
+              type: "static",
+              value: "visible",
+            },
+          ],
         },
       })
     })
@@ -335,19 +323,16 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.active ? "active" : "inactive"} visible">')
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              {
-                type: "dynamic",
-                value: 'core.active ? "active" : "inactive"',
-              },
-              {
-                type: "static",
-                value: "visible",
-              },
-            ],
-          },
+          class: [
+            {
+              type: "dynamic",
+              value: 'core.active ? "active" : "inactive"',
+            },
+            {
+              type: "static",
+              value: "visible",
+            },
+          ],
         },
       })
     })
@@ -358,23 +343,20 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              {
-                type: "static",
-                value: "static-value",
-              },
-              {
-                type: "dynamic",
-                value: 'core.active ? "active" : "inactive"',
-              },
-              {
-                type: "mixed",
-                value: "mixed-${core.type}",
-              },
-            ],
-          },
+          class: [
+            {
+              type: "static",
+              value: "static-value",
+            },
+            {
+              type: "dynamic",
+              value: 'core.active ? "active" : "inactive"',
+            },
+            {
+              type: "mixed",
+              value: "mixed-${core.type}",
+            },
+          ],
         },
       })
     })
@@ -383,23 +365,20 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="btn-${core.variant} text-${core.size} bg-${core.theme}">')
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              {
-                type: "mixed",
-                value: "btn-${core.variant}",
-              },
-              {
-                type: "mixed",
-                value: "text-${core.size}",
-              },
-              {
-                type: "mixed",
-                value: "bg-${core.theme}",
-              },
-            ],
-          },
+          class: [
+            {
+              type: "mixed",
+              value: "btn-${core.variant}",
+            },
+            {
+              type: "mixed",
+              value: "text-${core.size}",
+            },
+            {
+              type: "mixed",
+              value: "bg-${core.theme}",
+            },
+          ],
         },
       })
     })
@@ -410,23 +389,20 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              {
-                type: "static",
-                value: "base-class",
-              },
-              {
-                type: "dynamic",
-                value: 'core.active ? "active" : "inactive"',
-              },
-              {
-                type: "dynamic",
-                value: 'core.disabled ? "disabled" : ""',
-              },
-            ],
-          },
+          class: [
+            {
+              type: "static",
+              value: "base-class",
+            },
+            {
+              type: "dynamic",
+              value: 'core.active ? "active" : "inactive"',
+            },
+            {
+              type: "dynamic",
+              value: 'core.disabled ? "disabled" : ""',
+            },
+          ],
         },
       })
     })
@@ -435,19 +411,16 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="container ${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              {
-                type: "static",
-                value: "container",
-              },
-              {
-                type: "dynamic",
-                value: 'core.nested ? "nested" : "default"',
-              },
-            ],
-          },
+          class: [
+            {
+              type: "static",
+              value: "container",
+            },
+            {
+              type: "dynamic",
+              value: 'core.nested ? "nested" : "default"',
+            },
+          ],
         },
       })
     })
@@ -458,23 +431,20 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          class: {
-            splitter: " ",
-            values: [
-              {
-                type: "static",
-                value: "visible",
-              },
-              {
-                type: "dynamic",
-                value: 'core.hidden ? "" : "show"',
-              },
-              {
-                type: "dynamic",
-                value: 'core.active ? "active" : ""',
-              },
-            ],
-          },
+          class: [
+            {
+              type: "static",
+              value: "visible",
+            },
+            {
+              type: "dynamic",
+              value: 'core.hidden ? "" : "show"',
+            },
+            {
+              type: "dynamic",
+              value: 'core.active ? "active" : ""',
+            },
+          ],
         },
       })
     })

@@ -12,10 +12,7 @@ export type ValueType = "dynamic" | "static" | "mixed"
 
 export type AttributeEvent = Record<string, string>
 
-export type AttributeArray = Record<
-  string,
-  { splitter: string; values: { value: string; type: ValueType }[] } | { value: string; type: ValueType }[]
->
+export type AttributeArray = Record<string, { value: string; type: ValueType }[]>
 
 export type AttributeString = Record<string, { type: ValueType; value: string }>
 

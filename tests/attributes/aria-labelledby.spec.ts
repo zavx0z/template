@@ -22,13 +22,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' aria-labelledby="title subtitle">')
       expect(attrs).toEqual({
         array: {
-          "aria-labelledby": {
-            splitter: " ",
-            values: [
-              { type: "static", value: "title" },
-              { type: "static", value: "subtitle" },
-            ],
-          },
+          "aria-labelledby": [
+            { type: "static", value: "title" },
+            { type: "static", value: "subtitle" },
+          ],
         },
       })
     })
@@ -36,13 +33,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' aria-describedby="description note">')
       expect(attrs).toEqual({
         array: {
-          "aria-describedby": {
-            splitter: " ",
-            values: [
-              { type: "static", value: "description" },
-              { type: "static", value: "note" },
-            ],
-          },
+          "aria-describedby": [
+            { type: "static", value: "description" },
+            { type: "static", value: "note" },
+          ],
         },
       })
     })
@@ -65,13 +59,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' aria-labelledby="${core.id} ${core.id}">')
       expect(attrs).toEqual({
         array: {
-          "aria-labelledby": {
-            splitter: " ",
-            values: [
-              { type: "dynamic", value: "core.id" },
-              { type: "dynamic", value: "core.id" },
-            ],
-          },
+          "aria-labelledby": [
+            { type: "dynamic", value: "core.id" },
+            { type: "dynamic", value: "core.id" },
+          ],
         },
       })
     })
@@ -126,13 +117,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' aria-describedby="${core.id} note">')
       expect(attrs).toEqual({
         array: {
-          "aria-describedby": {
-            splitter: " ",
-            values: [
-              { type: "dynamic", value: "core.id" },
-              { type: "static", value: "note" },
-            ],
-          },
+          "aria-describedby": [
+            { type: "dynamic", value: "core.id" },
+            { type: "static", value: "note" },
+          ],
         },
       })
     })
@@ -141,13 +129,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' aria-labelledby="title ${core.subtitle}">')
       expect(attrs).toEqual({
         array: {
-          "aria-labelledby": {
-            splitter: " ",
-            values: [
-              { type: "static", value: "title" },
-              { type: "dynamic", value: "core.subtitle" },
-            ],
-          },
+          "aria-labelledby": [
+            { type: "static", value: "title" },
+            { type: "dynamic", value: "core.subtitle" },
+          ],
         },
       })
     })
@@ -179,14 +164,11 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          "aria-labelledby": {
-            splitter: " ",
-            values: [
-              { type: "static", value: "title" },
-              { type: "dynamic", value: 'core.hasSubtitle ? "subtitle" : ""' },
-              { type: "dynamic", value: 'core.hasDescription ? "description" : ""' },
-            ],
-          },
+          "aria-labelledby": [
+            { type: "static", value: "title" },
+            { type: "dynamic", value: 'core.hasSubtitle ? "subtitle" : ""' },
+            { type: "dynamic", value: 'core.hasDescription ? "description" : ""' },
+          ],
         },
       })
     })
@@ -202,13 +184,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' aria-labelledby="title ${core.hasSubtitle ? "subtitle" : ""}">')
       expect(attrs).toEqual({
         array: {
-          "aria-labelledby": {
-            splitter: " ",
-            values: [
-              { type: "static", value: "title" },
-              { type: "dynamic", value: 'core.hasSubtitle ? "subtitle" : ""' },
-            ],
-          },
+          "aria-labelledby": [
+            { type: "static", value: "title" },
+            { type: "dynamic", value: 'core.hasSubtitle ? "subtitle" : ""' },
+          ],
         },
       })
     })

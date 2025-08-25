@@ -24,13 +24,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera;microphone">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "static", value: "microphone" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "static", value: "microphone" },
+          ],
         },
       })
     })
@@ -38,13 +35,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera; microphone">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "static", value: "microphone" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "static", value: "microphone" },
+          ],
         },
       })
     })
@@ -52,14 +46,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera; microphone; geolocation">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "static", value: "microphone" },
-              { type: "static", value: "geolocation" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "static", value: "microphone" },
+            { type: "static", value: "geolocation" },
+          ],
         },
       })
     })
@@ -67,15 +58,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera; microphone; geolocation; payment">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "static", value: "microphone" },
-              { type: "static", value: "geolocation" },
-              { type: "static", value: "payment" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "static", value: "microphone" },
+            { type: "static", value: "geolocation" },
+            { type: "static", value: "payment" },
+          ],
         },
       })
     })
@@ -83,14 +71,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera ; microphone ; geolocation">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "static", value: "microphone" },
-              { type: "static", value: "geolocation" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "static", value: "microphone" },
+            { type: "static", value: "geolocation" },
+          ],
         },
       })
     })
@@ -113,13 +98,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="${core.permission}; ${core.permission}">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "dynamic", value: "core.permission" },
-              { type: "dynamic", value: "core.permission" },
-            ],
-          },
+          allow: [
+            { type: "dynamic", value: "core.permission" },
+            { type: "dynamic", value: "core.permission" },
+          ],
         },
       })
     })
@@ -185,14 +167,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="${core.permission1}; ${core.permission2}; ${core.permission3}">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "dynamic", value: "core.permission1" },
-              { type: "dynamic", value: "core.permission2" },
-              { type: "dynamic", value: "core.permission3" },
-            ],
-          },
+          allow: [
+            { type: "dynamic", value: "core.permission1" },
+            { type: "dynamic", value: "core.permission2" },
+            { type: "dynamic", value: "core.permission3" },
+          ],
         },
       })
     })
@@ -201,14 +180,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="${core.perm1} ; ${core.perm2} ; ${core.perm3}">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "dynamic", value: "core.perm1" },
-              { type: "dynamic", value: "core.perm2" },
-              { type: "dynamic", value: "core.perm3" },
-            ],
-          },
+          allow: [
+            { type: "dynamic", value: "core.perm1" },
+            { type: "dynamic", value: "core.perm2" },
+            { type: "dynamic", value: "core.perm3" },
+          ],
         },
       })
     })
@@ -219,13 +195,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera; ${core.permission}">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "dynamic", value: "core.permission" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "dynamic", value: "core.permission" },
+          ],
         },
       })
     })
@@ -234,14 +207,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera; ${core.permission}; geolocation">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "dynamic", value: "core.permission" },
-              { type: "static", value: "geolocation" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "dynamic", value: "core.permission" },
+            { type: "static", value: "geolocation" },
+          ],
         },
       })
     })
@@ -275,14 +245,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="media-${core.type}; access-${core.level}; perm-${core.role}">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "mixed", value: "media-${core.type}" },
-              { type: "mixed", value: "access-${core.level}" },
-              { type: "mixed", value: "perm-${core.role}" },
-            ],
-          },
+          allow: [
+            { type: "mixed", value: "media-${core.type}" },
+            { type: "mixed", value: "access-${core.level}" },
+            { type: "mixed", value: "perm-${core.role}" },
+          ],
         },
       })
     })
@@ -291,14 +258,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="media-${core.type} ; access-${core.level} ; perm-${core.role}">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "mixed", value: "media-${core.type}" },
-              { type: "mixed", value: "access-${core.level}" },
-              { type: "mixed", value: "perm-${core.role}" },
-            ],
-          },
+          allow: [
+            { type: "mixed", value: "media-${core.type}" },
+            { type: "mixed", value: "access-${core.level}" },
+            { type: "mixed", value: "perm-${core.role}" },
+          ],
         },
       })
     })
@@ -311,14 +275,11 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "dynamic", value: 'core.allowMic ? "microphone" : ""' },
-              { type: "dynamic", value: 'core.allowGeo ? "geolocation" : ""' },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "dynamic", value: 'core.allowMic ? "microphone" : ""' },
+            { type: "dynamic", value: 'core.allowGeo ? "geolocation" : ""' },
+          ],
         },
       })
     })
@@ -334,13 +295,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera; ${core.allowMic ? "microphone" : ""}">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "dynamic", value: 'core.allowMic ? "microphone" : ""' },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "dynamic", value: 'core.allowMic ? "microphone" : ""' },
+          ],
         },
       })
     })
@@ -377,14 +335,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' allow="camera; ${core.mediaType}; access-${core.level}">')
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "dynamic", value: "core.mediaType" },
-              { type: "mixed", value: "access-${core.level}" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "dynamic", value: "core.mediaType" },
+            { type: "mixed", value: "access-${core.level}" },
+          ],
         },
       })
     })
@@ -395,15 +350,12 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "dynamic", value: "core.mediaType" },
-              { type: "mixed", value: "access-${core.level}" },
-              { type: "mixed", value: "perm-${core.role}" },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "dynamic", value: "core.mediaType" },
+            { type: "mixed", value: "access-${core.level}" },
+            { type: "mixed", value: "perm-${core.role}" },
+          ],
         },
       })
     })
@@ -415,15 +367,12 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          allow: {
-            splitter: ";",
-            values: [
-              { type: "static", value: "camera" },
-              { type: "dynamic", value: 'core.allowMic ? "microphone" : ""' },
-              { type: "dynamic", value: 'core.allowGeo ? "geolocation" : ""' },
-              { type: "dynamic", value: 'core.allowPay ? "payment" : ""' },
-            ],
-          },
+          allow: [
+            { type: "static", value: "camera" },
+            { type: "dynamic", value: 'core.allowMic ? "microphone" : ""' },
+            { type: "dynamic", value: 'core.allowGeo ? "geolocation" : ""' },
+            { type: "dynamic", value: 'core.allowPay ? "payment" : ""' },
+          ],
         },
       })
     })

@@ -22,13 +22,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' ping="https://a.example https://b.example">')
       expect(attrs).toEqual({
         array: {
-          ping: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "https://a.example" },
-              { type: "static", value: "https://b.example" },
-            ],
-          },
+          ping: [
+            { type: "static", value: "https://a.example" },
+            { type: "static", value: "https://b.example" },
+          ],
         },
       })
     })
@@ -51,13 +48,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' ping="${core.url} ${core.url}">')
       expect(attrs).toEqual({
         array: {
-          ping: {
-            splitter: " ",
-            values: [
-              { type: "dynamic", value: "core.url" },
-              { type: "dynamic", value: "core.url" },
-            ],
-          },
+          ping: [
+            { type: "dynamic", value: "core.url" },
+            { type: "dynamic", value: "core.url" },
+          ],
         },
       })
     })
@@ -119,13 +113,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' ping="https://a.example ${core.url}">')
       expect(attrs).toEqual({
         array: {
-          ping: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "https://a.example" },
-              { type: "dynamic", value: "core.url" },
-            ],
-          },
+          ping: [
+            { type: "static", value: "https://a.example" },
+            { type: "dynamic", value: "core.url" },
+          ],
         },
       })
     })
@@ -134,14 +125,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' ping="https://a.example ${core.url} https://b.example">')
       expect(attrs).toEqual({
         array: {
-          ping: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "https://a.example" },
-              { type: "dynamic", value: "core.url" },
-              { type: "static", value: "https://b.example" },
-            ],
-          },
+          ping: [
+            { type: "static", value: "https://a.example" },
+            { type: "dynamic", value: "core.url" },
+            { type: "static", value: "https://b.example" },
+          ],
         },
       })
     })
@@ -177,14 +165,11 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          ping: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "https://a.example" },
-              { type: "dynamic", value: 'core.tracking ? "https://tracker.example" : ""' },
-              { type: "dynamic", value: 'core.analytics ? "https://analytics.example" : ""' },
-            ],
-          },
+          ping: [
+            { type: "static", value: "https://a.example" },
+            { type: "dynamic", value: 'core.tracking ? "https://tracker.example" : ""' },
+            { type: "dynamic", value: 'core.analytics ? "https://analytics.example" : ""' },
+          ],
         },
       })
     })
@@ -202,13 +187,10 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          ping: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "https://a.example" },
-              { type: "dynamic", value: 'core.tracking ? "https://tracker.example" : ""' },
-            ],
-          },
+          ping: [
+            { type: "static", value: "https://a.example" },
+            { type: "dynamic", value: 'core.tracking ? "https://tracker.example" : ""' },
+          ],
         },
       })
     })

@@ -395,7 +395,7 @@ export function parseAttributes(tagSource: string): {
         value: normalizeValueForOutput(tok),
       }))
       // @ts-ignore
-      ensure.array()[name] = { splitter: " ", values: out }
+      ensure.array()[name] = out
       continue
     }
 
@@ -423,7 +423,7 @@ export function parseAttributes(tagSource: string): {
           value: normalizeValueForOutput(tok),
         }))
         // @ts-ignore
-        ensure.array()[name] = { splitter: resolved.delim, values: out }
+        ensure.array()[name] = out
         continue
       }
     }

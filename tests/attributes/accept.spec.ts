@@ -24,13 +24,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/png,image/jpeg">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/png" },
-              { type: "static", value: "image/jpeg" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/png" },
+            { type: "static", value: "image/jpeg" },
+          ],
         },
       })
     })
@@ -38,13 +35,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/png, image/jpeg">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/png" },
-              { type: "static", value: "image/jpeg" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/png" },
+            { type: "static", value: "image/jpeg" },
+          ],
         },
       })
     })
@@ -52,14 +46,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/png, image/jpeg, .pdf">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/png" },
-              { type: "static", value: "image/jpeg" },
-              { type: "static", value: ".pdf" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/png" },
+            { type: "static", value: "image/jpeg" },
+            { type: "static", value: ".pdf" },
+          ],
         },
       })
     })
@@ -67,15 +58,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/*, video/*, .pdf, .doc">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/*" },
-              { type: "static", value: "video/*" },
-              { type: "static", value: ".pdf" },
-              { type: "static", value: ".doc" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/*" },
+            { type: "static", value: "video/*" },
+            { type: "static", value: ".pdf" },
+            { type: "static", value: ".doc" },
+          ],
         },
       })
     })
@@ -83,14 +71,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/png , image/jpeg , .pdf">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/png" },
-              { type: "static", value: "image/jpeg" },
-              { type: "static", value: ".pdf" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/png" },
+            { type: "static", value: "image/jpeg" },
+            { type: "static", value: ".pdf" },
+          ],
         },
       })
     })
@@ -113,13 +98,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="${core.mime}, ${core.mime}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "dynamic", value: "core.mime" },
-              { type: "dynamic", value: "core.mime" },
-            ],
-          },
+          accept: [
+            { type: "dynamic", value: "core.mime" },
+            { type: "dynamic", value: "core.mime" },
+          ],
         },
       })
     })
@@ -182,14 +164,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="${core.imageType}, ${core.videoType}, ${core.docType}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "dynamic", value: "core.imageType" },
-              { type: "dynamic", value: "core.videoType" },
-              { type: "dynamic", value: "core.docType" },
-            ],
-          },
+          accept: [
+            { type: "dynamic", value: "core.imageType" },
+            { type: "dynamic", value: "core.videoType" },
+            { type: "dynamic", value: "core.docType" },
+          ],
         },
       })
     })
@@ -198,14 +177,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="${core.type1} , ${core.type2} , ${core.type3}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "dynamic", value: "core.type1" },
-              { type: "dynamic", value: "core.type2" },
-              { type: "dynamic", value: "core.type3" },
-            ],
-          },
+          accept: [
+            { type: "dynamic", value: "core.type1" },
+            { type: "dynamic", value: "core.type2" },
+            { type: "dynamic", value: "core.type3" },
+          ],
         },
       })
     })
@@ -216,13 +192,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/*, ${core.mime}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/*" },
-              { type: "dynamic", value: "core.mime" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/*" },
+            { type: "dynamic", value: "core.mime" },
+          ],
         },
       })
     })
@@ -231,14 +204,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/*, ${core.mime}, .pdf">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/*" },
-              { type: "dynamic", value: "core.mime" },
-              { type: "static", value: ".pdf" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/*" },
+            { type: "dynamic", value: "core.mime" },
+            { type: "static", value: ".pdf" },
+          ],
         },
       })
     })
@@ -268,14 +238,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image-${core.type}, video-${core.format}, .${core.ext}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "mixed", value: "image-${core.type}" },
-              { type: "mixed", value: "video-${core.format}" },
-              { type: "mixed", value: ".${core.ext}" },
-            ],
-          },
+          accept: [
+            { type: "mixed", value: "image-${core.type}" },
+            { type: "mixed", value: "video-${core.format}" },
+            { type: "mixed", value: ".${core.ext}" },
+          ],
         },
       })
     })
@@ -284,14 +251,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="img-${core.type} , vid-${core.format} , .${core.ext}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "mixed", value: "img-${core.type}" },
-              { type: "mixed", value: "vid-${core.format}" },
-              { type: "mixed", value: ".${core.ext}" },
-            ],
-          },
+          accept: [
+            { type: "mixed", value: "img-${core.type}" },
+            { type: "mixed", value: "vid-${core.format}" },
+            { type: "mixed", value: ".${core.ext}" },
+          ],
         },
       })
     })
@@ -304,14 +268,11 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/*" },
-              { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
-              { type: "dynamic", value: 'core.allowDoc ? ".doc" : ""' },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/*" },
+            { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
+            { type: "dynamic", value: 'core.allowDoc ? ".doc" : ""' },
+          ],
         },
       })
     })
@@ -327,13 +288,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/*, ${core.allowPdf ? ".pdf" : ""}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/*" },
-              { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/*" },
+            { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
+          ],
         },
       })
     })
@@ -370,14 +328,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/*, ${core.videoType}, video-${core.format}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/*" },
-              { type: "dynamic", value: "core.videoType" },
-              { type: "mixed", value: "video-${core.format}" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/*" },
+            { type: "dynamic", value: "core.videoType" },
+            { type: "mixed", value: "video-${core.format}" },
+          ],
         },
       })
     })
@@ -386,15 +341,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' accept="image/*, ${core.videoType}, video-${core.format}, .${core.ext}">')
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/*" },
-              { type: "dynamic", value: "core.videoType" },
-              { type: "mixed", value: "video-${core.format}" },
-              { type: "mixed", value: ".${core.ext}" },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/*" },
+            { type: "dynamic", value: "core.videoType" },
+            { type: "mixed", value: "video-${core.format}" },
+            { type: "mixed", value: ".${core.ext}" },
+          ],
         },
       })
     })
@@ -406,15 +358,12 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          accept: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "image/*" },
-              { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
-              { type: "dynamic", value: 'core.allowDoc ? ".doc" : ""' },
-              { type: "dynamic", value: 'core.allowTxt ? ".txt" : ""' },
-            ],
-          },
+          accept: [
+            { type: "static", value: "image/*" },
+            { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
+            { type: "dynamic", value: 'core.allowDoc ? ".doc" : ""' },
+            { type: "dynamic", value: 'core.allowTxt ? ".txt" : ""' },
+          ],
         },
       })
     })

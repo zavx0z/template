@@ -30,15 +30,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="34,44,270,350">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "34" },
-              { type: "static", value: "44" },
-              { type: "static", value: "270" },
-              { type: "static", value: "350" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "34" },
+            { type: "static", value: "44" },
+            { type: "static", value: "270" },
+            { type: "static", value: "350" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -49,15 +46,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="10 , 20 , 30 , 40">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "10" },
-              { type: "static", value: "20" },
-              { type: "static", value: "30" },
-              { type: "static", value: "40" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "10" },
+            { type: "static", value: "20" },
+            { type: "static", value: "30" },
+            { type: "static", value: "40" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -68,17 +62,14 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="0,0,100,100,50,50">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "0" },
-              { type: "static", value: "0" },
-              { type: "static", value: "100" },
-              { type: "static", value: "100" },
-              { type: "static", value: "50" },
-              { type: "static", value: "50" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "0" },
+            { type: "static", value: "0" },
+            { type: "static", value: "100" },
+            { type: "static", value: "100" },
+            { type: "static", value: "50" },
+            { type: "static", value: "50" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -110,15 +101,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="${core.x}, ${core.y}, ${core.width}, ${core.height}">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "dynamic", value: "core.x" },
-              { type: "dynamic", value: "core.y" },
-              { type: "dynamic", value: "core.width" },
-              { type: "dynamic", value: "core.height" },
-            ],
-          },
+          coords: [
+            { type: "dynamic", value: "core.x" },
+            { type: "dynamic", value: "core.y" },
+            { type: "dynamic", value: "core.width" },
+            { type: "dynamic", value: "core.height" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -167,14 +155,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="${core.x} , ${core.y} , ${core.z}">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "dynamic", value: "core.x" },
-              { type: "dynamic", value: "core.y" },
-              { type: "dynamic", value: "core.z" },
-            ],
-          },
+          coords: [
+            { type: "dynamic", value: "core.x" },
+            { type: "dynamic", value: "core.y" },
+            { type: "dynamic", value: "core.z" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -188,13 +173,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="10, ${core.y}">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "10" },
-              { type: "dynamic", value: "core.y" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "10" },
+            { type: "dynamic", value: "core.y" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -205,15 +187,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="10, ${core.y}, 30, ${core.height}">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "10" },
-              { type: "dynamic", value: "core.y" },
-              { type: "static", value: "30" },
-              { type: "dynamic", value: "core.height" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "10" },
+            { type: "dynamic", value: "core.y" },
+            { type: "static", value: "30" },
+            { type: "dynamic", value: "core.height" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -242,15 +221,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="10 , ${core.y} , 30 , ${core.height}">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "10" },
-              { type: "dynamic", value: "core.y" },
-              { type: "static", value: "30" },
-              { type: "dynamic", value: "core.height" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "10" },
+            { type: "dynamic", value: "core.y" },
+            { type: "static", value: "30" },
+            { type: "dynamic", value: "core.height" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -266,15 +242,12 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "0" },
-              { type: "static", value: "0" },
-              { type: "dynamic", value: 'core.width ? core.width : "100"' },
-              { type: "dynamic", value: 'core.height ? core.height : "100"' },
-            ],
-          },
+          coords: [
+            { type: "static", value: "0" },
+            { type: "static", value: "0" },
+            { type: "dynamic", value: 'core.width ? core.width : "100"' },
+            { type: "dynamic", value: 'core.height ? core.height : "100"' },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -294,14 +267,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="0, 0, ${core.width ? core.width : ""}">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "0" },
-              { type: "static", value: "0" },
-              { type: "dynamic", value: 'core.width ? core.width : ""' },
-            ],
-          },
+          coords: [
+            { type: "static", value: "0" },
+            { type: "static", value: "0" },
+            { type: "dynamic", value: 'core.width ? core.width : ""' },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -337,14 +307,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="10, ${core.y}, pos-${core.offset}">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "10" },
-              { type: "dynamic", value: "core.y" },
-              { type: "mixed", value: "pos-${core.offset}" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "10" },
+            { type: "dynamic", value: "core.y" },
+            { type: "mixed", value: "pos-${core.offset}" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -355,15 +322,12 @@ describe.each([
       const attrs = parseAttributes(tag + ' coords="10, ${core.y}, pos-${core.offset}, ${core.final}">')
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "10" },
-              { type: "dynamic", value: "core.y" },
-              { type: "mixed", value: "pos-${core.offset}" },
-              { type: "dynamic", value: "core.final" },
-            ],
-          },
+          coords: [
+            { type: "static", value: "10" },
+            { type: "dynamic", value: "core.y" },
+            { type: "mixed", value: "pos-${core.offset}" },
+            { type: "dynamic", value: "core.final" },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },
@@ -376,15 +340,12 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          coords: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "0" },
-              { type: "static", value: "0" },
-              { type: "dynamic", value: 'core.width ? core.width : ""' },
-              { type: "dynamic", value: 'core.height ? core.height : ""' },
-            ],
-          },
+          coords: [
+            { type: "static", value: "0" },
+            { type: "static", value: "0" },
+            { type: "dynamic", value: 'core.width ? core.width : ""' },
+            { type: "dynamic", value: 'core.height ? core.height : ""' },
+          ],
         },
         string: {
           shape: { type: "static", value: shape },

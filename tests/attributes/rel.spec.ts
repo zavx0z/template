@@ -22,14 +22,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' rel="nofollow noopener noreferrer">')
       expect(attrs).toEqual({
         array: {
-          rel: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "nofollow" },
-              { type: "static", value: "noopener" },
-              { type: "static", value: "noreferrer" },
-            ],
-          },
+          rel: [
+            { type: "static", value: "nofollow" },
+            { type: "static", value: "noopener" },
+            { type: "static", value: "noreferrer" },
+          ],
         },
       })
     })
@@ -52,13 +49,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' rel="${core.rel} ${core.rel}">')
       expect(attrs).toEqual({
         array: {
-          rel: {
-            splitter: " ",
-            values: [
-              { type: "dynamic", value: "core.rel" },
-              { type: "dynamic", value: "core.rel" },
-            ],
-          },
+          rel: [
+            { type: "dynamic", value: "core.rel" },
+            { type: "dynamic", value: "core.rel" },
+          ],
         },
       })
     })
@@ -107,13 +101,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' rel="pre-${core.rel} pre-${core.rel}">')
       expect(attrs).toEqual({
         array: {
-          rel: {
-            splitter: " ",
-            values: [
-              { type: "mixed", value: "pre-${core.rel}" },
-              { type: "mixed", value: "pre-${core.rel}" },
-            ],
-          },
+          rel: [
+            { type: "mixed", value: "pre-${core.rel}" },
+            { type: "mixed", value: "pre-${core.rel}" },
+          ],
         },
       })
     })
@@ -140,14 +131,11 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          rel: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "nofollow" },
-              { type: "dynamic", value: 'core.external ? "noopener" : ""' },
-              { type: "dynamic", value: 'core.secure ? "noreferrer" : ""' },
-            ],
-          },
+          rel: [
+            { type: "static", value: "nofollow" },
+            { type: "dynamic", value: 'core.external ? "noopener" : ""' },
+            { type: "dynamic", value: 'core.secure ? "noreferrer" : ""' },
+          ],
         },
       })
     })
@@ -163,13 +151,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' rel="nofollow ${core.external ? "noopener" : ""}">')
       expect(attrs).toEqual({
         array: {
-          rel: {
-            splitter: " ",
-            values: [
-              { type: "static", value: "nofollow" },
-              { type: "dynamic", value: 'core.external ? "noopener" : ""' },
-            ],
-          },
+          rel: [
+            { type: "static", value: "nofollow" },
+            { type: "dynamic", value: 'core.external ? "noopener" : ""' },
+          ],
         },
       })
     })

@@ -22,13 +22,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' srcset="a.jpg 1x, b.jpg 2x">')
       expect(attrs).toEqual({
         array: {
-          srcset: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "a.jpg 1x" },
-              { type: "static", value: "b.jpg 2x" },
-            ],
-          },
+          srcset: [
+            { type: "static", value: "a.jpg 1x" },
+            { type: "static", value: "b.jpg 2x" },
+          ],
         },
       })
     })
@@ -51,13 +48,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' srcset="${core.src}, ${core.src}">')
       expect(attrs).toEqual({
         array: {
-          srcset: {
-            splitter: ",",
-            values: [
-              { type: "dynamic", value: "core.src" },
-              { type: "dynamic", value: "core.src" },
-            ],
-          },
+          srcset: [
+            { type: "dynamic", value: "core.src" },
+            { type: "dynamic", value: "core.src" },
+          ],
         },
       })
     })
@@ -106,13 +100,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' srcset="a.jpg 1x, ${core.src} 2x">')
       expect(attrs).toEqual({
         array: {
-          srcset: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "a.jpg 1x" },
-              { type: "mixed", value: "${core.src} 2x" },
-            ],
-          },
+          srcset: [
+            { type: "static", value: "a.jpg 1x" },
+            { type: "mixed", value: "${core.src} 2x" },
+          ],
         },
       })
     })
@@ -139,14 +130,11 @@ describe.each([
       )
       expect(attrs).toEqual({
         array: {
-          srcset: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "a.jpg 1x" },
-              { type: "dynamic", value: 'core.retina ? "a@2x.jpg 2x" : ""' },
-              { type: "dynamic", value: 'core.webp ? "a.webp 1x" : ""' },
-            ],
-          },
+          srcset: [
+            { type: "static", value: "a.jpg 1x" },
+            { type: "dynamic", value: 'core.retina ? "a@2x.jpg 2x" : ""' },
+            { type: "dynamic", value: 'core.webp ? "a.webp 1x" : ""' },
+          ],
         },
       })
     })
@@ -162,13 +150,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' srcset="a.jpg 1x, ${core.retina ? "a@2x.jpg 2x" : ""}">')
       expect(attrs).toEqual({
         array: {
-          srcset: {
-            splitter: ",",
-            values: [
-              { type: "static", value: "a.jpg 1x" },
-              { type: "dynamic", value: 'core.retina ? "a@2x.jpg 2x" : ""' },
-            ],
-          },
+          srcset: [
+            { type: "static", value: "a.jpg 1x" },
+            { type: "dynamic", value: 'core.retina ? "a@2x.jpg 2x" : ""' },
+          ],
         },
       })
     })
