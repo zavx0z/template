@@ -390,15 +390,20 @@ export function parseAttributes(tagSource: string): {
       value = ""
     }
 
-    // class — особый формат в тестах: массив без splitter
+    // class — обрабатываем как обычный списковый атрибут
     if (name === "class") {
       const tokens = splitBySpace(value ?? "")
+      // Если только одно значение, обрабатываем как строку
+      if (tokens.length === 1) {
+        ensure.string()[name] = value ?? ""
+        continue
+      }
       const out = tokens.map((tok) => ({
         type: classifyValue(tok),
         value: normalizeValueForOutput(tok),
       }))
-      // @ts-ignore: тип результата допускает произвольные ключи
-      ensure.array()[name] = out
+      // @ts-ignore
+      ensure.array()[name] = { splitter: " ", values: out }
       continue
     }
 
