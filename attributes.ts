@@ -1,7 +1,7 @@
 import type { ValueType, AttributeEvent, AttributeArray, AttributeString, AttributeBoolean } from "./attributes.t"
 
 // ============================
-// ВСПОМОГАТЕЛЬНЫЕ УТИЛЫ
+// ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
 // ============================
 
 /** Найти позицию ПОСЛЕ закрывающей '}' для сбалансированного блока, начиная с индекса после '{' в последовательности `${` */
@@ -140,9 +140,9 @@ function splitBySpace(raw: string): string[] {
       continue
     }
 
-    if (/\s/.test(ch)) {
+    if (ch && /\s/.test(ch)) {
       push()
-      while (i + 1 < raw.length && /\s/.test(raw[i + 1])) i++
+      while (i + 1 < raw.length && /\s/.test(raw[i + 1] || "")) i++
       continue
     }
 
@@ -206,7 +206,7 @@ function detectSplitter(raw: string): SplitterResolved | null {
 /** Прочитать "сырое" значение атрибута из строки inside, начиная с позиции cursor */
 function readAttributeRawValue(inside: string, cursor: number): { value: string; nextIndex: number } {
   const len = inside.length
-  while (cursor < len && /\s/.test(inside[cursor] || "")) cursor++
+  while (cursor < len && /\s/.test(inside[cursor] ?? "")) cursor++
   if (cursor >= len) return { value: "", nextIndex: cursor }
 
   const first = inside[cursor]
@@ -266,9 +266,9 @@ function sliceInsideTag(tagSource: string): string {
   // Пройти имя тега (учитывая возможные ${...} внутри имени)
   while (i < tagSource.length) {
     const ch = tagSource[i]
-    if (ch === ">" || /\s/.test(ch)) break
+    if (ch === ">" || /\s/.test(ch ?? "")) break
 
-    if (ch === "$" && tagSource[i + 1] === "{") {
+    if (ch === "$" && tagSource[i + 1] && tagSource[i + 1] === "{") {
       const end = matchBalancedBraces(tagSource, i + 2)
       if (end === -1) break
       i = end
@@ -292,7 +292,7 @@ function sliceInsideTag(tagSource: string): string {
   // если сразу '>', атрибутов нет
   if (i >= tagSource.length || tagSource[i] === ">") return ""
 
-  // сейчас i указывает на первый пробел после имени — начинаем собирать до ВЕРХНЕУРОВНЕВОГО '>'
+  // сейчас i указывает на первый пробел после имени — начинаем собирать до ВЕРХНЕ-УРОВНЕВОГО '>'
   let j = i
   let out = ""
   let inSingle = false
@@ -302,7 +302,7 @@ function sliceInsideTag(tagSource: string): string {
     const ch = tagSource[j]
 
     // ВАЖНО: сначала обрабатываем ${...} — и внутри, и вне кавычек
-    if (ch === "$" && tagSource[j + 1] === "{") {
+    if (ch === "$" && tagSource[j + 1] && tagSource[j + 1] === "{") {
       const end = matchBalancedBraces(tagSource, j + 2)
       if (end === -1) {
         out += tagSource.slice(j)
@@ -327,7 +327,7 @@ function sliceInsideTag(tagSource: string): string {
       continue
     }
 
-    // Верхнеуровневое закрытие тега
+    // Верхне-уровневое закрытие тега
     if (!inSingle && !inDouble && ch === ">") break
 
     out += ch
