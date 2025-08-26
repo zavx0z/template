@@ -1447,7 +1447,7 @@ export const createNodeDataElement = (
           const booleanValue = String(attr.value)
           const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
 
-          if (variableMatches.length > 0) {
+          if (variableMatches.length > 0 && variableMatches[0]) {
             const variable = variableMatches[0]
             const dataPath = resolveDataPath(variable, context)
             result.boolean[key] = {
