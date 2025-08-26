@@ -1,13 +1,7 @@
 import type { DataParserContext, DataParseResult, MapContext, AttributeParseResult, TextPart } from "./data.t"
 import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node } from "./index.t"
-import type {
-  NodeHierarchyElement,
-  NodeHierarchyCondition,
-  NodeHierarchyMap,
-  NodeHierarchyText,
-  NodeHierarchyMeta,
-  NodeHierarchy,
-} from "./hierarchy.t"
+import type { NodeHierarchyText } from "./hierarchy.t"
+import type { PartAttrCondition, PartAttrElement, PartAttributeMap, PartAttrMeta, PartAttrs } from "./attributes.t"
 
 /**
  * Ищет переменную в стеке map контекстов и возвращает соответствующий путь.
@@ -1211,7 +1205,7 @@ const parseAttributesImproved = (
  * Создает NodeMap из обычного NodeHierarchyMap.
  */
 export const createNodeDataMap = (
-  node: NodeHierarchyMap,
+  node: PartAttributeMap,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeMap => {
   const mapData = parseMapData(node.text, context)
@@ -1227,7 +1221,7 @@ export const createNodeDataMap = (
  * Создает NodeCondition из обычного NodeHierarchyCondition.
  */
 export const createNodeDataCondition = (
-  node: NodeHierarchyCondition,
+  node: PartAttrCondition,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeCondition => {
   const condData = parseConditionData(node.text, context)
@@ -1259,7 +1253,7 @@ export const createNodeDataCondition = (
  * Создает NodeMeta из обычного NodeHierarchyMeta.
  */
 export const createNodeDataMeta = (
-  node: NodeHierarchyMeta,
+  node: PartAttrMeta,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeMeta => {
   let result: NodeMeta
@@ -1321,7 +1315,7 @@ export const createNodeDataMeta = (
  * Создает NodeElement из обычного NodeHierarchyElement.
  */
 export const createNodeDataElement = (
-  node: NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText | NodeHierarchyMeta,
+  node: PartAttrElement | PartAttrMeta | PartAttributeMap | PartAttrCondition | NodeHierarchyText,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeElement | NodeText | NodeMap | NodeCondition | NodeMeta => {
   if (node.type === "map") {
@@ -1389,7 +1383,7 @@ export const createNodeDataElement = (
  * // Возвращает обогащенную иерархию с путями к данным и унифицированными выражениями
  */
 export const enrichHierarchyWithData = (
-  hierarchy: NodeHierarchy,
+  hierarchy: PartAttrs,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): Node[] => {
   return hierarchy.map((node) => createNodeDataElement(node, context))

@@ -42,8 +42,14 @@ export type PartAttrMeta = {
   tag: string
   /** Тип узла */
   type: "meta"
-  /** Аттрибуты */
-  attr: AttributeValue[]
+  /** События */
+  event?: AttributeEvent
+  /** Булевые аттрибуты */
+  boolean?: AttributeBoolean
+  /** Массивы аттрибутов */
+  array?: AttributeArray
+  /** Строковые аттрибуты */
+  string?: AttributeString
   /** Дочерние элементы (опционально) */
   child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
 }

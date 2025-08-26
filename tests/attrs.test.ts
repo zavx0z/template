@@ -9,26 +9,24 @@ describe("атрибуты", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<svg:use xlink:href="#id"></svg:use>`)
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
+    it("elements", () =>
       expect(elements).toEqual([
         { text: '<svg:use xlink:href="#id">', index: 0, name: "svg:use", kind: "open" },
         { text: "</svg:use>", index: 26, name: "svg:use", kind: "close" },
-      ])
-    })
+      ]))
 
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    it("hierarchy", () => {
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "svg:use",
           type: "el",
           text: '<svg:use xlink:href="#id">',
         },
-      ])
-    })
+      ]))
 
     const attributes = extractAttributes(hierarchy)
-    it("attributes", () => {
+    it("attributes", () =>
       expect(attributes).toEqual([
         {
           tag: "svg:use",
@@ -40,39 +38,34 @@ describe("атрибуты", () => {
             },
           },
         },
-      ])
-    })
+      ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "svg:use",
           type: "el",
-          attr: {
-            "xlink:href": {
-              value: "#id",
-            },
+          string: {
+            "xlink:href": "#id",
           },
         },
-      ])
-    })
+      ]))
   })
 
   describe("двойные/одинарные кавычки", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<a href="https://e.co" target="_blank">x</a>`)
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
+    it("elements", () =>
       expect(elements).toEqual([
         { text: '<a href="https://e.co" target="_blank">', index: 0, name: "a", kind: "open" },
         { text: "x", index: 39, name: "", kind: "text" },
         { text: "</a>", index: 40, name: "a", kind: "close" },
-      ])
-    })
+      ]))
 
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    it("hierarchy", () => {
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "a",
@@ -85,11 +78,10 @@ describe("атрибуты", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
 
     const attributes = extractAttributes(hierarchy)
-    it("attributes", () => {
+    it("attributes", () =>
       expect(attributes).toEqual([
         {
           tag: "a",
@@ -111,22 +103,17 @@ describe("атрибуты", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "a",
           type: "el",
-          attr: {
-            href: {
-              value: "https://e.co",
-            },
-            target: {
-              value: "_blank",
-            },
+          string: {
+            href: "https://e.co",
+            target: "_blank",
           },
           child: [
             {
@@ -135,34 +122,31 @@ describe("атрибуты", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("угловые скобки внутри значения", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<div title="a > b, c < d"></div>`)
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
+    it("elements", () =>
       expect(elements).toEqual([
         { text: '<div title="a > b, c < d">', index: 0, name: "div", kind: "open" },
         { text: "</div>", index: 26, name: "div", kind: "close" },
-      ])
-    })
+      ]))
 
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    it("hierarchy", () => {
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "div",
           type: "el",
           text: '<div title="a > b, c < d">',
         },
-      ])
-    })
+      ]))
 
     const attributes = extractAttributes(hierarchy)
-    it("attributes", () => {
+    it("attributes", () =>
       expect(attributes).toEqual([
         {
           tag: "div",
@@ -174,23 +158,19 @@ describe("атрибуты", () => {
             },
           },
         },
-      ])
-    })
+      ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "div",
           type: "el",
-          attr: {
-            title: {
-              value: "a > b, c < d",
-            },
+          string: {
+            title: "a > b, c < d",
           },
         },
-      ])
-    })
+      ]))
   })
 
   describe("условие в атрибуте", () => {
@@ -199,24 +179,24 @@ describe("атрибуты", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: '<div title="${context.flag ? "a > b" : "c < d"}">', index: 0, name: "div", kind: "open" },
-      { text: "</div>", index: 49, name: "div", kind: "close" },
-    ])
+    it("elements", () =>
+      expect(elements).toEqual([
+        { text: '<div title="${context.flag ? "a > b" : "c < d"}">', index: 0, name: "div", kind: "open" },
+        { text: "</div>", index: 49, name: "div", kind: "close" },
+      ]))
 
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    it("hierarchy", () => {
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "div",
           type: "el",
           text: '<div title="${context.flag ? "a > b" : "c < d"}">',
         },
-      ])
-    })
+      ]))
 
     const attributes = extractAttributes(hierarchy)
-    it("attributes", () => {
+    it("attributes", () =>
       expect(attributes).toEqual([
         {
           tag: "div",
@@ -228,24 +208,22 @@ describe("атрибуты", () => {
             },
           },
         },
-      ])
-    })
+      ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "div",
           type: "el",
-          attr: {
+          string: {
             title: {
               data: "/context/flag",
               expr: '${0} ? "a > b" : "c < d"',
             },
           },
         },
-      ])
-    })
+      ]))
   })
 
   describe("условие в аттрибуте без кавычек", () => {
@@ -254,26 +232,24 @@ describe("атрибуты", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
+    it("elements", () =>
       expect(elements).toEqual([
         { text: '<div title=${context.flag ? "a > b" : "c < d"}>', index: 0, name: "div", kind: "open" },
         { text: "</div>", index: 47, name: "div", kind: "close" },
-      ])
-    })
+      ]))
 
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    it("hierarchy", () => {
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "div",
           type: "el",
           text: '<div title=${context.flag ? "a > b" : "c < d"}>',
         },
-      ])
-    })
+      ]))
 
     const attributes = extractAttributes(hierarchy)
-    it("attributes", () => {
+    it("attributes", () =>
       expect(attributes).toEqual([
         {
           tag: "div",
@@ -285,24 +261,22 @@ describe("атрибуты", () => {
             },
           },
         },
-      ])
-    })
+      ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "div",
           type: "el",
-          attr: {
+          string: {
             title: {
               data: "/context/flag",
               expr: '${0} ? "a > b" : "c < d"',
             },
           },
         },
-      ])
-    })
+      ]))
   })
 
   describe("условие в аттрибуте с одинарными кавычками", () => {
@@ -312,26 +286,24 @@ describe("атрибуты", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
+    it("elements", () =>
       expect(elements).toEqual([
         { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', index: 0, name: "div", kind: "open" },
         { text: "</div>", index: 49, name: "div", kind: "close" },
-      ])
-    })
+      ]))
 
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    it("hierarchy", () => {
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "div",
           type: "el",
           text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>',
         },
-      ])
-    })
+      ]))
 
     const attributes = extractAttributes(hierarchy)
-    it("attributes", () => {
+    it("attributes", () =>
       expect(attributes).toEqual([
         {
           tag: "div",
@@ -343,16 +315,15 @@ describe("атрибуты", () => {
             },
           },
         },
-      ])
-    })
+      ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
       expect(data).toEqual([
         {
           tag: "div",
           type: "el",
-          attr: {
+          string: {
             title: {
               data: "/context/flag",
               expr: '${0} ? "a > b" : "c < d"',
@@ -369,26 +340,24 @@ describe("атрибуты", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
+    it("elements", () =>
       expect(elements).toEqual([
         { text: '<button ${context.flag && "disabled"}>', index: 0, name: "button", kind: "open" },
         { text: "</button>", index: 38, name: "button", kind: "close" },
-      ])
-    })
+      ]))
 
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    it("hierarchy", () => {
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "button",
           type: "el",
           text: '<button ${context.flag && "disabled"}>',
         },
-      ])
-    })
+      ]))
 
     const attributes = extractAttributes(hierarchy)
-    it("attributes", () => {
+    it("attributes", () =>
       expect(attributes).toEqual([
         {
           tag: "button",
@@ -400,23 +369,21 @@ describe("атрибуты", () => {
             },
           },
         },
-      ])
-    })
+      ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
+          boolean: {
             disabled: {
               data: "/context/flag",
             },
           },
         },
-      ])
-    })
+      ]))
   })
 
   describe("класс в map", () => {
@@ -503,8 +470,8 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () =>
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "ul",
@@ -517,7 +484,7 @@ describe("атрибуты", () => {
                 {
                   tag: "li",
                   type: "el",
-                  attr: {
+                  string: {
                     class: {
                       data: "[item]/type",
                       expr: "item-${0}",
@@ -590,13 +557,13 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () =>
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "div",
           type: "el",
-          attr: {
+          string: {
             class: {
               data: "/core/active",
               expr: 'div-${0} ? "active" : "inactive"',

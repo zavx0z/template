@@ -18,13 +18,11 @@ export type Render<C extends Content = Content, I extends Core = Core, S extends
  * Узел HTML элемента.
  * Представляет HTML тег с атрибутами и дочерними элементами.
  */
-export interface NodeElement {
+export interface NodeElement extends AttributesNode {
   /** Имя HTML тега */
   tag: string
   /** Тип узла - всегда "el" для элементов */
   type: "el"
-  /** Атрибуты элемента с путями к данным или статическими значениями */
-  attr?: Record<string, { value: string } | import("./data.t").AttributeParseResult>
   /** Дочерние узлы элемента */
   child?: Node[]
 }
@@ -78,15 +76,53 @@ export interface NodeCondition {
  * Мета-узел.
  * Представляет мета-тег с динамическим именем тега.
  */
-export interface NodeMeta {
+export interface NodeMeta extends AttributesNode {
   /** Имя мета-тега (может быть динамическим) */
   tag: string | AttributeParseResult
   /** Тип узла - всегда "meta" для мета-узлов */
   type: "meta"
-  /** Атрибуты элемента с путями к данным или статическими значениями */
-  attr?: Record<string, { value: string } | AttributeParseResult>
+
   /** Дочерние элементы (опционально) */
   child?: Node[]
 }
+
+interface AttributesNode {
+  /** События */
+  event?: AttributeEvent
+  /** Булевые аттрибуты */
+  boolean?: AttributeBoolean
+  /** Массивы аттрибутов */
+  array?: AttributeArray
+  /** Строковые аттрибуты */
+  string?: AttributeString
+}
+
+/**
+ * Результат парсинга атрибута.
+ */
+export type AttributeParseResult = {
+  /** Путь(и) к данным (необязательное) */
+  data?: string | string[]
+  /** Унифицированное выражение (необязательное) */
+  expr?: string
+  /** Ключи для обновления (необязательное) */
+  upd?: string | string[]
+}
+type AttrVariable = { data: string }
+type AttrDynamic = {
+  data: string
+  expr: string
+}
+
+export type AttributeEvent = Record<string, string>
+
+export type AttributeArray = Record<string, { value: string }[]>
+
+export type AttributeString = Record<string, AttrStaticString | AttrVariable | AttrDynamic>
+type AttrStaticString = string
+
+export type AttributeBoolean = Record<string, boolean | AttrVariable | AttrDynamic>
+
+export type AttributeObject = Record<string, string>
 
 export type Node = NodeMap | NodeCondition | NodeText | NodeElement | NodeMeta
