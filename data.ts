@@ -246,6 +246,18 @@ const parseEventExpression = (
   eventValue: string,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): AttributeParseResult | null => {
+  // Проверяем, является ли это условным выражением (не событием)
+  const hasConditionalOperators = /[?:]/.test(eventValue)
+  if (hasConditionalOperators) {
+    return null
+  }
+
+  // Проверяем, является ли это template literal (не событием)
+  const hasTemplateLiteral = eventValue.includes("${")
+  if (hasTemplateLiteral) {
+    return null
+  }
+
   // Проверяем, является ли это update выражением
   if (eventValue.includes("update(")) {
     // Ищем объект в update({ ... })
@@ -338,8 +350,10 @@ const parseEventExpression = (
     expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
   })
 
-  // Убираем ${} обертку если она есть
-  expr = expr.replace(/^\$\{/, "").replace(/\}$/, "")
+  // Убираем ${} обертку если она есть, но только если это не template literal
+  if (!expr.includes("${")) {
+    expr = expr.replace(/^\$\{/, "").replace(/\}$/, "")
+  }
 
   // Применяем форматирование
   expr = expr.replace(/\s+/g, " ").trim()
@@ -919,11 +933,6 @@ const parseTemplateLiteral = (
   value: string,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): AttributeParseResult | null => {
-  // Проверяем, содержит ли значение template literal
-  if (!value.includes("${")) {
-    return null
-  }
-
   // Проверяем, является ли это событийным выражением
   const eventResult = parseEventExpression(value, context)
   if (eventResult) {
@@ -960,7 +969,6 @@ const parseTemplateLiteral = (
 
   // Проверяем, является ли это условным выражением
   const hasConditionalOperators = /[?:]/.test(value)
-
   if (hasConditionalOperators) {
     // Для условных выражений используем стандартную унификацию
     // Извлекаем переменные из выражения, исключая строковые литералы
@@ -976,8 +984,8 @@ const parseTemplateLiteral = (
       // Создаем пути к данным с учетом контекста
       const paths = uniquePaths.map((path) => resolveDataPath(path, context))
 
-      // Создаем выражение с унификацией - убираем ${} и заменяем переменные на индексы
-      let expr = value.replace(/^\$\{/, "").replace(/\}$/, "")
+      // Создаем выражение с унификацией - заменяем переменные на индексы
+      let expr = value
       uniquePaths.forEach((path, index) => {
         expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
       })
@@ -986,7 +994,7 @@ const parseTemplateLiteral = (
       expr = expr.replace(/""/g, '"').replace(/''/g, "'")
 
       // Применяем форматирование к выражению
-      expr = createUnifiedExpression(expr, uniquePaths)
+      expr = expr.replace(/\s+/g, " ").trim()
 
       return {
         data: paths.length === 1 ? paths[0] || "" : paths,
@@ -997,7 +1005,6 @@ const parseTemplateLiteral = (
 
   // Проверяем, есть ли простые логические операторы без тернарного оператора
   const hasLogicalOperators = /[&&||]/.test(value) && !/[?:]/.test(value)
-
   if (hasLogicalOperators) {
     // Для простых логических операторов (&&, ||) без тернарного оператора
     // извлекаем переменные и проверяем, есть ли сложные операции
@@ -1377,7 +1384,7 @@ export const createNodeDataElement = (
         if (attr.type === "static") {
           result.string[key] = attr.value
         } else {
-          // Используем существующую функцию parseTemplateLiteral
+          // Для динамических атрибутов обрабатываем значение напрямую
           const templateResult = parseTemplateLiteral(attr.value, context)
           if (templateResult && templateResult.data) {
             if (templateResult.expr && typeof templateResult.expr === "string") {
