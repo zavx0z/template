@@ -37,9 +37,9 @@ describe("basic", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -139,9 +139,9 @@ describe("basic", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "ul",
           type: "el",
@@ -232,22 +232,10 @@ describe("basic", () => {
             {
               tag: "br",
               type: "el",
-              boolean: {
-                "/": {
-                  type: "static",
-                  value: true,
-                },
-              },
             },
             {
               tag: "img",
               type: "el",
-              boolean: {
-                "/": {
-                  type: "static",
-                  value: true,
-                },
-              },
               string: {
                 src: {
                   type: "static",
@@ -259,10 +247,6 @@ describe("basic", () => {
               tag: "input",
               type: "el",
               boolean: {
-                "/": {
-                  type: "static",
-                  value: true,
-                },
                 disabled: {
                   type: "static",
                   value: true,
@@ -274,9 +258,9 @@ describe("basic", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -288,19 +272,15 @@ describe("basic", () => {
             {
               tag: "img",
               type: "el",
-              attr: {
-                src: {
-                  value: "x",
-                },
+              string: {
+                src: "x",
               },
             },
             {
               tag: "input",
               type: "el",
-              attr: {
-                disabled: {
-                  value: "",
-                },
+              boolean: {
+                disabled: true,
               },
             },
           ],
