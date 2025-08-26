@@ -477,6 +477,11 @@ export function parseAttributes(tagSource: string): {
     const name = inside.slice(nameStart, i)
     if (!name) break
 
+    // Игнорируем атрибут "/" для самозакрывающихся тегов
+    if (name === "/") {
+      continue
+    }
+
     // события - обрабатываем в первую очередь
     if (name.startsWith("on")) {
       while (i < len && /\s/.test(inside[i] || "")) i++

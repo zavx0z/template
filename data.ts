@@ -301,11 +301,6 @@ const parseEventExpression = (
     }
   }
 
-  // Проверяем, является ли это обычным событийным выражением
-  if (!eventValue.includes("=>")) {
-    return null
-  }
-
   // Извлекаем переменные из события
   // Ищем все переменные в формате identifier.identifier
   const variableMatches = eventValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
@@ -313,6 +308,9 @@ const parseEventExpression = (
   if (variableMatches.length === 0) {
     return null
   }
+
+  // Проверяем, является ли это стрелочной функцией
+  const hasArrowFunction = eventValue.includes("=>")
 
   // Фильтруем уникальные переменные и исключаем строковые литералы
   const uniqueVariables = [...new Set(variableMatches)].filter((variable) => {
@@ -345,6 +343,13 @@ const parseEventExpression = (
 
   // Применяем форматирование
   expr = expr.replace(/\s+/g, " ").trim()
+
+  // Если это простая переменная без стрелочной функции, не возвращаем expr
+  if (!hasArrowFunction && uniqueVariables.length === 1 && (expr === "${0}" || expr === "0")) {
+    return {
+      data: paths[0] || "",
+    }
+  }
 
   return {
     data: paths.length === 1 ? paths[0] || "" : paths,
@@ -1375,9 +1380,15 @@ export const createNodeDataElement = (
           // Используем существующую функцию parseTemplateLiteral
           const templateResult = parseTemplateLiteral(attr.value, context)
           if (templateResult && templateResult.data) {
-            result.string[key] = {
-              data: Array.isArray(templateResult.data) ? templateResult.data : templateResult.data,
-              ...(templateResult.expr && { expr: templateResult.expr }),
+            if (templateResult.expr && typeof templateResult.expr === "string") {
+              result.string[key] = {
+                data: templateResult.data,
+                expr: templateResult.expr,
+              }
+            } else {
+              result.string[key] = {
+                data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
+              }
             }
           } else {
             result.string[key] = attr.value
@@ -1390,11 +1401,32 @@ export const createNodeDataElement = (
       result.event = {}
       for (const [key, value] of Object.entries(node.event)) {
         const eventResult = parseEventExpression(value, context)
-        if (eventResult) {
-          result.event[key] = eventResult.expr || value
+        if (eventResult && eventResult.data) {
+          if (eventResult.expr && typeof eventResult.expr === "string") {
+            // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
+            result.event[key] = {
+              data: eventResult.data,
+              expr: eventResult.expr,
+            }
+          } else {
+            // Если нет выражения, создаем AttrVariable (только строка)
+            result.event[key] = {
+              data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
+            }
+          }
         } else {
-          result.event[key] = value
+          // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
+          if (value && value.trim() !== "") {
+            result.event[key] = {
+              data: value,
+            }
+          }
+          // Иначе игнорируем пустые события
         }
+      }
+      // Если секция событий пуста, удаляем её
+      if (Object.keys(result.event).length === 0) {
+        delete result.event
       }
     }
 
@@ -1411,11 +1443,15 @@ export const createNodeDataElement = (
         if (attr.type === "static") {
           result.boolean[key] = Boolean(attr.value)
         } else {
-          const templateResult = parseTemplateLiteral(String(attr.value), context)
-          if (templateResult && templateResult.data) {
+          // Для булевых атрибутов используем специальную обработку
+          const booleanValue = String(attr.value)
+          const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+
+          if (variableMatches.length > 0) {
+            const variable = variableMatches[0]
+            const dataPath = resolveDataPath(variable, context)
             result.boolean[key] = {
-              data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
-              ...(templateResult.expr && { expr: templateResult.expr }),
+              data: dataPath,
             }
           } else {
             result.boolean[key] = false

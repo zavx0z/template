@@ -138,12 +138,6 @@ describe("events", () => {
             onclick: "() => core.onClick()",
             oninput: "(e) => core.onInput(e)",
           },
-          boolean: {
-            "/": {
-              type: "static",
-              value: true,
-            },
-          },
         },
       ]))
 
@@ -180,12 +174,6 @@ describe("events", () => {
           type: "el",
           event: {
             oninput: "(e) => core.onInput(e)",
-          },
-          boolean: {
-            "/": {
-              type: "static",
-              value: true,
-            },
           },
         },
       ]))
@@ -407,12 +395,6 @@ describe("events", () => {
               },
               event: {
                 onchange: "(e) => core.handleChange(e)",
-              },
-              boolean: {
-                "/": {
-                  type: "static",
-                  value: true,
-                },
               },
             },
             {
