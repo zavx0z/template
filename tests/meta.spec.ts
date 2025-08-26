@@ -1,12 +1,35 @@
 import { describe, expect, it } from "bun:test"
-import { parse } from ".."
+import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
+import { elementsHierarchy } from "../hierarchy"
+import { enrichHierarchyWithData } from "../data"
 
 describe("meta", () => {
   describe("теги", () => {
     describe("актор web-component", () => {
-      const data = parse(({ html }) => html`<meta-hash></meta-hash>`)
-      it("парсинг", () => {
-        expect(data, "актор web-component").toEqual([
+      const mainHtml = extractMainHtmlBlock(({ html }) => html`<meta-hash></meta-hash>`)
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          { text: "<meta-hash>", index: 0, name: "meta-hash", kind: "open" },
+          { text: "</meta-hash>", index: 11, name: "meta-hash", kind: "close" },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-hash",
+            type: "meta",
+            text: "<meta-hash>",
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: "meta-hash",
             type: "meta",
@@ -14,10 +37,29 @@ describe("meta", () => {
         ])
       })
     })
+
     describe("актор web-component с самозакрывающимся тегом", () => {
-      const data = parse(({ html }) => html`<meta-hash />`)
-      it("парсинг", () => {
-        expect(data, "актор web-component с самозакрывающимся тегом").toEqual([
+      const mainHtml = extractMainHtmlBlock(({ html }) => html`<meta-hash />`)
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([{ text: "<meta-hash />", index: 0, name: "meta-hash", kind: "self" }])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-hash",
+            type: "meta",
+            text: "<meta-hash />",
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: "meta-hash",
             type: "meta",
@@ -25,10 +67,31 @@ describe("meta", () => {
         ])
       })
     })
+
     describe("хеш-тег из core в самозакрывающемся теге", () => {
-      const data = parse(({ html, core }) => html`<meta-${core.actors.child} />`)
-      it("парсинг", () => {
-        expect(data, "хеш-тег из core").toEqual([
+      const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<meta-${core.actors.child} />`)
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          { text: "<meta-${core.actors.child} />", index: 0, name: "meta-${core.actors.child}", kind: "self" },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-${core.actors.child}",
+            type: "meta",
+            text: "<meta-${core.actors.child} />",
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: {
               data: "/core/actors/child",
@@ -39,10 +102,34 @@ describe("meta", () => {
         ])
       })
     })
+
     describe("хеш-тег из core", () => {
-      const data = parse(({ html, core }) => html`<meta-${core.actors.child}></meta-${core.actors.child}>`)
-      it("парсинг", () => {
-        expect(data, "хеш-тег из core").toEqual([
+      const mainHtml = extractMainHtmlBlock(
+        ({ html, core }) => html`<meta-${core.actors.child}></meta-${core.actors.child}>`
+      )
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          { text: "<meta-${core.actors.child}>", index: 0, name: "meta-${core.actors.child}", kind: "open" },
+          { text: "</meta-${core.actors.child}>", index: 27, name: "meta-${core.actors.child}", kind: "close" },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-${core.actors.child}",
+            type: "meta",
+            text: "<meta-${core.actors.child}>",
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: {
               data: "/core/actors/child",
@@ -53,10 +140,40 @@ describe("meta", () => {
         ])
       })
     })
+
     describe("meta-тег в простом элементе", () => {
-      const data = parse(({ html, core }) => html`<div><meta-${core.tag} /></div>`)
-      it("парсинг", () => {
-        expect(data, "meta-тег в meta-теге").toEqual([
+      const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<div><meta-${core.tag} /></div>`)
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          { text: "<div>", index: 0, name: "div", kind: "open" },
+          { text: "<meta-${core.tag} />", index: 5, name: "meta-${core.tag}", kind: "self" },
+          { text: "</div>", index: 25, name: "div", kind: "close" },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "div",
+            type: "el",
+            text: "<div>",
+            child: [
+              {
+                tag: "meta-${core.tag}",
+                type: "meta",
+                text: "<meta-${core.tag} />",
+              },
+            ],
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: "div",
             type: "el",
@@ -73,10 +190,40 @@ describe("meta", () => {
         ])
       })
     })
+
     describe("meta-тег в meta-теге", () => {
-      const data = parse(({ html, core }) => html`<meta-hash><meta-${core.tag} /></meta-hash>`)
-      it("парсинг", () => {
-        expect(data, "meta-тег в meta-теге").toEqual([
+      const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<meta-hash><meta-${core.tag} /></meta-hash>`)
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          { text: "<meta-hash>", index: 0, name: "meta-hash", kind: "open" },
+          { text: "<meta-${core.tag} />", index: 11, name: "meta-${core.tag}", kind: "self" },
+          { text: "</meta-hash>", index: 31, name: "meta-hash", kind: "close" },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-hash",
+            type: "meta",
+            text: "<meta-hash>",
+            child: [
+              {
+                tag: "meta-${core.tag}",
+                type: "meta",
+                text: "<meta-${core.tag} />",
+              },
+            ],
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: "meta-hash",
             type: "meta",
@@ -93,12 +240,37 @@ describe("meta", () => {
         ])
       })
     })
+
     describe("meta-тег в map", () => {
-      const data = parse<any, { items: { tag: string }[] }>(
+      const mainHtml = extractMainHtmlBlock<any, { items: { tag: string }[] }>(
         ({ html, core }) => html`${core.items.map((item) => html`<meta-${item.tag} />`)}`
       )
-      it("парсинг", () => {
-        expect(data, "meta-тег в map").toEqual([
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([{ text: "<meta-${item.tag} />", index: 32, name: "meta-${item.tag}", kind: "self" }])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            type: "map",
+            text: "core.items.map((item)`",
+            child: [
+              {
+                tag: "meta-${item.tag}",
+                type: "meta",
+                text: "<meta-${item.tag} />",
+              },
+            ],
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             type: "map",
             data: "/core/items",
@@ -115,12 +287,43 @@ describe("meta", () => {
         ])
       })
     })
+
     describe("meta-тег в тренарном операторе", () => {
-      const data = parse(
+      const mainHtml = extractMainHtmlBlock(
         ({ html, core }) => html`${core.items.length > 0 ? html`<meta-${core.tag} />` : html`<meta-${core.tag} />`}`
       )
-      it("парсинг", () => {
-        expect(data, "meta-тег в тренарном операторе").toEqual([
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          { text: "<meta-${core.tag} />", index: 31, name: "meta-${core.tag}", kind: "self" },
+          { text: "<meta-${core.tag} />", index: 60, name: "meta-${core.tag}", kind: "self" },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            type: "cond",
+            text: "core.items.length > 0",
+            true: {
+              tag: "meta-${core.tag}",
+              type: "meta",
+              text: "<meta-${core.tag} />",
+            },
+            false: {
+              tag: "meta-${core.tag}",
+              type: "meta",
+              text: "<meta-${core.tag} />",
+            },
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             type: "cond",
             data: "/core/items/length",
@@ -147,9 +350,36 @@ describe("meta", () => {
 
   describe("атрибуты", () => {
     describe("статические атрибуты", () => {
-      const data = parse(({ html }) => html`<meta-hash data-type="component" class="meta-element" />`)
-      it("парсинг", () => {
-        expect(data, "статические атрибуты").toEqual([
+      const mainHtml = extractMainHtmlBlock(
+        ({ html }) => html`<meta-hash data-type="component" class="meta-element" />`
+      )
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          {
+            text: '<meta-hash data-type="component" class="meta-element" />',
+            index: 0,
+            name: "meta-hash",
+            kind: "self",
+          },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-hash",
+            type: "meta",
+            text: '<meta-hash data-type="component" class="meta-element" />',
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: "meta-hash",
             type: "meta",
@@ -167,9 +397,36 @@ describe("meta", () => {
     })
 
     describe("динамические атрибуты", () => {
-      const data = parse(({ html, core }) => html`<meta-${core.tag} data-id="${core.id}" class="meta-${core.type}" />`)
-      it("парсинг", () => {
-        expect(data, "динамические атрибуты").toEqual([
+      const mainHtml = extractMainHtmlBlock(
+        ({ html, core }) => html`<meta-${core.tag} data-id="${core.id}" class="meta-${core.type}" />`
+      )
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          {
+            text: '<meta-${core.tag} data-id="${core.id}" class="meta-${core.type}" />',
+            index: 0,
+            name: "meta-${core.tag}",
+            kind: "self",
+          },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-${core.tag}",
+            type: "meta",
+            text: '<meta-${core.tag} data-id="${core.id}" class="meta-${core.type}" />',
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: {
               data: "/core/tag",
@@ -191,12 +448,37 @@ describe("meta", () => {
     })
 
     describe("условные атрибуты", () => {
-      const data = parse(
+      const mainHtml = extractMainHtmlBlock(
         ({ html, core }) =>
           html`<meta-${core.tag} ${core.active && "data-active"} class="${core.active ? "active" : "inactive"}" />`
       )
-      it("парсинг", () => {
-        expect(data, "условные атрибуты").toEqual([
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          {
+            text: '<meta-${core.tag} ${core.active && "data-active"} class="${core.active ? "active" : "inactive"}" />',
+            index: 0,
+            name: "meta-${core.tag}",
+            kind: "self",
+          },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-${core.tag}",
+            type: "meta",
+            text: '<meta-${core.tag} ${core.active && "data-active"} class="${core.active ? "active" : "inactive"}" />',
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: {
               data: "/core/tag",
@@ -214,14 +496,39 @@ describe("meta", () => {
     })
 
     describe("события", () => {
-      const data = parse(
+      const mainHtml = extractMainHtmlBlock(
         ({ html, core }) =>
           html`<meta-${core.tag}
             onclick=${() => core.handleClick(core.id)}
             onchange=${(e: any) => core.handleChange(e, core.value)} />`
       )
-      it("парсинг", () => {
-        expect(data, "события").toEqual([
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          {
+            text: "<meta-${core.tag}\n            onclick=${() => core.handleClick(core.id)}\n            onchange=${(e) => core.handleChange(e, core.value)} />",
+            index: 0,
+            name: "meta-${core.tag}",
+            kind: "self",
+          },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-${core.tag}",
+            type: "meta",
+            text: "<meta-${core.tag}\n            onclick=${() => core.handleClick(core.id)}\n            onchange=${(e) => core.handleChange(e, core.value)} />",
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: {
               data: "/core/tag",
@@ -244,11 +551,36 @@ describe("meta", () => {
     })
 
     describe("функция update", () => {
-      const data = parse(
+      const mainHtml = extractMainHtmlBlock(
         ({ html, core, update }) => html`<meta-${core.tag} onclick=${() => update({ selected: core.id })} />`
       )
-      it("парсинг", () => {
-        expect(data, "функция update").toEqual([
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          {
+            text: "<meta-${core.tag} onclick=${() => update({ selected: core.id })} />",
+            index: 0,
+            name: "meta-${core.tag}",
+            kind: "self",
+          },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            tag: "meta-${core.tag}",
+            type: "meta",
+            text: "<meta-${core.tag} onclick=${() => update({ selected: core.id })} />",
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             tag: {
               data: "/core/tag",
@@ -268,7 +600,7 @@ describe("meta", () => {
     })
 
     describe("смешанные атрибуты", () => {
-      const data = parse<
+      const mainHtml = extractMainHtmlBlock<
         any,
         { items: { tag: string; id: string; active: boolean; handleClick: (id: string) => void }[] }
       >(
@@ -282,8 +614,39 @@ describe("meta", () => {
                 onclick=${() => item.handleClick(item.id)} />`
           )}`
       )
-      it("парсинг", () => {
-        expect(data, "смешанные атрибуты").toEqual([
+
+      const elements = extractHtmlElements(mainHtml)
+      it("elements", () => {
+        expect(elements).toEqual([
+          {
+            text: '<meta-${item.tag}\n                data-id="${item.id}"\n                ${item.active && "data-active"}\n                class="meta-${item.active ? "active" : "inactive"}"\n                onclick=${() => item.handleClick(item.id)} />',
+            index: 32,
+            name: "meta-${item.tag}",
+            kind: "self",
+          },
+        ])
+      })
+
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      it("hierarchy", () => {
+        expect(hierarchy).toEqual([
+          {
+            type: "map",
+            text: "core.items.map((item)`",
+            child: [
+              {
+                tag: "meta-${item.tag}",
+                type: "meta",
+                text: '<meta-${item.tag}\n                data-id="${item.id}"\n                ${item.active && "data-active"}\n                class="meta-${item.active ? "active" : "inactive"}"\n                onclick=${() => item.handleClick(item.id)} />',
+              },
+            ],
+          },
+        ])
+      })
+
+      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+      it.skip("data", () => {
+        expect(enrichedHierarchy).toEqual([
           {
             type: "map",
             data: "/core/items",

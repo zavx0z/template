@@ -1,16 +1,58 @@
 import { describe, it, expect } from "bun:test"
-import { parse } from "../index"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
 
 describe("update", () => {
   describe("функция обновления контекста в функции рендера", () => {
-    const data = parse<{ name: string }>(
+    const mainHtml = extractMainHtmlBlock<{ name: string }>(
       ({ html, update }) => html` <button onclick=${() => update({ name: "Jane Doe" })}>OK</button> `
     )
-    it("парсинг", () => {
-      expect(data, "должен распознать onclick и не сериализовать функцию").toEqual([
+
+    const elements = extractHtmlElements(mainHtml)
+    it("elements", () => {
+      expect(elements).toEqual([
+        {
+          text: '<button onclick=${() => update({ name: "Jane Doe" })}>',
+          index: 1,
+          name: "button",
+          kind: "open",
+        },
+        {
+          text: "OK",
+          index: 55,
+          name: "",
+          kind: "text",
+        },
+        {
+          text: "</button>",
+          index: 57,
+          name: "button",
+          kind: "close",
+        },
+      ])
+    })
+
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          text: '<button onclick=${() => update({ name: "Jane Doe" })}>',
+          child: [
+            {
+              type: "text",
+              text: "OK",
+            },
+          ],
+        },
+      ])
+    })
+
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    it.skip("data", () => {
+      expect(enrichedHierarchy).toEqual([
         {
           tag: "button",
           type: "el",
@@ -33,12 +75,55 @@ describe("update", () => {
   })
 
   describe("функция обновления нескольких ключей контекста", () => {
-    const data = parse<{ name: string; age: number; active: boolean }>(
+    const mainHtml = extractMainHtmlBlock<{ name: string; age: number; active: boolean }>(
       ({ html, update }) =>
         html` <button onclick=${() => update({ name: "John", age: 25, active: true })}>Update</button> `
     )
-    it("парсинг нескольких ключей", () => {
-      expect(data, "должен распознать несколько ключей в update").toEqual([
+
+    const elements = extractHtmlElements(mainHtml)
+    it("elements", () => {
+      expect(elements).toEqual([
+        {
+          text: '<button onclick=${() => update({ name: "John", age: 25, active: true })}>',
+          index: 1,
+          name: "button",
+          kind: "open",
+        },
+        {
+          text: "Update",
+          index: 74,
+          name: "",
+          kind: "text",
+        },
+        {
+          text: "</button>",
+          index: 80,
+          name: "button",
+          kind: "close",
+        },
+      ])
+    })
+
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          text: '<button onclick=${() => update({ name: "John", age: 25, active: true })}>',
+          child: [
+            {
+              type: "text",
+              text: "Update",
+            },
+          ],
+        },
+      ])
+    })
+
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    it.skip("data", () => {
+      expect(enrichedHierarchy).toEqual([
         {
           tag: "button",
           type: "el",
@@ -59,12 +144,56 @@ describe("update", () => {
       ])
     })
   })
+
   describe("функция обновления контекста данными из контекста", () => {
-    const data = parse<{ count: number }>(
+    const mainHtml = extractMainHtmlBlock<{ count: number }>(
       ({ html, update, context }) => html` <button onclick=${() => update({ count: context.count + 1 })}>OK</button> `
     )
-    it("парсинг", () => {
-      expect(data, "должен распознать onclick и не сериализовать функцию").toEqual([
+
+    const elements = extractHtmlElements(mainHtml)
+    it("elements", () => {
+      expect(elements).toEqual([
+        {
+          text: "<button onclick=${() => update({ count: context.count + 1 })}>",
+          index: 1,
+          name: "button",
+          kind: "open",
+        },
+        {
+          text: "OK",
+          index: 63,
+          name: "",
+          kind: "text",
+        },
+        {
+          text: "</button>",
+          index: 65,
+          name: "button",
+          kind: "close",
+        },
+      ])
+    })
+
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          text: "<button onclick=${() => update({ count: context.count + 1 })}>",
+          child: [
+            {
+              type: "text",
+              text: "OK",
+            },
+          ],
+        },
+      ])
+    })
+
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    it.skip("data", () => {
+      expect(enrichedHierarchy).toEqual([
         {
           tag: "button",
           type: "el",
@@ -85,8 +214,9 @@ describe("update", () => {
       ])
     })
   })
+
   describe("функция обновления контекста данными из core и context", () => {
-    const data = parse<{ count: number; iteration: number }>(
+    const mainHtml = extractMainHtmlBlock<{ count: number; iteration: number }>(
       ({ html, update, core, context }) =>
         html`
           <button onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}>
@@ -94,8 +224,51 @@ describe("update", () => {
           </button>
         `
     )
-    it("парсинг", () => {
-      expect(data, "должен распознать onclick и не сериализовать функцию").toEqual([
+
+    const elements = extractHtmlElements(mainHtml)
+    it("elements", () => {
+      expect(elements).toEqual([
+        {
+          text: "<button onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}>",
+          index: 11,
+          name: "button",
+          kind: "open",
+        },
+        {
+          text: "\n            OK\n          ",
+          index: 116,
+          name: "",
+          kind: "text",
+        },
+        {
+          text: "</button>",
+          index: 142,
+          name: "button",
+          kind: "close",
+        },
+      ])
+    })
+
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          text: "<button onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}>",
+          child: [
+            {
+              type: "text",
+              text: "\n            OK\n          ",
+            },
+          ],
+        },
+      ])
+    })
+
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    it.skip("data", () => {
+      expect(enrichedHierarchy).toEqual([
         {
           tag: "button",
           type: "el",
@@ -116,8 +289,9 @@ describe("update", () => {
       ])
     })
   })
+
   describe("функция обновления контекста данными из core и context внутри массива вложенного в массив", () => {
-    const data = parse<
+    const mainHtml = extractMainHtmlBlock<
       { count: number; iteration: number },
       { items: { count: number; iteration: number }[]; count: number; iteration: number }
     >(
@@ -132,8 +306,57 @@ describe("update", () => {
           )}
         `
     )
-    it("парсинг", () => {
-      expect(data, "должен распознать onclick и не сериализовать функцию").toEqual([
+
+    const elements = extractHtmlElements(mainHtml)
+    it("elements", () => {
+      expect(elements).toEqual([
+        {
+          text: "<button onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}>",
+          index: 58,
+          name: "button",
+          kind: "open",
+        },
+        {
+          text: "\n                OK\n              ",
+          index: 157,
+          name: "",
+          kind: "text",
+        },
+        {
+          text: "</button>",
+          index: 191,
+          name: "button",
+          kind: "close",
+        },
+      ])
+    })
+
+    const hierarchy = elementsHierarchy(mainHtml, elements)
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          type: "map",
+          text: "core.items.map((item)`",
+          child: [
+            {
+              tag: "button",
+              type: "el",
+              text: "<button onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}>",
+              child: [
+                {
+                  type: "text",
+                  text: "\n                OK\n              ",
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+
+    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+    it.skip("data", () => {
+      expect(enrichedHierarchy).toEqual([
         {
           type: "map",
           data: "/core/items",

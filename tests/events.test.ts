@@ -3,7 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
 
-describe("стандартные события on*", () => {
+describe("events", () => {
   describe("onclick с выражением", () => {
     const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<button onclick=${() => core.onClick()}>OK</button>`)
     const elements = extractHtmlElements(mainHtml)

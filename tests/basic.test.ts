@@ -4,7 +4,7 @@ import { elementsHierarchy } from "../hierarchy"
 import { extractAttributes } from "../attributes"
 import { enrichHierarchyWithData } from "../data"
 
-describe("scanTagsFromRender / базовые случаи", () => {
+describe("basic", () => {
   describe("простая пара тегов", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<div></div>`)
 

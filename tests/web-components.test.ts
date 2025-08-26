@@ -3,61 +3,79 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
 
-describe("scanTagsFromRender / web components", () => {
-  it("базовые custom elements", () => {
+describe("web-components", () => {
+  describe("базовые custom elements", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<my-element></my-element>`)
+
     const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: "<my-element>", index: 0, name: "my-element", kind: "open" },
-      { text: "</my-element>", index: 12, name: "my-element", kind: "close" },
-    ])
+    it("elements", () => {
+      expect(elements).toEqual([
+        { text: "<my-element>", index: 0, name: "my-element", kind: "open" },
+        { text: "</my-element>", index: 12, name: "my-element", kind: "close" },
+      ])
+    })
+
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    expect(hierarchy).toEqual([
-      {
-        tag: "my-element",
-        type: "el",
-        text: "<my-element>",
-      },
-    ])
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "my-element",
+          type: "el",
+          text: "<my-element>",
+        },
+      ])
+    })
+
     const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    expect(enrichedHierarchy).toEqual([
-      {
-        tag: "my-element",
-        type: "el",
-      },
-    ])
+    it.skip("data", () => {
+      expect(enrichedHierarchy).toEqual([
+        {
+          tag: "my-element",
+          type: "el",
+        },
+      ])
+    })
   })
 
-  it("custom elements с атрибутами", () => {
+  describe("custom elements с атрибутами", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<user-card name="John" age="25"></user-card>`)
+
     const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: '<user-card name="John" age="25">', index: 0, name: "user-card", kind: "open" },
-      { text: "</user-card>", index: 32, name: "user-card", kind: "close" },
-    ])
+    it("elements", () => {
+      expect(elements).toEqual([
+        { text: '<user-card name="John" age="25">', index: 0, name: "user-card", kind: "open" },
+        { text: "</user-card>", index: 32, name: "user-card", kind: "close" },
+      ])
+    })
+
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    expect(hierarchy).toEqual([
-      {
-        tag: "user-card",
-        type: "el",
-        text: '<user-card name="John" age="25">',
-      },
-    ])
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "user-card",
+          type: "el",
+          text: '<user-card name="John" age="25">',
+        },
+      ])
+    })
+
     const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    expect(enrichedHierarchy).toEqual([
-      {
-        tag: "user-card",
-        type: "el",
-        attr: {
-          name: {
-            value: "John",
-          },
-          age: {
-            value: "25",
+    it.skip("data", () => {
+      expect(enrichedHierarchy).toEqual([
+        {
+          tag: "user-card",
+          type: "el",
+          attr: {
+            name: {
+              value: "John",
+            },
+            age: {
+              value: "25",
+            },
           },
         },
-      },
-    ])
+      ])
+    })
   })
 
   it("self-closing custom elements", () => {

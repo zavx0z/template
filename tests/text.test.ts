@@ -4,7 +4,7 @@ import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
 
 describe("text", () => {
-  it("пустой элемент без текста", () => {
+  describe("пустой элемент без текста", () => {
     const mainHtml = extractMainHtmlBlock(
       ({ html }) => html`
         <div>
@@ -12,25 +12,28 @@ describe("text", () => {
         </div>
       `
     )
+
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    expect(hierarchy).toEqual([
-      {
-        tag: "div",
-        type: "el",
-        text: "<div>",
-        child: [
-          {
-            tag: "p",
-            type: "el",
-            text: "<p>",
-          },
-        ],
-      },
-    ])
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          text: "<div>",
+          child: [
+            {
+              tag: "p",
+              type: "el",
+              text: "<p>",
+            },
+          ],
+        },
+      ])
+    })
   })
 
-  it("динамический текст в map где значением является строка элемент массива", () => {
+  describe("динамический текст в map где значением является строка элемент массива", () => {
     const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
       ({ html, context }) => html`
         <ul>
@@ -38,34 +41,37 @@ describe("text", () => {
         </ul>
       `
     )
+
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    expect(hierarchy).toEqual([
-      {
-        tag: "ul",
-        type: "el",
-        text: "<ul>",
-        child: [
-          {
-            type: "map",
-            text: "context.list.map((name)`",
-            child: [
-              {
-                tag: "li",
-                type: "el",
-                text: "<li>",
-                child: [
-                  {
-                    type: "text",
-                    text: "${name}",
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ])
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "ul",
+          type: "el",
+          text: "<ul>",
+          child: [
+            {
+              type: "map",
+              text: "context.list.map((name)`",
+              child: [
+                {
+                  tag: "li",
+                  type: "el",
+                  text: "<li>",
+                  child: [
+                    {
+                      type: "text",
+                      text: "${name}",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
   })
 
   it("динамический текст с разными именами переменных элемента массива", () => {
