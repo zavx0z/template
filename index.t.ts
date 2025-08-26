@@ -106,13 +106,13 @@ export type AttributeParseResult = {
   /** Ключи для обновления (необязательное) */
   upd?: string | string[]
 }
-type AttrVariable = { data: string | string[] }
+type AttrVariable = { data: string }
 type AttrDynamic = {
   data: string | string[]
   expr: string
 }
 
-export type AttributeEvent = Record<string, string>
+export type AttributeEvent = Record<string, AttrVariable | AttrDynamic>
 
 export type AttributeArray = Record<string, { value: string }[]>
 

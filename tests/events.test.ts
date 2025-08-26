@@ -2,19 +2,37 @@ import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
+import { extractAttributes } from "../attributes"
 
 describe("events", () => {
   describe("onclick с выражением", () => {
     const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<button onclick=${() => core.onClick()}>OK</button>`)
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          event: {
+            onclick: "() => core.onClick()",
+          },
+          child: [
+            {
+              type: "text",
+              text: "OK",
+            },
+          ],
+        },
+      ]))
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "должен распознать onclick и не сериализовать функцию").toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
+          event: {
             onclick: {
               data: "/core/onClick",
               expr: "() => ${0}()",
@@ -27,50 +45,80 @@ describe("events", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("onclick без кавычек со стрелочной функцией", () => {
     const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<button onclick=${core.onClick}>OK</button>`)
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          event: {
+            onclick: "core.onClick",
+          },
+          child: [
+            {
+              type: "text",
+              text: "OK",
+            },
+          ],
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "onclick без кавычек со стрелочной функцией").toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
+          event: {
             onclick: {
               data: "/core/onClick",
             },
           },
           child: [{ type: "text", value: "OK" }],
         },
-      ])
-    })
+      ]))
   })
 
   describe("onclick без значения (булев)", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<button onclick>OK</button>`)
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          event: {
+            onclick: "",
+          },
+          child: [
+            {
+              type: "text",
+              text: "OK",
+            },
+          ],
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "должен поддерживать onclick без значения").toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
-            onclick: {
-              value: "",
-            },
-          },
           child: [{ type: "text", value: "OK" }],
         },
-      ])
-    })
+      ]))
   })
 
   describe("несколько событий в самозакрывающемся теге", () => {
@@ -79,13 +127,33 @@ describe("events", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "input",
+          type: "el",
+          event: {
+            onclick: "() => core.onClick()",
+            oninput: "(e) => core.onInput(e)",
+          },
+          boolean: {
+            "/": {
+              type: "static",
+              value: true,
+            },
+          },
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "должен поддерживать несколько событий on*").toEqual([
         {
           tag: "input",
           type: "el",
-          attr: {
+          event: {
             onclick: {
               data: "/core/onClick",
               expr: "() => ${0}()",
@@ -96,29 +164,46 @@ describe("events", () => {
             },
           },
         },
-      ])
-    })
+      ]))
   })
 
   describe("oninput без кавычек со стрелочной функцией (input)", () => {
     const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<input oninput=${(e: Event) => core.onInput(e)} />`)
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "input",
+          type: "el",
+          event: {
+            oninput: "(e) => core.onInput(e)",
+          },
+          boolean: {
+            "/": {
+              type: "static",
+              value: true,
+            },
+          },
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "oninput без кавычек со стрелочной функцией").toEqual([
         {
           tag: "input",
           type: "el",
-          attr: {
+          event: {
             oninput: {
               data: "/core/onInput",
               expr: "(e) => ${0}(e)",
             },
           },
         },
-      ])
-    })
+      ]))
   })
 
   describe("событие внутри массива", () => {
@@ -131,8 +216,39 @@ describe("events", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "ul",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              text: "core.items.map((item)`",
+              child: [
+                {
+                  tag: "li",
+                  type: "el",
+                  event: {
+                    onclick: "() => item.onClick()",
+                  },
+                  child: [
+                    {
+                      type: "text",
+                      text: "${item.name}",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "событие внутри массива").toEqual([
         {
           tag: "ul",
@@ -145,7 +261,7 @@ describe("events", () => {
                 {
                   tag: "li",
                   type: "el",
-                  attr: {
+                  event: {
                     onclick: {
                       data: "[item]/onClick",
                       expr: "() => ${0}()",
@@ -162,8 +278,7 @@ describe("events", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("событие с параметрами в массиве", () => {
@@ -181,8 +296,39 @@ describe("events", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              text: "core.buttons.map((btn)`",
+              child: [
+                {
+                  tag: "button",
+                  type: "el",
+                  event: {
+                    onclick: "(e) => btn.handleClick(e, btn.id)",
+                  },
+                  child: [
+                    {
+                      type: "text",
+                      text: "${btn.text}",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "событие с параметрами в массиве").toEqual([
         {
           tag: "div",
@@ -195,7 +341,7 @@ describe("events", () => {
                 {
                   tag: "button",
                   type: "el",
-                  attr: {
+                  event: {
                     onclick: {
                       data: ["[item]/handleClick", "[item]/id"],
                       expr: "(e) => ${0}(e, ${1})",
@@ -212,8 +358,7 @@ describe("events", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("смешанные события и обычные атрибуты", () => {
@@ -230,21 +375,23 @@ describe("events", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
-      expect(data, "смешанные события и обычные атрибуты").toEqual([
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
         {
           tag: "form",
           type: "el",
-          attr: {
-            onsubmit: {
-              data: "/core/handleSubmit",
-              expr: "(e) => ${0}(e)",
-            },
+          event: {
+            onsubmit: "(e) => core.handleSubmit(e)",
+          },
+          string: {
             class: {
+              type: "static",
               value: "form",
             },
             method: {
+              type: "static",
               value: "post",
             },
           },
@@ -252,10 +399,69 @@ describe("events", () => {
             {
               tag: "input",
               type: "el",
-              attr: {
+              string: {
                 type: {
+                  type: "static",
                   value: "text",
                 },
+              },
+              event: {
+                onchange: "(e) => core.handleChange(e)",
+              },
+              boolean: {
+                "/": {
+                  type: "static",
+                  value: true,
+                },
+              },
+            },
+            {
+              tag: "button",
+              type: "el",
+              string: {
+                type: {
+                  type: "static",
+                  value: "submit",
+                },
+              },
+              event: {
+                onclick: "() => core.onClick()",
+              },
+              child: [
+                {
+                  type: "text",
+                  text: "Submit",
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
+      expect(data, "смешанные события и обычные атрибуты").toEqual([
+        {
+          tag: "form",
+          type: "el",
+          event: {
+            onsubmit: {
+              data: "/core/handleSubmit",
+              expr: "(e) => ${0}(e)",
+            },
+          },
+          string: {
+            class: "form",
+            method: "post",
+          },
+          child: [
+            {
+              tag: "input",
+              type: "el",
+              string: {
+                type: "text",
+              },
+              event: {
                 onchange: {
                   data: "/core/handleChange",
                   expr: "(e) => ${0}(e)",
@@ -265,10 +471,10 @@ describe("events", () => {
             {
               tag: "button",
               type: "el",
-              attr: {
-                type: {
-                  value: "submit",
-                },
+              string: {
+                type: "submit",
+              },
+              event: {
                 onclick: {
                   data: "/core/onClick",
                   expr: "() => ${0}()",
@@ -283,8 +489,7 @@ describe("events", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("события с условными атрибутами", () => {
@@ -295,17 +500,44 @@ describe("events", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг", () => {
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          event: {
+            onclick: "() => core.onClick()",
+          },
+          boolean: {
+            disabled: {
+              type: "dynamic",
+              value: "core.isDisabled",
+            },
+          },
+          child: [
+            {
+              type: "text",
+              text: "Click me",
+            },
+          ],
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "события с условными атрибутами").toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
+          event: {
             onclick: {
               data: "/core/onClick",
               expr: "() => ${0}()",
             },
+          },
+          boolean: {
             disabled: {
               data: "/core/isDisabled",
             },
@@ -317,8 +549,7 @@ describe("events", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("вложенные события с несколькими уровнями map", () => {
@@ -382,8 +613,115 @@ describe("events", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
-    it("парсинг вложенных событий", () => {
+
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              text: "core.companies.map((company)`",
+              child: [
+                {
+                  tag: "section",
+                  type: "el",
+                  event: {
+                    onclick: "() => company.handleCompanyClick(company.id)",
+                  },
+                  child: [
+                    {
+                      tag: "h1",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          text: "Company: ${company.name}",
+                        },
+                      ],
+                    },
+                    {
+                      type: "map",
+                      text: "company.departments.map((dept)`",
+                      child: [
+                        {
+                          tag: "article",
+                          type: "el",
+                          event: {
+                            onclick: "() => dept.handleDeptClick(company.id, dept.id)",
+                          },
+                          child: [
+                            {
+                              tag: "h2",
+                              type: "el",
+                              child: [
+                                {
+                                  type: "text",
+                                  text: "Dept: ${dept.name}",
+                                },
+                              ],
+                            },
+                            {
+                              type: "map",
+                              text: "dept.teams.map((team)`",
+                              child: [
+                                {
+                                  tag: "div",
+                                  type: "el",
+                                  event: {
+                                    onclick: "() => team.handleTeamClick(company.id, dept.id, team.id)",
+                                  },
+                                  child: [
+                                    {
+                                      tag: "h3",
+                                      type: "el",
+                                      child: [
+                                        {
+                                          type: "text",
+                                          text: "Team: ${team.name}",
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      type: "map",
+                                      text: "team.members.map((member)`",
+                                      child: [
+                                        {
+                                          tag: "p",
+                                          type: "el",
+                                          event: {
+                                            onclick:
+                                              "() => member.handleMemberClick(company.id, dept.id, team.id, member.id)",
+                                          },
+                                          child: [
+                                            {
+                                              type: "text",
+                                              text: "\n                                  Member: ${member.name}\n                                ",
+                                            },
+                                          ],
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
       expect(data, "вложенные события с правильными путями").toEqual([
         {
           tag: "div",
@@ -396,7 +734,7 @@ describe("events", () => {
                 {
                   tag: "section",
                   type: "el",
-                  attr: {
+                  event: {
                     onclick: {
                       data: ["[item]/handleCompanyClick", "[item]/id"],
                       expr: "() => ${0}(${1})",
@@ -421,7 +759,7 @@ describe("events", () => {
                         {
                           tag: "article",
                           type: "el",
-                          attr: {
+                          event: {
                             onclick: {
                               data: ["[item]/handleDeptClick", "../[item]/id", "[item]/id"],
                               expr: "() => ${0}(${1}, ${2})",
@@ -446,7 +784,7 @@ describe("events", () => {
                                 {
                                   tag: "div",
                                   type: "el",
-                                  attr: {
+                                  event: {
                                     onclick: {
                                       data: ["[item]/handleTeamClick", "../../[item]/id", "../[item]/id", "[item]/id"],
                                       expr: "() => ${0}(${1}, ${2}, ${3})",
@@ -471,7 +809,7 @@ describe("events", () => {
                                         {
                                           tag: "p",
                                           type: "el",
-                                          attr: {
+                                          event: {
                                             onclick: {
                                               data: [
                                                 "[item]/handleMemberClick",
@@ -507,7 +845,6 @@ describe("events", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 })
