@@ -1,5 +1,3 @@
-import type { AttributeParseResult } from "./data.t"
-
 // Входные данные
 export type Content = Record<string, string | number | boolean | null | Array<string | number | boolean | null>>
 export type Core = Record<string, any>
@@ -108,9 +106,9 @@ export type AttributeParseResult = {
   /** Ключи для обновления (необязательное) */
   upd?: string | string[]
 }
-type AttrVariable = { data: string }
+type AttrVariable = { data: string | string[] }
 type AttrDynamic = {
-  data: string
+  data: string | string[]
   expr: string
 }
 

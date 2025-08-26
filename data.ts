@@ -925,6 +925,34 @@ const parseTemplateLiteral = (
     return eventResult
   }
 
+  // Проверяем, является ли это смешанным выражением с условным выражением
+  // Regex для поиска строки-${условие}строка
+  const conditionalMixedMatch = value.match(/^(.*?)\$\{(.*?\?.*?:.*?)\}(.*)$/)
+  if (conditionalMixedMatch && conditionalMixedMatch[2]) {
+    const [, prefix, conditionalExpr, suffix] = conditionalMixedMatch
+
+    // Извлекаем переменные из условного выражения, исключая строковые литералы
+    const valueWithoutStrings = conditionalExpr.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''")
+    const pathMatches = valueWithoutStrings.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
+    const uniquePaths = [...new Set(pathMatches)].filter((path) => {
+      return path.length > 1 && path !== "''" && path !== '""'
+    })
+
+    if (uniquePaths.length > 0) {
+      const paths = uniquePaths.map((path) => resolveDataPath(path, context))
+
+      let expr = conditionalExpr
+      uniquePaths.forEach((path, index) => {
+        expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+      })
+
+      return {
+        data: paths.length === 1 ? paths[0] || "" : paths,
+        expr: `${prefix}${expr}${suffix}`,
+      }
+    }
+  }
+
   // Проверяем, является ли это условным выражением
   const hasConditionalOperators = /[?:]/.test(value)
 
@@ -1259,9 +1287,9 @@ export const createNodeDataMeta = (
   let result: NodeMeta
 
   // Проверяем, является ли тег динамическим (содержит ${...})
-  if (node.text.includes("${")) {
+  if (node.tag.includes("${")) {
     // Парсим динамический тег
-    const tagMatch = node.text.match(/<meta-(\${[^}]+})/)
+    const tagMatch = node.tag.match(/meta-(\${[^}]+})/)
     if (tagMatch && tagMatch[1]) {
       const dynamicTag = tagMatch[1]
       // Извлекаем переменную из ${...}
@@ -1337,10 +1365,63 @@ export const createNodeDataElement = (
       child: node.child?.map((child) => createNodeDataElement(child, context)),
     }
 
-    // Добавляем атрибуты если есть
-    if (node.text) {
-      const attributes = parseAttributesImproved(node.text, context)
-      if (Object.keys(attributes).length > 0) result.attr = attributes
+    // Обрабатываем уже извлеченные атрибуты
+    if (node.string) {
+      result.string = {}
+      for (const [key, attr] of Object.entries(node.string)) {
+        if (attr.type === "static") {
+          result.string[key] = attr.value
+        } else {
+          // Используем существующую функцию parseTemplateLiteral
+          const templateResult = parseTemplateLiteral(attr.value, context)
+          if (templateResult && templateResult.data) {
+            result.string[key] = {
+              data: Array.isArray(templateResult.data) ? templateResult.data : templateResult.data,
+              ...(templateResult.expr && { expr: templateResult.expr }),
+            }
+          } else {
+            result.string[key] = attr.value
+          }
+        }
+      }
+    }
+
+    if (node.event) {
+      result.event = {}
+      for (const [key, value] of Object.entries(node.event)) {
+        const eventResult = parseEventExpression(value, context)
+        if (eventResult) {
+          result.event[key] = eventResult.expr || value
+        } else {
+          result.event[key] = value
+        }
+      }
+    }
+
+    if (node.array) {
+      result.array = {}
+      for (const [key, values] of Object.entries(node.array)) {
+        result.array[key] = values.map((item) => ({ value: item.value }))
+      }
+    }
+
+    if (node.boolean) {
+      result.boolean = {}
+      for (const [key, attr] of Object.entries(node.boolean)) {
+        if (attr.type === "static") {
+          result.boolean[key] = Boolean(attr.value)
+        } else {
+          const templateResult = parseTemplateLiteral(String(attr.value), context)
+          if (templateResult && templateResult.data) {
+            result.boolean[key] = {
+              data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
+              ...(templateResult.expr && { expr: templateResult.expr }),
+            }
+          } else {
+            result.boolean[key] = false
+          }
+        }
+      }
     }
 
     return result
