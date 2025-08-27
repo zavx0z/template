@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
-import { enrichHierarchyWithData } from "../data"
+import { enrichWithData } from "../data"
 
 describe("formatting", () => {
   describe("форматирует тернарные выражения, удаляя лишние пробелы и переносы строк", () => {
@@ -18,7 +18,7 @@ describe("formatting", () => {
 
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
 
     it("span element tag", () => {
       const divElement = data[0] as any

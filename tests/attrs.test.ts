@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
-import { enrichHierarchyWithData } from "../data"
+import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
 describe("атрибуты", () => {
@@ -40,7 +40,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -105,7 +105,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -160,7 +160,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -210,7 +210,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -263,7 +263,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -317,7 +317,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -371,7 +371,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -470,7 +470,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -557,7 +557,7 @@ describe("атрибуты", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {

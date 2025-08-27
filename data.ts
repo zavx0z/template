@@ -422,10 +422,10 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
  * @returns Результат парсинга с путем, новым контекстом и метаданными
  *
  * @example
- * parseMapData("core.list.map(({ title }) => ...)")
+ * parseMap("core.list.map(({ title }) => ...)")
  * // Возвращает: { path: "/core/list", context: {...}, metadata: { params: ["title"] } }
  *
- * parseMapData("nested.map((item) => ...)", context)
+ * parseMap("nested.map((item) => ...)", context)
  * // Возвращает: { path: "[item]/nested", context: {...}, metadata: { params: ["item"] } }
  */
 // ============================================================================
@@ -1216,7 +1216,7 @@ export const createNodeDataCondition = (
   const condData = parseCondition(node.text, context)
   const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
 
-  // Используем пути, уже правильно разрешенные в parseConditionData
+  // Используем пути, уже правильно разрешенные в parseCondition
   const processedData = condData.path
 
   // Проверяем наличие операторов/методов
@@ -1701,7 +1701,7 @@ export const createNodeDataElement = (
  * @returns Обогащенная иерархия с метаданными о путях к данным
  *
  * @example
- * const enriched = enrichHierarchyWithData([
+ * const enriched = enrichWithData([
  *   { type: "map", text: "users.map((user) => ...)", child: [...] },
  *   { type: "text", text: "Hello ${name}" }
  * ])
@@ -1717,11 +1717,3 @@ export const enrichWithData = (
 ): Node[] => {
   return hierarchy.map((node) => createNodeDataElement(node, context))
 }
-
-// Временные заглушки для совместимости
-export const parseMapData = parseMap
-export const parseConditionData = parseCondition
-export const parseMapParams = extractMapParams
-export const parseTextData = parseText
-export const splitTextIntoParts = splitText
-export const enrichHierarchyWithData = enrichWithData

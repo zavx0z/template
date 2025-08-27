@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../../splitter"
 import { elementsHierarchy } from "../../hierarchy"
-import { enrichHierarchyWithData } from "../../data"
+import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 
 describe("object атрибуты (стили) с переменными из разных уровней map", () => {
@@ -40,7 +40,7 @@ describe("object атрибуты (стили) с переменными из р
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
 
     expect(data).toEqual([
       {
@@ -117,7 +117,7 @@ describe("object атрибуты (стили) с переменными из р
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
 
     expect(data).toEqual([
       {
@@ -180,7 +180,7 @@ describe("object атрибуты (стили) с переменными из р
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
 
     expect(data).toEqual([
       {
@@ -243,7 +243,7 @@ describe("object атрибуты (стили) с переменными из р
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
 
     expect(data).toEqual([
       {

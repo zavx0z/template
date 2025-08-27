@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
-import { enrichHierarchyWithData } from "../data"
+import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
 describe("events", () => {
@@ -26,7 +26,7 @@ describe("events", () => {
           ],
         },
       ]))
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "должен распознать onclick и не сериализовать функцию").toEqual([
         {
@@ -71,7 +71,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "onclick без кавычек со стрелочной функцией").toEqual([
         {
@@ -110,7 +110,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "должен поддерживать onclick без значения").toEqual([
         {
@@ -141,7 +141,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "должен поддерживать несколько событий on*").toEqual([
         {
@@ -178,7 +178,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "oninput без кавычек со стрелочной функцией").toEqual([
         {
@@ -235,7 +235,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "событие внутри массива").toEqual([
         {
@@ -315,7 +315,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "событие с параметрами в массиве").toEqual([
         {
@@ -420,7 +420,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "смешанные события и обычные атрибуты").toEqual([
         {
@@ -507,7 +507,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "события с условными атрибутами").toEqual([
         {
@@ -702,7 +702,7 @@ describe("events", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data, "вложенные события с правильными путями").toEqual([
         {

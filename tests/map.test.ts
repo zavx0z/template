@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
-import { enrichHierarchyWithData } from "../data"
+import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
 describe("map", () => {
@@ -55,7 +55,7 @@ describe("map", () => {
       ])
     })
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -145,7 +145,7 @@ describe("map", () => {
       ])
     })
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -258,7 +258,7 @@ describe("map", () => {
       },
     ])
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     expect(data).toEqual([
       {
         tag: "ul",
@@ -378,7 +378,7 @@ describe("map", () => {
       },
     ])
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     expect(data).toEqual([
       {
         tag: "ul",
@@ -490,7 +490,7 @@ describe("map", () => {
       },
     ])
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     expect(data).toEqual([
       {
         tag: "ul",
@@ -617,7 +617,7 @@ describe("map", () => {
       },
     ])
     const attributes = extractAttributes(hierarchy)
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     expect(data).toEqual([
       {
         type: "cond",

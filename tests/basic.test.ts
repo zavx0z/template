@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { extractAttributes } from "../attributes"
-import { enrichHierarchyWithData } from "../data"
+import { enrichWithData } from "../data"
 
 describe("basic", () => {
   describe("простая пара тегов", () => {
@@ -37,7 +37,7 @@ describe("basic", () => {
       ])
     })
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -139,7 +139,7 @@ describe("basic", () => {
       ])
     })
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -258,7 +258,7 @@ describe("basic", () => {
       ])
     })
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {

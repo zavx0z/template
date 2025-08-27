@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../../splitter"
 import { elementsHierarchy } from "../../hierarchy"
-import { enrichHierarchyWithData } from "../../data"
+import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 
 describe("class атрибуты в data.ts", () => {
@@ -11,7 +11,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -29,7 +29,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -47,7 +47,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -69,7 +69,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -92,7 +92,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -116,7 +116,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -145,7 +145,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -168,7 +168,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -191,7 +191,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -214,7 +214,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -237,7 +237,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -260,7 +260,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -285,7 +285,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -308,7 +308,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -333,7 +333,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -364,7 +364,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -390,7 +390,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -417,7 +417,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -447,7 +447,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -481,7 +481,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -511,7 +511,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -538,7 +538,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -568,7 +568,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -591,7 +591,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -625,7 +625,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -648,7 +648,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {
@@ -690,7 +690,7 @@ describe("class атрибуты в data.ts", () => {
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = elementsHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
-      const data = enrichHierarchyWithData(attributes)
+      const data = enrichWithData(attributes)
 
       expect(data).toEqual([
         {

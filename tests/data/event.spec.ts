@@ -1,5 +1,5 @@
 import { it, describe, expect } from "bun:test"
-import { enrichHierarchyWithData } from "../../data"
+import { enrichWithData } from "../../data"
 import type { PartAttrs } from "../../attributes.t"
 
 describe("event", () => {
@@ -14,7 +14,7 @@ describe("event", () => {
       },
     ] as PartAttrs
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     expect(data).toEqual([
       {
         tag: {

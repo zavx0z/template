@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
-import { enrichHierarchyWithData } from "../data"
+import { enrichWithData } from "../data"
 
 describe("text", () => {
   describe("пустой элемент без текста", () => {
@@ -136,7 +136,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -187,7 +187,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -246,7 +246,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -330,7 +330,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "ul",
@@ -416,7 +416,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -480,7 +480,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -533,7 +533,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -592,7 +592,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -669,7 +669,7 @@ describe("text", () => {
         ],
       },
     ])
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "ul",
@@ -717,7 +717,7 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -749,7 +749,7 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",
@@ -784,7 +784,7 @@ describe("text", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
+    const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
         tag: "div",

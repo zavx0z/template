@@ -1,104 +1,97 @@
 import { describe, it, expect } from "bun:test"
-import {
-  parseMapData,
-  parseMapParams,
-  parseConditionData,
-  parseTextData,
-  splitTextIntoParts,
-  enrichHierarchyWithData,
-} from "./data"
+import { parseMap, extractMapParams, parseCondition, parseText, splitText, enrichWithData } from "./data"
 
 describe("data-parser", () => {
-  describe("parseMapData", () => {
+  describe("parseMap", () => {
     it("парсит простой map с одним параметром", () => {
-      const result = parseMapData("context.list.map((name) => html`")
+      const result = parseMap("context.list.map((name) => html`")
       expect(result.path).toBe("/context/list")
       expect(result.metadata?.params).toEqual(["name"])
     })
 
     it("парсит map с деструктуризацией", () => {
-      const result = parseMapData("core.data.map(({ title, nested }) => html`")
+      const result = parseMap("core.data.map(({ title, nested }) => html`")
       expect(result.path).toBe("/core/data")
       expect(result.metadata?.params).toEqual(["title", "nested"])
     })
 
     it("парсит map с несколькими параметрами", () => {
-      const result = parseMapData("items.map((item, index) => html`")
+      const result = parseMap("items.map((item, index) => html`")
       expect(result.path).toBe("/items")
       expect(result.metadata?.params).toEqual(["item", "index"])
     })
 
     it("парсит вложенный map в контексте", () => {
       const context = { currentPath: "/core/list", pathStack: ["/core/list"], level: 1, mapParams: ["item"] }
-      const result = parseMapData("nested.map((n) => html`", context)
+      const result = parseMap("nested.map((n) => html`", context)
       expect(result.path).toBe("[item]/nested")
       expect(result.metadata?.params).toEqual(["n"])
     })
 
     it("парсит вложенный map с полным путем", () => {
       const context = { currentPath: "/core/list", pathStack: ["/core/list"], level: 1, mapParams: ["item"] }
-      const result = parseMapData("item.nested.map((n) => html`", context)
+      const result = parseMap("item.nested.map((n) => html`", context)
       expect(result.path).toBe("[item]/nested")
     })
   })
 
-  describe("parseMapParams", () => {
+  describe("extractMapParams", () => {
     it("парсит простой параметр", () => {
-      const params = parseMapParams("name")
+      const params = extractMapParams("name")
       expect(params).toEqual(["name"])
     })
 
     it("парсит несколько параметров", () => {
-      const params = parseMapParams("item, index")
+      const params = extractMapParams("item, index")
       expect(params).toEqual(["item", "index"])
     })
 
     it("парсит деструктуризацию", () => {
-      const params = parseMapParams("{ title, nested }")
+      const params = extractMapParams("{ title, nested }")
       expect(params).toEqual(["title", "nested"])
     })
 
     it("парсит деструктуризацию с пробелами", () => {
-      const params = parseMapParams("{ title , nested }")
+      const params = extractMapParams("{ title , nested }")
       expect(params).toEqual(["title", "nested"])
     })
 
     it("возвращает пустой массив для пустых параметров", () => {
-      const params = parseMapParams("")
+      const params = extractMapParams("")
       expect(params).toEqual([])
     })
   })
 
-  describe("parseConditionData", () => {
+  describe("parseCondition", () => {
     it("парсит простое условие", () => {
-      const result = parseConditionData("context.flag")
+      const result = parseCondition("context.flag")
       expect(result.path).toBe("/context/flag")
       expect(result.metadata?.expression).toBe("${0}")
     })
 
     it("парсит сложное условие", () => {
-      const result = parseConditionData("context.cond && context.cond2")
+      const result = parseCondition("context.cond && context.cond2")
       expect(result.path).toEqual(["/context/cond", "/context/cond2"])
       expect(result.metadata?.expression).toBe("${0} && ${1}")
     })
 
     it("парсит условие с операторами", () => {
-      const result = parseConditionData("context.flag === context.cond2")
+      const result = parseCondition("context.flag === context.cond2")
       expect(result.path).toEqual(["/context/flag", "/context/cond2"])
       expect(result.metadata?.expression).toBe("${0} === ${1}")
     })
   })
 
-  describe("parseTextData", () => {
+  describe("parseText", () => {
     it("парсит статический текст", () => {
-      const result = parseTextData("Hello, world!")
+      const result = parseText("Hello, world!")
       expect(result.value).toBe("Hello, world!")
       expect(result.data).toBeUndefined()
       expect(result.expr).toBeUndefined()
     })
 
     it("парсит текст с одной переменной", () => {
-      const result = parseTextData("Hello, ${name}!")
+      const result = parseText("Hello, ${name}!")
       expect(result.data).toBe("/name")
       expect(result.expr).toBe("Hello, ${0}!")
       expect(result.value).toBeUndefined()
@@ -106,28 +99,28 @@ describe("data-parser", () => {
 
     it("парсит текст с переменной в контексте map", () => {
       const context = { currentPath: "/context/list", pathStack: ["/context/list"], level: 1, mapParams: ["name"] }
-      const result = parseTextData("Hello, ${name}!", context)
+      const result = parseText("Hello, ${name}!", context)
       expect(result.data).toBe("[item]")
       expect(result.expr).toBe("Hello, ${0}!")
       expect(result.value).toBeUndefined()
     })
 
     it("парсит текст с несколькими переменными", () => {
-      const result = parseTextData("${title} - ${description}")
+      const result = parseText("${title} - ${description}")
       expect(result.data).toEqual(["/title", "/description"])
       expect(result.expr).toBe("${0} - ${1}")
       expect(result.value).toBeUndefined()
     })
   })
 
-  describe("splitTextIntoParts", () => {
+  describe("splitText", () => {
     it("разбивает статический текст", () => {
-      const parts = splitTextIntoParts("Hello, world!")
+      const parts = splitText("Hello, world!")
       expect(parts).toEqual([{ type: "static", text: "Hello, world!" }])
     })
 
     it("разбивает текст с одной переменной", () => {
-      const parts = splitTextIntoParts("Hello, ${name}!")
+      const parts = splitText("Hello, ${name}!")
       expect(parts).toEqual([
         { type: "static", text: "Hello, " },
         { type: "dynamic", text: "${name}" },
@@ -136,7 +129,7 @@ describe("data-parser", () => {
     })
 
     it("разбивает текст с несколькими переменными", () => {
-      const parts = splitTextIntoParts("${title} - ${description}")
+      const parts = splitText("${title} - ${description}")
       expect(parts).toEqual([
         { type: "dynamic", text: "${title}" },
         { type: "static", text: " - " },
@@ -145,7 +138,7 @@ describe("data-parser", () => {
     })
 
     it("разбивает текст с переменной в начале", () => {
-      const parts = splitTextIntoParts("${name} is here")
+      const parts = splitText("${name} is here")
       expect(parts).toEqual([
         { type: "dynamic", text: "${name}" },
         { type: "static", text: " is here" },
@@ -153,7 +146,7 @@ describe("data-parser", () => {
     })
 
     it("разбивает текст с переменной в конце", () => {
-      const parts = splitTextIntoParts("Hello, ${name}")
+      const parts = splitText("Hello, ${name}")
       expect(parts).toEqual([
         { type: "static", text: "Hello, " },
         { type: "dynamic", text: "${name}" },
@@ -161,9 +154,9 @@ describe("data-parser", () => {
     })
   })
 
-  describe("enrichHierarchyWithData", () => {
+  describe("enrichWithData", () => {
     it("обогащает простую иерархию", () => {
-      const enriched = enrichHierarchyWithData([
+      const enriched = enrichWithData([
         {
           type: "el",
           tag: "div",
@@ -183,7 +176,7 @@ describe("data-parser", () => {
     })
 
     it("обогащает иерархию с map", () => {
-      const enriched = enrichHierarchyWithData([
+      const enriched = enrichWithData([
         {
           type: "map",
           text: "context.list.map((name) => html`",
@@ -209,7 +202,7 @@ describe("data-parser", () => {
     })
 
     it("обогащает иерархию с условием", () => {
-      const enriched = enrichHierarchyWithData([
+      const enriched = enrichWithData([
         {
           type: "cond",
           text: "context.flag",

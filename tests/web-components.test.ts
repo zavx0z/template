@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
-import { enrichHierarchyWithData } from "../data"
+import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
 describe("web-components", () => {
@@ -37,7 +37,7 @@ describe("web-components", () => {
       ])
     })
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -90,7 +90,7 @@ describe("web-components", () => {
       ])
     })
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -138,7 +138,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -228,7 +228,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -302,7 +302,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -371,7 +371,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -468,7 +468,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -542,7 +542,7 @@ describe("web-components", () => {
         { tag: "a-b-c-d", type: "el" },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         { tag: "x-component", type: "el" },
@@ -634,7 +634,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -706,7 +706,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -837,7 +837,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -938,7 +938,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const data = enrichHierarchyWithData(attributes)
+    const data = enrichWithData(attributes)
     it("data", () => expect(data).toEqual([]))
   })
 
