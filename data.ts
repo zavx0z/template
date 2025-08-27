@@ -1343,6 +1343,96 @@ export const createNodeDataMeta = (
     }
   }
 
+  // Обрабатываем уже извлеченные атрибуты
+  if (node.string) {
+    result.string = {}
+    for (const [key, attr] of Object.entries(node.string)) {
+      if (attr.type === "static") {
+        result.string[key] = attr.value
+      } else {
+        // Для динамических атрибутов обрабатываем значение напрямую
+        const templateResult = parseTemplateLiteral(attr.value, context)
+        if (templateResult && templateResult.data) {
+          if (templateResult.expr && typeof templateResult.expr === "string") {
+            result.string[key] = {
+              data: templateResult.data,
+              expr: templateResult.expr,
+            }
+          } else {
+            result.string[key] = {
+              data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
+            }
+          }
+        } else {
+          result.string[key] = attr.value
+        }
+      }
+    }
+  }
+
+  if (node.event) {
+    result.event = {}
+    for (const [key, value] of Object.entries(node.event)) {
+      const eventResult = parseEventExpression(value, context)
+      if (eventResult && eventResult.data) {
+        if (eventResult.expr && typeof eventResult.expr === "string") {
+          // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
+          result.event[key] = {
+            data: eventResult.data,
+            expr: eventResult.expr,
+          }
+        } else {
+          // Если нет выражения, создаем AttrVariable (только строка)
+          result.event[key] = {
+            data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
+          }
+        }
+      } else {
+        // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
+        if (value && value.trim() !== "") {
+          result.event[key] = {
+            data: value,
+          }
+        }
+        // Иначе игнорируем пустые события
+      }
+    }
+    // Если секция событий пуста, удаляем её
+    if (Object.keys(result.event).length === 0) {
+      delete result.event
+    }
+  }
+
+  if (node.array) {
+    result.array = {}
+    for (const [key, values] of Object.entries(node.array)) {
+      result.array[key] = values.map((item) => ({ value: item.value }))
+    }
+  }
+
+  if (node.boolean) {
+    result.boolean = {}
+    for (const [key, attr] of Object.entries(node.boolean)) {
+      if (attr.type === "static") {
+        result.boolean[key] = Boolean(attr.value)
+      } else {
+        // Для булевых атрибутов используем специальную обработку
+        const booleanValue = String(attr.value)
+        const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+
+        if (variableMatches.length > 0 && variableMatches[0]) {
+          const variable = variableMatches[0]
+          const dataPath = resolveDataPath(variable, context)
+          result.boolean[key] = {
+            data: dataPath,
+          }
+        } else {
+          result.boolean[key] = false
+        }
+      }
+    }
+  }
+
   // Добавляем дочерние элементы, если они есть
   if (node.child && node.child.length > 0) {
     result.child = node.child.map((child) => createNodeDataElement(child, context))

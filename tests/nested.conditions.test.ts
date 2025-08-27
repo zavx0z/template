@@ -2,6 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
+import { extractAttributes } from "../attributes"
 
 describe("nested.conditions", () => {
   it("условия с элементами на разных уровнях вложенности с переменными из разных уровней", () => {
@@ -95,7 +96,8 @@ describe("nested.conditions", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
 
     expect(data).toEqual([
       {
@@ -109,7 +111,7 @@ describe("nested.conditions", () => {
               {
                 tag: "section",
                 type: "el",
-                attr: {
+                string: {
                   "data-company": {
                     data: "[item]/id",
                   },
@@ -132,10 +134,8 @@ describe("nested.conditions", () => {
                     true: {
                       tag: "div",
                       type: "el",
-                      attr: {
-                        class: {
-                          value: "company-active",
-                        },
+                      string: {
+                        class: "company-active",
                       },
                       child: [
                         {
@@ -156,10 +156,8 @@ describe("nested.conditions", () => {
                             {
                               tag: "div",
                               type: "el",
-                              attr: {
-                                class: {
-                                  value: "dept-summary",
-                                },
+                              string: {
+                                class: "dept-summary",
                               },
                               child: [
                                 {
@@ -168,10 +166,8 @@ describe("nested.conditions", () => {
                                   true: {
                                     tag: "span",
                                     type: "el",
-                                    attr: {
-                                      class: {
-                                        value: "dept-active-summary",
-                                      },
+                                    string: {
+                                      class: "dept-active-summary",
                                     },
                                     child: [
                                       {
@@ -184,10 +180,8 @@ describe("nested.conditions", () => {
                                   false: {
                                     tag: "span",
                                     type: "el",
-                                    attr: {
-                                      class: {
-                                        value: "dept-inactive-summary",
-                                      },
+                                    string: {
+                                      class: "dept-inactive-summary",
                                     },
                                     child: [
                                       {
@@ -207,10 +201,8 @@ describe("nested.conditions", () => {
                     false: {
                       tag: "div",
                       type: "el",
-                      attr: {
-                        class: {
-                          value: "company-inactive",
-                        },
+                      string: {
+                        class: "company-inactive",
                       },
                       child: [
                         {
@@ -227,7 +219,7 @@ describe("nested.conditions", () => {
                       {
                         tag: "article",
                         type: "el",
-                        attr: {
+                        string: {
                           "data-dept": {
                             data: "[item]/id",
                           },
@@ -251,10 +243,8 @@ describe("nested.conditions", () => {
                             true: {
                               tag: "div",
                               type: "el",
-                              attr: {
-                                class: {
-                                  value: "dept-active",
-                                },
+                              string: {
+                                class: "dept-active",
                               },
                               child: [
                                 {
@@ -266,10 +256,8 @@ describe("nested.conditions", () => {
                             false: {
                               tag: "div",
                               type: "el",
-                              attr: {
-                                class: {
-                                  value: "dept-inactive",
-                                },
+                              string: {
+                                class: "dept-inactive",
                               },
                               child: [
                                 {
@@ -286,7 +274,7 @@ describe("nested.conditions", () => {
                               {
                                 tag: "div",
                                 type: "el",
-                                attr: {
+                                string: {
                                   "data-team": {
                                     data: "[item]/id",
                                   },
@@ -310,10 +298,8 @@ describe("nested.conditions", () => {
                                     true: {
                                       tag: "div",
                                       type: "el",
-                                      attr: {
-                                        class: {
-                                          value: "team-active",
-                                        },
+                                      string: {
+                                        class: "team-active",
                                       },
                                       child: [
                                         {
@@ -325,10 +311,8 @@ describe("nested.conditions", () => {
                                     false: {
                                       tag: "div",
                                       type: "el",
-                                      attr: {
-                                        class: {
-                                          value: "team-inactive",
-                                        },
+                                      string: {
+                                        class: "team-inactive",
                                       },
                                       child: [
                                         {
@@ -352,7 +336,7 @@ describe("nested.conditions", () => {
                                       {
                                         tag: "p",
                                         type: "el",
-                                        attr: {
+                                        string: {
                                           "data-member": {
                                             data: "[item]/id",
                                           },
@@ -361,10 +345,8 @@ describe("nested.conditions", () => {
                                           {
                                             tag: "span",
                                             type: "el",
-                                            attr: {
-                                              class: {
-                                                value: "member-name",
-                                              },
+                                            string: {
+                                              class: "member-name",
                                             },
                                             child: [
                                               {
@@ -376,10 +358,8 @@ describe("nested.conditions", () => {
                                           {
                                             tag: "span",
                                             type: "el",
-                                            attr: {
-                                              class: {
-                                                value: "member-indices",
-                                              },
+                                            string: {
+                                              class: "member-indices",
                                             },
                                             child: [
                                               {
@@ -395,10 +375,8 @@ describe("nested.conditions", () => {
                                             true: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "member-status-active",
-                                                },
+                                                string: {
+                                                class: "member-status-active",
                                               },
                                               child: [
                                                 {
@@ -410,10 +388,8 @@ describe("nested.conditions", () => {
                                             false: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "member-status-inactive",
-                                                },
+                                              string: {
+                                                class: "member-status-inactive",
                                               },
                                               child: [
                                                 {
@@ -435,10 +411,8 @@ describe("nested.conditions", () => {
                                             true: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "member-online",
-                                                },
+                                              string: {
+                                                class: "member-online",
                                               },
                                               child: [
                                                 {
@@ -450,10 +424,8 @@ describe("nested.conditions", () => {
                                             false: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "member-offline",
-                                                },
+                                              string: {
+                                                class: "member-offline",
                                               },
                                               child: [
                                                 {
@@ -557,7 +529,8 @@ describe("nested.conditions", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichHierarchyWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
 
     expect(data).toEqual([
       {
@@ -571,10 +544,10 @@ describe("nested.conditions", () => {
               {
                 tag: "section",
                 type: "el",
-                attr: {
+                string: {
                   "data-company": {
                     data: "[item]/id",
-                  },
+                  }
                 },
                 child: [
                   {
@@ -595,7 +568,7 @@ describe("nested.conditions", () => {
                       {
                         tag: "article",
                         type: "el",
-                        attr: {
+                        string: {
                           "data-dept": {
                             data: "[item]/id",
                           },
@@ -619,10 +592,8 @@ describe("nested.conditions", () => {
                             true: {
                               tag: "div",
                               type: "el",
-                              attr: {
-                                class: {
-                                  value: "first-dept-first-company",
-                                },
+                              string: {
+                                class: "first-dept-first-company",
                               },
                               child: [
                                 {
@@ -634,10 +605,8 @@ describe("nested.conditions", () => {
                             false: {
                               tag: "div",
                               type: "el",
-                              attr: {
-                                class: {
-                                  value: "other-dept",
-                                },
+                              string: {
+                                class: "other-dept",
                               },
                               child: [
                                 {
@@ -654,7 +623,7 @@ describe("nested.conditions", () => {
                               {
                                 tag: "div",
                                 type: "el",
-                                attr: {
+                                string: {
                                   "data-team": {
                                     data: "[item]/id",
                                   },
@@ -678,10 +647,8 @@ describe("nested.conditions", () => {
                                     true: {
                                       tag: "div",
                                       type: "el",
-                                      attr: {
-                                        class: {
-                                          value: "first-team-first-dept",
-                                        },
+                                      string: {
+                                        class: "first-team-first-dept",
                                       },
                                       child: [
                                         {
@@ -693,10 +660,8 @@ describe("nested.conditions", () => {
                                     false: {
                                       tag: "div",
                                       type: "el",
-                                      attr: {
-                                        class: {
-                                          value: "other-team",
-                                        },
+                                      string: {
+                                        class: "other-team",
                                       },
                                       child: [
                                         {
@@ -713,7 +678,7 @@ describe("nested.conditions", () => {
                                       {
                                         tag: "p",
                                         type: "el",
-                                        attr: {
+                                        string: {
                                           "data-member": {
                                             data: "[item]/id",
                                           },
@@ -722,10 +687,8 @@ describe("nested.conditions", () => {
                                           {
                                             tag: "span",
                                             type: "el",
-                                            attr: {
-                                              class: {
-                                                value: "member-name",
-                                              },
+                                            string: {
+                                              class: "member-name",
                                             },
                                             child: [
                                               {
@@ -741,10 +704,8 @@ describe("nested.conditions", () => {
                                             true: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "first-member-first-team-first-dept",
-                                                },
+                                                string: {
+                                                class: "first-member-first-team-first-dept",
                                               },
                                               child: [
                                                 {
@@ -756,10 +717,8 @@ describe("nested.conditions", () => {
                                             false: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "other-member",
-                                                },
+                                              string: {
+                                                class: "other-member",
                                               },
                                               child: [
                                                 {
@@ -776,10 +735,8 @@ describe("nested.conditions", () => {
                                             true: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "not-first-member-not-first-team",
-                                                },
+                                              string: {
+                                                class: "not-first-member-not-first-team",
                                               },
                                               child: [
                                                 {
@@ -791,10 +748,8 @@ describe("nested.conditions", () => {
                                             false: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "first-member-or-first-team",
-                                                },
+                                              string: {
+                                                class: "first-member-or-first-team",
                                               },
                                               child: [
                                                 {
@@ -811,10 +766,8 @@ describe("nested.conditions", () => {
                                             true: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "all-first",
-                                                },
+                                              string: {
+                                                class: "all-first",
                                               },
                                               child: [
                                                 {
@@ -826,10 +779,8 @@ describe("nested.conditions", () => {
                                             false: {
                                               tag: "span",
                                               type: "el",
-                                              attr: {
-                                                class: {
-                                                  value: "not-all-first",
-                                                },
+                                              string: {
+                                                class: "not-all-first",
                                               },
                                               child: [
                                                 {

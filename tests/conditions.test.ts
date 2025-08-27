@@ -2,6 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
+import { extractAttributes } from "../attributes"
 
 describe("conditions", () => {
   describe("тернарник с внутренними тегами", () => {
@@ -52,9 +53,10 @@ describe("conditions", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -137,9 +139,10 @@ describe("conditions", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -215,9 +218,10 @@ describe("conditions", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -304,9 +308,10 @@ describe("conditions", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -321,10 +326,8 @@ describe("conditions", () => {
               false: {
                 tag: "img",
                 type: "el",
-                attr: {
-                  src: {
-                    value: "x",
-                  },
+                string: {
+                  src: "x",
                 },
               },
             },

@@ -2,6 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
+import { extractAttributes } from "../attributes"
 
 describe("mixed", () => {
   describe("map + условия", () => {
@@ -83,9 +84,10 @@ describe("mixed", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "ul",
           type: "el",

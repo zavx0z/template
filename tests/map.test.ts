@@ -2,6 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
+import { extractAttributes } from "../attributes"
 
 describe("map", () => {
   describe("простой map", () => {
@@ -53,10 +54,10 @@ describe("map", () => {
         },
       ])
     })
-
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "ul",
           type: "el",
@@ -143,10 +144,10 @@ describe("map", () => {
         },
       ])
     })
-
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "ul",
           type: "el",
@@ -256,8 +257,9 @@ describe("map", () => {
         ],
       },
     ])
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    expect(data).toEqual([
       {
         tag: "ul",
         type: "el",
@@ -375,8 +377,9 @@ describe("map", () => {
         ],
       },
     ])
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    expect(data).toEqual([
       {
         tag: "ul",
         type: "el",
@@ -486,8 +489,9 @@ describe("map", () => {
         ],
       },
     ])
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    expect(data).toEqual([
       {
         tag: "ul",
         type: "el",
@@ -612,8 +616,9 @@ describe("map", () => {
         },
       },
     ])
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    expect(data).toEqual([
       {
         type: "cond",
         data: "/context/flag",
