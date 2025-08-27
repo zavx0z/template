@@ -607,7 +607,7 @@ describe("class атрибуты в data.ts", () => {
       ])
     })
 
-    it.todo("class в элементе со сложной строкой с условными выражениями", () => {
+    it("class в элементе со сложной строкой с условными выражениями", () => {
       const mainHtml = extractMainHtmlBlock<
         any,
         {

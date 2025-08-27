@@ -4,6 +4,32 @@ import type { PartText, PartMap } from "./hierarchy.t"
 import type { PartAttrCondition, PartAttrElement, PartAttrMeta, PartHierarchy } from "./attributes.t"
 
 // ============================================================================
+// REGEX PATTERNS
+// ============================================================================
+
+// Паттерны для парсинга переменных
+const VARIABLE_PATTERN = /([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g
+const VARIABLE_WITH_DOTS_PATTERN = /([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g
+const VALID_VARIABLE_PATTERN = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/
+
+// Паттерны для парсинга map выражений
+const MAP_PATTERN = /(\w+(?:\.\w+)*)\.map\(([^)]*)\)/
+
+// Паттерны для парсинга событий
+const UPDATE_OBJECT_PATTERN = /update\(\s*\{([^}]+)\}\s*\)/
+const OBJECT_KEY_PATTERN = /([a-zA-Z_$][\w$]*)\s*:/g
+const CONDITIONAL_OPERATORS_PATTERN = /\?.*:/
+
+// Паттерны для парсинга template literals
+const TEMPLATE_LITERAL_PATTERN = /\$\{([^}]+)\}/g
+const CONDITIONAL_MIXED_PATTERN = /^(.*?)\$\{(.*?\?.*?:.*?)\}(.*)$/
+
+// Паттерны для форматирования
+const WHITESPACE_PATTERN = /\s+/g
+const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g
+const STRING_LITERAL_PATTERN = /"[^"]*"|'[^']*'/g
+
+// ============================================================================
 // PATH RESOLUTION UTILITIES
 // ============================================================================
 
@@ -199,7 +225,7 @@ const extractBaseVariable = (variable: string): string => {
       .split(/\.\w+\(/)
       .shift()
       ?.trim()
-    if (beforeMethod && /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(beforeMethod)) {
+    if (beforeMethod && VALID_VARIABLE_PATTERN.test(beforeMethod)) {
       return beforeMethod
     }
   }
@@ -224,7 +250,7 @@ const parseEventExpression = (
 ): ParseAttributeResult | null => {
   // Проверяем, является ли это условным выражением (не событием)
   // Ищем тернарный оператор ? ... : (но не стрелочную функцию =>)
-  const hasConditionalOperators = /\?.*:/.test(eventValue) && !eventValue.includes("=>")
+  const hasConditionalOperators = CONDITIONAL_OPERATORS_PATTERN.test(eventValue) && !eventValue.includes("=>")
   if (hasConditionalOperators) {
     return null
   }
@@ -238,17 +264,17 @@ const parseEventExpression = (
   // Проверяем, является ли это update выражением
   if (eventValue.includes("update(")) {
     // Ищем объект в update({ ... }) - может быть внутри стрелочной функции
-    const objectMatch = eventValue.match(/update\(\s*\{([^}]+)\}\s*\)/)
+    const objectMatch = eventValue.match(UPDATE_OBJECT_PATTERN)
     if (objectMatch) {
       const objectContent = objectMatch[1] || ""
 
       // Извлекаем ключи из объекта
-      const keyMatches = objectContent.match(/([a-zA-Z_$][\w$]*)\s*:/g) || []
+      const keyMatches = objectContent.match(OBJECT_KEY_PATTERN) || []
       const keys = keyMatches.map((match) => match.replace(/\s*:$/, "").trim())
 
       if (keys.length > 0) {
         // Ищем переменные в значениях (например, core.name, context.count)
-        const variableMatches = objectContent.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+        const variableMatches = objectContent.match(VARIABLE_WITH_DOTS_PATTERN) || []
         const uniqueVariables = [...new Set(variableMatches)].filter((variable) => {
           // Исключаем строковые литералы, короткие идентификаторы и булевые литералы
           return (
@@ -284,7 +310,7 @@ const parseEventExpression = (
           })
         }
 
-        result.expr = expr.replace(/^\$\{/, "").replace(/\}$/, "").replace(/\s+/g, " ").trim()
+        result.expr = expr.replace(TEMPLATE_WRAPPER_PATTERN, "").replace(WHITESPACE_PATTERN, " ").trim()
 
         return result
       }
@@ -293,7 +319,7 @@ const parseEventExpression = (
 
   // Извлекаем переменные из события
   // Ищем все переменные в формате identifier.identifier
-  const variableMatches = eventValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+  const variableMatches = eventValue.match(VARIABLE_WITH_DOTS_PATTERN) || []
 
   if (variableMatches.length === 0) {
     return null
@@ -334,7 +360,7 @@ const parseEventExpression = (
   }
 
   // Применяем форматирование
-  expr = expr.replace(/\s+/g, " ").trim()
+  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
 
   // Если это простая переменная без стрелочной функции, не возвращаем expr
   if (!hasArrowFunction && uniqueVariables.length === 1 && (expr === "${0}" || expr === "0")) {
@@ -374,13 +400,8 @@ const parseEventExpression = (
  */
 const createUnifiedExpression = (value: string, variables: string[]): string => {
   let expr = value
-  variables.forEach((variable, index) => {
-    // Заменяем переменные в ${} на индексы
-    expr = expr.replace(new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g"), `\${${index}}`)
-  })
 
-  // Форматируем выражение: удаляем лишние пробелы и переносы строк, но сохраняем строковые литералы
-  // Сначала защищаем строковые литералы
+  // Сначала защищаем строковые литералы от замены
   const stringLiterals: string[] = []
   let protectedExpr = expr
     .replace(/"[^"]*"/g, (match) => {
@@ -392,8 +413,26 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
       return `__STRING_${stringLiterals.length - 1}__`
     })
 
+  // Заменяем переменные в ${} на индексы
+  variables.forEach((variable, index) => {
+    // Сначала заменяем точные совпадения ${variable}
+    const exactRegex = new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g")
+    protectedExpr = protectedExpr.replace(exactRegex, `\${${index}}`)
+
+    // Затем заменяем переменные внутри ${} выражений (для условных выражений)
+    // Но только если это не точное совпадение
+    const insideRegex = new RegExp(`\\$\\{([^}]*?)\\b${variable.replace(/\./g, "\\.")}\\b([^}]*?)\\}`, "g")
+    protectedExpr = protectedExpr.replace(insideRegex, (match, before, after) => {
+      // Проверяем, что это не точное совпадение
+      if (before.trim() === "" && after.trim() === "") {
+        return match // Не заменяем точные совпадения
+      }
+      return `\${${before}${index}${after}}`
+    })
+  })
+
   // Удаляем лишние пробелы и переносы строк в выражениях
-  protectedExpr = protectedExpr.replace(/\s+/g, " ").trim()
+  protectedExpr = protectedExpr.replace(WHITESPACE_PATTERN, " ").trim()
 
   // Восстанавливаем строковые литералы
   stringLiterals.forEach((literal, index) => {
@@ -434,7 +473,7 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
 
 export const parseMap = (mapText: string, context: ParseContext = { pathStack: [], level: 0 }): ParseResult => {
   // Ищем паттерн: identifier.identifier.map((params) => html`)
-  const mapMatch = mapText.match(/(\w+(?:\.\w+)*)\.map\(([^)]*)\)/)
+  const mapMatch = mapText.match(MAP_PATTERN)
 
   if (!mapMatch) {
     return { path: "" }
@@ -879,7 +918,7 @@ const parseTemplateLiteral = (
 
   // Проверяем, является ли это смешанным выражением с условным выражением
   // Regex для поиска строки-${условие}строка
-  const conditionalMixedMatch = value.match(/^(.*?)\$\{(.*?\?.*?:.*?)\}(.*)$/)
+  const conditionalMixedMatch = value.match(CONDITIONAL_MIXED_PATTERN)
   if (conditionalMixedMatch && conditionalMixedMatch[2]) {
     const [, prefix, conditionalExpr, suffix] = conditionalMixedMatch
 
@@ -893,14 +932,17 @@ const parseTemplateLiteral = (
     if (uniquePaths.length > 0) {
       const paths = uniquePaths.map((path) => resolveDataPath(path, context))
 
-      let expr = conditionalExpr
+      // Создаем выражение с унификацией для всего значения
+      // Но сначала заменяем переменные в условном выражении на индексы
+      let expr = value
       uniquePaths.forEach((path, index) => {
-        expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+        // Заменяем переменные в условном выражении на индексы (без ${})
+        expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `${index}`)
       })
 
       return {
         data: paths.length === 1 ? paths[0] || "" : paths,
-        expr: `${prefix}${expr}${suffix}`,
+        expr,
       }
     }
   }
@@ -965,7 +1007,14 @@ const parseTemplateLiteral = (
 
       if (hasComplexOperations) {
         // Есть сложные операции - нужен expr
-        const expr = createUnifiedExpression(value.replace(/^\$\{/, "").replace(/\}$/, ""), uniquePaths)
+        // Создаем выражение с унификацией - заменяем переменные на индексы
+        let expr = value
+        uniquePaths.forEach((path, index) => {
+          expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+        })
+
+        // Применяем форматирование к выражению
+        expr = expr.replace(/\s+/g, " ").trim()
 
         return {
           data: paths.length === 1 ? paths[0] || "" : paths,
@@ -981,7 +1030,7 @@ const parseTemplateLiteral = (
   }
 
   // Для простых переменных - парсим напрямую
-  const varMatches = value.match(/\$\{([^}]+)\}/g)
+  const varMatches = value.match(TEMPLATE_LITERAL_PATTERN)
   if (!varMatches) {
     return null
   }
