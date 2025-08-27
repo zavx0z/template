@@ -697,7 +697,14 @@ export function extractAttributes(hierarchy: NodeHierarchy): PartAttrs {
         ...node,
         child: node.child.map((child) => {
           if (child.type === "el") {
-            return extractAttributes([child])[0]
+            return extractAttributes([child])[0] as PartAttrElement
+          }
+          if (child.type === "meta") {
+            return extractAttributes([child])[0] as PartAttrMeta
+          }
+          // Обрабатываем map и condition узлы
+          if (child.type === "map" || child.type === "cond") {
+            return extractAttributes([child])[0] as PartAttrElement | PartAttrMeta
           }
           return child
         }) as PartAttrs,

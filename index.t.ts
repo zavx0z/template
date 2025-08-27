@@ -111,8 +111,13 @@ type AttrDynamic = {
   data: string | string[]
   expr: string
 }
+type AttrUpdate = {
+  data: string | string[]
+  expr?: string
+  upd: string | string[]
+}
 
-export type AttributeEvent = Record<string, AttrVariable | AttrDynamic>
+export type AttributeEvent = Record<string, AttrVariable | AttrDynamic | AttrUpdate>
 
 export type AttributeArray = Record<string, { value: string }[]>
 

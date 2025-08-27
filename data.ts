@@ -247,7 +247,8 @@ const parseEventExpression = (
   context: DataParserContext = { pathStack: [], level: 0 }
 ): AttributeParseResult | null => {
   // Проверяем, является ли это условным выражением (не событием)
-  const hasConditionalOperators = /[?:]/.test(eventValue)
+  // Ищем тернарный оператор ? ... : (но не стрелочную функцию =>)
+  const hasConditionalOperators = /\?.*:/.test(eventValue) && !eventValue.includes("=>")
   if (hasConditionalOperators) {
     return null
   }
@@ -260,7 +261,7 @@ const parseEventExpression = (
 
   // Проверяем, является ли это update выражением
   if (eventValue.includes("update(")) {
-    // Ищем объект в update({ ... })
+    // Ищем объект в update({ ... }) - может быть внутри стрелочной функции
     const objectMatch = eventValue.match(/update\(\s*\{([^}]+)\}\s*\)/)
     if (objectMatch) {
       const objectContent = objectMatch[1] || ""
@@ -1374,18 +1375,37 @@ export const createNodeDataMeta = (
     result.event = {}
     for (const [key, value] of Object.entries(node.event)) {
       const eventResult = parseEventExpression(value, context)
-      if (eventResult && eventResult.data) {
-        if (eventResult.expr && typeof eventResult.expr === "string") {
-          // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
+      if (eventResult) {
+        // Для update выражений может быть пустой массив data, но есть upd
+        if (eventResult.upd) {
+          // Это update выражение
           result.event[key] = {
-            data: eventResult.data,
-            expr: eventResult.expr,
+            data: eventResult.data || "",
+            expr: eventResult.expr || "",
+            upd: eventResult.upd,
+          }
+        } else if (eventResult.data) {
+          // Обычное событие с данными
+          if (eventResult.expr && typeof eventResult.expr === "string") {
+            // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
+            result.event[key] = {
+              data: eventResult.data,
+              expr: eventResult.expr,
+            }
+          } else {
+            // Если нет выражения, создаем AttrVariable (только строка)
+            result.event[key] = {
+              data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
+            }
           }
         } else {
-          // Если нет выражения, создаем AttrVariable (только строка)
-          result.event[key] = {
-            data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
+          // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
+          if (value && value.trim() !== "") {
+            result.event[key] = {
+              data: value,
+            }
           }
+          // Иначе игнорируем пустые события
         }
       } else {
         // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
@@ -1498,18 +1518,37 @@ export const createNodeDataElement = (
       result.event = {}
       for (const [key, value] of Object.entries(node.event)) {
         const eventResult = parseEventExpression(value, context)
-        if (eventResult && eventResult.data) {
-          if (eventResult.expr && typeof eventResult.expr === "string") {
-            // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
+        if (eventResult) {
+          // Для update выражений может быть пустой массив data, но есть upd
+          if (eventResult.upd) {
+            // Это update выражение
             result.event[key] = {
-              data: eventResult.data,
-              expr: eventResult.expr,
+              data: eventResult.data || "",
+              expr: eventResult.expr || "",
+              upd: eventResult.upd,
+            }
+          } else if (eventResult.data) {
+            // Обычное событие с данными
+            if (eventResult.expr && typeof eventResult.expr === "string") {
+              // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
+              result.event[key] = {
+                data: eventResult.data,
+                expr: eventResult.expr,
+              }
+            } else {
+              // Если нет выражения, создаем AttrVariable (только строка)
+              result.event[key] = {
+                data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
+              }
             }
           } else {
-            // Если нет выражения, создаем AttrVariable (только строка)
-            result.event[key] = {
-              data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
+            // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
+            if (value && value.trim() !== "") {
+              result.event[key] = {
+                data: value,
+              }
             }
+            // Иначе игнорируем пустые события
           }
         } else {
           // Если не удалось распарсить событие и value не пустая строка, создаем объект с data

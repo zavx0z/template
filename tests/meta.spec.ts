@@ -448,17 +448,17 @@ describe("meta", () => {
           },
         ])
       })
-
-      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-      it.skip("data", () => {
-        expect(enrichedHierarchy).toEqual([
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichHierarchyWithData(attributes)
+      it("data", () => {
+        expect(data).toEqual([
           {
             tag: {
               data: "/core/tag",
               expr: "meta-${0}",
             },
             type: "meta",
-            attr: {
+            string: {
               "data-id": {
                 data: "/core/id",
               },
@@ -501,18 +501,25 @@ describe("meta", () => {
         ])
       })
 
-      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-      it.skip("data", () => {
-        expect(enrichedHierarchy).toEqual([
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichHierarchyWithData(attributes)
+      it("data", () => {
+        expect(data).toEqual([
           {
             tag: {
               data: "/core/tag",
               expr: "meta-${0}",
             },
             type: "meta",
-            attr: {
+            boolean: {
               "data-active": {
                 data: "/core/active",
+              },
+            },
+            string: {
+              class: {
+                data: "/core/active",
+                expr: '${0} ? "active" : "inactive"',
               },
             },
           },
@@ -551,16 +558,17 @@ describe("meta", () => {
         ])
       })
 
-      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-      it.skip("data", () => {
-        expect(enrichedHierarchy).toEqual([
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichHierarchyWithData(attributes)
+      it("data", () => {
+        expect(data).toEqual([
           {
             tag: {
               data: "/core/tag",
               expr: "meta-${0}",
             },
             type: "meta",
-            attr: {
+            event: {
               onclick: {
                 data: ["/core/handleClick", "/core/id"],
                 expr: "() => ${0}(${1})",
@@ -603,16 +611,28 @@ describe("meta", () => {
         ])
       })
 
-      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-      it.skip("data", () => {
-        expect(enrichedHierarchy).toEqual([
+      const attributes = extractAttributes(hierarchy)
+      it("attributes", () =>
+        expect(attributes).toEqual([
+          {
+            tag: "meta-${core.tag}",
+            type: "meta",
+            event: {
+              onclick: "() => update({ selected: core.id })",
+            },
+          },
+        ]))
+
+      const data = enrichHierarchyWithData(attributes)
+      it("data", () => {
+        expect(data).toEqual([
           {
             tag: {
               data: "/core/tag",
               expr: "meta-${0}",
             },
             type: "meta",
-            attr: {
+            event: {
               onclick: {
                 data: "/core/id",
                 expr: "() => update({ selected: ${0} })",
@@ -668,10 +688,44 @@ describe("meta", () => {
           },
         ])
       })
+      const attributes = extractAttributes(hierarchy)
+      it("attributes", () => {
+        expect(attributes).toEqual([
+          {
+            type: "map",
+            text: "core.items.map((item)`",
+            child: [
+              {
+                tag: "meta-${item.tag}",
+                type: "meta",
+                string: {
+                  "data-id": {
+                    type: "dynamic",
+                    value: "item.id",
+                  },
+                  class: {
+                    type: "mixed",
+                    value: 'meta-${item.active ? "active" : "inactive"}',
+                  },
+                },
+                boolean: {
+                  "data-active": {
+                    type: "dynamic",
+                    value: "item.active",
+                  },
+                },
+                event: {
+                  onclick: "() => item.handleClick(item.id)",
+                },
+              },
+            ],
+          },
+        ])
+      })
 
-      const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-      it.skip("data", () => {
-        expect(enrichedHierarchy).toEqual([
+      const data = enrichHierarchyWithData(attributes)
+      it("data", () => {
+        expect(data).toEqual([
           {
             type: "map",
             data: "/core/items",
@@ -682,16 +736,24 @@ describe("meta", () => {
                   expr: "meta-${0}",
                 },
                 type: "meta",
-                attr: {
-                  "data-id": {
-                    data: "[item]/id",
-                  },
-                  "data-active": {
-                    data: "/item/active",
-                  },
+                event: {
                   onclick: {
                     data: ["[item]/handleClick", "[item]/id"],
                     expr: "() => ${0}(${1})",
+                  },
+                },
+                string: {
+                  "data-id": {
+                    data: "[item]/id",
+                  },
+                  class: {
+                    data: "[item]/active",
+                    expr: 'meta-${0} ? "active" : "inactive"',
+                  },
+                },
+                boolean: {
+                  "data-active": {
+                    data: "[item]/active",
                   },
                 },
               },
