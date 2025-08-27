@@ -106,12 +106,14 @@ describe("parse", () => {
       tag: "button",
     })
 
-    expect(button.attr.class).toMatchObject({
+    expect(button.string.class).toMatchObject({
       data: "/context/isActive",
+      expr: '${0} ? "active" : ""',
     })
 
-    expect(button.attr.disabled).toMatchObject({
-      data: "/!context/canEdit",
+    expect(button.string.disabled).toMatchObject({
+      data: "/context/canEdit",
+      expr: "!${0}",
     })
 
     expect(button.child[0]).toMatchObject({

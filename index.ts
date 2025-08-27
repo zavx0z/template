@@ -1,5 +1,6 @@
 import { extractMainHtmlBlock, extractHtmlElements } from "./splitter"
 import { elementsHierarchy } from "./hierarchy"
+import { extractAttributes } from "./attributes"
 import { enrichHierarchyWithData } from "./data"
 import type { Node } from "./index.t"
 import type { Render, Content, Core, State } from "./index.t"
@@ -71,8 +72,11 @@ export const parse = <C extends Content = Content, I extends Core = Core, S exte
   // Строим иерархию элементов
   const hierarchy = elementsHierarchy(mainHtml, elements)
 
+  // Извлекаем атрибуты
+  const attributes = extractAttributes(hierarchy)
+
   // Обогащаем иерархию метаданными о путях к данным
-  const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
+  const enrichedHierarchy = enrichHierarchyWithData(attributes)
 
   return enrichedHierarchy
 }

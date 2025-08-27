@@ -119,7 +119,8 @@ type AttrUpdate = {
 
 export type AttributeEvent = Record<string, AttrVariable | AttrDynamic | AttrUpdate>
 
-export type AttributeArray = Record<string, { value: string }[]>
+export type AttributeArray = Record<string, (AttrStaticArray | AttrVariable | AttrDynamic)[]>
+type AttrStaticArray = { value: string }
 
 export type AttributeString = Record<string, AttrStaticString | AttrVariable | AttrDynamic>
 type AttrStaticString = string

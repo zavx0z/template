@@ -10,6 +10,7 @@
 - Обработка условных выражений
 - Извлечение путей из атрибутов и событий
 - Поддержка деструктуризации параметров
+- Правильная обработка различных типов атрибутов (string, array, boolean, event, object)
 
 ## Архитектура системы
 
@@ -20,6 +21,7 @@
 3. **resolveDataPath** - универсальная функция разрешения путей
 4. **findVariableInMapStack** - поиск переменных в стеке map контекстов
 5. **parseEventExpression** - специальная функция для парсинга событий
+6. **parseTemplateLiteral** - функция для парсинга template literals в атрибутах
 
 ### Система контекстов
 
@@ -32,6 +34,96 @@ type DataParserContext = {
   mapParams?: string[] // Параметры текущего map
   level: number // Уровень вложенности
   mapContextStack?: MapContext[] // Стек всех map контекстов
+}
+```
+
+## Обработка атрибутов
+
+### Новая структура атрибутов
+
+Система теперь правильно обрабатывает атрибуты и помещает их в соответствующие секции результата:
+
+```typescript
+{
+  string?: AttributeString,    // Строковые атрибуты
+  array?: AttributeArray,      // Массивные атрибуты (class, rel, accept, etc.)
+  boolean?: AttributeBoolean,  // Булевые атрибуты
+  event?: AttributeEvent,      // Событийные атрибуты
+  object?: AttributeObject     // Объектные атрибуты (style, context, core)
+}
+```
+
+### Типы значений атрибутов
+
+Каждый атрибут может иметь один из трех типов значений:
+
+- **`static`** - статическое значение без интерполяции
+- **`dynamic`** - значение с интерполяцией `${...}`
+- **`mixed`** - смешанное значение с статическими и динамическими частями
+
+### Обработка строковых атрибутов
+
+Строковые атрибуты обрабатываются в секции `string`:
+
+```typescript
+string: {
+  src: { type: "static", value: "image.jpg" },
+  alt: { type: "dynamic", value: "image.alt" },
+  href: { type: "mixed", value: "base/${image.id}.jpg" }
+}
+```
+
+### Обработка массивных атрибутов
+
+Массивные атрибуты (class, rel, accept, etc.) обрабатываются в секции `array`:
+
+```typescript
+array: {
+  class: [
+    { type: "static", value: "container" },
+    { type: "dynamic", value: "isActive ? 'active' : 'inactive'" },
+    { type: "mixed", value: "btn-${variant}" }
+  ],
+  rel: [
+    { type: "static", value: "noopener" },
+    { type: "static", value: "noreferrer" }
+  ]
+}
+```
+
+### Обработка булевых атрибутов
+
+Булевые атрибуты обрабатываются в секции `boolean`:
+
+```typescript
+boolean: {
+  disabled: { type: "static", value: true },
+  checked: { type: "dynamic", value: "user.isAdmin" },
+  required: { type: "dynamic", value: "form.isValid" }
+}
+```
+
+### Обработка событийных атрибутов
+
+Событийные атрибуты обрабатываются в секции `event`:
+
+```typescript
+event: {
+  onclick: "() => handleClick()",
+  onchange: "(e) => handleChange(e)",
+  onsubmit: "() => update({ name: 'John' })"
+}
+```
+
+### Обработка объектных атрибутов
+
+Объектные атрибуты (style, context, core) обрабатываются в секции `object`:
+
+```typescript
+object: {
+  style: "{ backgroundColor: 'red', color: 'white' }",
+  context: "{ user: currentUser, theme: currentTheme }",
+  core: "{ state: appState, actions: appActions }"
 }
 ```
 
@@ -48,6 +140,7 @@ type DataParserContext = {
 3. **Условные атрибуты** - с тернарными операторами
 4. **Булевые атрибуты** - с логическими операторами `&&`
 5. **Событийные атрибуты** - с функциями обработчиков
+6. **Массивные атрибуты** - с множественными значениями
 
 ### Примеры работы
 
@@ -60,11 +153,14 @@ type DataParserContext = {
 
 <!-- Булевый атрибут -->
 <button ${item.disabled && "disabled"}>Click</button>
+
+<!-- Массивный атрибут -->
+<div class="container ${isActive ? 'active' : 'inactive'} ${variant}">Content</div>
 ```
 
 ### Алгоритм извлечения путей
 
-1. **Парсинг атрибутов** - функция `parseAttributesImproved` анализирует HTML тег
+1. **Парсинг атрибутов** - функция `parseAttributes` анализирует HTML тег
 2. **Определение типа значения** - проверяется наличие template literals
 3. **Извлечение переменных** - извлекаются все переменные из выражения
 4. **Разрешение путей** - используется `resolveDataPath` с учетом контекста
@@ -166,76 +262,58 @@ ${items.map((item) => html`
 - `update({ name: "Jane Doe" })` → `upd: "name"`
 - `update({ name: "John", age: 25, active: true })` → `upd: ["name", "age", "active"]`
 - `update({ selectedId: item.id })` → `upd: "selectedId"` (в контексте map)
-  <button onclick=${(e) => core.handleClick(e, item.id)}>Click</button>
 
-<!-- Событие в map контексте -->
+## Обработка class атрибутов
 
-${items.map((item) => html`
-  <button onclick=${() => item.handleClick(item.id)}>${item.name}</button>
-`)}
+### Специальная обработка class
 
-````
-
-### Вложенные события
-
-Система корректно обрабатывает события в сложных вложенных структурах:
+Атрибут `class` имеет специальную обработку, так как может содержать как статические, так и динамические значения:
 
 ```html
-${companies.map((company) => html`
-  <section onclick=${() => company.handleClick(company.id)}>
-    ${company.departments.map((dept) => html`
-      <article onclick=${() => dept.handleClick(company.id, dept.id)}>
-        ${dept.teams.map((team) => html`
-          <div onclick=${() => team.handleClick(company.id, dept.id, team.id)}>
-            ${team.members.map((member) => html`
-              <p onclick=${() => member.handleClick(company.id, dept.id, team.id, member.id)}>
-                ${member.name}
-              </p>
-            `)}
-          </div>
-        `)}
-      </article>
-    `)}
-  </section>
-`)}
-````
+<!-- Статические классы -->
+<div class="container active">Content</div>
 
-**Результат обработки:**
+<!-- Динамические классы -->
+<div class="${isActive ? 'active' : 'inactive'}">Content</div>
 
-- `company.handleClick` → `[item]/handleClick`
-- `dept.handleClick` → `[item]/handleClick` (в контексте dept)
-- `company.id` в контексте dept → `../[item]/id`
-- `team.handleClick` → `[item]/handleClick` (в контексте team)
-- `company.id` в контексте team → `../../[item]/id`
+<!-- Смешанные классы -->
+<div class="container ${isActive ? 'active' : 'inactive'} ${variant}">Content</div>
 
-## Вложенные контексты
+<!-- Классы с условными выражениями -->
+<div class="base-class ${core.active ? 'active' : 'inactive'} ${core.disabled ? 'disabled' : ''}">Content</div>
+```
 
-### Иерархия контекстов
+### Результат обработки class атрибутов
 
-Система создает иерархию контекстов для каждого уровня вложенности map функций. Каждый контекст содержит информацию о параметрах и уровне вложенности.
+```typescript
+// Для статических классов
+string: {
+  class: "container active"
+}
 
-### Автоматическое определение уровня вложенности
+// Для динамических классов
+string: {
+  class: {
+    data: "/core/active",
+    expr: '${0} ? "active" : "inactive"'
+  }
+}
 
-- Правильное разрешение путей между разными уровнями
-- Поддержка произвольной глубины вложенности
-
-## Обработка параметров map функций
-
-### Простые параметры
-
-Когда map функция принимает один параметр, система интерпретирует его как сам элемент массива. Это подходит для массивов примитивов (строк, чисел).
-
-### Деструктурированные параметры
-
-При использовании деструктуризации система автоматически определяет свойства объектов и создает соответствующие пути к данным. Это позволяет работать с массивами объектов.
-
-### Параметры с индексами
-
-Система поддерживает дополнительные параметры для доступа к индексам элементов. Второй и последующие параметры автоматически интерпретируются как индексы.
-
-### Универсальность путей
-
-Ключевая особенность системы - универсальность путей к данным. Независимо от способа доступа к данным (деструктуризация или доступ по ключу), система генерирует одинаковые пути, обеспечивая консистентность.
+// Для смешанных классов
+array: {
+  class: [
+    { value: "container" },
+    {
+      data: "/core/active",
+      expr: '${0} ? "active" : "inactive"'
+    },
+    {
+      data: "/core/variant",
+      expr: "btn-${0}"
+    }
+  ]
+}
+```
 
 ## Вложенные контексты
 
@@ -298,6 +376,73 @@ resolveDataPath("member.id", context) // Возвращает: "[item]/id"
 2. Удаление избыточных пробелов и переносов строк
 3. Защиту строковых литералов от форматирования
 
+## Обработка пустых строк в тернарных операторах
+
+### Исправленная логика восстановления кавычек
+
+Система теперь правильно обрабатывает пустые строки в тернарных операторах:
+
+```html
+<!-- Пустые значения в тернарных операторах -->
+<div class="${core.hidden ? '' : 'show'}">Content</div>
+<div class="${core.active ? 'active' : ''}">Content</div>
+```
+
+### Результат обработки
+
+```typescript
+array: {
+  class: [
+    { value: "visible" },
+    {
+      data: "/core/hidden",
+      expr: '${0} ? "" : "show"'
+    },
+    {
+      data: "/core/active",
+      expr: '${0} ? "active" : ""'
+    }
+  ]
+}
+```
+
+## Интеграция с основным API
+
+### Функция parse
+
+Основная функция `parse` теперь включает полный цикл обработки:
+
+```typescript
+export const parse = <C extends Content = Content, I extends Core = Core, S extends State = State>(
+  render: Render<C, I, S>
+): Node[] => {
+  // Извлекаем основной HTML блок из render-функции
+  const mainHtml = extractMainHtmlBlock(render)
+
+  // Разбиваем HTML на токены элементов
+  const elements = extractHtmlElements(mainHtml)
+
+  // Строим иерархию элементов
+  const hierarchy = elementsHierarchy(mainHtml, elements)
+
+  // Извлекаем атрибуты
+  const attributes = extractAttributes(hierarchy)
+
+  // Обогащаем иерархию метаданными о путях к данным
+  const enrichedHierarchy = enrichHierarchyWithData(attributes)
+
+  return enrichedHierarchy
+}
+```
+
+### Полный цикл обработки
+
+1. **extractMainHtmlBlock** - извлечение HTML из template literal
+2. **extractHtmlElements** - разбиение на токены элементов
+3. **elementsHierarchy** - построение иерархии элементов
+4. **extractAttributes** - извлечение и классификация атрибутов
+5. **enrichHierarchyWithData** - обогащение метаданными о путях к данным
+
 ## Преимущества системы
 
 ### 1. Точность разрешения путей
@@ -315,3 +460,11 @@ resolveDataPath("member.id", context) // Возвращает: "[item]/id"
 ### 4. Расширяемость
 
 Архитектура позволяет легко добавлять новые типы обработки данных.
+
+### 5. Правильная классификация атрибутов
+
+Система корректно классифицирует атрибуты по типам и помещает их в соответствующие секции результата.
+
+### 6. Поддержка сложных выражений
+
+Система корректно обрабатывает сложные выражения с тернарными операторами, логическими операторами и пустыми значениями.

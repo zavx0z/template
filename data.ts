@@ -992,7 +992,8 @@ const parseTemplateLiteral = (
       })
 
       // Восстанавливаем оригинальные кавычки для строковых литералов
-      expr = expr.replace(/""/g, '"').replace(/''/g, "'")
+      // Используем более точную замену для пустых строк
+      expr = expr.replace(/""/g, '""').replace(/''/g, "''")
 
       // Применяем форматирование к выражению
       expr = expr.replace(/\s+/g, " ").trim()
@@ -1484,7 +1485,10 @@ export const createNodeDataElement = (
     const result: NodeElement = {
       tag: node.tag,
       type: "el",
-      child: node.child?.map((child) => createNodeDataElement(child, context)),
+    }
+
+    if (node.child) {
+      result.child = node.child.map((child) => createNodeDataElement(child, context))
     }
 
     // Обрабатываем уже извлеченные атрибуты
@@ -1569,7 +1573,28 @@ export const createNodeDataElement = (
     if (node.array) {
       result.array = {}
       for (const [key, values] of Object.entries(node.array)) {
-        result.array[key] = values.map((item) => ({ value: item.value }))
+        result.array[key] = values.map((item) => {
+          if (item.type === "static") {
+            return { value: item.value }
+          } else {
+            // Для динамических и смешанных атрибутов обрабатываем значение
+            const templateResult = parseTemplateLiteral(item.value, context)
+            if (templateResult && templateResult.data) {
+              if (templateResult.expr && typeof templateResult.expr === "string") {
+                return {
+                  data: templateResult.data,
+                  expr: templateResult.expr,
+                }
+              } else {
+                return {
+                  data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
+                }
+              }
+            } else {
+              return { value: item.value }
+            }
+          }
+        })
       }
     }
 
