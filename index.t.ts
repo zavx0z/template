@@ -93,6 +93,8 @@ interface AttributesNode {
   array?: AttributeArray
   /** Строковые аттрибуты */
   string?: AttributeString
+  /** Объектные аттрибуты (стили) */
+  object?: AttributeObject
 }
 
 /**
@@ -130,6 +132,6 @@ type AttrStaticString = string
 
 export type AttributeBoolean = Record<string, boolean | AttrVariable | AttrDynamic>
 
-export type AttributeObject = Record<string, string>
+export type AttributeObject = Record<string, Record<string, string>>
 
 export type Node = NodeMap | NodeCondition | NodeText | NodeElement | NodeMeta

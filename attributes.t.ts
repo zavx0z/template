@@ -33,6 +33,8 @@ export type PartAttrElement = {
   array?: AttributeArray
   /** Строковые аттрибуты */
   string?: AttributeString
+  /** Объектные аттрибуты (стили) */
+  object?: AttributeObject
   /** Дочерние элементы (опционально) */
   child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
 }
@@ -50,6 +52,8 @@ export type PartAttrMeta = {
   array?: AttributeArray
   /** Строковые аттрибуты */
   string?: AttributeString
+  /** Объектные аттрибуты (стили) */
+  object?: AttributeObject
   /** Дочерние элементы (опционально) */
   child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
 }

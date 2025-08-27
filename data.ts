@@ -1455,6 +1455,47 @@ export const createNodeDataMeta = (
     }
   }
 
+  if (node.object) {
+    result.object = {}
+    for (const [key, objectValue] of Object.entries(node.object)) {
+      // Для object атрибутов (стилей, context, core) парсим строку и создаем объект
+      const objectValueStr = String(objectValue)
+
+      // Парсим строку объекта вида "{ backgroundColor: company.theme }"
+      const objectMatch = objectValueStr.match(/\{\s*([^}]+)\s*\}/)
+      if (objectMatch && objectMatch[1]) {
+        const objectContent = objectMatch[1]
+        const objectResult: Record<string, string> = {}
+
+        // Парсим свойства объекта
+        const propertyMatches = objectContent.match(/([a-zA-Z-]+)\s*:\s*([^,}]+)/g) || []
+        propertyMatches.forEach((propertyMatch) => {
+          const match = propertyMatch.match(/([a-zA-Z-]+)\s*:\s*(.+)/)
+          if (match && match[1] && match[2]) {
+            const propertyName = match[1]
+            const propertyValue = match[2]
+            const trimmedValue = propertyValue.trim()
+
+            // Проверяем, является ли значение переменной
+            const variableMatch = trimmedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/)
+            if (variableMatch && variableMatch[1]) {
+              const variable = variableMatch[1]
+              const dataPath = resolveDataPath(variable, context)
+              objectResult[propertyName] = dataPath
+            } else {
+              // Статическое значение
+              objectResult[propertyName] = trimmedValue
+            }
+          }
+        })
+
+        result.object[key] = objectResult
+      } else {
+        result.object[key] = { [key]: objectValueStr }
+      }
+    }
+  }
+
   // Добавляем дочерние элементы, если они есть
   if (node.child && node.child.length > 0) {
     result.child = node.child.map((child) => createNodeDataElement(child, context))
@@ -1636,6 +1677,47 @@ export const createNodeDataElement = (
           } else {
             result.boolean[key] = false
           }
+        }
+      }
+    }
+
+    if (node.object) {
+      result.object = {}
+      for (const [key, objectValue] of Object.entries(node.object)) {
+        // Для object атрибутов (стилей) парсим строку и создаем объект
+        const objectValueStr = String(objectValue)
+
+        // Парсим строку стиля вида "{ backgroundColor: company.theme }"
+        const styleMatch = objectValueStr.match(/\{\s*([^}]+)\s*\}/)
+        if (styleMatch && styleMatch[1]) {
+          const styleContent = styleMatch[1]
+          const styleObject: Record<string, string> = {}
+
+          // Парсим свойства стиля
+          const propertyMatches = styleContent.match(/([a-zA-Z-]+)\s*:\s*([^,}]+)/g) || []
+          propertyMatches.forEach((propertyMatch) => {
+            const match = propertyMatch.match(/([a-zA-Z-]+)\s*:\s*(.+)/)
+            if (match && match[1] && match[2]) {
+              const propertyName = match[1]
+              const propertyValue = match[2]
+              const trimmedValue = propertyValue.trim()
+
+              // Проверяем, является ли значение переменной
+              const variableMatch = trimmedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/)
+              if (variableMatch && variableMatch[1]) {
+                const variable = variableMatch[1]
+                const dataPath = resolveDataPath(variable, context)
+                styleObject[propertyName] = dataPath
+              } else {
+                // Статическое значение
+                styleObject[propertyName] = trimmedValue
+              }
+            }
+          })
+
+          result.object[key] = styleObject
+        } else {
+          result.object[key] = { [key]: objectValueStr }
         }
       }
     }
