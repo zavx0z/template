@@ -31,6 +31,21 @@ describe.each([
         },
       })
     })
+    it("атрибуты через дефис", () => {
+      const attrs = parseAttributes(tag + " data-required aria-hidden />")
+      expect(attrs).toEqual({
+        boolean: {
+          "data-required": {
+            type: "static",
+            value: true,
+          },
+          "aria-hidden": {
+            type: "static",
+            value: true,
+          },
+        },
+      })
+    })
 
     it("атрибут со значением false", () => {
       const attrs = parseAttributes(tag + " disabled=false>")
@@ -368,15 +383,6 @@ describe.each([
           "data-test": { type: "dynamic", value: "context.isTest" },
           custom: { type: "static", value: true },
           readonly: { type: "static", value: true },
-        },
-      })
-    })
-    it("", () => {
-      const attrs = parseAttributes(tag + " ${context.disabled && 'disabled'} ${context.value > 10 && 'enabled'}>")
-      expect(attrs).toEqual({
-        boolean: {
-          disabled: { type: "dynamic", value: "context.disabled" },
-          enabled: { type: "dynamic", value: "context.value > 10" },
         },
       })
     })

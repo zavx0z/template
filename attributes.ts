@@ -240,7 +240,8 @@ const BUILTIN_LIST_SPLITTERS: Record<string, SplitterResolved> = {
 
 function getBuiltinResolved(name: string): SplitterResolved | null {
   const lower = name.toLowerCase()
-  if (lower.startsWith("aria-")) return { fn: splitBySpace, delim: " " }
+  // aria-hidden является булевым атрибутом, а не списковым
+  if (lower.startsWith("aria-") && lower !== "aria-hidden") return { fn: splitBySpace, delim: " " }
   return BUILTIN_LIST_SPLITTERS[lower] || null
 }
 
