@@ -11,13 +11,13 @@ import type { ElementToken } from "./splitter"
  *
  * @example
  * ```typescript
- * const textNode: NodeHierarchyText = {
+ * const textNode: PartText = {
  *   type: "text",
  *   text: "Hello ${name}"
  * }
  * ```
  */
-export type NodeHierarchyText = {
+export type PartText = {
   /** Тип узла */
   type: "text"
   /** Исходный текст */
@@ -33,11 +33,11 @@ export type NodeHierarchyText = {
  *
  * @property {string} type - Тип узла, всегда "map"
  * @property {string} text - Исходный текст map-выражения
- * @property {(NodeHierarchyElement | NodeHierarchyText)[]} child - Дочерние элементы, повторяемые для каждого элемента коллекции
+ * @property {(PartElement | PartText)[]} child - Дочерние элементы, повторяемые для каждого элемента коллекции
  *
  * @example
  * ```typescript
- * const mapNode: NodeHierarchyMap = {
+ * const mapNode: PartMap = {
  *   type: "map",
  *   text: "core.list.map(({ title, nested }) => html`",
  *   child: [
@@ -46,13 +46,13 @@ export type NodeHierarchyText = {
  * }
  * ```
  */
-export type NodeHierarchyMap = {
+export type PartMap = {
   /** Тип узла */
   type: "map"
   /** Исходный текст map-выражения */
   text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (NodeHierarchyElement | NodeHierarchyText | NodeHierarchyMap | NodeHierarchyCondition | NodeHierarchyMeta)[]
+  child: (PartElement | PartText | PartMap | PartCondition | PartMeta)[]
 }
 
 /**
@@ -64,12 +64,12 @@ export type NodeHierarchyMap = {
  *
  * @property {string} type - Тип узла, всегда "cond"
  * @property {string} text - Исходный текст условия
- * @property {NodeHierarchyElement} true - Элемент, рендерящийся когда условие истинно
- * @property {NodeHierarchyElement} false - Элемент, рендерящийся когда условие ложно
+ * @property {PartElement} true - Элемент, рендерящийся когда условие истинно
+ * @property {PartElement} false - Элемент, рендерящийся когда условие ложно
  *
  * @example
  * ```typescript
- * const conditionNode: NodeHierarchyCondition = {
+ * const conditionNode: PartCondition = {
  *   type: "cond",
  *   text: "context.flag ?",
  *   true: { tag: "div", type: "el", text: "<div>", child: [...] },
@@ -77,15 +77,15 @@ export type NodeHierarchyMap = {
  * }
  * ```
  */
-export type NodeHierarchyCondition = {
+export type PartCondition = {
   /** Тип узла */
   type: "cond"
   /** Исходный текст условия */
   text: string
   /** Элемент, рендерящийся когда условие истинно */
-  true: NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMeta
+  true: PartElement | PartCondition | PartMeta
   /** Элемент, рендерящийся когда условие ложно */
-  false: NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMeta
+  false: PartElement | PartCondition | PartMeta
 }
 
 /**
@@ -98,11 +98,11 @@ export type NodeHierarchyCondition = {
  * @property {string} tag - Имя HTML тега (например, "div", "span", "p")
  * @property {string} type - Тип узла, всегда "el"
  * @property {string} text - Исходный текст тега
- * @property {(NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText)[]} [child] - Дочерние элементы (опционально)
+ * @property {(PartElement | PartCondition | PartMap | PartText)[]} [child] - Дочерние элементы (опционально)
  *
  * @example
  * ```typescript
- * const elementNode: NodeHierarchyElement = {
+ * const elementNode: PartElement = {
  *   tag: "div",
  *   type: "el",
  *   text: "<div>",
@@ -113,7 +113,7 @@ export type NodeHierarchyCondition = {
  * }
  * ```
  */
-export type NodeHierarchyElement = {
+export type PartElement = {
   /** Имя HTML тега */
   tag: string
   /** Тип узла */
@@ -121,7 +121,7 @@ export type NodeHierarchyElement = {
   /** Исходный текст тега */
   text: string
   /** Дочерние элементы (опционально) */
-  child?: (NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText | NodeHierarchyMeta)[]
+  child?: (PartElement | PartCondition | PartMap | PartText | PartMeta)[]
 }
 
 /**
@@ -133,7 +133,7 @@ export type NodeHierarchyElement = {
  *
  * @example
  * ```typescript
- * const hierarchy: ElementsHierarchy = [
+ * const hierarchy: PartHierarchy = [
  *   { tag: "div", type: "el", text: "<div>", child: [...] },
  *   { type: "cond", text: "context.showHeader ?", true: {...}, false: {...} },
  *   { type: "map", text: "core.items.map(...)", child: [...] }
@@ -144,7 +144,7 @@ export type NodeHierarchyElement = {
  * Мета-узел иерархии.
  * Представляет мета-тег в иерархии элементов.
  */
-export type NodeHierarchyMeta = {
+export type PartMeta = {
   /** Имя мета-тега */
   tag: string
   /** Тип узла */
@@ -152,16 +152,10 @@ export type NodeHierarchyMeta = {
   /** Исходный текст тега */
   text: string
   /** Дочерние элементы (опционально) */
-  child?: (NodeHierarchyElement | NodeHierarchyCondition | NodeHierarchyMap | NodeHierarchyText | NodeHierarchyMeta)[]
+  child?: (PartElement | PartCondition | PartMap | PartText | PartMeta)[]
 }
 
-export type NodeHierarchy = (
-  | NodeHierarchyElement
-  | NodeHierarchyCondition
-  | NodeHierarchyMap
-  | NodeHierarchyText
-  | NodeHierarchyMeta
-)[]
+export type PartHierarchy = (PartElement | PartCondition | PartMap | PartText | PartMeta)[]
 
 /**
  * Элемент стека для отслеживания открытых тегов.
@@ -170,13 +164,13 @@ export type NodeHierarchy = (
  * Используется внутренне для построения иерархии элементов.
  *
  * @property {ElementToken} tag - Токен открывающего тега
- * @property {NodeHierarchyElement} element - Соответствующий элемент иерархии
+ * @property {PartElement} element - Соответствующий элемент иерархии
  */
 export type StackItem = {
   /** Токен открывающего тега */
   tag: ElementToken
   /** Соответствующий элемент иерархии */
-  element: NodeHierarchyElement | NodeHierarchyMeta
+  element: PartElement | PartMeta
 }
 
 /**

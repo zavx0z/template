@@ -1,7 +1,7 @@
-import type { DataParserContext, DataParseResult, MapContext, AttributeParseResult, TextPart } from "./data.t"
+import type { ParseContext, ParseResult, ParseMapContext, ParseAttributeResult, ParseTextPart } from "./data.t"
 import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node } from "./index.t"
-import type { NodeHierarchyText } from "./hierarchy.t"
-import type { PartAttrCondition, PartAttrElement, PartAttributeMap, PartAttrMeta, PartAttrs } from "./attributes.t"
+import type { PartText, PartMap } from "./hierarchy.t"
+import type { PartAttrCondition, PartAttrElement, PartAttrMeta, PartHierarchy } from "./attributes.t"
 
 // ============================================================================
 // PATH RESOLUTION UTILITIES
@@ -24,7 +24,7 @@ import type { PartAttrCondition, PartAttrElement, PartAttributeMap, PartAttrMeta
  * findVariableInMapStack("team.id", context)   // Возвращает: "../[item]/id"
  * findVariableInMapStack("member", context)    // Возвращает: "[item]"
  */
-const findVariableInMapStack = (variable: string, context: DataParserContext): string | null => {
+const findVariableInMapStack = (variable: string, context: ParseContext): string | null => {
   if (!context.mapContextStack?.length) return null
 
   const variableParts = variable.split(".")
@@ -81,7 +81,7 @@ const buildItemPath = (prefix: string, variableParts: string[], isDestructured: 
  * resolveDataPath("item.name", context) // Возвращает: "[item]/name"
  * resolveDataPath("item", context)      // Возвращает: "[item]"
  */
-const resolveDataPath = (variable: string, context: DataParserContext): string => {
+const resolveDataPath = (variable: string, context: ParseContext): string => {
   // Сначала пытаемся найти переменную в стеке map контекстов
   const mapStackPath = findVariableInMapStack(variable, context)
   if (mapStackPath !== null) {
@@ -220,8 +220,8 @@ const extractBaseVariable = (variable: string): string => {
  */
 const parseEventExpression = (
   eventValue: string,
-  context: DataParserContext = { pathStack: [], level: 0 }
-): AttributeParseResult | null => {
+  context: ParseContext = { pathStack: [], level: 0 }
+): ParseAttributeResult | null => {
   // Проверяем, является ли это условным выражением (не событием)
   // Ищем тернарный оператор ? ... : (но не стрелочную функцию =>)
   const hasConditionalOperators = /\?.*:/.test(eventValue) && !eventValue.includes("=>")
@@ -262,7 +262,7 @@ const parseEventExpression = (
           )
         })
 
-        let result: AttributeParseResult = {
+        let result: ParseAttributeResult = {
           upd: keys.length === 1 ? keys[0] || "" : keys,
         }
 
@@ -432,10 +432,7 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
 // EXPRESSION PARSERS
 // ============================================================================
 
-export const parseMap = (
-  mapText: string,
-  context: DataParserContext = { pathStack: [], level: 0 }
-): DataParseResult => {
+export const parseMap = (mapText: string, context: ParseContext = { pathStack: [], level: 0 }): ParseResult => {
   // Ищем паттерн: identifier.identifier.map((params) => html`)
   const mapMatch = mapText.match(/(\w+(?:\.\w+)*)\.map\(([^)]*)\)/)
 
@@ -455,19 +452,19 @@ export const parseMap = (
     const parts = dataPath.split(".")
     const relativePath = parts[parts.length - 1] || ""
 
-    const newMapContext: MapContext = {
+    const newParseMapContext: ParseMapContext = {
       path: `[item]/${relativePath}`,
       params: params,
       level: context.level + 1,
     }
 
-    const newContext: DataParserContext = {
+    const newContext: ParseContext = {
       ...context,
       currentPath: `[item]/${relativePath}`,
       pathStack: [...context.pathStack, `[item]/${relativePath}`],
       mapParams: params,
       level: context.level + 1,
-      mapContextStack: [...(context.mapContextStack || []), newMapContext],
+      mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
     }
 
     return {
@@ -479,19 +476,19 @@ export const parseMap = (
 
   // Если это вложенный map в контексте (например, nested.map)
   if (!dataPath.includes(".") && context.currentPath && context.currentPath.includes("[item]")) {
-    const newMapContext: MapContext = {
+    const newParseMapContext: ParseMapContext = {
       path: `[item]/${dataPath}`,
       params: params,
       level: context.level + 1,
     }
 
-    const newContext: DataParserContext = {
+    const newContext: ParseContext = {
       ...context,
       currentPath: `[item]/${dataPath}`,
       pathStack: [...context.pathStack, `[item]/${dataPath}`],
       mapParams: params,
       level: context.level + 1,
-      mapContextStack: [...(context.mapContextStack || []), newMapContext],
+      mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
     }
 
     return {
@@ -503,19 +500,19 @@ export const parseMap = (
 
   // Если это вложенный map в контексте map (например, nested.map в контексте map)
   if (!dataPath.includes(".") && context.mapParams && context.mapParams.length > 0) {
-    const newMapContext: MapContext = {
+    const newParseMapContext: ParseMapContext = {
       path: `[item]/${dataPath}`,
       params: params,
       level: context.level + 1,
     }
 
-    const newContext: DataParserContext = {
+    const newContext: ParseContext = {
       ...context,
       currentPath: `[item]/${dataPath}`,
       pathStack: [...context.pathStack, `[item]/${dataPath}`],
       mapParams: params,
       level: context.level + 1,
-      mapContextStack: [...(context.mapContextStack || []), newMapContext],
+      mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
     }
 
     return {
@@ -528,19 +525,19 @@ export const parseMap = (
   // Абсолютный путь
   const absolutePath = `/${dataPath.replace(/\./g, "/")}`
 
-  const newMapContext: MapContext = {
+  const newParseMapContext: ParseMapContext = {
     path: absolutePath,
     params: params,
     level: context.level + 1,
   }
 
-  const newContext: DataParserContext = {
+  const newContext: ParseContext = {
     ...context,
     currentPath: absolutePath,
     pathStack: [...context.pathStack, absolutePath],
     mapParams: params,
     level: context.level + 1,
-    mapContextStack: [...(context.mapContextStack || []), newMapContext],
+    mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
   }
 
   return {
@@ -566,10 +563,7 @@ export const extractMapParams = (paramsText: string): string[] => {
 /**
  * Парсит путь к данным из условного выражения.
  */
-export const parseCondition = (
-  condText: string,
-  context: DataParserContext = { pathStack: [], level: 0 }
-): DataParseResult => {
+export const parseCondition = (condText: string, context: ParseContext = { pathStack: [], level: 0 }): ParseResult => {
   const cleanCondText = cleanConditionText(condText)
   const pathMatches = cleanCondText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
@@ -678,7 +672,7 @@ const formatStaticText = (text: string): string => {
 // TEXT PROCESSING
 // ============================================================================
 
-export const parseText = (text: string, context: DataParserContext = { pathStack: [], level: 0 }): NodeText => {
+export const parseText = (text: string, context: ParseContext = { pathStack: [], level: 0 }): NodeText => {
   // Если текст не содержит переменных - возвращаем статический
   if (!text.includes("${")) {
     return {
@@ -838,8 +832,8 @@ export const parseText = (text: string, context: DataParserContext = { pathStack
 /**
  * Разбивает текст на статические и динамические части.
  */
-export const splitText = (text: string): TextPart[] => {
-  const parts: TextPart[] = []
+export const splitText = (text: string): ParseTextPart[] => {
+  const parts: ParseTextPart[] = []
   let currentIndex = 0
 
   // Ищем все переменные
@@ -875,8 +869,8 @@ export const splitText = (text: string): TextPart[] => {
  */
 const parseTemplateLiteral = (
   value: string,
-  context: DataParserContext = { pathStack: [], level: 0 }
-): AttributeParseResult | null => {
+  context: ParseContext = { pathStack: [], level: 0 }
+): ParseAttributeResult | null => {
   // Проверяем, является ли это событийным выражением
   const eventResult = parseEventExpression(value, context)
   if (eventResult) {
@@ -1029,10 +1023,10 @@ const parseTemplateLiteral = (
  */
 const parseAttributesImproved = (
   text: string,
-  context: DataParserContext = { pathStack: [], level: 0 }
-): Record<string, { value: string } | AttributeParseResult> => {
+  context: ParseContext = { pathStack: [], level: 0 }
+): Record<string, { value: string } | ParseAttributeResult> => {
   const tagContent = text.replace(/^<\/?[A-Za-z][A-Za-z0-9:-]*/, "").replace(/\/?>$/, "")
-  const attributes: Record<string, { value: string } | AttributeParseResult> = {}
+  const attributes: Record<string, { value: string } | ParseAttributeResult> = {}
 
   // Парсим атрибуты вручную
   let i = 0
@@ -1187,16 +1181,13 @@ const parseAttributesImproved = (
 }
 
 /**
- * Создает NodeMap из обычного NodeHierarchyMap.
+ * Создает NodeMap из обычного PartMap.
  */
 // ============================================================================
 // NODE CREATION FACTORIES
 // ============================================================================
 
-export const createNodeDataMap = (
-  node: PartAttributeMap,
-  context: DataParserContext = { pathStack: [], level: 0 }
-): NodeMap => {
+export const createNodeDataMap = (node: PartMap, context: ParseContext = { pathStack: [], level: 0 }): NodeMap => {
   const mapData = parseMap(node.text, context)
 
   return {
@@ -1207,11 +1198,11 @@ export const createNodeDataMap = (
 }
 
 /**
- * Создает NodeCondition из обычного NodeHierarchyCondition.
+ * Создает NodeCondition из обычного PartCondition.
  */
 export const createNodeDataCondition = (
   node: PartAttrCondition,
-  context: DataParserContext = { pathStack: [], level: 0 }
+  context: ParseContext = { pathStack: [], level: 0 }
 ): NodeCondition => {
   const condData = parseCondition(node.text, context)
   const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
@@ -1239,11 +1230,11 @@ export const createNodeDataCondition = (
 }
 
 /**
- * Создает NodeMeta из обычного NodeHierarchyMeta.
+ * Создает NodeMeta из обычного PartMeta.
  */
 export const createNodeDataMeta = (
   node: PartAttrMeta,
-  context: DataParserContext = { pathStack: [], level: 0 }
+  context: ParseContext = { pathStack: [], level: 0 }
 ): NodeMeta => {
   let result: NodeMeta
 
@@ -1451,11 +1442,11 @@ export const createNodeDataMeta = (
 }
 
 /**
- * Создает NodeElement из обычного NodeHierarchyElement.
+ * Создает NodeElement из обычного PartElement.
  */
 export const createNodeDataElement = (
-  node: PartAttrElement | PartAttrMeta | PartAttributeMap | PartAttrCondition | NodeHierarchyText,
-  context: DataParserContext = { pathStack: [], level: 0 }
+  node: PartAttrElement | PartAttrMeta | PartMap | PartAttrCondition | PartText,
+  context: ParseContext = { pathStack: [], level: 0 }
 ): NodeElement | NodeText | NodeMap | NodeCondition | NodeMeta => {
   if (node.type === "map") {
     return createNodeDataMap(node, context)
@@ -1712,8 +1703,8 @@ export const createNodeDataElement = (
 // ============================================================================
 
 export const enrichWithData = (
-  hierarchy: PartAttrs,
-  context: DataParserContext = { pathStack: [], level: 0 }
+  hierarchy: PartHierarchy,
+  context: ParseContext = { pathStack: [], level: 0 }
 ): Node[] => {
   return hierarchy.map((node) => createNodeDataElement(node, context))
 }

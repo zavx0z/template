@@ -1,4 +1,4 @@
-import type { NodeHierarchyText } from "./hierarchy.t"
+import type { PartText } from "./hierarchy.t"
 
 export type Attribute = "boolean" | "array" | "event" | "string"
 
@@ -36,7 +36,7 @@ export type PartAttrElement = {
   /** Объектные аттрибуты (стили) */
   object?: AttributeObject
   /** Дочерние элементы (опционально) */
-  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
+  child?: (PartAttrElement | PartAttrMeta | PartCondition | PartMap | PartText)[]
 }
 
 export type PartAttrMeta = {
@@ -55,16 +55,7 @@ export type PartAttrMeta = {
   /** Объектные аттрибуты (стили) */
   object?: AttributeObject
   /** Дочерние элементы (опционально) */
-  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
-}
-
-export type PartAttributeMap = {
-  /** Тип узла */
-  type: "map"
-  /** Исходный текст map-выражения */
-  text: string
-  /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttributeMap | NodeHierarchyText)[]
+  child?: (PartAttrElement | PartAttrMeta | PartCondition | PartMap | PartText)[]
 }
 
 export type PartAttrCondition = {
@@ -78,4 +69,4 @@ export type PartAttrCondition = {
   false: PartAttrElement | PartAttrMeta | PartAttrCondition
 }
 
-export type PartAttrs = (PartAttrElement | PartAttrMeta | PartAttributeMap | PartAttrCondition | NodeHierarchyText)[]
+export type PartHierarchy = (PartAttrElement | PartAttrMeta | PartCondition | PartMap | PartText)[]

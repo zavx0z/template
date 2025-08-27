@@ -11,6 +11,8 @@ export type Render<C extends Content = Content, I extends Core = Core, S extends
   update: (context: Partial<C>) => void
 }) => void
 
+import type { ParseAttributeResult } from "./data.t"
+
 // Выходные данные
 /**
  * Узел HTML элемента.
@@ -76,7 +78,7 @@ export interface NodeCondition {
  */
 export interface NodeMeta extends AttributesNode {
   /** Имя мета-тега (может быть динамическим) */
-  tag: string | AttributeParseResult
+  tag: string | ParseAttributeResult
   /** Тип узла - всегда "meta" для мета-узлов */
   type: "meta"
 

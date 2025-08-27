@@ -1,7 +1,7 @@
 /**
  * Информация о контексте map.
  */
-export type MapContext = {
+export type ParseMapContext = {
   /** Путь map */
   path: string
   /** Параметры map */
@@ -13,7 +13,7 @@ export type MapContext = {
 /**
  * Контекст для парсинга данных.
  */
-export type DataParserContext = {
+export type ParseContext = {
   /** Текущий путь к данным */
   currentPath?: string
   /** Стек путей */
@@ -23,17 +23,17 @@ export type DataParserContext = {
   /** Уровень вложенности */
   level: number
   /** Стек всех map контекстов */
-  mapContextStack?: MapContext[]
+  mapContextStack?: ParseMapContext[]
 }
 
 /**
  * Результат парсинга данных.
  */
-export type DataParseResult = {
+export type ParseResult = {
   /** Извлеченный путь к данным (может быть массивом для условий) */
   path: string | string[]
   /** Контекст для вложенных операций */
-  context?: DataParserContext
+  context?: ParseContext
   /** Дополнительные метаданные */
   metadata?: Record<string, any>
 }
@@ -41,7 +41,7 @@ export type DataParseResult = {
 /**
  * Результат парсинга атрибута.
  */
-export type AttributeParseResult = {
+export type ParseAttributeResult = {
   /** Путь(и) к данным (необязательное) */
   data?: string | string[]
   /** Унифицированное выражение (необязательное) */
@@ -53,7 +53,7 @@ export type AttributeParseResult = {
 /**
  * Часть текста (статическая или динамическая).
  */
-export type TextPart = {
+export type ParseTextPart = {
   /** Тип части: "static" для статического текста, "dynamic" для динамического */
   type: "static" | "dynamic"
   /** Содержимое части */

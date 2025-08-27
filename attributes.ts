@@ -9,7 +9,7 @@ import type {
   PartAttrElement,
   PartAttrMeta,
 } from "./attributes.t"
-import type { NodeHierarchy } from "./hierarchy.t"
+import type { PartHierarchy } from "./hierarchy.t"
 
 // ============================================================================
 // ATTRIBUTE PARSING
@@ -639,7 +639,7 @@ export const parseAttributes = (
 }
 
 /** Извлечь атрибуты из дерева */
-export const extractAttributes = (hierarchy: NodeHierarchy): PartAttrs => {
+export const extractAttributes = (hierarchy: PartHierarchy): PartHierarchy => {
   return hierarchy.map((node) => {
     if (node.type === "el") {
       // Извлекаем атрибуты из текста элемента
