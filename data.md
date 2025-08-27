@@ -429,7 +429,7 @@ export const parse = <C extends Content = Content, I extends Core = Core, S exte
   const attributes = extractAttributes(hierarchy)
 
   // Обогащаем иерархию метаданными о путях к данным
-  const enrichedHierarchy = enrichHierarchyWithData(attributes)
+  const enrichedHierarchy = enrichWithData(attributes)
 
   return enrichedHierarchy
 }
@@ -441,7 +441,7 @@ export const parse = <C extends Content = Content, I extends Core = Core, S exte
 2. **extractHtmlElements** - разбиение на токены элементов
 3. **elementsHierarchy** - построение иерархии элементов
 4. **extractAttributes** - извлечение и классификация атрибутов
-5. **enrichHierarchyWithData** - обогащение метаданными о путях к данным
+5. **enrichWithData** - обогащение метаданными о путях к данным
 
 ## Преимущества системы
 
