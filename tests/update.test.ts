@@ -2,6 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
+import { extractAttributes } from "../attributes"
 
 describe("update", () => {
   describe("функция обновления контекста в функции рендера", () => {
@@ -50,15 +51,15 @@ describe("update", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () =>
+      expect(data).toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
+          event: {
             onclick: {
-              data: [],
               upd: "name",
               expr: `() => update({ name: "Jane Doe" })`,
             },
@@ -70,8 +71,7 @@ describe("update", () => {
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("функция обновления нескольких ключей контекста", () => {
@@ -89,18 +89,8 @@ describe("update", () => {
           name: "button",
           kind: "open",
         },
-        {
-          text: "Update",
-          index: 74,
-          name: "",
-          kind: "text",
-        },
-        {
-          text: "</button>",
-          index: 80,
-          name: "button",
-          kind: "close",
-        },
+        { text: "Update", index: 74, name: "", kind: "text" },
+        { text: "</button>", index: 80, name: "button", kind: "close" },
       ])
     })
 
@@ -121,15 +111,15 @@ describe("update", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
+          event: {
             onclick: {
-              data: [],
               upd: ["name", "age", "active"],
               expr: '() => update({ name: "John", age: 25, active: true })',
             },
@@ -159,18 +149,8 @@ describe("update", () => {
           name: "button",
           kind: "open",
         },
-        {
-          text: "OK",
-          index: 63,
-          name: "",
-          kind: "text",
-        },
-        {
-          text: "</button>",
-          index: 65,
-          name: "button",
-          kind: "close",
-        },
+        { text: "OK", index: 63, name: "", kind: "text" },
+        { text: "</button>", index: 65, name: "button", kind: "close" },
       ])
     })
 
@@ -191,13 +171,14 @@ describe("update", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
+          event: {
             onclick: {
               upd: "count",
               data: "/context/count",
@@ -266,13 +247,14 @@ describe("update", () => {
       ])
     })
 
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           tag: "button",
           type: "el",
-          attr: {
+          event: {
             onclick: {
               upd: ["count", "iteration"],
               data: ["/core/count", "/context/count", "/context/iteration"],
@@ -353,10 +335,10 @@ describe("update", () => {
         },
       ])
     })
-
-    const enrichedHierarchy = enrichHierarchyWithData(hierarchy)
-    it.skip("data", () => {
-      expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichHierarchyWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
         {
           type: "map",
           data: "/core/items",
@@ -364,7 +346,7 @@ describe("update", () => {
             {
               tag: "button",
               type: "el",
-              attr: {
+              event: {
                 onclick: {
                   upd: ["count", "iteration"],
                   data: ["/core/count", "[item]/count", "[item]/iteration"],

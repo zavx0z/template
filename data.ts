@@ -287,7 +287,6 @@ const parseEventExpression = (
         })
 
         let result: AttributeParseResult = {
-          data: [],
           upd: keys.length === 1 ? keys[0] || "" : keys,
         }
 
@@ -295,8 +294,10 @@ const parseEventExpression = (
         if (uniqueVariables.length > 0) {
           const paths = uniqueVariables
             .map((variable) => resolveDataPath(variable, context))
-            .filter(Boolean) as string[]
-          result.data = paths.length === 1 ? paths[0] || "" : paths
+            .filter((path) => path && path.length > 0) as string[]
+          if (paths.length > 0) {
+            result.data = paths.length === 1 ? paths[0] : paths
+          }
         }
 
         // Обрабатываем выражение напрямую
@@ -1526,11 +1527,15 @@ export const createNodeDataElement = (
           // Для update выражений может быть пустой массив data, но есть upd
           if (eventResult.upd) {
             // Это update выражение
-            result.event[key] = {
-              data: eventResult.data || "",
+            const eventObj: any = {
               expr: eventResult.expr || "",
               upd: eventResult.upd,
             }
+            // Добавляем data только если оно есть
+            if (eventResult.data) {
+              eventObj.data = eventResult.data
+            }
+            result.event[key] = eventObj
           } else if (eventResult.data) {
             // Обычное событие с данными
             if (eventResult.expr && typeof eventResult.expr === "string") {
