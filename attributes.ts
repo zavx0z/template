@@ -663,6 +663,34 @@ export function extractAttributes(hierarchy: NodeHierarchy): PartAttrs {
       return result
     }
 
+    if (node.type === "meta") {
+      // Извлекаем атрибуты из текста meta-элемента
+      const parsedAttributes = parseAttributes(node.text)
+
+      // Создаем новый объект с добавленными атрибутами
+      const result: PartAttrMeta = {
+        tag: node.tag,
+        type: "meta",
+        ...parsedAttributes,
+      }
+
+      // Рекурсивно обрабатываем дочерние элементы
+      if (node.child) {
+        result.child = node.child.map((child) => {
+          if (child.type === "el") {
+            return extractAttributes([child])[0] as PartAttrElement
+          }
+          // Обрабатываем map и condition узлы
+          if (child.type === "map" || child.type === "cond") {
+            return extractAttributes([child])[0] as PartAttrElement | PartAttrMeta
+          }
+          return child
+        }) as PartAttrs
+      }
+
+      return result
+    }
+
     // Для map и condition рекурсивно обрабатываем дочерние элементы
     if (node.type === "map" && node.child) {
       return {
