@@ -468,6 +468,238 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
  * // Возвращает: { path: "[item]/nested", context: {...}, metadata: { params: ["item"] } }
  */
 // ============================================================================
+// NODE CREATION UTILITIES
+// ============================================================================
+
+/**
+ * Обрабатывает строковые атрибуты и создает соответствующие объекты.
+ */
+const processStringAttributes = (
+  stringAttrs: Record<string, { type: string; value: string }>,
+  context: ParseContext
+): Record<string, any> => {
+  const result: Record<string, any> = {}
+
+  for (const [key, attr] of Object.entries(stringAttrs)) {
+    if (attr.type === "static") {
+      result[key] = attr.value
+    } else {
+      // Для динамических атрибутов обрабатываем значение напрямую
+      const templateResult = parseTemplateLiteral(attr.value, context)
+      if (templateResult && templateResult.data) {
+        if (templateResult.expr && typeof templateResult.expr === "string") {
+          result[key] = {
+            data: templateResult.data,
+            expr: templateResult.expr,
+          }
+        } else {
+          result[key] = {
+            data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
+          }
+        }
+      } else {
+        result[key] = attr.value
+      }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Обрабатывает событийные атрибуты и создает соответствующие объекты.
+ */
+const processEventAttributes = (eventAttrs: Record<string, string>, context: ParseContext): Record<string, any> => {
+  const result: Record<string, any> = {}
+
+  for (const [key, value] of Object.entries(eventAttrs)) {
+    const eventResult = parseEventExpression(value, context)
+    if (eventResult) {
+      // Для update выражений может быть пустой массив data, но есть upd
+      if (eventResult.upd) {
+        // Это update выражение
+        const eventObj: any = {
+          expr: eventResult.expr || "",
+          upd: eventResult.upd,
+        }
+        // Добавляем data только если оно есть
+        if (eventResult.data) {
+          eventObj.data = eventResult.data
+        }
+        result[key] = eventObj
+      } else if (eventResult.data) {
+        // Обычное событие с данными
+        if (eventResult.expr && typeof eventResult.expr === "string") {
+          // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
+          result[key] = {
+            data: eventResult.data,
+            expr: eventResult.expr,
+          }
+        } else {
+          // Если нет выражения, создаем AttrVariable (только строка)
+          result[key] = {
+            data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
+          }
+        }
+      } else {
+        // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
+        if (value && value.trim() !== "") {
+          result[key] = {
+            data: value,
+          }
+        }
+        // Иначе игнорируем пустые события
+      }
+    } else {
+      // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
+      if (value && value.trim() !== "") {
+        result[key] = {
+          data: value,
+        }
+      }
+      // Иначе игнорируем пустые события
+    }
+  }
+
+  // Если секция событий пуста, удаляем её
+  if (Object.keys(result).length === 0) {
+    return {}
+  }
+
+  return result
+}
+
+/**
+ * Обрабатывает массивные атрибуты и создает соответствующие объекты.
+ */
+const processArrayAttributes = (
+  arrayAttrs: Record<string, Array<{ type: string; value: string }>>,
+  context: ParseContext
+): Record<string, any> => {
+  const result: Record<string, any> = {}
+
+  for (const [key, values] of Object.entries(arrayAttrs)) {
+    result[key] = values.map((item) => {
+      if (item.type === "static") {
+        return { value: item.value }
+      } else {
+        // Для динамических и смешанных атрибутов обрабатываем значение
+        const templateResult = parseTemplateLiteral(item.value, context)
+        if (templateResult && templateResult.data) {
+          if (templateResult.expr && typeof templateResult.expr === "string") {
+            return {
+              data: templateResult.data,
+              expr: templateResult.expr,
+            }
+          } else {
+            return {
+              data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
+            }
+          }
+        } else {
+          return { value: item.value }
+        }
+      }
+    })
+  }
+
+  return result
+}
+
+/**
+ * Обрабатывает булевые атрибуты и создает соответствующие объекты.
+ */
+const processBooleanAttributes = (
+  booleanAttrs: Record<string, { type: string; value: string | boolean }>,
+  context: ParseContext
+): Record<string, any> => {
+  const result: Record<string, any> = {}
+
+  for (const [key, attr] of Object.entries(booleanAttrs)) {
+    if (attr.type === "static") {
+      result[key] = Boolean(attr.value)
+    } else {
+      // Для булевых атрибутов используем специальную обработку
+      const booleanValue = String(attr.value)
+      const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+
+      if (variableMatches.length > 0) {
+        // Обрабатываем все переменные в выражении
+        const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
+
+        // Создаем выражение, заменяя переменные на индексы
+        let expr = booleanValue
+        variableMatches.forEach((variable, index) => {
+          expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+        })
+
+        if (paths.length === 1) {
+          result[key] = {
+            data: paths[0] || "",
+          }
+        } else {
+          result[key] = {
+            data: paths,
+            expr: expr,
+          }
+        }
+      } else {
+        result[key] = false
+      }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Обрабатывает object атрибуты и создает соответствующие объекты.
+ */
+const processObjectAttributes = (objectAttrs: Record<string, any>, context: ParseContext): Record<string, any> => {
+  const result: Record<string, any> = {}
+
+  for (const [key, objectValue] of Object.entries(objectAttrs)) {
+    // Для object атрибутов (стили, context, core) парсим строку и создаем объект
+    const objectValueStr = String(objectValue)
+
+    // Парсим строку объекта вида "{ backgroundColor: company.theme }"
+    const objectMatch = objectValueStr.match(/\{\s*([^}]+)\s*\}/)
+    if (objectMatch && objectMatch[1]) {
+      const objectContent = objectMatch[1]
+      const objectResult: Record<string, string> = {}
+
+      // Парсим свойства объекта
+      const propertyMatches = objectContent.match(/([a-zA-Z-]+)\s*:\s*([^,}]+)/g) || []
+      propertyMatches.forEach((propertyMatch) => {
+        const match = propertyMatch.match(/([a-zA-Z-]+)\s*:\s*(.+)/)
+        if (match && match[1] && match[2]) {
+          const propertyName = match[1]
+          const propertyValue = match[2]
+          const trimmedValue = propertyValue.trim()
+
+          // Проверяем, является ли значение переменной
+          const variableMatch = trimmedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/)
+          if (variableMatch && variableMatch[1]) {
+            const variable = variableMatch[1]
+            const dataPath = resolveDataPath(variable, context)
+            objectResult[propertyName] = dataPath
+          } else {
+            // Статическое значение
+            objectResult[propertyName] = trimmedValue
+          }
+        }
+      })
+
+      result[key] = objectResult
+    } else {
+      result[key] = { [key]: objectValueStr }
+    }
+  }
+
+  return result
+}
+
+// ============================================================================
 // EXPRESSION PARSERS
 // ============================================================================
 
@@ -1332,154 +1564,28 @@ export const createNodeDataMeta = (
     }
   }
 
-  // Обрабатываем уже извлеченные атрибуты
+  // Обрабатываем уже извлеченные атрибуты с помощью общих утилит
   if (node.string) {
-    result.string = {}
-    for (const [key, attr] of Object.entries(node.string)) {
-      if (attr.type === "static") {
-        result.string[key] = attr.value
-      } else {
-        // Для динамических атрибутов обрабатываем значение напрямую
-        const templateResult = parseTemplateLiteral(attr.value, context)
-        if (templateResult && templateResult.data) {
-          if (templateResult.expr && typeof templateResult.expr === "string") {
-            result.string[key] = {
-              data: templateResult.data,
-              expr: templateResult.expr,
-            }
-          } else {
-            result.string[key] = {
-              data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
-            }
-          }
-        } else {
-          result.string[key] = attr.value
-        }
-      }
-    }
+    result.string = processStringAttributes(node.string, context)
   }
 
   if (node.event) {
-    result.event = {}
-    for (const [key, value] of Object.entries(node.event)) {
-      const eventResult = parseEventExpression(value, context)
-      if (eventResult) {
-        // Для update выражений может быть пустой массив data, но есть upd
-        if (eventResult.upd) {
-          // Это update выражение
-          result.event[key] = {
-            data: eventResult.data || "",
-            expr: eventResult.expr || "",
-            upd: eventResult.upd,
-          }
-        } else if (eventResult.data) {
-          // Обычное событие с данными
-          if (eventResult.expr && typeof eventResult.expr === "string") {
-            // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
-            result.event[key] = {
-              data: eventResult.data,
-              expr: eventResult.expr,
-            }
-          } else {
-            // Если нет выражения, создаем AttrVariable (только строка)
-            result.event[key] = {
-              data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
-            }
-          }
-        } else {
-          // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
-          if (value && value.trim() !== "") {
-            result.event[key] = {
-              data: value,
-            }
-          }
-          // Иначе игнорируем пустые события
-        }
-      } else {
-        // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
-        if (value && value.trim() !== "") {
-          result.event[key] = {
-            data: value,
-          }
-        }
-        // Иначе игнорируем пустые события
-      }
-    }
-    // Если секция событий пуста, удаляем её
-    if (Object.keys(result.event).length === 0) {
-      delete result.event
+    const eventAttrs = processEventAttributes(node.event, context)
+    if (Object.keys(eventAttrs).length > 0) {
+      result.event = eventAttrs
     }
   }
 
   if (node.array) {
-    result.array = {}
-    for (const [key, values] of Object.entries(node.array)) {
-      result.array[key] = values.map((item) => ({ value: item.value }))
-    }
+    result.array = processArrayAttributes(node.array, context)
   }
 
   if (node.boolean) {
-    result.boolean = {}
-    for (const [key, attr] of Object.entries(node.boolean)) {
-      if (attr.type === "static") {
-        result.boolean[key] = Boolean(attr.value)
-      } else {
-        // Для булевых атрибутов используем специальную обработку
-        const booleanValue = String(attr.value)
-        const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
-
-        if (variableMatches.length > 0 && variableMatches[0]) {
-          const variable = variableMatches[0]
-          const dataPath = resolveDataPath(variable, context)
-          result.boolean[key] = {
-            data: dataPath,
-          }
-        } else {
-          result.boolean[key] = false
-        }
-      }
-    }
+    result.boolean = processBooleanAttributes(node.boolean, context)
   }
 
   if (node.object) {
-    result.object = {}
-    for (const [key, objectValue] of Object.entries(node.object)) {
-      // Для object атрибутов (стилей, context, core) парсим строку и создаем объект
-      const objectValueStr = String(objectValue)
-
-      // Парсим строку объекта вида "{ backgroundColor: company.theme }"
-      const objectMatch = objectValueStr.match(/\{\s*([^}]+)\s*\}/)
-      if (objectMatch && objectMatch[1]) {
-        const objectContent = objectMatch[1]
-        const objectResult: Record<string, string> = {}
-
-        // Парсим свойства объекта
-        const propertyMatches = objectContent.match(/([a-zA-Z-]+)\s*:\s*([^,}]+)/g) || []
-        propertyMatches.forEach((propertyMatch) => {
-          const match = propertyMatch.match(/([a-zA-Z-]+)\s*:\s*(.+)/)
-          if (match && match[1] && match[2]) {
-            const propertyName = match[1]
-            const propertyValue = match[2]
-            const trimmedValue = propertyValue.trim()
-
-            // Проверяем, является ли значение переменной
-            const variableMatch = trimmedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/)
-            if (variableMatch && variableMatch[1]) {
-              const variable = variableMatch[1]
-              const dataPath = resolveDataPath(variable, context)
-              objectResult[propertyName] = dataPath
-            } else {
-              // Статическое значение
-              objectResult[propertyName] = trimmedValue
-            }
-          }
-        })
-
-        result.object[key] = objectResult
-      } else {
-        result.object[key] = { [key]: objectValueStr }
-      }
-    }
+    result.object = processObjectAttributes(node.object, context)
   }
 
   // Добавляем дочерние элементы, если они есть
@@ -1519,193 +1625,28 @@ export const createNodeDataElement = (
       result.child = node.child.map((child) => createNodeDataElement(child, context))
     }
 
-    // Обрабатываем уже извлеченные атрибуты
+    // Обрабатываем уже извлеченные атрибуты с помощью общих утилит
     if (node.string) {
-      result.string = {}
-      for (const [key, attr] of Object.entries(node.string)) {
-        if (attr.type === "static") {
-          result.string[key] = attr.value
-        } else {
-          // Для динамических атрибутов обрабатываем значение напрямую
-          const templateResult = parseTemplateLiteral(attr.value, context)
-          if (templateResult && templateResult.data) {
-            if (templateResult.expr && typeof templateResult.expr === "string") {
-              result.string[key] = {
-                data: templateResult.data,
-                expr: templateResult.expr,
-              }
-            } else {
-              result.string[key] = {
-                data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
-              }
-            }
-          } else {
-            result.string[key] = attr.value
-          }
-        }
-      }
+      result.string = processStringAttributes(node.string, context)
     }
 
     if (node.event) {
-      result.event = {}
-      for (const [key, value] of Object.entries(node.event)) {
-        const eventResult = parseEventExpression(value, context)
-        if (eventResult) {
-          // Для update выражений может быть пустой массив data, но есть upd
-          if (eventResult.upd) {
-            // Это update выражение
-            const eventObj: any = {
-              expr: eventResult.expr || "",
-              upd: eventResult.upd,
-            }
-            // Добавляем data только если оно есть
-            if (eventResult.data) {
-              eventObj.data = eventResult.data
-            }
-            result.event[key] = eventObj
-          } else if (eventResult.data) {
-            // Обычное событие с данными
-            if (eventResult.expr && typeof eventResult.expr === "string") {
-              // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
-              result.event[key] = {
-                data: eventResult.data,
-                expr: eventResult.expr,
-              }
-            } else {
-              // Если нет выражения, создаем AttrVariable (только строка)
-              result.event[key] = {
-                data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
-              }
-            }
-          } else {
-            // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
-            if (value && value.trim() !== "") {
-              result.event[key] = {
-                data: value,
-              }
-            }
-            // Иначе игнорируем пустые события
-          }
-        } else {
-          // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
-          if (value && value.trim() !== "") {
-            result.event[key] = {
-              data: value,
-            }
-          }
-          // Иначе игнорируем пустые события
-        }
-      }
-      // Если секция событий пуста, удаляем её
-      if (Object.keys(result.event).length === 0) {
-        delete result.event
+      const eventAttrs = processEventAttributes(node.event, context)
+      if (Object.keys(eventAttrs).length > 0) {
+        result.event = eventAttrs
       }
     }
 
     if (node.array) {
-      result.array = {}
-      for (const [key, values] of Object.entries(node.array)) {
-        result.array[key] = values.map((item) => {
-          if (item.type === "static") {
-            return { value: item.value }
-          } else {
-            // Для динамических и смешанных атрибутов обрабатываем значение
-            const templateResult = parseTemplateLiteral(item.value, context)
-            if (templateResult && templateResult.data) {
-              if (templateResult.expr && typeof templateResult.expr === "string") {
-                return {
-                  data: templateResult.data,
-                  expr: templateResult.expr,
-                }
-              } else {
-                return {
-                  data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
-                }
-              }
-            } else {
-              return { value: item.value }
-            }
-          }
-        })
-      }
+      result.array = processArrayAttributes(node.array, context)
     }
 
     if (node.boolean) {
-      result.boolean = {}
-      for (const [key, attr] of Object.entries(node.boolean)) {
-        if (attr.type === "static") {
-          result.boolean[key] = Boolean(attr.value)
-        } else {
-          // Для булевых атрибутов используем специальную обработку
-          const booleanValue = String(attr.value)
-          const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
-
-          if (variableMatches.length > 0) {
-            // Обрабатываем все переменные в выражении
-            const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
-
-            // Создаем выражение, заменяя переменные на индексы
-            let expr = booleanValue
-            variableMatches.forEach((variable, index) => {
-              expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
-            })
-
-            if (paths.length === 1) {
-              result.boolean[key] = {
-                data: paths[0] || "",
-              }
-            } else {
-              result.boolean[key] = {
-                data: paths,
-                expr: expr,
-              }
-            }
-          } else {
-            result.boolean[key] = false
-          }
-        }
-      }
+      result.boolean = processBooleanAttributes(node.boolean, context)
     }
 
     if (node.object) {
-      result.object = {}
-      for (const [key, objectValue] of Object.entries(node.object)) {
-        // Для object атрибутов (стилей) парсим строку и создаем объект
-        const objectValueStr = String(objectValue)
-
-        // Парсим строку стиля вида "{ backgroundColor: company.theme }"
-        const styleMatch = objectValueStr.match(/\{\s*([^}]+)\s*\}/)
-        if (styleMatch && styleMatch[1]) {
-          const styleContent = styleMatch[1]
-          const styleObject: Record<string, string> = {}
-
-          // Парсим свойства стиля
-          const propertyMatches = styleContent.match(/([a-zA-Z-]+)\s*:\s*([^,}]+)/g) || []
-          propertyMatches.forEach((propertyMatch) => {
-            const match = propertyMatch.match(/([a-zA-Z-]+)\s*:\s*(.+)/)
-            if (match && match[1] && match[2]) {
-              const propertyName = match[1]
-              const propertyValue = match[2]
-              const trimmedValue = propertyValue.trim()
-
-              // Проверяем, является ли значение переменной
-              const variableMatch = trimmedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/)
-              if (variableMatch && variableMatch[1]) {
-                const variable = variableMatch[1]
-                const dataPath = resolveDataPath(variable, context)
-                styleObject[propertyName] = dataPath
-              } else {
-                // Статическое значение
-                styleObject[propertyName] = trimmedValue
-              }
-            }
-          })
-
-          result.object[key] = styleObject
-        } else {
-          result.object[key] = { [key]: objectValueStr }
-        }
-      }
+      result.object = processObjectAttributes(node.object, context)
     }
 
     return result
