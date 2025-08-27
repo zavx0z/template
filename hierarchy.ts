@@ -1,13 +1,5 @@
 import type { ElementToken } from "./splitter"
-import type {
-  PartMap,
-  PartCondition,
-  PartElement,
-  PartMeta,
-  PartHierarchy,
-  StackItem,
-  PartText,
-} from "./hierarchy.t"
+import type { PartMap, PartCondition, PartElement, PartMeta, PartHierarchy, StackItem, PartText } from "./hierarchy.t"
 
 /**
  * Формирует иерархию элементов на основе последовательности тегов.
@@ -21,13 +13,12 @@ import type {
  * @param elements Токены элементов (теги + текст)
  * @returns Иерархия элементов с исходными подстроками
  */
-export const elementsHierarchy = (html: string, elements: ElementToken[]): PartHierarchy => {
+export const makeHierarchy = (html: string, elements: ElementToken[]): PartHierarchy => {
   const hierarchy: PartHierarchy = []
   const stack: StackItem[] = []
   const conditionStack: { parent: PartElement | PartMeta | null; text: string }[] = []
   // Запоминаем у какого родителя начался map и с какого индекса его дети должны быть обернуты
-  const mapStack: { parent: PartElement | PartMeta | null; text: string; startChildIndex: number }[] =
-    []
+  const mapStack: { parent: PartElement | PartMeta | null; text: string; startChildIndex: number }[] = []
 
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i]
@@ -163,11 +154,7 @@ export const elementsHierarchy = (html: string, elements: ElementToken[]): PartH
               if (mapInfo && parentElement.child && parentElement.child.length > 0) {
                 const startIdx = Math.max(0, mapInfo.startChildIndex)
                 const beforeChildren = parentElement.child.slice(0, startIdx)
-                const mapChildren = parentElement.child.slice(startIdx) as (
-                  | PartElement
-                  | PartText
-                  | PartMeta
-                )[]
+                const mapChildren = parentElement.child.slice(startIdx) as (PartElement | PartText | PartMeta)[]
 
                 const mapNode: PartMap = {
                   type: "map",

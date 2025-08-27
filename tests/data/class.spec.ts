@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../../splitter"
-import { elementsHierarchy } from "../../hierarchy"
+import { makeHierarchy } from "../../hierarchy"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 
@@ -9,7 +9,7 @@ describe("class атрибуты в data.ts", () => {
     it("class в элементе с одним статическим значением", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<div class="div-active"></div>`)
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -27,7 +27,7 @@ describe("class атрибуты в data.ts", () => {
     it("class в элементе с одним статическим значением без кавычек", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<div class="div-active"></div>`)
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -45,7 +45,7 @@ describe("class атрибуты в data.ts", () => {
     it("class в элементе с несколькими статическими значениями", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<div class="div-active div-inactive"></div>`)
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -67,7 +67,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="${core.active ? "active" : "inactive"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -90,7 +90,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class=${core.active ? "active" : "inactive"}></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -114,7 +114,7 @@ describe("class атрибуты в data.ts", () => {
           html`<div class="${core.active ? "active" : "inactive"} ${core.active ? "active" : "inactive"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -143,7 +143,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="${core.count > 5 ? "large" : "small"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -166,7 +166,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="${core.status === "loading" ? "loading" : "ready"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -189,7 +189,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="${core.active && core.visible ? "show" : "hide"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -212,7 +212,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="${core.error || core.warning ? "alert" : "normal"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -235,7 +235,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="${!core.disabled ? "enabled" : "disabled"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -258,7 +258,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="${core.active && "active"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -283,7 +283,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -306,7 +306,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -331,7 +331,7 @@ describe("class атрибуты в data.ts", () => {
             class="div-${core.active ? "active" : "inactive"} div-${core.active ? "active" : "inactive"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -362,7 +362,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"} visible"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -388,7 +388,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="${core.active ? "active" : "inactive"} visible"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -415,7 +415,7 @@ describe("class атрибуты в data.ts", () => {
           html`<div class="static-value ${core.active ? "active" : "inactive"} mixed-${core.type}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -445,7 +445,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="btn-${core.variant} text-${core.size} bg-${core.theme}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -479,7 +479,7 @@ describe("class атрибуты в data.ts", () => {
           html`<div class="base-class ${core.active ? "active" : "inactive"} ${core.disabled ? "disabled" : ""}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -509,7 +509,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="container ${core.nested ? "nested" : "default"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -536,7 +536,7 @@ describe("class атрибуты в data.ts", () => {
           html`<div class="visible ${core.hidden ? "" : "show"} ${core.active ? "active" : ""}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -566,7 +566,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="static-value-${core.active ? "active" : "inactive"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -589,7 +589,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="user-${core.user.id}-${core.user.role}-${core.theme}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -623,7 +623,7 @@ describe("class атрибуты в data.ts", () => {
               : "inactive"}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -646,7 +646,7 @@ describe("class атрибуты в data.ts", () => {
         ({ html, core }) => html`<div class="base user-${core.user.id}-${core.user.role} theme-${core.theme}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 
@@ -688,7 +688,7 @@ describe("class атрибуты в data.ts", () => {
               : "user"} theme-${core.theme}"></div>`
       )
       const elements = extractHtmlElements(mainHtml)
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
 

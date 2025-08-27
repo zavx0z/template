@@ -160,7 +160,6 @@ describe("data-parser", () => {
         {
           type: "el",
           tag: "div",
-          text: '<div class="${className}">',
           child: [
             {
               type: "text",
@@ -184,7 +183,6 @@ describe("data-parser", () => {
             {
               type: "el",
               tag: "li",
-              text: "<li>",
               child: [
                 {
                   type: "text",
@@ -206,8 +204,8 @@ describe("data-parser", () => {
         {
           type: "cond",
           text: "context.flag",
-          true: { type: "el", tag: "div", text: "<div>", child: [] },
-          false: { type: "el", tag: "span", text: "<span>", child: [] },
+          true: { type: "el", tag: "div", child: [] },
+          false: { type: "el", tag: "span", child: [] },
         },
       ])
       expect(enriched[0]?.type).toBe("cond")

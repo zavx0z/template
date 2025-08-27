@@ -1,5 +1,5 @@
 import { extractMainHtmlBlock, extractHtmlElements } from "./splitter"
-import { elementsHierarchy } from "./hierarchy"
+import { makeHierarchy } from "./hierarchy"
 import { extractAttributes } from "./attributes"
 import { enrichWithData } from "./data"
 import type { Node } from "./index.t"
@@ -70,7 +70,7 @@ export const parse = <C extends Content = Content, I extends Core = Core, S exte
   const elements = extractHtmlElements(mainHtml)
 
   // Строим иерархию элементов
-  const hierarchy = elementsHierarchy(mainHtml, elements)
+  const hierarchy = makeHierarchy(mainHtml, elements)
 
   // Извлекаем атрибуты
   const attributes = extractAttributes(hierarchy)

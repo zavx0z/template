@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
-import { elementsHierarchy } from "../hierarchy"
+import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
@@ -32,7 +32,7 @@ describe("mixed", () => {
       ])
     })
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -143,7 +143,7 @@ describe("mixed", () => {
     expect(elements).toEqual([
       { index: 0, kind: "text", name: "", text: '${context.a < context.b && context.c > context.d ? "1" : "0"}' },
     ])
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         type: "text",
@@ -157,58 +157,6 @@ describe("mixed", () => {
         data: ["/context/a", "/context/b", "/context/c", "/context/d"],
         expr: '${0 < 1 && 2 > 3 ? "1" : "0"}',
       },
-    ])
-  })
-
-  it.skip("недопустимые имена не матчатся", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html }) => html`
-        <di*v>
-          bad
-        </di*v> 
-        <1a>
-          no
-        </1a>
-         <-x>no</-x> 
-         <good-tag/>
-        `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      {
-        index: 0,
-        kind: "text",
-        name: "",
-        text: `        <di*v>
-          bad
-        </di*v> 
-       <1a>
-         no
-       </1a>
-        <-x>no</-x>            `,
-      },
-      {
-        index: 118,
-        kind: "self",
-        name: "good-tag",
-        text: "<good-tag/>",
-      },
-    ])
-  })
-
-  it.skip("PI/комментарии/doctype игнор", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html }) => html`
-        <?xml version="1.0"?>
-        <!--c-->
-        <!DOCTYPE html>
-        <span></span>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: "<span>", index: 80, name: "span", kind: "open" },
-      { text: "</span>", index: 86, name: "span", kind: "close" },
     ])
   })
 })

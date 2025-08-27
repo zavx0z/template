@@ -1,14 +1,13 @@
 import type { ParseContext, ParseResult, ParseMapContext, ParseAttributeResult, ParseTextPart } from "./data.t"
 import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node } from "./index.t"
-import type { PartText, PartMap } from "./hierarchy.t"
-import type { PartAttrCondition, PartAttrElement, PartAttrMeta, PartHierarchy } from "./attributes.t"
+import type { PartText } from "./hierarchy.t"
+import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs } from "./attributes.t"
 
 // ============================================================================
 // REGEX PATTERNS
 // ============================================================================
 
 // Паттерны для парсинга переменных
-const VARIABLE_PATTERN = /([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g
 const VARIABLE_WITH_DOTS_PATTERN = /([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g
 const VALID_VARIABLE_PATTERN = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/
 
@@ -27,7 +26,6 @@ const CONDITIONAL_MIXED_PATTERN = /^(.*?)\$\{(.*?\?.*?:.*?)\}(.*)$/
 // Паттерны для форматирования
 const WHITESPACE_PATTERN = /\s+/g
 const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g
-const STRING_LITERAL_PATTERN = /"[^"]*"|'[^']*'/g
 
 // ============================================================================
 // PATH RESOLUTION UTILITIES
@@ -1468,7 +1466,7 @@ const parseAttributesImproved = (
 // NODE CREATION FACTORIES
 // ============================================================================
 
-export const createNodeDataMap = (node: PartMap, context: ParseContext = { pathStack: [], level: 0 }): NodeMap => {
+export const createNodeDataMap = (node: PartAttrMap, context: ParseContext = { pathStack: [], level: 0 }): NodeMap => {
   const mapData = parseMap(node.text, context)
 
   return {
@@ -1600,7 +1598,7 @@ export const createNodeDataMeta = (
  * Создает NodeElement из обычного PartElement.
  */
 export const createNodeDataElement = (
-  node: PartAttrElement | PartAttrMeta | PartMap | PartAttrCondition | PartText,
+  node: PartAttrElement | PartAttrMeta | PartAttrMap | PartAttrCondition | PartText,
   context: ParseContext = { pathStack: [], level: 0 }
 ): NodeElement | NodeText | NodeMap | NodeCondition | NodeMeta => {
   if (node.type === "map") {
@@ -1692,9 +1690,6 @@ export const createNodeDataElement = (
 // MAIN API
 // ============================================================================
 
-export const enrichWithData = (
-  hierarchy: PartHierarchy,
-  context: ParseContext = { pathStack: [], level: 0 }
-): Node[] => {
+export const enrichWithData = (hierarchy: PartAttrs, context: ParseContext = { pathStack: [], level: 0 }): Node[] => {
   return hierarchy.map((node) => createNodeDataElement(node, context))
 }

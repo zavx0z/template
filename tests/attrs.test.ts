@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
-import { elementsHierarchy } from "../hierarchy"
+import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
@@ -15,7 +15,7 @@ describe("атрибуты", () => {
         { text: "</svg:use>", index: 26, name: "svg:use", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -64,7 +64,7 @@ describe("атрибуты", () => {
         { text: "</a>", index: 40, name: "a", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -135,7 +135,7 @@ describe("атрибуты", () => {
         { text: "</div>", index: 26, name: "div", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -185,7 +185,7 @@ describe("атрибуты", () => {
         { text: "</div>", index: 49, name: "div", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -238,7 +238,7 @@ describe("атрибуты", () => {
         { text: "</div>", index: 47, name: "div", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -292,7 +292,7 @@ describe("атрибуты", () => {
         { text: "</div>", index: 49, name: "div", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -346,7 +346,7 @@ describe("атрибуты", () => {
         { text: "</button>", index: 38, name: "button", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -404,7 +404,7 @@ describe("атрибуты", () => {
         { text: "</ul>", index: 136, name: "ul", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -520,7 +520,7 @@ describe("атрибуты", () => {
         { text: "</div>", index: 63, name: "div", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {

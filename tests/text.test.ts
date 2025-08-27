@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
-import { elementsHierarchy } from "../hierarchy"
+import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 
 describe("text", () => {
@@ -14,7 +14,7 @@ describe("text", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -43,7 +43,7 @@ describe("text", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -83,7 +83,7 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -115,7 +115,7 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -166,7 +166,7 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -225,7 +225,7 @@ describe("text", () => {
       { text: "</div>", index: 79, name: "div", kind: "close" },
     ])
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -286,7 +286,7 @@ describe("text", () => {
       { text: "</li>", index: 123, name: "li", kind: "close" },
       { text: "</ul>", index: 141, name: "ul", kind: "close" },
     ])
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "ul",
@@ -380,7 +380,7 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -455,7 +455,7 @@ describe("text", () => {
   it("статический текст в элементе на одном уровне с динамическим текстом", () => {
     const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div><b>Hello, </b>${context.name}</div>`)
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -508,7 +508,7 @@ describe("text", () => {
   it("динамический текст со статическим текстом в элементе на одном уровне", () => {
     const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div>${context.name}<b>-hello</b></div>`)
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -563,7 +563,7 @@ describe("text", () => {
       ({ html, context }) => html`<div>${context.family} <b>-hello</b>${context.name}</div>`
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -631,7 +631,7 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "ul",
@@ -716,7 +716,7 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
@@ -748,7 +748,7 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     const data = enrichWithData(hierarchy)
     expect(data).toEqual([
       {
@@ -762,41 +762,6 @@ describe("text", () => {
               {
                 type: "text",
                 data: "/core/user/name",
-              },
-            ],
-          },
-        ],
-      },
-    ])
-  })
-
-  it.todo("обрабатывает текст с переносами строк", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html }) => html`
-        <div>
-          <p>
-            ${`Первая строка
-            Вторая строка 
-            Третья строка`}
-          </p>
-        </div>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
-    const data = enrichWithData(hierarchy)
-    expect(data).toEqual([
-      {
-        tag: "div",
-        type: "el",
-        child: [
-          {
-            tag: "p",
-            type: "el",
-            child: [
-              {
-                type: "text",
-                value: "Первая строка\nВторая строка\nТретья строка",
               },
             ],
           },

@@ -423,7 +423,7 @@ export const parse = <C extends Content = Content, I extends Core = Core, S exte
   const elements = extractHtmlElements(mainHtml)
 
   // Строим иерархию элементов
-  const hierarchy = elementsHierarchy(mainHtml, elements)
+  const hierarchy = makeHierarchy(mainHtml, elements)
 
   // Извлекаем атрибуты
   const attributes = extractAttributes(hierarchy)
@@ -439,7 +439,7 @@ export const parse = <C extends Content = Content, I extends Core = Core, S exte
 
 1. **extractMainHtmlBlock** - извлечение HTML из template literal
 2. **extractHtmlElements** - разбиение на токены элементов
-3. **elementsHierarchy** - построение иерархии элементов
+3. **makeHierarchy** - построение иерархии элементов
 4. **extractAttributes** - извлечение и классификация атрибутов
 5. **enrichWithData** - обогащение метаданными о путях к данным
 

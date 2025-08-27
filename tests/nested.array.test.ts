@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
-import { elementsHierarchy } from "../hierarchy"
+import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
@@ -88,7 +88,7 @@ describe("nested.array", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 

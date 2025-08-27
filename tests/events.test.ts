@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
-import { elementsHierarchy } from "../hierarchy"
+import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
@@ -8,7 +8,7 @@ describe("events", () => {
   describe("onclick с выражением", () => {
     const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<button onclick=${() => core.onClick()}>OK</button>`)
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
       expect(attributes).toEqual([
@@ -51,7 +51,7 @@ describe("events", () => {
   describe("onclick без кавычек со стрелочной функцией", () => {
     const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<button onclick=${core.onClick}>OK</button>`)
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
@@ -90,7 +90,7 @@ describe("events", () => {
   describe("onclick без значения (булев)", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<button onclick>OK</button>`)
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
@@ -126,7 +126,7 @@ describe("events", () => {
       ({ html, core }) => html`<input onclick=${() => core.onClick()} oninput="${(e: Event) => core.onInput(e)}" />`
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
@@ -164,7 +164,7 @@ describe("events", () => {
   describe("oninput без кавычек со стрелочной функцией (input)", () => {
     const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<input oninput=${(e: Event) => core.onInput(e)} />`)
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
@@ -203,7 +203,7 @@ describe("events", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
@@ -283,7 +283,7 @@ describe("events", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
@@ -362,7 +362,7 @@ describe("events", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
@@ -481,7 +481,7 @@ describe("events", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
@@ -594,7 +594,7 @@ describe("events", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
 
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>

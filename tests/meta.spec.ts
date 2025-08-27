@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
-import { elementsHierarchy } from "../hierarchy"
+import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
@@ -17,7 +17,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -48,7 +48,7 @@ describe("meta", () => {
         expect(elements).toEqual([{ text: "<meta-hash />", index: 0, name: "meta-hash", kind: "self" }])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -81,7 +81,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -120,7 +120,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -158,7 +158,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -209,7 +209,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -258,7 +258,7 @@ describe("meta", () => {
         expect(elements).toEqual([{ text: "<meta-${item.tag} />", index: 32, name: "meta-${item.tag}", kind: "self" }])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -309,7 +309,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -375,7 +375,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -438,7 +438,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -490,7 +490,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -547,7 +547,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -600,7 +600,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -672,7 +672,7 @@ describe("meta", () => {
         ])
       })
 
-      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const hierarchy = makeHierarchy(mainHtml, elements)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {

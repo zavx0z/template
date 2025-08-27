@@ -36,7 +36,7 @@ export type PartAttrElement = {
   /** Объектные аттрибуты (стили) */
   object?: AttributeObject
   /** Дочерние элементы (опционально) */
-  child?: (PartAttrElement | PartAttrMeta | PartCondition | PartMap | PartText)[]
+  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]
 }
 
 export type PartAttrMeta = {
@@ -55,7 +55,7 @@ export type PartAttrMeta = {
   /** Объектные аттрибуты (стили) */
   object?: AttributeObject
   /** Дочерние элементы (опционально) */
-  child?: (PartAttrElement | PartAttrMeta | PartCondition | PartMap | PartText)[]
+  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]
 }
 
 export type PartAttrCondition = {
@@ -68,5 +68,12 @@ export type PartAttrCondition = {
   /** Элемент, рендерящийся когда условие ложно */
   false: PartAttrElement | PartAttrMeta | PartAttrCondition
 }
-
-export type PartHierarchy = (PartAttrElement | PartAttrMeta | PartCondition | PartMap | PartText)[]
+export type PartAttrMap = {
+  /** Тип узла */
+  type: "map"
+  /** Исходный текст map-выражения */
+  text: string
+  /** Дочерние элементы, повторяемые для каждого элемента коллекции */
+  child: (PartAttrElement | PartText | PartAttrMap | PartAttrCondition | PartAttrMeta)[]
+}
+export type PartAttrs = (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]

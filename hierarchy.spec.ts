@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "./splitter"
-import { elementsHierarchy } from "./hierarchy"
+import { makeHierarchy } from "./hierarchy"
 
 describe("hierarchy", () => {
   it("map в элементе вложенный в map", () => {
@@ -19,7 +19,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "ul",
@@ -82,7 +82,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         type: "cond",
@@ -148,7 +148,7 @@ describe("hierarchy", () => {
       ({ html, context }) => html` ${context.flag ? html`<div>Show</div>` : html`<span>Hide</span>`} `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         type: "cond",
@@ -188,7 +188,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "ul",
@@ -233,7 +233,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -302,7 +302,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         type: "cond",
@@ -349,7 +349,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -405,7 +405,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -457,7 +457,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",
@@ -546,7 +546,7 @@ describe("hierarchy", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     expect(hierarchy).toEqual([
       {
         tag: "div",

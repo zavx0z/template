@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
-import { elementsHierarchy } from "../hierarchy"
+import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
@@ -95,7 +95,7 @@ describe("nested.conditions", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -375,7 +375,7 @@ describe("nested.conditions", () => {
                                             true: {
                                               tag: "span",
                                               type: "el",
-                                                string: {
+                                              string: {
                                                 class: "member-status-active",
                                               },
                                               child: [
@@ -528,7 +528,7 @@ describe("nested.conditions", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -547,7 +547,7 @@ describe("nested.conditions", () => {
                 string: {
                   "data-company": {
                     data: "[item]/id",
-                  }
+                  },
                 },
                 child: [
                   {
@@ -704,7 +704,7 @@ describe("nested.conditions", () => {
                                             true: {
                                               tag: "span",
                                               type: "el",
-                                                string: {
+                                              string: {
                                                 class: "first-member-first-team-first-dept",
                                               },
                                               child: [

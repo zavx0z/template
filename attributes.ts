@@ -639,7 +639,7 @@ export const parseAttributes = (
 }
 
 /** Извлечь атрибуты из дерева */
-export const extractAttributes = (hierarchy: PartHierarchy): PartHierarchy => {
+export const extractAttributes = (hierarchy: PartHierarchy): PartAttrs => {
   return hierarchy.map((node) => {
     if (node.type === "el") {
       // Извлекаем атрибуты из текста элемента

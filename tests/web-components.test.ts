@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
-import { elementsHierarchy } from "../hierarchy"
+import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
@@ -16,7 +16,7 @@ describe("web-components", () => {
       ])
     })
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -59,7 +59,7 @@ describe("web-components", () => {
       ])
     })
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -119,7 +119,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -171,7 +171,7 @@ describe("web-components", () => {
         { text: "</app-header>", index: 113, name: "app-header", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -273,7 +273,7 @@ describe("web-components", () => {
         { text: "</user-profile>", index: 62, name: "user-profile", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -335,7 +335,7 @@ describe("web-components", () => {
         { text: "</user-panel>", index: 73, name: "user-panel", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -406,7 +406,7 @@ describe("web-components", () => {
         { text: "</user-list>", index: 108, name: "user-list", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -524,7 +524,7 @@ describe("web-components", () => {
         { text: "</a-b-c-d>", index: 148, name: "a-b-c-d", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         { tag: "x-component", type: "el", text: "<x-component>" },
@@ -595,7 +595,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -677,7 +677,7 @@ describe("web-components", () => {
         },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -758,7 +758,7 @@ describe("web-components", () => {
         { text: "</shadow-host>", index: 204, name: "shadow-host", kind: "close" },
       ]))
 
-    const hierarchy = elementsHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -875,106 +875,31 @@ describe("web-components", () => {
       ]))
   })
 
-  describe.todo("custom elements с условными атрибутами", () => {
+  describe("custom elements с булевыми атрибутами", () => {
     const mainHtml = extractMainHtmlBlock<{ isVisible: boolean; isDisabled: boolean }>(
-      ({ html, context }) => html`<custom-button
-        ${context.isVisible ? 'style="display: block"' : 'style="display: none"'}
-        ${context.isDisabled ? "disabled" : ""}
-        >Click me</custom-button
-      >`
+      ({ html, context }) => html` <custom-button ${context.isDisabled && "disabled"}> Click me </custom-button> `
     )
-
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () =>
-      expect(elements).toEqual([
-        {
-          text: '<custom-button\n        ${context.isVisible ? \'style="display: block"\' : \'style="display: none"\'}\n        ${context.isDisabled ? "disabled" : ""}\n        >',
-          index: 0,
-          name: "custom-button",
-          kind: "open",
-        },
-        {
-          text: "Click me",
-          index: 154,
-          name: "",
-          kind: "text",
-        },
-        {
-          text: "</custom-button\n      >",
-          index: 162,
-          name: "custom-button",
-          kind: "close",
-        },
-      ]))
-
-    const hierarchy = elementsHierarchy(mainHtml, elements)
-    it("hierarchy", () =>
-      expect(hierarchy).toEqual([
-        {
-          tag: "custom-button",
-          type: "el",
-          text: '<custom-button\n        ${context.isVisible ? \'style="display: block"\' : \'style="display: none"\'}\n        ${context.isDisabled ? "disabled" : ""}\n        >',
-          child: [
-            {
-              type: "text",
-              text: "Click me",
-            },
-          ],
-        },
-      ]))
-
+    const hierarchy = makeHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
-    it("attributes", () =>
-      expect(attributes).toEqual([
+    const data = enrichWithData(attributes)
+    it("data", () =>
+      expect(data).toEqual([
         {
           tag: "custom-button",
           type: "el",
           child: [
             {
               type: "text",
-              text: "Click me",
+              value: " Click me ",
             },
           ],
+          boolean: {
+            disabled: {
+              data: "/context/isDisabled",
+            },
+          },
         },
       ]))
-
-    const data = enrichWithData(attributes)
-    it("data", () => expect(data).toEqual([]))
-  })
-
-  it.skip("невалидные custom elements игнорируются", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html }) => html`
-        <1invalid-element></1invalid-element>
-        <invalid*element></invalid*element>
-        <valid-element></valid-element>
-        <-invalid-element></-invalid-element>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: "<valid-element>", index: 99, name: "valid-element", kind: "open" },
-      { text: "</valid-element>", index: 114, name: "valid-element", kind: "close" },
-    ])
-  })
-
-  it.todo("custom elements с namespace", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html }) => html`
-        <svg:circle cx="50" cy="50" r="40"></svg:circle>
-        <math:formula>E = mc²</math:formula>
-        <custom:component></custom:component>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: '<svg:circle cx="50" cy="50" r="40">', index: 9, name: "svg:circle", kind: "open" },
-      { text: "</svg:circle>", index: 44, name: "svg:circle", kind: "close" },
-      { text: "<math:formula>", index: 66, name: "math:formula", kind: "open" },
-      { text: `E = mc\u00B2`, index: 80, name: "", kind: "text" },
-      { text: "</math:formula>", index: 92, name: "math:formula", kind: "close" },
-      { text: "<custom:component>", index: 116, name: "custom:component", kind: "open" },
-      { text: "</custom:component>", index: 134, name: "custom:component", kind: "close" },
-    ])
   })
 })
