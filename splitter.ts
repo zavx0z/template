@@ -1,6 +1,10 @@
 import type { TagKind, TagToken } from "./splitter.t"
 import type { Content, Core, State, Render } from "./index.t"
 
+// ============================================================================
+// HTML EXTRACTION
+// ============================================================================
+
 /**
  * @fileoverview HTML Tag Scanner
  *
@@ -54,9 +58,9 @@ const shouldIgnoreAt = (input: string, i: number) => input[i + 1] === "!" || inp
  * @param {Render<C,I,S>} render - функция вида ({ html, context, core, state }) => html`...`
  * @returns {string} сырой HTML-текст внутри template literal
  */
-export function extractMainHtmlBlock<C extends Content = Content, I extends Core = Core, S extends State = State>(
+export const extractMainHtmlBlock = <C extends Content = Content, I extends Core = Core, S extends State = State>(
   render: Render<C, I, S>
-): string {
+): string => {
   const src = Function.prototype.toString.call(render)
   const firstIndex = src.indexOf("html`")
   if (firstIndex === -1) throw new Error("функция render не содержит html`")
@@ -80,7 +84,7 @@ export function extractMainHtmlBlock<C extends Content = Content, I extends Core
  * @param html - входная HTML-строка
  * @returns список токенов с полями { text, index, name, kind }
  */
-export function scanHtmlTags(input: string, offset = 0): TagToken[] {
+export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
   const out: TagToken[] = []
   TAG_LOOKAHEAD.lastIndex = 0
   let m: RegExpExecArray | null
@@ -200,7 +204,7 @@ export type ElementToken = { text: string; index: number; name: string; kind: El
  * - Пустые или состоящие только из пробелов/переводов строк узлы игнорируются.
  * - Для текста поле `name` — пустая строка.
  */
-export function extractHtmlElements(input: string): ElementToken[] {
+export const extractHtmlElements = (input: string): ElementToken[] => {
   const tags = scanHtmlTags(input)
   const out: ElementToken[] = []
   let cursor = 0

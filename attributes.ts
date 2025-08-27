@@ -11,6 +11,10 @@ import type {
 } from "./attributes.t"
 import type { NodeHierarchy } from "./hierarchy.t"
 
+// ============================================================================
+// ATTRIBUTE PARSING
+// ============================================================================
+
 // ============================
 // ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
 // ============================
@@ -409,13 +413,15 @@ function sliceInsideTag(tagSource: string): string {
 // ОСНОВНАЯ ФУНКЦИЯ
 // ============================
 
-export function parseAttributes(tagSource: string): {
+export const parseAttributes = (
+  tagSource: string
+): {
   event?: AttributeEvent
   array?: AttributeArray
   string?: AttributeString
   boolean?: AttributeBoolean
   object?: AttributeObject
-} {
+} => {
   const inside = sliceInsideTag(tagSource)
   const len = inside.length
   let i = 0
@@ -633,7 +639,7 @@ export function parseAttributes(tagSource: string): {
 }
 
 /** Извлечь атрибуты из дерева */
-export function extractAttributes(hierarchy: NodeHierarchy): PartAttrs {
+export const extractAttributes = (hierarchy: NodeHierarchy): PartAttrs => {
   return hierarchy.map((node) => {
     if (node.type === "el") {
       // Извлекаем атрибуты из текста элемента
