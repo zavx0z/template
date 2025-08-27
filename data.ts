@@ -3,6 +3,10 @@ import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node } fr
 import type { NodeHierarchyText } from "./hierarchy.t"
 import type { PartAttrCondition, PartAttrElement, PartAttributeMap, PartAttrMeta, PartAttrs } from "./attributes.t"
 
+// ============================================================================
+// PATH RESOLUTION UTILITIES
+// ============================================================================
+
 /**
  * Ищет переменную в стеке map контекстов и возвращает соответствующий путь.
  *
@@ -21,62 +25,34 @@ import type { PartAttrCondition, PartAttrElement, PartAttributeMap, PartAttrMeta
  * findVariableInMapStack("member", context)    // Возвращает: "[item]"
  */
 const findVariableInMapStack = (variable: string, context: DataParserContext): string | null => {
-  if (!context.mapContextStack || context.mapContextStack.length === 0) {
-    return null
-  }
+  if (!context.mapContextStack?.length) return null
 
-  // Проверяем от самого глубокого уровня к самому внешнему
+  const variableParts = variable.split(".")
+  const variableName = variableParts[0] || ""
+
+  // Ищем переменную от самого глубокого уровня к внешнему
   for (let i = context.mapContextStack.length - 1; i >= 0; i--) {
     const mapContext = context.mapContextStack[i]
-    if (!mapContext) continue
+    if (!mapContext?.params.includes(variableName)) continue
 
-    const variableParts = variable.split(".")
-    const variableName = variableParts[0]
+    const levelsUp = context.mapContextStack.length - 1 - i
+    const prefix = "../".repeat(levelsUp)
+    const paramIndex = mapContext.params.indexOf(variableName)
 
-    if (mapContext.params.includes(variableName || "")) {
-      // Переменная найдена на этом уровне map
-      const currentLevel = context.mapContextStack.length - 1
-      const targetLevel = i
-      const levelsUp = currentLevel - targetLevel
-
-      // Создаем префикс с нужным количеством "../"
-      const prefix = "../".repeat(levelsUp)
-
-      // Определяем позицию параметра в map
-      const paramIndex = mapContext.params.indexOf(variableName || "")
-
-      // Определяем путь в зависимости от позиции параметра
-      if (paramIndex === 0) {
-        // Первый параметр - элемент массива
-        if (mapContext.params.length === 1) {
-          // Простой параметр map
-          if (variableParts.length > 1) {
-            // Свойство простого параметра (например, user.name)
-            const propertyPath = variableParts.slice(1).join("/")
-            return `${prefix}[item]/${propertyPath}`
-          } else {
-            // Сам простой параметр
-            return `${prefix}[item]`
-          }
-        } else {
-          // Деструктурированные параметры - первый параметр это элемент
-          if (variableParts.length > 1) {
-            // Свойство деструктурированного параметра (например, dept.id -> [item]/id)
-            const propertyPath = variableParts.slice(1).join("/")
-            return `${prefix}[item]/${propertyPath}`
-          } else {
-            // Само деструктурированное свойство (например, title -> [item]/title)
-            return `${prefix}[item]/${variable}`
-          }
-        }
-      } else {
-        // Второй и последующие параметры - индекс
-        return `${prefix}[index]`
-      }
-    }
+    return paramIndex === 0 ? buildItemPath(prefix, variableParts, mapContext.params.length > 1) : `${prefix}[index]`
   }
 
   return null
+}
+
+const buildItemPath = (prefix: string, variableParts: string[], isDestructured: boolean): string => {
+  const hasProperty = variableParts.length > 1
+
+  if (isDestructured) {
+    return hasProperty ? `${prefix}[item]/${variableParts.slice(1).join("/")}` : `${prefix}[item]/${variableParts[0]}`
+  }
+
+  return hasProperty ? `${prefix}[item]/${variableParts.slice(1).join("/")}` : `${prefix}[item]`
 }
 
 /**
@@ -452,7 +428,11 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
  * parseMapData("nested.map((item) => ...)", context)
  * // Возвращает: { path: "[item]/nested", context: {...}, metadata: { params: ["item"] } }
  */
-export const parseMapData = (
+// ============================================================================
+// EXPRESSION PARSERS
+// ============================================================================
+
+export const parseMap = (
   mapText: string,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): DataParseResult => {
@@ -467,7 +447,7 @@ export const parseMapData = (
   const paramsText = mapMatch[2] || ""
 
   // Парсим параметры map-функции
-  const params = parseMapParams(paramsText.replace(/^\(|\)$/g, ""))
+  const params = extractMapParams(paramsText.replace(/^\(|\)$/g, ""))
 
   // Определяем тип пути
   if (dataPath.includes(".") && context.mapParams && context.mapParams.length > 0) {
@@ -573,88 +553,46 @@ export const parseMapData = (
 /**
  * Парсит параметры map-функции.
  */
-export const parseMapParams = (paramsText: string): string[] => {
-  // Убираем пробелы и разбиваем по запятой
+export const extractMapParams = (paramsText: string): string[] => {
   const cleanParams = paramsText.replace(/\s+/g, "").trim()
-
   if (!cleanParams) return []
 
-  // Разбираем деструктуризацию и простые параметры
-  const params: string[] = []
-
-  // Ищем деструктуризацию: { prop1, prop2 }
   const destructureMatch = cleanParams.match(/\{([^}]+)\}/)
-  if (destructureMatch && destructureMatch[1]) {
-    const props = destructureMatch[1].split(",").map((p) => p.trim())
-    params.push(...props)
-  } else {
-    // Простые параметры: item, index
-    const simpleParams = cleanParams.split(",").map((p) => p.trim())
-    params.push(...simpleParams)
-  }
-
-  return params
+  return destructureMatch?.[1]
+    ? destructureMatch[1].split(",").map((p) => p.trim())
+    : cleanParams.split(",").map((p) => p.trim())
 }
 
 /**
  * Парсит путь к данным из условного выражения.
  */
-export const parseConditionData = (
+export const parseCondition = (
   condText: string,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): DataParseResult => {
-  // Для тернарных операторов с html тегами, извлекаем только переменные из условия
-  // Убираем html`...` части и оставляем только логическое выражение
-  let cleanCondText = condText
-
-  // Удаляем html`...` части из тернарного оператора
-  cleanCondText = cleanCondText.replace(/html`[^`]*`/g, "")
-
-  // Для условий с индексами, извлекаем все логические выражения
-  if (cleanCondText.includes("Index")) {
-    const indexMatches = cleanCondText.match(/([a-zA-Z_$][\w$]*\s*[=!<>]+\s*[0-9]+)/g) || []
-    if (indexMatches.length > 0) {
-      // Собираем все логические выражения с &&
-      cleanCondText = indexMatches.join(" && ")
-    }
-  } else {
-    // Для обычных условий, убираем всё после ? для извлечения только условной части
-    if (cleanCondText.includes("?")) {
-      const beforeQuestion = cleanCondText.split("?")[0]
-      if (beforeQuestion) {
-        cleanCondText = beforeQuestion.trim()
-      }
-    }
-  }
-
-  // Ищем паттерны: identifier.identifier (включая индексы)
+  const cleanCondText = cleanConditionText(condText)
   const pathMatches = cleanCondText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
-  if (pathMatches.length === 0) {
-    return { path: "" }
-  }
+  if (pathMatches.length === 0) return { path: "" }
 
-  // Извлекаем выражение условия из очищенного текста
   const expression = extractConditionExpression(cleanCondText)
+  const paths =
+    pathMatches.length === 1
+      ? resolveDataPath(pathMatches[0] || "", context)
+      : pathMatches.map((variable) => resolveDataPath(variable, context))
 
-  if (pathMatches.length === 1) {
-    const variable = pathMatches[0] || ""
-    // Используем resolveDataPath для правильного определения пути в контексте map
-    const resolvedPath = resolveDataPath(variable, context)
+  return { path: paths, metadata: { expression } }
+}
 
-    return {
-      path: resolvedPath,
-      metadata: { expression },
-    }
+const cleanConditionText = (condText: string): string => {
+  let cleanText = condText.replace(/html`[^`]*`/g, "")
+
+  if (cleanText.includes("Index")) {
+    const indexMatches = cleanText.match(/([a-zA-Z_$][\w$]*\s*[=!<>]+\s*[0-9]+)/g) || []
+    return indexMatches.length > 0 ? indexMatches.join(" && ") : cleanText
   }
 
-  // Множественные пути - используем resolveDataPath для каждого
-  const paths = pathMatches.map((variable) => resolveDataPath(variable, context))
-
-  return {
-    path: paths,
-    metadata: { expression },
-  }
+  return cleanText.includes("?") ? cleanText.split("?")[0]?.trim() || cleanText : cleanText
 }
 
 /**
@@ -736,7 +674,11 @@ const formatStaticText = (text: string): string => {
 /**
  * Парсит текстовые данные с путями.
  */
-export const parseTextData = (text: string, context: DataParserContext = { pathStack: [], level: 0 }): NodeText => {
+// ============================================================================
+// TEXT PROCESSING
+// ============================================================================
+
+export const parseText = (text: string, context: DataParserContext = { pathStack: [], level: 0 }): NodeText => {
   // Если текст не содержит переменных - возвращаем статический
   if (!text.includes("${")) {
     return {
@@ -762,7 +704,7 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
   }
 
   // Разбираем текст на статические и динамические части
-  const parts = splitTextIntoParts(text)
+  const parts = splitText(text)
 
   // Парсим динамические части
   const dynamicParts = parts
@@ -896,7 +838,7 @@ export const parseTextData = (text: string, context: DataParserContext = { pathS
 /**
  * Разбивает текст на статические и динамические части.
  */
-export const splitTextIntoParts = (text: string): TextPart[] => {
+export const splitText = (text: string): TextPart[] => {
   const parts: TextPart[] = []
   let currentIndex = 0
 
@@ -1247,11 +1189,15 @@ const parseAttributesImproved = (
 /**
  * Создает NodeMap из обычного NodeHierarchyMap.
  */
+// ============================================================================
+// NODE CREATION FACTORIES
+// ============================================================================
+
 export const createNodeDataMap = (
   node: PartAttributeMap,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeMap => {
-  const mapData = parseMapData(node.text, context)
+  const mapData = parseMap(node.text, context)
 
   return {
     type: "map",
@@ -1267,7 +1213,7 @@ export const createNodeDataCondition = (
   node: PartAttrCondition,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): NodeCondition => {
-  const condData = parseConditionData(node.text, context)
+  const condData = parseCondition(node.text, context)
   const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
 
   // Используем пути, уже правильно разрешенные в parseConditionData
@@ -1520,7 +1466,7 @@ export const createNodeDataElement = (
   }
 
   if (node.type === "text") {
-    return parseTextData(node.text, context)
+    return parseText(node.text, context)
   }
 
   if (node.type === "el") {
@@ -1761,9 +1707,21 @@ export const createNodeDataElement = (
  * ])
  * // Возвращает обогащенную иерархию с путями к данным и унифицированными выражениями
  */
-export const enrichHierarchyWithData = (
+// ============================================================================
+// MAIN API
+// ============================================================================
+
+export const enrichWithData = (
   hierarchy: PartAttrs,
   context: DataParserContext = { pathStack: [], level: 0 }
 ): Node[] => {
   return hierarchy.map((node) => createNodeDataElement(node, context))
 }
+
+// Временные заглушки для совместимости
+export const parseMapData = parseMap
+export const parseConditionData = parseCondition
+export const parseMapParams = extractMapParams
+export const parseTextData = parseText
+export const splitTextIntoParts = splitText
+export const enrichHierarchyWithData = enrichWithData
