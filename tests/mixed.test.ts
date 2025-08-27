@@ -155,7 +155,7 @@ describe("mixed", () => {
       {
         type: "text",
         data: ["/context/a", "/context/b", "/context/c", "/context/d"],
-        expr: '${0} < ${1} && ${2} > ${3} ? "1" : "0"',
+        expr: '${0 < 1 && 2 > 3 ? "1" : "0"}',
       },
     ])
   })

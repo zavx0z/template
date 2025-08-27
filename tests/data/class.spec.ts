@@ -294,7 +294,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: 'div-${0} ? "active" : "inactive"',
+              expr: 'div-${0 ? "active" : "inactive"}',
             },
           },
         },
@@ -317,7 +317,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: 'div-${0} ? "active" : "inactive"',
+              expr: 'div-${0 ? "active" : "inactive"}',
             },
           },
         },
@@ -343,11 +343,11 @@ describe("class атрибуты в data.ts", () => {
             class: [
               {
                 data: "/core/active",
-                expr: 'div-${0} ? "active" : "inactive"',
+                expr: 'div-${0 ? "active" : "inactive"}',
               },
               {
                 data: "/core/active",
-                expr: 'div-${0} ? "active" : "inactive"',
+                expr: 'div-${0 ? "active" : "inactive"}',
               },
             ],
           },
@@ -374,7 +374,7 @@ describe("class атрибуты в data.ts", () => {
             class: [
               {
                 data: "/core/active",
-                expr: 'div-${0} ? "active" : "inactive"',
+                expr: 'div-${0 ? "active" : "inactive"}',
               },
               { value: "visible" },
             ],
@@ -577,7 +577,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: 'static-value-${0} ? "active" : "inactive"',
+              expr: 'static-value-${0 ? "active" : "inactive"}',
             },
           },
         },

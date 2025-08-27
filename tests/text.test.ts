@@ -259,7 +259,7 @@ describe("text", () => {
               {
                 type: "text",
                 data: "/context/show",
-                expr: '${0} ? "Visible" : "Hidden"',
+                expr: '${0 ? "Visible" : "Hidden"}',
               },
             ],
           },

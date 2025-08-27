@@ -566,7 +566,7 @@ describe("атрибуты", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: 'div-${0} ? "active" : "inactive"',
+              expr: 'div-${0 ? "active" : "inactive"}',
             },
           },
           child: [

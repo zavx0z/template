@@ -49,7 +49,7 @@ describe("formatting", () => {
       const divElement = data[0] as any
       const spanElement = divElement?.child?.[0] as any
       const spanText = spanElement?.child?.[0] as any
-      expect(spanText?.expr).toBe(' Status: ${0} ? "Active" : "Inactive" ')
+      expect(spanText?.expr).toBe(' Status: ${0 ? "Active" : "Inactive"} ')
     })
 
     it("p element tag", () => {

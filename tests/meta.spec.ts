@@ -748,7 +748,7 @@ describe("meta", () => {
                   },
                   class: {
                     data: "[item]/active",
-                    expr: 'meta-${0} ? "active" : "inactive"',
+                    expr: 'meta-${0 ? "active" : "inactive"}',
                   },
                 },
                 boolean: {

@@ -123,7 +123,7 @@ describe("nested.array", () => {
                       {
                         type: "text",
                         data: "[item]/active",
-                        expr: 'Status: ${0} ? "Active" : "Inactive"',
+                        expr: 'Status: ${0 ? "Active" : "Inactive"}',
                       },
                     ],
                     string: {
