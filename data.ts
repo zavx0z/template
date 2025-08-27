@@ -1613,11 +1613,25 @@ export const createNodeDataElement = (
           const booleanValue = String(attr.value)
           const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
 
-          if (variableMatches.length > 0 && variableMatches[0]) {
-            const variable = variableMatches[0]
-            const dataPath = resolveDataPath(variable, context)
-            result.boolean[key] = {
-              data: dataPath,
+          if (variableMatches.length > 0) {
+            // Обрабатываем все переменные в выражении
+            const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
+
+            // Создаем выражение, заменяя переменные на индексы
+            let expr = booleanValue
+            variableMatches.forEach((variable, index) => {
+              expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+            })
+
+            if (paths.length === 1) {
+              result.boolean[key] = {
+                data: paths[0] || "",
+              }
+            } else {
+              result.boolean[key] = {
+                data: paths,
+                expr: expr,
+              }
             }
           } else {
             result.boolean[key] = false

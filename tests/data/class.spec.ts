@@ -583,5 +583,142 @@ describe("class атрибуты в data.ts", () => {
         },
       ])
     })
+
+    it("class в элементе со сложной строкой с несколькими переменными", () => {
+      const mainHtml = extractMainHtmlBlock<any, { user: { id: string; role: string }; theme: string }>(
+        ({ html, core }) => html`<div class="user-${core.user.id}-${core.user.role}-${core.theme}"></div>`
+      )
+      const elements = extractHtmlElements(mainHtml)
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichHierarchyWithData(attributes)
+
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          string: {
+            class: {
+              data: ["/core/user/id", "/core/user/role", "/core/theme"],
+              expr: "user-${0}-${1}-${2}",
+            },
+          },
+        },
+      ])
+    })
+
+    it.todo("class в элементе со сложной строкой с условными выражениями", () => {
+      const mainHtml = extractMainHtmlBlock<
+        any,
+        {
+          user: { id: string; role: string }
+          theme: string
+          isActive: boolean
+        }
+      >(
+        ({ html, core }) =>
+          html`<div
+            class="user-${core.user.id}-${core.user.role}-${core.theme}-${core.isActive
+              ? "active"
+              : "inactive"}"></div>`
+      )
+      const elements = extractHtmlElements(mainHtml)
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichHierarchyWithData(attributes)
+
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          string: {
+            class: {
+              data: ["/core/user/id", "/core/user/role", "/core/theme", "/core/isActive"],
+              expr: 'user-${0}-${1}-${2}-${3 ? "active" : "inactive"}',
+            },
+          },
+        },
+      ])
+    })
+
+    it("class в элементе с массивом классов со сложной строкой", () => {
+      const mainHtml = extractMainHtmlBlock<any, { user: { id: string; role: string }; theme: string }>(
+        ({ html, core }) => html`<div class="base user-${core.user.id}-${core.user.role} theme-${core.theme}"></div>`
+      )
+      const elements = extractHtmlElements(mainHtml)
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichHierarchyWithData(attributes)
+
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          array: {
+            class: [
+              { value: "base" },
+              {
+                data: ["/core/user/id", "/core/user/role"],
+                expr: "user-${0}-${1}",
+              },
+              {
+                data: "/core/theme",
+                expr: "theme-${0}",
+              },
+            ],
+          },
+        },
+      ])
+    })
+
+    it("class в элементе с массивом классов и сложными условными выражениями", () => {
+      const mainHtml = extractMainHtmlBlock<
+        any,
+        {
+          user: { id: string; role: string }
+          theme: string
+          isActive: boolean
+          isAdmin: boolean
+        }
+      >(
+        ({ html, core }) =>
+          html`<div
+            class="base user-${core.user.id} ${core.isActive ? "active" : "inactive"} ${core.isAdmin
+              ? "admin"
+              : "user"} theme-${core.theme}"></div>`
+      )
+      const elements = extractHtmlElements(mainHtml)
+      const hierarchy = elementsHierarchy(mainHtml, elements)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichHierarchyWithData(attributes)
+
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          array: {
+            class: [
+              { value: "base" },
+              {
+                data: "/core/user/id",
+                expr: "user-${0}",
+              },
+              {
+                data: "/core/isActive",
+                expr: '${0} ? "active" : "inactive"',
+              },
+              {
+                data: "/core/isAdmin",
+                expr: '${0} ? "admin" : "user"',
+              },
+              {
+                data: "/core/theme",
+                expr: "theme-${0}",
+              },
+            ],
+          },
+        },
+      ])
+    })
   })
 })

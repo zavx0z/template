@@ -4,7 +4,7 @@ import { elementsHierarchy } from "../hierarchy"
 import { enrichHierarchyWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
-describe.skip("nested.array", () => {
+describe("nested.array", () => {
   it("4 уровня вложенности map с переменными из предыдущих уровней (полный тест)", () => {
     const mainHtml = extractMainHtmlBlock<
       any,
@@ -35,9 +35,7 @@ describe.skip("nested.array", () => {
             (company) => html`
               <section data-company="${company.id}" ${company.active && "data-active"}>
                 <h1>Company: ${company.id}</h1>
-                <div class="${company.active ? "active-company" : "inactive-company"}">
-                  Status: ${company.active ? "Active" : "Inactive"}
-                </div>
+                <div class="company-${company.id}">Status: ${company.active ? "Active" : "Inactive"}</div>
                 ${company.departments.map(
                   (dept) => html`
                     <article
@@ -45,7 +43,7 @@ describe.skip("nested.array", () => {
                       data-dept="${dept.id}"
                       ${company.active && dept.active && "data-active"}>
                       <h2>Dept: ${company.id}-${dept.id}</h2>
-                      <div class="${company.active && dept.active ? "active-dept" : "inactive-dept"}">
+                      <div class="dept-${dept.id}">
                         Status: ${company.active && dept.active ? "Active" : "Inactive"}
                       </div>
                       ${dept.teams.map(
@@ -56,8 +54,7 @@ describe.skip("nested.array", () => {
                             data-team="${team.id}"
                             ${company.active && dept.active && team.active && "data-active"}>
                             <h3>Team: ${company.id}-${dept.id}-${team.id}</h3>
-                            <div
-                              class="${company.active && dept.active && team.active ? "active-team" : "inactive-team"}">
+                            <div class="team-${team.id}">
                               Status: ${company.active && dept.active && team.active ? "Active" : "Inactive"}
                             </div>
                             <meta-${team.id} />
@@ -68,12 +65,7 @@ describe.skip("nested.array", () => {
                                   data-dept="${dept.id}"
                                   data-team="${team.id}"
                                   data-member="${member.id}"
-                                  class="member-${company.id}-${dept.id}-${team.id}-${member.id} ${company.active &&
-                                  dept.active &&
-                                  team.active &&
-                                  member.active
-                                    ? "active-member"
-                                    : "inactive-member"}"
+                                  class="member-${company.id}-${dept.id}-${team.id}-${member.id}"
                                   title="${member.name} (${member.role})"
                                   ${company.active && dept.active && team.active && member.active && "data-active"}>
                                   Member: ${company.id}-${dept.id}-${team.id}-${member.id} (${member.name})
@@ -130,14 +122,14 @@ describe.skip("nested.array", () => {
                     child: [
                       {
                         type: "text",
-                        data: ["[item]/Status", "[item]/active"],
-                        expr: '${0}: ${${1} ? "Active" : "Inactive"}',
+                        data: "[item]/active",
+                        expr: 'Status: ${0} ? "Active" : "Inactive"',
                       },
                     ],
                     string: {
                       class: {
-                        data: "[item]/active",
-                        expr: '${0} ? "active-company" : "inactive-company"',
+                        data: "[item]/id",
+                        expr: "company-${0}",
                       },
                     },
                   },
@@ -172,8 +164,8 @@ describe.skip("nested.array", () => {
                             ],
                             string: {
                               class: {
-                                data: ["../[item]/active", "[item]/active"],
-                                expr: '${0} && ${1} ? "active-dept" : "inactive-dept"',
+                                data: "[item]/id",
+                                expr: "dept-${0}",
                               },
                             },
                           },
@@ -213,8 +205,8 @@ describe.skip("nested.array", () => {
                                     ],
                                     string: {
                                       class: {
-                                        data: ["../../[item]/active", "../[item]/active", "[item]/active"],
-                                        expr: '${0} && ${1} && ${2} ? "active-team" : "inactive-team"',
+                                        data: "[item]/id",
+                                        expr: "team-${0}",
                                       },
                                     },
                                   },
@@ -264,26 +256,25 @@ describe.skip("nested.array", () => {
                                         ],
                                         boolean: {
                                           "data-active": {
-                                            data: "/company/active && dept/active && team/active && member/active",
-                                          },
-                                        },
-                                        array: {
-                                          class: {
                                             data: [
-                                              "[item]",
-                                              "../../../[item]/id",
-                                              "../../[item]/id",
-                                              "../[item]/id",
-                                              "[item]/id",
                                               "../../../[item]/active",
                                               "../../[item]/active",
                                               "../[item]/active",
                                               "[item]/active",
                                             ],
-                                            expr: '${0}-${${1}}-${${2}}-${${3}}-${${0}.id} ${${5} && ${6} && ${7} && ${0}.active ? "active-${0}" : "inactive-${0}"',
+                                            expr: "${0} && ${1} && ${2} && ${3}",
                                           },
                                         },
                                         string: {
+                                          class: {
+                                            data: [
+                                              "../../../[item]/id",
+                                              "../../[item]/id",
+                                              "../[item]/id",
+                                              "[item]/id",
+                                            ],
+                                            expr: "member-${0}-${1}-${2}-${3}",
+                                          },
                                           "data-company": {
                                             data: "../../../[item]/id",
                                           },
@@ -296,7 +287,6 @@ describe.skip("nested.array", () => {
                                           "data-member": {
                                             data: "[item]/id",
                                           },
-
                                           title: {
                                             data: ["[item]/name", "[item]/role"],
                                             expr: "${0} (${1})",
@@ -308,7 +298,8 @@ describe.skip("nested.array", () => {
                                 ],
                                 boolean: {
                                   "data-active": {
-                                    data: "/company/active && dept/active && team/active",
+                                    data: ["../../[item]/active", "../[item]/active", "[item]/active"],
+                                    expr: "${0} && ${1} && ${2}",
                                   },
                                 },
                                 string: {
@@ -328,7 +319,8 @@ describe.skip("nested.array", () => {
                         ],
                         boolean: {
                           "data-active": {
-                            data: "/company/active && dept/active",
+                            data: ["../[item]/active", "[item]/active"],
+                            expr: "${0} && ${1}",
                           },
                         },
                         string: {
@@ -345,7 +337,7 @@ describe.skip("nested.array", () => {
                 ],
                 boolean: {
                   "data-active": {
-                    data: "/company/active",
+                    data: "[item]/active",
                   },
                 },
                 string: {
