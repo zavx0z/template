@@ -308,8 +308,8 @@ describe("map", () => {
   })
   describe("map соседствующий с map на верхнем уровне", () => {
     type Core = {
-      list1: { title: string; nested: string[] }[]
-      list2: { title: string; nested: string[] }[]
+      list1: { title: string }[]
+      list2: { title: string }[]
     }
     const mainHtml = extractMainHtmlBlock<any, Core>(
       ({ html, core }) => html`
@@ -323,15 +323,88 @@ describe("map", () => {
         { text: "<div>", index: 47, name: "div", kind: "open" },
         { text: "${title}", index: 52, name: "", kind: "text" },
         { text: "</div>", index: 60, name: "div", kind: "close" },
-        { text: " `)}\n        ", index: 66, name: "", kind: "text" },
         { text: "<div>", index: 117, name: "div", kind: "open" },
         { text: "${title}", index: 122, name: "", kind: "text" },
         { text: "</div>", index: 130, name: "div", kind: "close" },
       ]))
     const hierarchy = makeHierarchy(mainHtml, elements)
+    it("hierarchy", () =>
+      expect(hierarchy).toEqual([
+        {
+          type: "map",
+          text: "core.list1.map(({ title })`",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              text: "<div>",
+              child: [
+                {
+                  type: "text",
+                  text: "${title}",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: "map",
+          text: "core.list2.map(({ title })`",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              text: "<div>",
+              child: [
+                {
+                  type: "text",
+                  text: "${title}",
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+
     const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          type: "map",
+          text: "core.list1.map(({ title })`",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  text: "${title}",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: "map",
+          text: "core.list2.map(({ title })`",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  text: "${title}",
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+
     const data = enrichWithData(attributes)
-    it.skip("data", () =>
+    it("data", () =>
       expect(data).toEqual([
         {
           type: "map",

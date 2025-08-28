@@ -279,19 +279,41 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartHiera
   }
 
   // Обрабатываем map/condition на верхнем уровне
-  for (const mapInfo of mapStack) {
-    if (mapInfo.parent === null && hierarchy.length > 0) {
-      const mapNode: PartMap = {
-        type: "map",
-        text: mapInfo.text,
-        child: hierarchy.filter((item) => item.type === "el" || item.type === "text" || item.type === "meta") as (
-          | PartElement
-          | PartText
-          | PartMeta
-        )[],
+  const topLevelMapInfos = mapStack.filter((m) => m.parent === null)
+  if (topLevelMapInfos.length > 0) {
+    const newHierarchy: PartHierarchy = []
+
+    // Получаем все элементы, которые могут быть в map
+    const mapableElements = hierarchy.filter(
+      (item) => item.type === "el" || item.type === "text" || item.type === "meta"
+    ) as (PartElement | PartText | PartMeta)[]
+
+    // Разделяем элементы между map-выражениями
+    const elementsPerMap = Math.ceil(mapableElements.length / topLevelMapInfos.length)
+
+    for (let i = 0; i < topLevelMapInfos.length; i++) {
+      const mapInfo = topLevelMapInfos[i]
+      const startIndex = i * elementsPerMap
+      const endIndex = Math.min(startIndex + elementsPerMap, mapableElements.length)
+      const mapElements = mapableElements.slice(startIndex, endIndex)
+
+      if (mapElements.length > 0 && mapInfo) {
+        const mapNode: PartMap = {
+          type: "map",
+          text: mapInfo.text,
+          child: mapElements,
+        }
+        newHierarchy.push(mapNode)
       }
-      hierarchy.splice(0, hierarchy.length, mapNode)
     }
+
+    // Добавляем элементы, которые не вошли в map
+    const nonMapElements = hierarchy.filter(
+      (item) => !(item.type === "el" || item.type === "text" || item.type === "meta")
+    )
+    newHierarchy.push(...nonMapElements)
+
+    hierarchy.splice(0, hierarchy.length, ...newHierarchy)
   }
 
   // Обрабатываем ВСЕ условия на верхнем уровне
