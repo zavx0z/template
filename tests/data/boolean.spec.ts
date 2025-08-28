@@ -64,13 +64,13 @@ describe("boolean атрибуты с переменными из разных �
                           {
                             type: "text",
                             data: ["../[item]/id", "[item]/id"],
-                            expr: "Dept: ${0}-${1}",
+                            expr: "Dept: ${arguments[0]}-${arguments[1]}",
                           },
                         ],
                         boolean: {
                           "data-active": {
                             data: ["../[item]/active", "[item]/active"],
-                            expr: "${0} && ${1}",
+                            expr: "${arguments[0]} && ${arguments[1]}",
                           },
                         },
                       },

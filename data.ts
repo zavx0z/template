@@ -300,7 +300,7 @@ const parseEventExpression = (
         let expr = eventValue
         if (uniqueVariables.length > 0) {
           uniqueVariables.forEach((variable, index) => {
-            expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+            expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${arguments[${index}]}`)
           })
         }
 
@@ -345,7 +345,7 @@ const parseEventExpression = (
   let expr = eventValue
   uniqueVariables.forEach((variable, index) => {
     // Заменяем переменные на индексы, учитывая границы слов
-    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${arguments[${index}]}`)
   })
 
   // Убираем ${} обертку если она есть, но только если это не template literal
@@ -357,7 +357,7 @@ const parseEventExpression = (
   expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
 
   // Если это простая переменная без стрелочной функции, не возвращаем expr
-  if (!hasArrowFunction && uniqueVariables.length === 1 && (expr === "${0}" || expr === "0")) {
+  if (!hasArrowFunction && uniqueVariables.length === 1 && (expr === "${arguments[0]}" || expr === "arguments[0]")) {
     return {
       data: paths[0] || "",
     }
@@ -411,7 +411,7 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
   variables.forEach((variable, index) => {
     // Сначала заменяем точные совпадения ${variable}
     const exactRegex = new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g")
-    protectedExpr = protectedExpr.replace(exactRegex, `\${${index}}`)
+    protectedExpr = protectedExpr.replace(exactRegex, `\${arguments[${index}]}`)
 
     // Затем заменяем переменные внутри ${} выражений (для условных выражений)
     // Но только если это не точное совпадение
@@ -421,7 +421,7 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
       if (before.trim() === "" && after.trim() === "") {
         return match // Не заменяем точные совпадения
       }
-      return `\${${before}${index}${after}}`
+      return `\${${before}arguments[${index}]${after}}`
     })
   })
 
@@ -483,7 +483,19 @@ const processStringAttributes = (
       const valueWithBraces = hasBraces ? attr.value : `\${${attr.value}}`
       const templateResult = parseTemplateLiteral(valueWithBraces, context)
       if (templateResult && templateResult.data) {
-        if (templateResult.expr && typeof templateResult.expr === "string") {
+        // Проверяем, нужно ли добавлять expr
+        // Если это просто переменная без дополнительного текста, не добавляем expr
+        const isSimpleVariable =
+          !hasBraces &&
+          !attr.value.includes(" ") &&
+          !attr.value.includes("+") &&
+          !attr.value.includes("-") &&
+          !attr.value.includes("*") &&
+          !attr.value.includes("/") &&
+          !attr.value.includes("?") &&
+          !attr.value.includes(":")
+
+        if (templateResult.expr && typeof templateResult.expr === "string" && !isSimpleVariable) {
           result[key] = {
             data: templateResult.data,
             expr: templateResult.expr,
@@ -645,7 +657,7 @@ const processBooleanAttributes = (
         // Создаем выражение, заменяя переменные на индексы
         let expr = booleanValue
         variableMatches.forEach((variable, index) => {
-          expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+          expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${arguments[${index}]}`)
         })
 
         if (paths.length === 1) {
@@ -918,13 +930,13 @@ export const extractConditionExpression = (condText: string): string => {
 
   // Если найдена только одна переменная и нет сложных операций, возвращаем простое выражение
   if (pathMatches.length === 1 && !hasComplexOperations && !hasLogicalOperators) {
-    return `\${0}`
+    return `\${arguments[0]}`
   }
 
-  // Заменяем переменные на индексы ${0}, ${1}, и т.д.
+  // Заменяем переменные на индексы ${arguments[0]}, ${arguments[1]}, и т.д.
   let expression = condText
   pathMatches.forEach((path, index) => {
-    expression = expression.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
+    expression = expression.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${arguments[${index}]}`)
   })
 
   return expression.replace(/\s+/g, " ").trim()
@@ -1062,7 +1074,7 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
       const baseVariable = dynamicParts[0]?.path.replace(/^\//, "").replace(/\//g, ".") || ""
       let expr = variable
       if (baseVariable) {
-        expr = expr.replace(new RegExp(`\\b${baseVariable.replace(/\./g, "\\.")}\\b`, "g"), "${0}")
+        expr = expr.replace(new RegExp(`\\b${baseVariable.replace(/\./g, "\\.")}\\b`, "g"), "${arguments[0]}")
       }
 
       return {
@@ -1084,7 +1096,7 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
       .map((part) => {
         if (part.type === "static") return part.text
         const index = dynamicParts.findIndex((dp) => dp.text === part.text)
-        return `\${${index}}`
+        return `\${arguments[${index}]}`
       })
       .join("")
 
@@ -1104,7 +1116,7 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
     const expr = parts
       .map((part) => {
         if (part.type === "static") return part.text
-        return `\${0}`
+        return `\${arguments[0]}`
       })
       .join("")
 

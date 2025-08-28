@@ -99,7 +99,7 @@ describe("meta", () => {
           {
             tag: {
               data: "/core/actors/child",
-              expr: "meta-${0}",
+              expr: "meta-${arguments[0]}",
             },
             type: "meta",
           },
@@ -138,7 +138,7 @@ describe("meta", () => {
           {
             tag: {
               data: "/core/actors/child",
-              expr: "meta-${0}",
+              expr: "meta-${arguments[0]}",
             },
             type: "meta",
           },
@@ -187,7 +187,7 @@ describe("meta", () => {
               {
                 tag: {
                   data: "/core/tag",
-                  expr: "meta-${0}",
+                  expr: "meta-${arguments[0]}",
                 },
                 type: "meta",
               },
@@ -238,7 +238,7 @@ describe("meta", () => {
               {
                 tag: {
                   data: "/core/tag",
-                  expr: "meta-${0}",
+                  expr: "meta-${arguments[0]}",
                 },
                 type: "meta",
               },
@@ -286,7 +286,7 @@ describe("meta", () => {
               {
                 tag: {
                   data: "[item]/tag",
-                  expr: "meta-${0}",
+                  expr: "meta-${arguments[0]}",
                 },
                 type: "meta",
               },
@@ -336,18 +336,18 @@ describe("meta", () => {
           {
             type: "cond",
             data: "/core/items/length",
-            expr: "${0} > 0",
+            expr: "${arguments[0]} > 0",
             true: {
               tag: {
                 data: "/core/tag",
-                expr: "meta-${0}",
+                expr: "meta-${arguments[0]}",
               },
               type: "meta",
             },
             false: {
               tag: {
                 data: "/core/tag",
-                expr: "meta-${0}",
+                expr: "meta-${arguments[0]}",
               },
               type: "meta",
             },
@@ -455,7 +455,7 @@ describe("meta", () => {
           {
             tag: {
               data: "/core/tag",
-              expr: "meta-${0}",
+              expr: "meta-${arguments[0]}",
             },
             type: "meta",
             string: {
@@ -464,7 +464,7 @@ describe("meta", () => {
               },
               class: {
                 data: "/core/type",
-                expr: "meta-${0}",
+                expr: "meta-${arguments[0]}",
               },
             },
           },
@@ -508,7 +508,7 @@ describe("meta", () => {
           {
             tag: {
               data: "/core/tag",
-              expr: "meta-${0}",
+              expr: "meta-${arguments[0]}",
             },
             type: "meta",
             boolean: {
@@ -565,17 +565,17 @@ describe("meta", () => {
           {
             tag: {
               data: "/core/tag",
-              expr: "meta-${0}",
+              expr: "meta-${arguments[0]}",
             },
             type: "meta",
             event: {
               onclick: {
                 data: ["/core/handleClick", "/core/id"],
-                expr: "() => ${0}(${1})",
+                expr: "() => ${arguments[0]}(${arguments[1]})",
               },
               onchange: {
                 data: ["/core/handleChange", "/core/value"],
-                expr: "(e) => ${0}(e, ${1})",
+                expr: "(e) => ${arguments[0]}(e, ${arguments[1]})",
               },
             },
           },
@@ -629,13 +629,13 @@ describe("meta", () => {
           {
             tag: {
               data: "/core/tag",
-              expr: "meta-${0}",
+              expr: "meta-${arguments[0]}",
             },
             type: "meta",
             event: {
               onclick: {
                 data: "/core/id",
-                expr: "() => update({ selected: ${0} })",
+                expr: "() => update({ selected: ${arguments[0]} })",
                 upd: "selected",
               },
             },
@@ -733,13 +733,13 @@ describe("meta", () => {
               {
                 tag: {
                   data: "[item]/tag",
-                  expr: "meta-${0}",
+                  expr: "meta-${arguments[0]}",
                 },
                 type: "meta",
                 event: {
                   onclick: {
                     data: ["[item]/handleClick", "[item]/id"],
-                    expr: "() => ${0}(${1})",
+                    expr: "() => ${arguments[0]}(${arguments[1]})",
                   },
                 },
                 string: {
@@ -748,7 +748,7 @@ describe("meta", () => {
                   },
                   class: {
                     data: "[item]/active",
-                    expr: 'meta-${0 ? "active" : "inactive"}',
+                    expr: 'meta-${arguments[0] ? "active" : "inactive"}',
                   },
                 },
                 boolean: {
