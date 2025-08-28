@@ -24,7 +24,6 @@ describe("комплексные тесты с множественными ат
         },
       })
     })
-
     it("динамические значения в coords", () => {
       const attrs = parseAttributes(
         '<area shape="circle" coords="${center.x},${center.y},${radius}" alt="Круг" disabled=${context.disabled} ${context.loading && "loading"}>'

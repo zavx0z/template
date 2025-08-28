@@ -1266,15 +1266,34 @@ export const parseTemplateLiteral = (
 
   // Создаем унифицированное выражение, заменяя переменные на индексы
   let expr = value
+
+  // Защищаем строковые литералы от замены
+  const stringLiterals: string[] = []
+  let protectedExpr = expr
+    .replace(/"[^"]*"/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
   variables.forEach((variable: string, index: number) => {
     // Заменяем переменные на индексы только внутри ${...} выражений
-    expr = expr.replace(
-      new RegExp(`\\$\\{([^}]*)\\b${variable.replace(/\./g, "\\.")}\\b([^}]*)\\}`, "g"),
-      (match, before, after) => {
-        return `\${${before}${ARGUMENTS_PREFIX}[${index}]${after}}`
-      }
-    )
+    const variableRegex = new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g")
+    protectedExpr = protectedExpr.replace(new RegExp(`\\$\\{([^}]*?)\\}`, "g"), (match, content) => {
+      const updatedContent = content.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
+      return `\${${updatedContent}}`
+    })
   })
+
+  // Восстанавливаем строковые литералы
+  stringLiterals.forEach((literal, index) => {
+    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
+  })
+
+  expr = protectedExpr
 
   // Применяем форматирование к выражению
   expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
