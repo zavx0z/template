@@ -27,7 +27,16 @@ const CONDITIONAL_MIXED_PATTERN = /^(.*?)\$\{(.*?\?.*?:.*?)\}(.*)$/
 const WHITESPACE_PATTERN = /\s+/g
 const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g
 
-// Константа для префикса аргументов в выражениях
+/**
+ * Единый префикс для индексационных плейсхолдеров внутри expr.
+ *
+ * Формирует вид подстановок в унифицированных выражениях:
+ *   \`${${ARGUMENTS_PREFIX}[0]}\`, \`${${ARGUMENTS_PREFIX}[1]}\`, ...
+ *
+ * Изменяя значение здесь, вы централизованно влияете на весь рендер expr
+ * (parseEventExpression, createUnifiedExpression, parseTemplateLiteral, parseText, условия).
+ * Допустимые варианты: "arguments" (классический JS) или пустая строка для специфического рантайма.
+ */
 const ARGUMENTS_PREFIX = ""
 
 // ============================================================================

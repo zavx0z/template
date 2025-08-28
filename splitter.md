@@ -253,3 +253,9 @@ extractHtmlElements("<p>a<b>c</b>d</p>")
 /*6*/ { text: "</p>",index: 13,name: "p", kind: "close" },
 ]
 ```
+
+---
+
+## Примечание о выражениях expr
+
+`splitter` не формирует выражения `expr`. Единый формат `expr` создаётся на этапе `data.ts` с использованием плейсхолдеров `${${ARGUMENTS_PREFIX}[i]}` и HTML-форматирования пробелов. См. `README.md` и `data.md`.

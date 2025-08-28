@@ -19,7 +19,11 @@ import type { PartHierarchy } from "./hierarchy.t"
 // ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
 // ============================
 
-/** Форматирует выражение, удаляя лишние пробелы и переносы строк */
+/**
+ * Форматирует выражение по HTML-правилам схлопывания пробелов.
+ * - Схлопывает последовательности пробельных символов в один пробел
+ * - Обрезает пробелы по краям
+ */
 function formatExpression(expr: string): string {
   return expr.replace(/\s+/g, " ").trim()
 }
@@ -81,7 +85,11 @@ function classifyValue(token: string): ValueType {
   return "static"
 }
 
-/** Для вывода: если dynamic, убрать внешние ${} */
+/**
+ * Нормализует исходное значение атрибута для записи в результат.
+ * - Если токен полностью динамический (${...}) — снимает внешнюю обертку и форматирует содержимое
+ * - Иначе форматирует строку целиком
+ */
 function normalizeValueForOutput(token: string): string {
   if (isFullyDynamicToken(token)) {
     const v = token.trim()
