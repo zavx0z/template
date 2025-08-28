@@ -49,7 +49,7 @@ describe("formatting", () => {
       const divElement = data[0] as any
       const spanElement = divElement?.child?.[0] as any
       const spanText = spanElement?.child?.[0] as any
-      expect(spanText?.expr).toBe(' Status: ${0 ? "Active" : "Inactive"} ')
+      expect(spanText?.expr).toBe(' Status: ${arguments[0] ? "Active" : "Inactive"} ')
     })
 
     it("p element tag", () => {
@@ -81,7 +81,9 @@ describe("formatting", () => {
       const divElement = data[0] as any
       const pElement = divElement?.child?.[1] as any
       const pText = pElement?.child?.[0] as any
-      expect(pText?.expr).toBe('${${0} ? "This is a very long text that should be formatted properly" : "Short text"}')
+      expect(pText?.expr).toBe(
+        `\n            \${arguments[0] ? "This is a very long text that should be formatted properly" : "Short text"}\n          `
+      )
     })
   })
 })

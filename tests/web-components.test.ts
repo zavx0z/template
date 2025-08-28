@@ -713,11 +713,11 @@ describe("web-components", () => {
           event: {
             onclose: {
               data: "/core/close",
-              expr: "() => ${0}()",
+              expr: "() => ${arguments[0]}()",
             },
             onopen: {
               data: "/core/open",
-              expr: "() => ${0}()",
+              expr: "() => ${arguments[0]}()",
             },
           },
           string: {

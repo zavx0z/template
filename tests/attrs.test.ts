@@ -236,7 +236,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               data: "/context/flag",
-              expr: '${[0] ? "a > b" : "c < d"}',
+              expr: '${arguments[0] ? "a > b" : "c < d"}',
             },
           },
         },
@@ -290,7 +290,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               data: "/context/flag",
-              expr: '${0} ? "a > b" : "c < d"',
+              expr: '${arguments[0] ? "a > b" : "c < d"}',
             },
           },
         },
@@ -345,7 +345,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               data: "/context/flag",
-              expr: '${0} ? "a > b" : "c < d"',
+              expr: '${arguments[0] ? "a > b" : "c < d"}',
             },
           },
         },
@@ -507,7 +507,7 @@ describe("атрибуты", () => {
                   string: {
                     class: {
                       data: "[item]/type",
-                      expr: "item-${[0]}",
+                      expr: "item-${arguments[0]}",
                     },
                     title: {
                       data: "[item]/name",
@@ -587,7 +587,7 @@ describe("атрибуты", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: 'div-${0 ? "active" : "inactive"}',
+              expr: 'div-${arguments[0] ? "active" : "inactive"}',
             },
           },
           child: [

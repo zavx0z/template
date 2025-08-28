@@ -493,7 +493,8 @@ const processStringAttributes = (
           !attr.value.includes("*") &&
           !attr.value.includes("/") &&
           !attr.value.includes("?") &&
-          !attr.value.includes(":")
+          !attr.value.includes(":") &&
+          !attr.value.includes("!")
 
         if (templateResult.expr && typeof templateResult.expr === "string" && !isSimpleVariable) {
           result[key] = {
@@ -909,11 +910,11 @@ export const extractConditionExpression = (condText: string): string => {
       // Ищем переменные в логическом выражении
       const pathMatches = logicalExpression.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
-      // Заменяем переменные на индексы ${0}, ${1}, и т.д.
+      // Заменяем переменные на индексы ${arguments[0]}, ${arguments[1]}, и т.д.
       pathMatches.forEach((path, index) => {
         logicalExpression = logicalExpression.replace(
           new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"),
-          `\${${index}}`
+          `\${arguments[${index}]}`
         )
       })
 

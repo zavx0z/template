@@ -103,7 +103,7 @@ describe("mixed", () => {
                     {
                       type: "cond",
                       data: "[index]",
-                      expr: "${0} % 2",
+                      expr: "${arguments[0]} % 2",
                       true: {
                         tag: "em",
                         type: "el",
@@ -155,7 +155,7 @@ describe("mixed", () => {
       {
         type: "text",
         data: ["/context/a", "/context/b", "/context/c", "/context/d"],
-        expr: '${0 < 1 && 2 > 3 ? "1" : "0"}',
+        expr: '${arguments[0] < arguments[1] && arguments[2] > arguments[3] ? "1" : "0"}',
       },
     ])
   })

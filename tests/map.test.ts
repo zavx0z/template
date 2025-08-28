@@ -398,7 +398,7 @@ describe("map", () => {
                     {
                       type: "cond",
                       data: "[index]",
-                      expr: "${0} % 2",
+                      expr: "${arguments[0]} % 2",
                       true: {
                         tag: "em",
                         type: "el",
@@ -513,7 +513,7 @@ describe("map", () => {
                     {
                       type: "text",
                       data: "[item]/title",
-                      expr: "${0}",
+                      expr: "${arguments[0]}",
                     },
                     {
                       type: "map",
@@ -646,7 +646,7 @@ describe("map", () => {
                       {
                         type: "text",
                         data: "[item]/title",
-                        expr: "${0}",
+                        expr: "${arguments[0]}",
                       },
                       {
                         type: "map",
