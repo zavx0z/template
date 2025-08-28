@@ -440,6 +440,215 @@ describe("map", () => {
         },
       ]))
   })
+  describe("map соседствующий с map внутри элемента", () => {
+    type Context = {
+      categories: string[]
+    }
+    type Core = {
+      items: {
+        categoryId: number
+        title: string
+      }[]
+    }
+    const mainHtml = extractMainHtmlBlock<Context, Core>(
+      ({ html, context, core }) => html`
+        <div class="dashboard">
+          ${context.categories.map((cat) => html`<span class="category">${cat}</span>`)}
+          ${core.items.map(
+            (item) => html`
+              <div class="item" data-category="${item.categoryId}">
+                <h4>${item.title}</h4>
+              </div>
+            `
+          )}
+        </div>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    it("elements", () =>
+      expect(elements).toEqual([
+        { text: '<div class="dashboard">', index: 9, name: "div", kind: "open" },
+        { text: '<span class="category">', index: 82, name: "span", kind: "open" },
+        { text: "${cat}", index: 105, name: "", kind: "text" },
+        { text: "</span>", index: 111, name: "span", kind: "close" },
+        { text: '<div class="item" data-category="${item.categoryId}">', index: 179, name: "div", kind: "open" },
+        { text: "<h4>", index: 249, name: "h4", kind: "open" },
+        { text: "${item.title}", index: 253, name: "", kind: "text" },
+        { text: "</h4>", index: 266, name: "h4", kind: "close" },
+        { text: "</div>", index: 286, name: "div", kind: "close" },
+        { text: "</div>", index: 317, name: "div", kind: "close" },
+      ]))
+    const hierarchy = makeHierarchy(mainHtml, elements)
+    it("hierarchy", () =>
+      expect(hierarchy).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          text: '<div class="dashboard">',
+          child: [
+            {
+              type: "map",
+              text: "context.categories.map((cat)`",
+              child: [
+                {
+                  tag: "span",
+                  type: "el",
+                  text: '<span class="category">',
+                  child: [
+                    {
+                      type: "text",
+                      text: "${cat}",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "map",
+              text: "core.items.map((item)`",
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  text: '<div class="item" data-category="${item.categoryId}">',
+                  child: [
+                    {
+                      tag: "h4",
+                      type: "el",
+                      text: "<h4>",
+                      child: [
+                        {
+                          type: "text",
+                          text: "${item.title}",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          string: {
+            class: { type: "static", value: "dashboard" },
+          },
+          child: [
+            {
+              type: "map",
+              text: "context.categories.map((cat)`",
+              child: [
+                {
+                  tag: "span",
+                  type: "el",
+                  string: {
+                    class: { type: "static", value: "category" },
+                  },
+                  child: [
+                    {
+                      type: "text",
+                      text: "${cat}",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "map",
+              text: "core.items.map((item)`",
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: { type: "static", value: "item" },
+                    "data-category": { type: "dynamic", value: "item.categoryId" },
+                  },
+                  child: [
+                    {
+                      tag: "h4",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          text: "${item.title}",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+    it("data", () =>
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          string: {
+            class: "dashboard",
+          },
+          child: [
+            {
+              type: "map",
+              data: "/context/categories",
+              child: [
+                {
+                  tag: "span",
+                  type: "el",
+                  string: {
+                    class: "category",
+                  },
+                  child: [
+                    {
+                      type: "text",
+                      data: "[item]",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: "map",
+              data: "/core/items",
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: "item",
+                    "data-category": {
+                      data: "[item]/categoryId",
+                    },
+                  },
+                  child: [
+                    {
+                      tag: "h4",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          data: "[item]/title",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+  })
   describe("map рендерит вложенные шаблоны (последовательность name/kind)", () => {
     const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
       ({ html, context }) => html`
