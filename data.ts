@@ -1245,6 +1245,9 @@ export const parseTemplateLiteral = (
     )
   })
 
+  // Применяем форматирование к выражению
+  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
+
   // Возвращаем результат в новом формате
   return {
     data: paths.length === 1 ? paths[0] || "" : paths,

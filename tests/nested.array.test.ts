@@ -159,7 +159,7 @@ describe("nested.array", () => {
                               {
                                 type: "text",
                                 data: ["../[item]/active", "[item]/active"],
-                                expr: '${0}: ${${1} && ${2} ? "Active" : "Inactive"}',
+                                expr: 'Status: ${arguments[0] && arguments[1] ? "Active" : "Inactive"}',
                               },
                             ],
                             string: {
@@ -238,13 +238,13 @@ describe("nested.array", () => {
                                               {
                                                 type: "text",
                                                 data: "[item]/active",
-                                                expr: '${${0} ? "Online" : "Offline"}',
+                                                expr: '${arguments[0] ? "Online" : "Offline"}',
                                               },
                                             ],
                                             string: {
                                               class: {
                                                 data: "[item]/active",
-                                                expr: '${arguments[0] ? "Online" : "Offline"}',
+                                                expr: '${arguments[0] ? "online" : "offline"}',
                                               },
                                             },
                                           },

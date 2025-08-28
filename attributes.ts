@@ -19,6 +19,11 @@ import type { PartHierarchy } from "./hierarchy.t"
 // ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
 // ============================
 
+/** Форматирует выражение, удаляя лишние пробелы и переносы строк */
+function formatExpression(expr: string): string {
+  return expr.replace(/\s+/g, " ").trim()
+}
+
 /** Найти позицию ПОСЛЕ закрывающей '}' для сбалансированного блока, начиная с индекса после '{' в последовательности `${` */
 function matchBalancedBraces(s: string, startAfterBraceIndex: number): number {
   let depth = 1
@@ -80,9 +85,9 @@ function classifyValue(token: string): ValueType {
 function normalizeValueForOutput(token: string): string {
   if (isFullyDynamicToken(token)) {
     const v = token.trim()
-    return v.slice(2, -1)
+    return formatExpression(v.slice(2, -1))
   }
-  return token
+  return formatExpression(token)
 }
 
 /** Проверить, является ли значение атрибута пустым */
@@ -510,7 +515,7 @@ export const parseAttributes = (
         i = r.nextIndex
       }
 
-      const eventValue = value ? value.slice(2, -1) : ""
+      const eventValue = value ? formatExpression(value.slice(2, -1)) : ""
       ensure.event()[name] = eventValue
       continue
     }
@@ -530,9 +535,9 @@ export const parseAttributes = (
       const styleValue = value
         ? value.startsWith("${{")
           ? value.slice(3, -2).trim()
-            ? `{ ${value.slice(3, -2)} }`
+            ? `{ ${formatExpression(value.slice(3, -2))} }`
             : "{}"
-          : value.slice(2, -1)
+          : formatExpression(value.slice(2, -1))
         : "{}"
       ensure.object()[name] = styleValue
       continue
@@ -553,9 +558,9 @@ export const parseAttributes = (
       const objectValue = value
         ? value.startsWith("${{")
           ? value.slice(3, -2).trim()
-            ? `{ ${value.slice(3, -2)} }`
+            ? `{ ${formatExpression(value.slice(3, -2))} }`
             : "{}"
-          : value.slice(2, -1)
+          : formatExpression(value.slice(2, -1))
         : "{}"
       ensure.object()[name] = objectValue
       continue
