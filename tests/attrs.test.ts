@@ -236,7 +236,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               data: "/context/flag",
-              expr: '${0} ? "a > b" : "c < d"',
+              expr: '${[0] ? "a > b" : "c < d"}',
             },
           },
         },
@@ -507,7 +507,7 @@ describe("атрибуты", () => {
                   string: {
                     class: {
                       data: "[item]/type",
-                      expr: "item-${0}",
+                      expr: "item-${[0]}",
                     },
                     title: {
                       data: "[item]/name",

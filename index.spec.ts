@@ -108,7 +108,7 @@ describe("parse", () => {
 
     expect(button.string.class).toMatchObject({
       data: "/context/isActive",
-      expr: '${0} ? "active" : ""',
+      expr: '${arguments[0] ? "active" : ""}',
     })
 
     expect(button.string.disabled).toMatchObject({

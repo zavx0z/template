@@ -106,7 +106,7 @@ const buildItemPath = (prefix: string, variableParts: string[], isDestructured: 
  * resolveDataPath("item.name", context) // Возвращает: "[item]/name"
  * resolveDataPath("item", context)      // Возвращает: "[item]"
  */
-const resolveDataPath = (variable: string, context: ParseContext): string => {
+export const resolveDataPath = (variable: string, context: ParseContext): string => {
   // Сначала пытаемся найти переменную в стеке map контекстов
   const mapStackPath = findVariableInMapStack(variable, context)
   if (mapStackPath !== null) {
@@ -477,9 +477,11 @@ const processStringAttributes = (
   for (const [key, attr] of Object.entries(stringAttrs)) {
     if (attr.type === "static") {
       result[key] = attr.value
-    } else {
-      // Для динамических атрибутов обрабатываем значение напрямую
-      const templateResult = parseTemplateLiteral(attr.value, context)
+    } else if (attr.type === "dynamic" || attr.type === "mixed") {
+      // Для динамических и смешанных атрибутов проверяем, есть ли уже ${} обертка
+      const hasBraces = attr.value.includes("${")
+      const valueWithBraces = hasBraces ? attr.value : `\${${attr.value}}`
+      const templateResult = parseTemplateLiteral(valueWithBraces, context)
       if (templateResult && templateResult.data) {
         if (templateResult.expr && typeof templateResult.expr === "string") {
           result[key] = {
@@ -576,7 +578,7 @@ const processArrayAttributes = (
     result[key] = values.map((item) => {
       if (item.type === "static") {
         return { value: item.value }
-      } else {
+      } else if (item.type === "dynamic" || item.type === "mixed") {
         // Для динамических и смешанных атрибутов обрабатываем значение
         const templateResult = parseTemplateLiteral(item.value, context)
         if (templateResult && templateResult.data) {
@@ -591,8 +593,27 @@ const processArrayAttributes = (
             }
           }
         } else {
-          return { value: item.value }
+          // Если parseTemplateLiteral вернул null, но это dynamic тип,
+          // значит это уже нормализованное значение без ${}
+          // Нужно обработать его как динамическое выражение
+          const variableMatches = item.value.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+          if (variableMatches.length > 0) {
+            const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
+            let expr = item.value
+            variableMatches.forEach((variable, index) => {
+              expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `arguments[${index}]`)
+            })
+            return {
+              data: paths.length === 1 ? paths[0] || "" : paths,
+              expr: `\${${expr}}`,
+            }
+          } else {
+            return { value: item.value }
+          }
         }
+      } else {
+        // Для неизвестных типов возвращаем как есть
+        return { value: item.value }
       }
     })
   }
@@ -612,7 +633,7 @@ const processBooleanAttributes = (
   for (const [key, attr] of Object.entries(booleanAttrs)) {
     if (attr.type === "static") {
       result[key] = Boolean(attr.value)
-    } else {
+    } else if (attr.type === "dynamic" || attr.type === "mixed") {
       // Для булевых атрибутов используем специальную обработку
       const booleanValue = String(attr.value)
       const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
@@ -1139,164 +1160,82 @@ export const splitText = (text: string): ParseTextPart[] => {
  * Общая функция для обработки template literals.
  * Используется как для text узлов, так и для атрибутов.
  */
-const parseTemplateLiteral = (
+export const parseTemplateLiteral = (
   value: string,
   context: ParseContext = { pathStack: [], level: 0 }
 ): ParseAttributeResult | null => {
-  // Проверяем, является ли это событийным выражением
-  const eventResult = parseEventExpression(value, context)
-  if (eventResult) {
-    return eventResult
-  }
-
-  // Проверяем, является ли это смешанным выражением с условным выражением
-  // Regex для поиска строки-${условие}строка
-  const conditionalMixedMatch = value.match(CONDITIONAL_MIXED_PATTERN)
-  if (conditionalMixedMatch && conditionalMixedMatch[2]) {
-    const [, prefix, conditionalExpr, suffix] = conditionalMixedMatch
-
-    // Извлекаем переменные из условного выражения, исключая строковые литералы
-    const valueWithoutStrings = conditionalExpr.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''")
-    const pathMatches = valueWithoutStrings.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
-    const uniquePaths = [...new Set(pathMatches)].filter((path) => {
-      return path.length > 1 && path !== "''" && path !== '""'
-    })
-
-    if (uniquePaths.length > 0) {
-      const paths = uniquePaths.map((path) => resolveDataPath(path, context))
-
-      // Создаем выражение с унификацией для всего значения
-      // Но сначала заменяем переменные в условном выражении на индексы
-      let expr = value
-      uniquePaths.forEach((path, index) => {
-        // Заменяем переменные в условном выражении на индексы (без ${})
-        expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `${index}`)
-      })
-
-      return {
-        data: paths.length === 1 ? paths[0] || "" : paths,
-        expr,
-      }
-    }
-  }
-
-  // Проверяем, является ли это условным выражением
-  const hasConditionalOperators = /[?:]/.test(value)
-  if (hasConditionalOperators) {
-    // Для условных выражений используем стандартную унификацию
-    // Извлекаем переменные из выражения, исключая строковые литералы
-    // Сначала удаляем все строковые литералы из выражения, заменяя их на пустые строки
-    const valueWithoutStrings = value.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''")
-    const pathMatches = valueWithoutStrings.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
-    const uniquePaths = [...new Set(pathMatches)].filter((path) => {
-      // Исключаем пустые и короткие строки
-      return path.length > 1 && path !== "''" && path !== '""'
-    })
-
-    if (uniquePaths.length > 0) {
-      // Создаем пути к данным с учетом контекста
-      const paths = uniquePaths.map((path) => resolveDataPath(path, context))
-
-      // Создаем выражение с унификацией - заменяем переменные на индексы
-      let expr = value
-      uniquePaths.forEach((path, index) => {
-        expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
-      })
-
-      // Восстанавливаем оригинальные кавычки для строковых литералов
-      // Используем более точную замену для пустых строк
-      expr = expr.replace(/""/g, '""').replace(/''/g, "''")
-
-      // Применяем форматирование к выражению
-      expr = expr.replace(/\s+/g, " ").trim()
-
-      return {
-        data: paths.length === 1 ? paths[0] || "" : paths,
-        expr,
-      }
-    }
-  }
-
-  // Проверяем, есть ли простые логические операторы без тернарного оператора
-  const hasLogicalOperators = /[&&||]/.test(value) && !/[?:]/.test(value)
-  if (hasLogicalOperators) {
-    // Для простых логических операторов (&&, ||) без тернарного оператора
-    // извлекаем переменные и проверяем, есть ли сложные операции
-    // Ищем переменные, исключая строковые литералы
-    // Сначала удаляем все строковые литералы из выражения
-    const valueWithoutStrings = value.replace(/"[^"]*"/g, '""').replace(/'[^']*'/g, "''")
-    const pathMatches = valueWithoutStrings.match(/([a-zA-Z_][\w$]*(?:\.[a-zA-Z_][\w$]*)*)/g) || []
-    const uniquePaths = [...new Set(pathMatches)].filter((path) => {
-      // Исключаем пустые и короткие строки
-      return path.length > 1 && path !== "''" && path !== '""'
-    })
-
-    if (uniquePaths.length > 0) {
-      // Создаем пути к данным с учетом контекста
-      const paths = uniquePaths.map((path) => resolveDataPath(path, context))
-
-      // Проверяем, есть ли сложные операции (сравнения, математические операторы)
-      const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(value)
-
-      if (hasComplexOperations) {
-        // Есть сложные операции - нужен expr
-        // Создаем выражение с унификацией - заменяем переменные на индексы
-        let expr = value
-        uniquePaths.forEach((path, index) => {
-          expr = expr.replace(new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"), `\${${index}}`)
-        })
-
-        // Применяем форматирование к выражению
-        expr = expr.replace(/\s+/g, " ").trim()
-
-        return {
-          data: paths.length === 1 ? paths[0] || "" : paths,
-          expr,
-        }
-      } else {
-        // Только простые логические операторы - expr не нужен
-        return {
-          data: paths.length === 1 ? paths[0] || "" : paths,
-        }
-      }
-    }
-  }
-
-  // Для простых переменных - парсим напрямую
-  const varMatches = value.match(TEMPLATE_LITERAL_PATTERN)
-  if (!varMatches) {
+  // Если значение не содержит ${}, возвращаем null (статическое значение)
+  if (!value.includes("${")) {
     return null
   }
 
-  const variables = varMatches
-    .map((match) => match.slice(2, -1).trim())
-    .filter(Boolean)
-    .filter((variable) => {
-      // Фильтруем строковые литералы
-      return (
-        !variable.startsWith('"') && !variable.startsWith("'") && !variable.includes('"') && !variable.includes("'")
-      )
-    })
+  // Извлекаем содержимое ${...} выражений
+  const templateMatches = value.match(/\$\{([^}]+)\}/g) || []
 
-  // Для сложных выражений с методами извлекаем только базовую переменную
-  const baseVariables = variables.map((variable) => extractBaseVariable(variable))
-
-  // Обрабатываем пути с учетом контекста map
-  const paths = baseVariables.map((variable) => resolveDataPath(variable, context))
-
-  // Для простых переменных без условий - возвращаем только data
-  if (variables.length === 1 && value === `\${${variables[0]}}`) {
-    return {
-      data: paths[0] || "",
-    }
+  if (templateMatches.length === 0) {
+    return null
   }
 
-  // Создаем выражение с индексами для сложных случаев
-  const expr = createUnifiedExpression(value, baseVariables)
+  // Извлекаем переменные только из содержимого ${...}
+  const variables: string[] = []
+  templateMatches.forEach((match) => {
+    const content = match.slice(2, -1) // Убираем ${ и }
 
+    // Защищаем строковые литералы в содержимом
+    const stringLiterals: string[] = []
+    let protectedContent = content
+      .replace(/"[^"]*"/g, (match) => {
+        stringLiterals.push(match)
+        return `__STRING_${stringLiterals.length - 1}__`
+      })
+      .replace(/'[^']*'/g, (match) => {
+        stringLiterals.push(match)
+        return `__STRING_${stringLiterals.length - 1}__`
+      })
+
+    const variableMatches = protectedContent.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+    variableMatches.forEach((variable) => {
+      if (
+        variable.length > 1 &&
+        !variable.startsWith("__STRING_") &&
+        !variable.startsWith("STRING") &&
+        variable !== "true" &&
+        variable !== "false" &&
+        variable !== "null" &&
+        variable !== "undefined" &&
+        !variables.includes(variable) &&
+        // Исключаем статические части, которые не являются переменными
+        !["div", "btn", "text", "bg", "theme", "static", "value", "mixed", "user"].includes(variable)
+      ) {
+        variables.push(variable)
+      }
+    })
+  })
+
+  if (variables.length === 0) {
+    return null
+  }
+
+  // Разрешаем пути к данным для каждой переменной
+  const paths = variables.map((variable: string) => resolveDataPath(variable, context))
+
+  // Создаем унифицированное выражение, заменяя переменные на индексы
+  let expr = value
+  variables.forEach((variable: string, index: number) => {
+    // Заменяем переменные на индексы только внутри ${...} выражений
+    expr = expr.replace(
+      new RegExp(`\\$\\{([^}]*)\\b${variable.replace(/\./g, "\\.")}\\b([^}]*)\\}`, "g"),
+      (match, before, after) => {
+        return `\${${before}arguments[${index}]${after}}`
+      }
+    )
+  })
+
+  // Возвращаем результат в новом формате
   return {
     data: paths.length === 1 ? paths[0] || "" : paths,
-    expr,
+    expr: expr,
   }
 }
 

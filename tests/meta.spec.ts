@@ -519,7 +519,7 @@ describe("meta", () => {
             string: {
               class: {
                 data: "/core/active",
-                expr: '${0} ? "active" : "inactive"',
+                expr: '${arguments[0] ? "active" : "inactive"}',
               },
             },
           },
