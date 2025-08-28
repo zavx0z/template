@@ -124,7 +124,7 @@ describe("nested.conditions", () => {
                       {
                         type: "text",
                         data: "[item]/id",
-                        expr: "Company: ${arguments[0]}",
+                        expr: "Company: ${[0]}",
                       },
                     ],
                   },
@@ -145,7 +145,7 @@ describe("nested.conditions", () => {
                             {
                               type: "text",
                               data: "[item]/id",
-                              expr: "Active Company: ${arguments[0]}",
+                              expr: "Active Company: ${[0]}",
                             },
                           ],
                         },
@@ -173,7 +173,7 @@ describe("nested.conditions", () => {
                                       {
                                         type: "text",
                                         data: "[item]/id",
-                                        expr: "Active Dept: ${arguments[0]}",
+                                        expr: "Active Dept: ${[0]}",
                                       },
                                     ],
                                   },
@@ -187,7 +187,7 @@ describe("nested.conditions", () => {
                                       {
                                         type: "text",
                                         data: "[item]/id",
-                                        expr: "Inactive Dept: ${arguments[0]}",
+                                        expr: "Inactive Dept: ${[0]}",
                                       },
                                     ],
                                   },
@@ -232,14 +232,14 @@ describe("nested.conditions", () => {
                               {
                                 type: "text",
                                 data: ["[item]/id", "[index]"],
-                                expr: "Dept: ${arguments[0]} (Index: ${arguments[1]})",
+                                expr: "Dept: ${[0]} (Index: ${[1]})",
                               },
                             ],
                           },
                           {
                             type: "cond",
                             data: ["../[item]/active", "[item]/active"],
-                            expr: "${arguments[0]} && ${arguments[1]}",
+                            expr: "${[0]} && ${[1]}",
                             true: {
                               tag: "div",
                               type: "el",
@@ -287,14 +287,14 @@ describe("nested.conditions", () => {
                                       {
                                         type: "text",
                                         data: ["[item]/id", "../[index]", "[index]"],
-                                        expr: "Team: ${arguments[0]} (Dept Index: ${arguments[1]}, Team Index: ${arguments[2]})",
+                                        expr: "Team: ${[0]} (Dept Index: ${[1]}, Team Index: ${[2]})",
                                       },
                                     ],
                                   },
                                   {
                                     type: "cond",
                                     data: ["../../[item]/active", "../[item]/active", "[item]/active"],
-                                    expr: "${arguments[0]} && ${arguments[1]} && ${arguments[2]}",
+                                    expr: "${[0]} && ${[1]} && ${[2]}",
                                     true: {
                                       tag: "div",
                                       type: "el",
@@ -325,7 +325,7 @@ describe("nested.conditions", () => {
                                   {
                                     tag: {
                                       data: "[item]/id",
-                                      expr: "meta-${arguments[0]}",
+                                      expr: "meta-${[0]}",
                                     },
                                     type: "meta",
                                   },
@@ -365,7 +365,7 @@ describe("nested.conditions", () => {
                                               {
                                                 type: "text",
                                                 data: ["../../[index]", "../[index]", "[index]"],
-                                                expr: "Indices: Dept=${arguments[0]}, Team=${arguments[1]}, Member=${arguments[2]}",
+                                                expr: "Indices: Dept=${[0]}, Team=${[1]}, Member=${[2]}",
                                               },
                                             ],
                                           },
@@ -407,7 +407,7 @@ describe("nested.conditions", () => {
                                               "../[item]/active",
                                               "[item]/active",
                                             ],
-                                            expr: "${arguments[0]} && ${arguments[1]} && ${arguments[2]} && ${arguments[3]}",
+                                            expr: "${[0]} && ${[1]} && ${[2]} && ${[3]}",
                                             true: {
                                               tag: "span",
                                               type: "el",
@@ -557,7 +557,7 @@ describe("nested.conditions", () => {
                       {
                         type: "text",
                         data: ["[index]", "[item]/id"],
-                        expr: "Company ${arguments[0]}: ${arguments[1]}",
+                        expr: "Company ${[0]}: ${[1]}",
                       },
                     ],
                   },
@@ -581,14 +581,14 @@ describe("nested.conditions", () => {
                               {
                                 type: "text",
                                 data: ["[index]", "../[index]", "[item]/id"],
-                                expr: "Dept ${arguments[0]} in Company ${arguments[1]}: ${arguments[2]}",
+                                expr: "Dept ${[0]} in Company ${[1]}: ${[2]}",
                               },
                             ],
                           },
                           {
                             type: "cond",
                             data: ["[index]", "../[index]"],
-                            expr: "${arguments[0]} === 0 && ${arguments[1]} === 0",
+                            expr: "${[0]} === 0 && ${[1]} === 0",
                             true: {
                               tag: "div",
                               type: "el",
@@ -636,14 +636,14 @@ describe("nested.conditions", () => {
                                       {
                                         type: "text",
                                         data: ["[index]", "../[index]", "[item]/id"],
-                                        expr: "Team ${arguments[0]} in Dept ${arguments[1]}: ${arguments[2]}",
+                                        expr: "Team ${[0]} in Dept ${[1]}: ${[2]}",
                                       },
                                     ],
                                   },
                                   {
                                     type: "cond",
                                     data: ["[index]", "../[index]"],
-                                    expr: "${arguments[0]} === 0 && ${arguments[1]} === 0",
+                                    expr: "${[0]} === 0 && ${[1]} === 0",
                                     true: {
                                       tag: "div",
                                       type: "el",
@@ -700,7 +700,7 @@ describe("nested.conditions", () => {
                                           {
                                             type: "cond",
                                             data: ["../../../[index]", "../../[index]", "../[index]", "[index]"],
-                                            expr: "${arguments[0]} === 0 && ${arguments[1]} === 0 && ${arguments[2]} === 0 && ${arguments[3]} === 0",
+                                            expr: "${[0]} === 0 && ${[1]} === 0 && ${[2]} === 0 && ${[3]} === 0",
                                             true: {
                                               tag: "span",
                                               type: "el",
@@ -731,7 +731,7 @@ describe("nested.conditions", () => {
                                           {
                                             type: "cond",
                                             data: ["[index]", "../[index]"],
-                                            expr: "${arguments[0]} > 0 && ${arguments[1]} > 0",
+                                            expr: "${[0]} > 0 && ${[1]} > 0",
                                             true: {
                                               tag: "span",
                                               type: "el",
@@ -762,7 +762,7 @@ describe("nested.conditions", () => {
                                           {
                                             type: "cond",
                                             data: ["[index]", "../[index]", "../../[index]"],
-                                            expr: "${arguments[0]} === 0 && ${arguments[1]} === 0 && ${arguments[2]} === 0",
+                                            expr: "${[0]} === 0 && ${[1]} === 0 && ${[2]} === 0",
                                             true: {
                                               tag: "span",
                                               type: "el",

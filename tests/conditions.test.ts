@@ -150,7 +150,7 @@ describe("conditions", () => {
             {
               type: "cond",
               data: ["/context/cond", "/context/cond2"],
-              expr: "${arguments[0]} && ${arguments[1]}",
+              expr: "${[0]} && ${[1]}",
               true: {
                 tag: "em",
                 type: "el",
@@ -229,7 +229,7 @@ describe("conditions", () => {
             {
               type: "cond",
               data: ["/context/cond", "/context/cond2"],
-              expr: "${arguments[0]} === ${arguments[1]}",
+              expr: "${[0]} === ${[1]}",
               true: {
                 tag: "em",
                 type: "el",

@@ -35,7 +35,7 @@ describe("events", () => {
           event: {
             onclick: {
               data: "/core/onClick",
-              expr: "() => ${arguments[0]}()",
+              expr: "() => ${[0]}()",
             },
           },
           child: [
@@ -150,11 +150,11 @@ describe("events", () => {
           event: {
             onclick: {
               data: "/core/onClick",
-              expr: "() => ${arguments[0]}()",
+              expr: "() => ${[0]}()",
             },
             oninput: {
               data: "/core/onInput",
-              expr: "(e) => ${arguments[0]}(e)",
+              expr: "(e) => ${[0]}(e)",
             },
           },
         },
@@ -187,7 +187,7 @@ describe("events", () => {
           event: {
             oninput: {
               data: "/core/onInput",
-              expr: "(e) => ${arguments[0]}(e)",
+              expr: "(e) => ${[0]}(e)",
             },
           },
         },
@@ -252,7 +252,7 @@ describe("events", () => {
                   event: {
                     onclick: {
                       data: "[item]/onClick",
-                      expr: "() => ${arguments[0]}()",
+                      expr: "() => ${[0]}()",
                     },
                   },
                   child: [
@@ -332,7 +332,7 @@ describe("events", () => {
                   event: {
                     onclick: {
                       data: ["[item]/handleClick", "[item]/id"],
-                      expr: "(e) => ${arguments[0]}(e, ${arguments[1]})",
+                      expr: "(e) => ${[0]}(e, ${[1]})",
                     },
                   },
                   child: [
@@ -429,7 +429,7 @@ describe("events", () => {
           event: {
             onsubmit: {
               data: "/core/handleSubmit",
-              expr: "(e) => ${arguments[0]}(e)",
+              expr: "(e) => ${[0]}(e)",
             },
           },
           string: {
@@ -446,7 +446,7 @@ describe("events", () => {
               event: {
                 onchange: {
                   data: "/core/handleChange",
-                  expr: "(e) => ${arguments[0]}(e)",
+                  expr: "(e) => ${[0]}(e)",
                 },
               },
             },
@@ -459,7 +459,7 @@ describe("events", () => {
               event: {
                 onclick: {
                   data: "/core/onClick",
-                  expr: "() => ${arguments[0]}()",
+                  expr: "() => ${[0]}()",
                 },
               },
               child: [
@@ -516,7 +516,7 @@ describe("events", () => {
           event: {
             onclick: {
               data: "/core/onClick",
-              expr: "() => ${arguments[0]}()",
+              expr: "() => ${[0]}()",
             },
           },
           boolean: {
@@ -719,7 +719,7 @@ describe("events", () => {
                   event: {
                     onclick: {
                       data: ["[item]/handleCompanyClick", "[item]/id"],
-                      expr: "() => ${arguments[0]}(${arguments[1]})",
+                      expr: "() => ${[0]}(${[1]})",
                     },
                   },
                   child: [
@@ -730,7 +730,7 @@ describe("events", () => {
                         {
                           type: "text",
                           data: "[item]/name",
-                          expr: "Company: ${arguments[0]}",
+                          expr: "Company: ${[0]}",
                         },
                       ],
                     },
@@ -744,7 +744,7 @@ describe("events", () => {
                           event: {
                             onclick: {
                               data: ["[item]/handleDeptClick", "../[item]/id", "[item]/id"],
-                              expr: "() => ${arguments[0]}(${arguments[1]}, ${arguments[2]})",
+                              expr: "() => ${[0]}(${[1]}, ${[2]})",
                             },
                           },
                           child: [
@@ -755,7 +755,7 @@ describe("events", () => {
                                 {
                                   type: "text",
                                   data: "[item]/name",
-                                  expr: "Dept: ${arguments[0]}",
+                                  expr: "Dept: ${[0]}",
                                 },
                               ],
                             },
@@ -769,7 +769,7 @@ describe("events", () => {
                                   event: {
                                     onclick: {
                                       data: ["[item]/handleTeamClick", "../../[item]/id", "../[item]/id", "[item]/id"],
-                                      expr: "() => ${arguments[0]}(${arguments[1]}, ${arguments[2]}, ${arguments[3]})",
+                                      expr: "() => ${[0]}(${[1]}, ${[2]}, ${[3]})",
                                     },
                                   },
                                   child: [
@@ -780,7 +780,7 @@ describe("events", () => {
                                         {
                                           type: "text",
                                           data: "[item]/name",
-                                          expr: "Team: ${arguments[0]}",
+                                          expr: "Team: ${[0]}",
                                         },
                                       ],
                                     },
@@ -800,14 +800,14 @@ describe("events", () => {
                                                 "../[item]/id",
                                                 "[item]/id",
                                               ],
-                                              expr: "() => ${arguments[0]}(${arguments[1]}, ${arguments[2]}, ${arguments[3]}, ${arguments[4]})",
+                                              expr: "() => ${[0]}(${[1]}, ${[2]}, ${[3]}, ${[4]})",
                                             },
                                           },
                                           child: [
                                             {
                                               type: "text",
                                               data: "[item]/name",
-                                              expr: "Member: ${arguments[0]}",
+                                              expr: "Member: ${[0]}",
                                             },
                                           ],
                                         },

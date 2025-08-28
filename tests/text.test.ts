@@ -149,7 +149,7 @@ describe("text", () => {
               {
                 type: "text",
                 data: "/context/name",
-                expr: "Hello, ${arguments[0]}!",
+                expr: "Hello, ${[0]}!",
               },
             ],
           },
@@ -200,7 +200,7 @@ describe("text", () => {
               {
                 type: "text",
                 data: ["/context/family", "/context/name"],
-                expr: "Hello, ${arguments[0]} ${arguments[1]}!",
+                expr: "Hello, ${[0]} ${[1]}!",
               },
             ],
           },
@@ -259,7 +259,7 @@ describe("text", () => {
               {
                 type: "text",
                 data: "/context/show",
-                expr: '${arguments[0] ? "Visible" : "Hidden"}',
+                expr: '${[0] ? "Visible" : "Hidden"}',
               },
             ],
           },
@@ -347,7 +347,7 @@ describe("text", () => {
                   {
                     type: "text",
                     data: "[item]/title",
-                    expr: "${arguments[0]}",
+                    expr: "${[0]}",
                   },
                   {
                     type: "map",
@@ -432,7 +432,7 @@ describe("text", () => {
                 {
                   type: "text",
                   data: "/context/name",
-                  expr: "Visible: ${arguments[0]}",
+                  expr: "Visible: ${[0]}",
                 },
               ],
             },
@@ -601,7 +601,7 @@ describe("text", () => {
           {
             type: "text",
             data: "/context/family",
-            expr: "${arguments[0]}",
+            expr: "${[0]}",
           },
           {
             tag: "b",
@@ -696,7 +696,7 @@ describe("text", () => {
                   {
                     type: "text",
                     data: "[item]/role",
-                    expr: "- ${arguments[0]}",
+                    expr: "- ${[0]}",
                   },
                 ],
               },
@@ -730,7 +730,7 @@ describe("text", () => {
               {
                 type: "text",
                 data: "/context/list",
-                expr: "${arguments[0]}.map((item) => item.toUpperCase())",
+                expr: "${[0]}.map((item) => item.toUpperCase())",
               },
             ],
           },

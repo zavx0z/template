@@ -112,7 +112,7 @@ describe("nested.array", () => {
                       {
                         type: "text",
                         data: "[item]/id",
-                        expr: "Company: ${arguments[0]}",
+                        expr: "Company: ${[0]}",
                       },
                     ],
                   },
@@ -123,13 +123,13 @@ describe("nested.array", () => {
                       {
                         type: "text",
                         data: "[item]/active",
-                        expr: 'Status: ${arguments[0] ? "Active" : "Inactive"}',
+                        expr: 'Status: ${[0] ? "Active" : "Inactive"}',
                       },
                     ],
                     string: {
                       class: {
                         data: "[item]/id",
-                        expr: "company-${arguments[0]}",
+                        expr: "company-${[0]}",
                       },
                     },
                   },
@@ -148,7 +148,7 @@ describe("nested.array", () => {
                               {
                                 type: "text",
                                 data: ["../[item]/id", "[item]/id"],
-                                expr: "Dept: ${arguments[0]}-${arguments[1]}",
+                                expr: "Dept: ${[0]}-${[1]}",
                               },
                             ],
                           },
@@ -159,13 +159,13 @@ describe("nested.array", () => {
                               {
                                 type: "text",
                                 data: ["../[item]/active", "[item]/active"],
-                                expr: 'Status: ${arguments[0] && arguments[1] ? "Active" : "Inactive"}',
+                                expr: 'Status: ${[0] && [1] ? "Active" : "Inactive"}',
                               },
                             ],
                             string: {
                               class: {
                                 data: "[item]/id",
-                                expr: "dept-${arguments[0]}",
+                                expr: "dept-${[0]}",
                               },
                             },
                           },
@@ -184,7 +184,7 @@ describe("nested.array", () => {
                                       {
                                         type: "text",
                                         data: ["../../[item]/id", "../[item]/id", "[item]/id"],
-                                        expr: "Team: ${arguments[0]}-${arguments[1]}-${arguments[2]}",
+                                        expr: "Team: ${[0]}-${[1]}-${[2]}",
                                       },
                                     ],
                                   },
@@ -195,20 +195,20 @@ describe("nested.array", () => {
                                       {
                                         type: "text",
                                         data: ["../../[item]/active", "../[item]/active", "[item]/active"],
-                                        expr: 'Status: ${arguments[0] && arguments[1] && arguments[2] ? "Active" : "Inactive"}',
+                                        expr: 'Status: ${[0] && [1] && [2] ? "Active" : "Inactive"}',
                                       },
                                     ],
                                     string: {
                                       class: {
                                         data: "[item]/id",
-                                        expr: "team-${arguments[0]}",
+                                        expr: "team-${[0]}",
                                       },
                                     },
                                   },
                                   {
                                     tag: {
                                       data: "[item]/id",
-                                      expr: "meta-${arguments[0]}",
+                                      expr: "meta-${[0]}",
                                     },
                                     type: "meta",
                                   },
@@ -229,7 +229,7 @@ describe("nested.array", () => {
                                               "[item]/id",
                                               "[item]/name",
                                             ],
-                                            expr: "Member: ${arguments[0]}-${arguments[1]}-${arguments[2]}-${arguments[3]} (${arguments[4]})",
+                                            expr: "Member: ${[0]}-${[1]}-${[2]}-${[3]} (${[4]})",
                                           },
                                           {
                                             tag: "span",
@@ -238,13 +238,13 @@ describe("nested.array", () => {
                                               {
                                                 type: "text",
                                                 data: "[item]/active",
-                                                expr: '${arguments[0] ? "Online" : "Offline"}',
+                                                expr: '${[0] ? "Online" : "Offline"}',
                                               },
                                             ],
                                             string: {
                                               class: {
                                                 data: "[item]/active",
-                                                expr: '${arguments[0] ? "online" : "offline"}',
+                                                expr: '${[0] ? "online" : "offline"}',
                                               },
                                             },
                                           },
@@ -257,7 +257,7 @@ describe("nested.array", () => {
                                               "../[item]/active",
                                               "[item]/active",
                                             ],
-                                            expr: "${arguments[0]} && ${arguments[1]} && ${arguments[2]} && ${arguments[3]}",
+                                            expr: "${[0]} && ${[1]} && ${[2]} && ${[3]}",
                                           },
                                         },
                                         string: {
@@ -268,7 +268,7 @@ describe("nested.array", () => {
                                               "../[item]/id",
                                               "[item]/id",
                                             ],
-                                            expr: "member-${arguments[0]}-${arguments[1]}-${arguments[2]}-${arguments[3]}",
+                                            expr: "member-${[0]}-${[1]}-${[2]}-${[3]}",
                                           },
                                           "data-company": {
                                             data: "../../../[item]/id",
@@ -284,7 +284,7 @@ describe("nested.array", () => {
                                           },
                                           title: {
                                             data: ["[item]/name", "[item]/role"],
-                                            expr: "${arguments[0]} (${arguments[1]})",
+                                            expr: "${[0]} (${[1]})",
                                           },
                                         },
                                       },
@@ -294,7 +294,7 @@ describe("nested.array", () => {
                                 boolean: {
                                   "data-active": {
                                     data: ["../../[item]/active", "../[item]/active", "[item]/active"],
-                                    expr: "${arguments[0]} && ${arguments[1]} && ${arguments[2]}",
+                                    expr: "${[0]} && ${[1]} && ${[2]}",
                                   },
                                 },
                                 string: {
@@ -315,7 +315,7 @@ describe("nested.array", () => {
                         boolean: {
                           "data-active": {
                             data: ["../[item]/active", "[item]/active"],
-                            expr: "${arguments[0]} && ${arguments[1]}",
+                            expr: "${[0]} && ${[1]}",
                           },
                         },
                         string: {

@@ -78,7 +78,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: '${arguments[0] ? "active" : "inactive"}',
+              expr: '${[0] ? "active" : "inactive"}',
             },
           },
         },
@@ -101,7 +101,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: '${arguments[0] ? "active" : "inactive"}',
+              expr: '${[0] ? "active" : "inactive"}',
             },
           },
         },
@@ -126,11 +126,11 @@ describe("class атрибуты в data.ts", () => {
             class: [
               {
                 data: "/core/active",
-                expr: '${arguments[0] ? "active" : "inactive"}',
+                expr: '${[0] ? "active" : "inactive"}',
               },
               {
                 data: "/core/active",
-                expr: '${arguments[0] ? "active" : "inactive"}',
+                expr: '${[0] ? "active" : "inactive"}',
               },
             ],
           },
@@ -154,7 +154,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/count",
-              expr: '${arguments[0] > 5 ? "large" : "small"}',
+              expr: '${[0] > 5 ? "large" : "small"}',
             },
           },
         },
@@ -177,7 +177,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/status",
-              expr: '${arguments[0] === "loading" ? "loading" : "ready"}',
+              expr: '${[0] === "loading" ? "loading" : "ready"}',
             },
           },
         },
@@ -200,7 +200,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: ["/core/active", "/core/visible"],
-              expr: '${arguments[0] && arguments[1] ? "show" : "hide"}',
+              expr: '${[0] && [1] ? "show" : "hide"}',
             },
           },
         },
@@ -223,7 +223,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: ["/core/error", "/core/warning"],
-              expr: '${arguments[0] || arguments[1] ? "alert" : "normal"}',
+              expr: '${[0] || [1] ? "alert" : "normal"}',
             },
           },
         },
@@ -246,7 +246,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/disabled",
-              expr: '${!arguments[0] ? "enabled" : "disabled"}',
+              expr: '${![0] ? "enabled" : "disabled"}',
             },
           },
         },
@@ -269,7 +269,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: '${arguments[0] && "active"}',
+              expr: '${[0] && "active"}',
             },
           },
         },
@@ -294,7 +294,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: 'div-${arguments[0] ? "active" : "inactive"}',
+              expr: 'div-${[0] ? "active" : "inactive"}',
             },
           },
         },
@@ -317,7 +317,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: 'div-${arguments[0] ? "active" : "inactive"}',
+              expr: 'div-${[0] ? "active" : "inactive"}',
             },
           },
         },
@@ -343,11 +343,11 @@ describe("class атрибуты в data.ts", () => {
             class: [
               {
                 data: "/core/active",
-                expr: 'div-${arguments[0] ? "active" : "inactive"}',
+                expr: 'div-${[0] ? "active" : "inactive"}',
               },
               {
                 data: "/core/active",
-                expr: 'div-${arguments[0] ? "active" : "inactive"}',
+                expr: 'div-${[0] ? "active" : "inactive"}',
               },
             ],
           },
@@ -374,7 +374,7 @@ describe("class атрибуты в data.ts", () => {
             class: [
               {
                 data: "/core/active",
-                expr: 'div-${arguments[0] ? "active" : "inactive"}',
+                expr: 'div-${[0] ? "active" : "inactive"}',
               },
               { value: "visible" },
             ],
@@ -400,7 +400,7 @@ describe("class атрибуты в data.ts", () => {
             class: [
               {
                 data: "/core/active",
-                expr: '${arguments[0] ? "active" : "inactive"}',
+                expr: '${[0] ? "active" : "inactive"}',
               },
               { value: "visible" },
             ],
@@ -428,11 +428,11 @@ describe("class атрибуты в data.ts", () => {
               { value: "static-value" },
               {
                 data: "/core/active",
-                expr: '${arguments[0] ? "active" : "inactive"}',
+                expr: '${[0] ? "active" : "inactive"}',
               },
               {
                 data: "/core/type",
-                expr: "mixed-${arguments[0]}",
+                expr: "mixed-${[0]}",
               },
             ],
           },
@@ -457,15 +457,15 @@ describe("class атрибуты в data.ts", () => {
             class: [
               {
                 data: "/core/variant",
-                expr: "btn-${arguments[0]}",
+                expr: "btn-${[0]}",
               },
               {
                 data: "/core/size",
-                expr: "text-${arguments[0]}",
+                expr: "text-${[0]}",
               },
               {
                 data: "/core/theme",
-                expr: "bg-${arguments[0]}",
+                expr: "bg-${[0]}",
               },
             ],
           },
@@ -492,11 +492,11 @@ describe("class атрибуты в data.ts", () => {
               { value: "base-class" },
               {
                 data: "/core/active",
-                expr: '${arguments[0] ? "active" : "inactive"}',
+                expr: '${[0] ? "active" : "inactive"}',
               },
               {
                 data: "/core/disabled",
-                expr: '${arguments[0] ? "disabled" : ""}',
+                expr: '${[0] ? "disabled" : ""}',
               },
             ],
           },
@@ -522,7 +522,7 @@ describe("class атрибуты в data.ts", () => {
               { value: "container" },
               {
                 data: "/core/nested",
-                expr: '${arguments[0] ? "nested" : "default"}',
+                expr: '${[0] ? "nested" : "default"}',
               },
             ],
           },
@@ -549,11 +549,11 @@ describe("class атрибуты в data.ts", () => {
               { value: "visible" },
               {
                 data: "/core/hidden",
-                expr: '${arguments[0] ? "" : "show"}',
+                expr: '${[0] ? "" : "show"}',
               },
               {
                 data: "/core/active",
-                expr: '${arguments[0] ? "active" : ""}',
+                expr: '${[0] ? "active" : ""}',
               },
             ],
           },
@@ -577,7 +577,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: "/core/active",
-              expr: 'static-value-${arguments[0] ? "active" : "inactive"}',
+              expr: 'static-value-${[0] ? "active" : "inactive"}',
             },
           },
         },
@@ -600,7 +600,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: ["/core/user/id", "/core/user/role", "/core/theme"],
-              expr: "user-${arguments[0]}-${arguments[1]}-${arguments[2]}",
+              expr: "user-${[0]}-${[1]}-${[2]}",
             },
           },
         },
@@ -634,7 +634,7 @@ describe("class атрибуты в data.ts", () => {
           string: {
             class: {
               data: ["/core/user/id", "/core/user/role", "/core/theme", "/core/isActive"],
-              expr: 'user-${arguments[0]}-${arguments[1]}-${arguments[2]}-${arguments[3] ? "active" : "inactive"}',
+              expr: 'user-${[0]}-${[1]}-${[2]}-${[3] ? "active" : "inactive"}',
             },
           },
         },
@@ -659,11 +659,11 @@ describe("class атрибуты в data.ts", () => {
               { value: "base" },
               {
                 data: ["/core/user/id", "/core/user/role"],
-                expr: "user-${arguments[0]}-${arguments[1]}",
+                expr: "user-${[0]}-${[1]}",
               },
               {
                 data: "/core/theme",
-                expr: "theme-${arguments[0]}",
+                expr: "theme-${[0]}",
               },
             ],
           },
@@ -701,19 +701,19 @@ describe("class атрибуты в data.ts", () => {
               { value: "base" },
               {
                 data: "/core/user/id",
-                expr: "user-${arguments[0]}",
+                expr: "user-${[0]}",
               },
               {
                 data: "/core/isActive",
-                expr: '${arguments[0] ? "active" : "inactive"}',
+                expr: '${[0] ? "active" : "inactive"}',
               },
               {
                 data: "/core/isAdmin",
-                expr: '${arguments[0] ? "admin" : "user"}',
+                expr: '${[0] ? "admin" : "user"}',
               },
               {
                 data: "/core/theme",
-                expr: "theme-${arguments[0]}",
+                expr: "theme-${[0]}",
               },
             ],
           },

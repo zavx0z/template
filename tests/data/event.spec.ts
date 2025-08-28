@@ -19,13 +19,13 @@ describe("event", () => {
       {
         tag: {
           data: "/core/tag",
-                        expr: "meta-${arguments[0]}",
+          expr: "meta-${[0]}",
         },
         type: "meta",
         event: {
           onclick: {
             data: "/core/id",
-                          expr: "() => update({ selected: ${arguments[0]} })",
+            expr: "() => update({ selected: ${[0]} })",
             upd: "selected",
           },
         },

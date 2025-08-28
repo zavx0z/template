@@ -57,7 +57,7 @@ describe("text-formatting", () => {
       const divElement = data[0] as any
       const spanElement = divElement?.child?.[1] as any
       const spanText = spanElement?.child?.[0] as any
-      expect(spanText?.expr).toBe("${arguments[0]} - ${arguments[1]}")
+      expect(spanText?.expr).toBe("${[0]} - ${[1]}")
     })
 
     it("div2 element tag", () => {
@@ -97,7 +97,7 @@ describe("text-formatting", () => {
       const divElement = data[0] as any
       const p2Element = divElement?.child?.[3] as any
       const p2Text = p2Element?.child?.[0] as any
-      expect(p2Text?.expr).toBe("${arguments[0]} is ${arguments[1]}")
+      expect(p2Text?.expr).toBe("${[0]} is ${[1]}")
     })
   })
 })
