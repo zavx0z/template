@@ -402,12 +402,19 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartHiera
         }
         newHierarchy.push(mapNode)
       }
-    } else if (topLevelConditions.length > 0) {
-      // Только условия на верхнем уровне
-      for (const condInfo of topLevelConditions) {
-        if (processableElements.length >= 2) {
-          const trueBranch = processableElements[0]
-          const falseBranch = processableElements[1]
+    } else if (topLevelConditions.length > 1) {
+      // Несколько условий на верхнем уровне
+      const elementsPerCondition = Math.ceil(processableElements.length / topLevelConditions.length)
+
+      for (let i = 0; i < topLevelConditions.length; i++) {
+        const condInfo = topLevelConditions[i]
+        const startIndex = i * elementsPerCondition
+        const endIndex = Math.min(startIndex + elementsPerCondition, processableElements.length)
+        const conditionElements = processableElements.slice(startIndex, endIndex)
+
+        if (conditionElements.length >= 2 && condInfo) {
+          const trueBranch = conditionElements[0]
+          const falseBranch = conditionElements[1]
 
           if (trueBranch && falseBranch) {
             const conditionNode: PartCondition = {
@@ -417,8 +424,24 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartHiera
               false: falseBranch as PartElement | PartMeta,
             }
             newHierarchy.push(conditionNode)
-            break // Обрабатываем только одно условие
           }
+        }
+      }
+    } else if (topLevelConditions.length === 1) {
+      // Одно условие на верхнем уровне
+      const condInfo = topLevelConditions[0]
+      if (processableElements.length >= 2 && condInfo) {
+        const trueBranch = processableElements[0]
+        const falseBranch = processableElements[1]
+
+        if (trueBranch && falseBranch) {
+          const conditionNode: PartCondition = {
+            type: "cond",
+            text: condInfo.text,
+            true: trueBranch as PartElement | PartMeta,
+            false: falseBranch as PartElement | PartMeta,
+          }
+          newHierarchy.push(conditionNode)
         }
       }
     }
