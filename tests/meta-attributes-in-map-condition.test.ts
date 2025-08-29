@@ -42,16 +42,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   },
                   type: "meta",
                   core: {
-                    core: {
-                      data: ["[item]/id", "[item]/name", "/core/type"],
-                      expr: "{ id: [0], name: [1], type: [2] }",
-                    },
+                    data: ["[item]/id", "[item]/name", "/core/type"],
+                    expr: "{ id: [0], name: [1], type: [2] }",
                   },
                   context: {
-                    context: {
-                      data: ["[item]/status", "[item]/active"],
-                      expr: "{ status: [0], active: [1] }",
-                    },
+                    data: ["[item]/status", "[item]/active"],
+                    expr: "{ status: [0], active: [1] }",
                   },
                 },
               ],
@@ -160,16 +156,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   },
                   type: "meta",
                   core: {
-                    core: {
-                      data: ["[item]/id", "[item]/name", "/core/type", "[item]/metadata"],
-                      expr: "{ id: [0], name: [1], type: [2], metadata: [3] }",
-                    },
+                    data: ["[item]/id", "[item]/name", "/core/type", "[item]/metadata"],
+                    expr: "{ id: [0], name: [1], type: [2], metadata: [3] }",
                   },
                   context: {
-                    context: {
-                      data: ["[item]/status", "[item]/active", "[item]/permissions"],
-                      expr: "{ status: [0], active: [1], permissions: [2] }",
-                    },
+                    data: ["[item]/status", "[item]/active", "[item]/permissions"],
+                    expr: "{ status: [0], active: [1], permissions: [2] }",
                   },
                 },
                 {
@@ -178,12 +170,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     expr: "meta-${[0]}",
                   },
                   type: "meta",
-                  context: {
-                    context: '{ type: "empty", active: false }',
-                  },
-                  core: {
-                    core: '{ id: "empty", name: "empty" }',
-                  },
+                  context: '{ type: "empty", active: false }',
+                  core: '{ id: "empty", name: "empty" }',
                 },
               ],
             },
@@ -238,16 +226,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   },
                   type: "meta",
                   context: {
-                    context: {
-                      data: "[item]/permissions",
-                      expr: '{ status: "active", permissions: [0] }',
-                    },
+                    data: "[item]/permissions",
+                    expr: '{ status: "active", permissions: [0] }',
                   },
                   core: {
-                    core: {
-                      data: ["[item]/id", "[item]/name"],
-                      expr: '{ id: [0], name: [1], type: "active" }',
-                    },
+                    data: ["[item]/id", "[item]/name"],
+                    expr: '{ id: [0], name: [1], type: "active" }',
                   },
                 },
                 {
@@ -256,14 +240,10 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     expr: "meta-${[0]}",
                   },
                   type: "meta",
-                  context: {
-                    context: '{ status: "error", message: "Item has error" }',
-                  },
+                  context: '{ status: "error", message: "Item has error" }',
                   core: {
-                    core: {
-                      data: ["[item]/id", "[item]/name"],
-                      expr: '{ id: [0], name: [1], type: "error" }',
-                    },
+                    data: ["[item]/id", "[item]/name"],
+                    expr: '{ id: [0], name: [1], type: "error" }',
                   },
                 },
                 {
@@ -272,14 +252,10 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     expr: "meta-${[0]}",
                   },
                   type: "meta",
-                  context: {
-                    context: '{ status: "inactive" }',
-                  },
+                  context: '{ status: "inactive" }',
                   core: {
-                    core: {
-                      data: ["[item]/id", "[item]/name"],
-                      expr: '{ id: [0], name: [1], type: "inactive" }',
-                    },
+                    data: ["[item]/id", "[item]/name"],
+                    expr: '{ id: [0], name: [1], type: "inactive" }',
                   },
                 },
               ],
@@ -383,16 +359,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   },
                   type: "meta",
                   context: {
-                    context: {
-                      data: "[item]/isOnline",
-                      expr: '{ status: "admin", active: [0], canEdit: true, canDelete: true, canManage: true }',
-                    },
+                    data: "[item]/isOnline",
+                    expr: '{ status: "admin", active: [0], canEdit: true, canDelete: true, canManage: true }',
                   },
                   core: {
-                    core: {
-                      data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                      expr: '{ id: [0], name: [1], type: "admin", permissions: [2], metadata: { level: "admin", access: "full", settings: [3] } }',
-                    },
+                    data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                    expr: '{ id: [0], name: [1], type: "admin", permissions: [2], metadata: { level: "admin", access: "full", settings: [3] } }',
                   },
                 },
                 {
@@ -402,16 +374,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   },
                   type: "meta",
                   context: {
-                    context: {
-                      data: "[item]/isOnline",
-                      expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
-                    },
+                    data: "[item]/isOnline",
+                    expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
                   },
                   core: {
-                    core: {
-                      data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                      expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
-                    },
+                    data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                    expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
                   },
                 },
                 {
@@ -421,16 +389,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   },
                   type: "meta",
                   context: {
-                    context: {
-                      data: "[item]/isOnline",
-                      expr: '{ status: "user", active: [0], canEdit: false, canDelete: false, canManage: false }',
-                    },
+                    data: "[item]/isOnline",
+                    expr: '{ status: "user", active: [0], canEdit: false, canDelete: false, canManage: false }',
                   },
                   core: {
-                    core: {
-                      data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                      expr: '{ id: [0], name: [1], type: "user", permissions: [2], metadata: { level: "user", access: "basic", settings: [3] } }',
-                    },
+                    data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                    expr: '{ id: [0], name: [1], type: "user", permissions: [2], metadata: { level: "user", access: "basic", settings: [3] } }',
                   },
                 },
               ],
@@ -499,30 +463,26 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   },
                   type: "meta",
                   context: {
-                    context: {
-                      data: [
-                        "[item]/isActive",
-                        "[item]/permissions/includes",
-                        "[item]/lastModified",
-                        "[item]/created",
-                        "[item]/updated",
-                      ],
-                      expr: '{ status: [0] ? active : "inactive", active: [0], canEdit: [1]("edit"), canDelete: [1]("delete"), dynamic: { lastModified: [2], created: [3], updated: [4] || [2] } }',
-                    },
+                    data: [
+                      "[item]/isActive",
+                      "[item]/permissions/includes",
+                      "[item]/lastModified",
+                      "[item]/created",
+                      "[item]/updated",
+                    ],
+                    expr: '{ status: [0] ? "active" : "inactive", active: [0], canEdit: [1]("edit"), canDelete: [1]("delete"), dynamic: { lastModified: [2], created: [3], updated: [4] || [2] } }',
                   },
                   core: {
-                    core: {
-                      data: [
-                        "[item]/id",
-                        "[item]/name",
-                        "/core/type",
-                        "[item]/isActive",
-                        "[item]/status",
-                        "[item]/priority",
-                        "[item]/tags",
-                      ],
-                      expr: '{ id: [0], name: [1], type: [2], dynamic: [3] ? active : "inactive", computed: `${[0]}-${[1]}`, metadata: { status: [4], priority: [5] || "normal", tags: [6] || [] } }',
-                    },
+                    data: [
+                      "[item]/id",
+                      "[item]/name",
+                      "/core/type",
+                      "[item]/isActive",
+                      "[item]/status",
+                      "[item]/priority",
+                      "[item]/tags",
+                    ],
+                    expr: '{ id: [0], name: [1], type: [2], dynamic: [3] ? "active" : "inactive", computed: `${[0]}-${[1]}`, metadata: { status: [4], priority: [5] || "normal", tags: [6] || [] } }',
                   },
                 },
               ],

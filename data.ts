@@ -3,20 +3,6 @@ import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node } fr
 import type { PartText } from "./hierarchy.t"
 import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs } from "./attributes.t"
 
-// Импортируем функцию для балансного поиска скобок
-function matchBalancedBraces(s: string, startAfterBraceIndex: number): number {
-  let depth = 1
-  for (let i = startAfterBraceIndex; i < s.length; i++) {
-    const ch = s[i]
-    if (ch === "{") depth++
-    else if (ch === "}") {
-      depth--
-      if (depth === 0) return i + 1
-    }
-  }
-  return -1
-}
-
 // ============================================================================
 // REGEX PATTERNS
 // ============================================================================
@@ -726,261 +712,46 @@ const processBooleanAttributes = (
 }
 
 /**
- * Закавычивает имена ключей объекта перед двоеточием, вне строк и шаблонов.
- * Достаточно лёгкого сканера: учитывай строки, экранирование, вложенные { }.
- */
-function quoteTopLevelKeys(s: string | undefined): string {
-  if (!s) return ""
-  let res = "",
-    i = 0,
-    depth = 0,
-    str: string | null = null,
-    esc = false
-
-  const isIdStart = (c: string) => /[A-Za-z_$]/.test(c)
-  const isIdPart = (c: string) => /[A-Za-z0-9_$]/.test(c)
-
-  while (i < s.length) {
-    const ch = s[i]
-
-    if (str) {
-      if (esc) {
-        esc = false
-        res += ch
-        i++
-        continue
-      }
-      if (ch === "\\") {
-        esc = true
-        res += ch
-        i++
-        continue
-      }
-      if (ch === str) {
-        str = null
-        res += ch
-        i++
-        continue
-      }
-      res += ch
-      i++
-      continue
-    }
-
-    if (ch === '"' || ch === "'") {
-      str = ch
-      res += ch
-      i++
-      continue
-    }
-    if (ch === "{") {
-      depth++
-      res += ch
-      i++
-      continue
-    }
-    if (ch === "}") {
-      depth--
-      res += ch
-      i++
-      continue
-    }
-
-    // Ключ — идентификатор перед ':' на текущем уровне вложенности
-    if (depth >= 1 && isIdStart(ch)) {
-      let j = i + 1
-      while (j < s.length && isIdPart(s[j])) j++
-      const ident = s.slice(i, j)
-
-      // пропускаем пробелы
-      let k = j
-      while (k < s.length && /\s/.test(s[k])) k++
-
-      if (s[k] === ":") {
-        // кавычим ключ
-        res += `"${ident}"`
-        i = j
-        continue
-      }
-    }
-
-    res += ch
-    i++
-  }
-
-  return res
-}
-
-/**
- * Безопасно снимает кавычки у ключей вида "id": ... → id: ...
- */
-function unquoteTopLevelKeys(s: string | undefined): string {
-  if (!s) return ""
-  let res = "",
-    i = 0,
-    depth = 0,
-    str: string | null = null,
-    esc = false
-
-  while (i < s.length) {
-    const ch = s[i]
-
-    if (str) {
-      if (esc) {
-        esc = false
-        res += ch
-        i++
-        continue
-      }
-      if (ch === "\\") {
-        esc = true
-        res += ch
-        i++
-        continue
-      }
-      if (ch === str) {
-        str = null
-        res += ch
-        i++
-        continue
-      }
-      res += ch
-      i++
-      continue
-    }
-
-    if (ch === '"' || ch === "'") {
-      // попробуем считать это ключом "ident":
-      let j = i + 1
-      while (j < s.length && /[A-Za-z0-9_$]/.test(s[j])) j++
-      if (j < s.length && s[j] === '"' && s.slice(i, j + 1).match(/^"[A-Za-z_$][A-Za-z0-9_$]*"$/)) {
-        // пропускаем пробелы после закрывающей кавычки
-        let k = j + 1
-        while (k < s.length && /\s/.test(s[k])) k++
-        if (s[k] === ":") {
-          // снимаем кавычки
-          res += s.slice(i + 1, j)
-          i = j + 1
-          continue
-        }
-      }
-      // обычная строка
-      str = ch
-      res += ch
-      i++
-      continue
-    }
-
-    if (ch === "{") {
-      depth++
-      res += ch
-      i++
-      continue
-    }
-    if (ch === "}") {
-      depth--
-      res += ch
-      i++
-      continue
-    }
-
-    res += ch
-    i++
-  }
-
-  return res
-}
-
-/**
- * Обрабатывает style атрибуты как отдельные поля с путями к данным.
- */
-const processStyleAttributes = (styleAttrs: Record<string, string>, context: ParseContext): Record<string, string> => {
-  const result: Record<string, string> = {}
-
-  for (const [propertyName, value] of Object.entries(styleAttrs)) {
-    // Проверяем, является ли значение простым идентификатором
-    const variableMatch = value.match(/^([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)$/)
-    if (variableMatch) {
-      // Это простой идентификатор, обрабатываем его как переменную
-      const variable = variableMatch[1]
-      const dataPath = resolveDataPath(variable, context)
-      if (dataPath) {
-        result[propertyName] = dataPath
-      } else {
-        result[propertyName] = value
-      }
-    } else {
-      // Обрабатываем как шаблонный литерал
-      const tpl = parseTemplateLiteral(value, context)
-
-      if (tpl && tpl.data) {
-        // Если есть переменные, используем путь к данным
-        const dataPath = Array.isArray(tpl.data) ? tpl.data[0] : tpl.data
-        if (dataPath) {
-          result[propertyName] = dataPath
-        } else {
-          result[propertyName] = value
-        }
-      } else {
-        // Если нет переменных, оставляем как есть
-        result[propertyName] = value
-      }
-    }
-  }
-
-  return result
-}
-
-/**
- * Обрабатывает object атрибуты как единую строку, используя существующий пайплайн.
- * Не парсит объект по полям, а обрабатывает весь литерал целиком.
- * В data попадают только значения-переменные, ключи не включаются.
+ * Обрабатывает object атрибуты и создает соответствующие объекты.
  */
 const processObjectAttributes = (objectAttrs: Record<string, any>, context: ParseContext): Record<string, any> => {
   const result: Record<string, any> = {}
 
-  for (const [attrName, raw] of Object.entries(objectAttrs)) {
-    const src = String(raw)
+  for (const [key, objectValue] of Object.entries(objectAttrs)) {
+    // Для object атрибутов (стили, context, core) парсим строку и создаем объект
+    const objectValueStr = String(objectValue)
 
-    // 1) Вырезаем балансно целый { ... } из src
-    const open = src.indexOf("{")
-    if (open === -1) {
-      // нет объектного литерала — просто нормализуем пробелы и вернём
-      const single = src.replace(WHITESPACE_PATTERN, " ").trim()
-      result[attrName] = single
-      continue
-    }
-    const end = matchBalancedBraces(src, open + 1) // индекс ПЕРЕД следующим символом после '}' пары
-    if (end === -1) {
-      const single = src.replace(WHITESPACE_PATTERN, " ").trim()
-      result[attrName] = single
-      continue
-    }
-    const objectLiteral = src.slice(open, end)
+    // Парсим строку объекта вида "{ backgroundColor: company.theme }"
+    const objectMatch = objectValueStr.match(/\{\s*([^}]+)\s*\}/)
+    if (objectMatch && objectMatch[1]) {
+      const objectContent = objectMatch[1]
+      const objectResult: Record<string, string> = {}
 
-    // 2) В одну строку
-    const oneLine = objectLiteral.replace(WHITESPACE_PATTERN, " ").trim()
+      // Парсим свойства объекта
+      const propertyMatches = objectContent.match(/([a-zA-Z-]+)\s*:\s*([^,}]+)/g) || []
+      propertyMatches.forEach((propertyMatch) => {
+        const match = propertyMatch.match(/([a-zA-Z-]+)\s*:\s*(.+)/)
+        if (match && match[1] && match[2]) {
+          const propertyName = match[1]
+          const propertyValue = match[2]
+          const trimmedValue = propertyValue.trim()
 
-    // 3) Маскируем ключи (кавычим) — чтобы parseTemplateLiteral не видел их как идентификаторы
-    const masked = quoteTopLevelKeys(oneLine)
+          // Проверяем, является ли значение переменной
+          const variableMatch = trimmedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/)
+          if (variableMatch && variableMatch[1]) {
+            const variable = variableMatch[1]
+            const dataPath = resolveDataPath(variable, context)
+            objectResult[propertyName] = dataPath
+          } else {
+            // Статическое значение
+            objectResult[propertyName] = trimmedValue
+          }
+        }
+      })
 
-    // 4) Отдаём в готовый пайплайн извлечения переменных
-    const wrapped = `\${${masked}}`
-    const tpl = parseTemplateLiteral(wrapped, context)
-
-    if (!tpl || !tpl.data) {
-      // статика
-      result[attrName] = oneLine
-      continue
-    }
-
-    // 5) Снимаем внешнюю обёртку и возвращаем ключи как были
-    const innerExpr = String(tpl.expr || "").replace(TEMPLATE_WRAPPER_PATTERN, "")
-    const expr = unquoteTopLevelKeys(innerExpr)
-
-    result[attrName] = {
-      data: tpl.data || [], // важно: здесь ТОЛЬКО пути значений (ключи не включать!)
-      expr: expr || oneLine,
+      result[key] = objectResult
+    } else {
+      result[key] = { [key]: objectValueStr }
     }
   }
 
@@ -1215,6 +986,64 @@ export const extractConditionExpression = (condText: string): string => {
   })
 
   return expression.replace(/\s+/g, " ").trim()
+}
+
+/**
+ * Парсит строку объекта и извлекает переменные.
+ */
+const parseObjectString = (
+  value: string,
+  context: ParseContext = { pathStack: [], level: 0 }
+): ParseAttributeResult | null => {
+  // Извлекаем все переменные из строки объекта
+  const variableMatches = value.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+
+  if (variableMatches.length === 0) {
+    return null
+  }
+
+  // Убираем дубликаты переменных
+  const uniqueVariables = [...new Set(variableMatches)]
+
+  // Разрешаем пути к данным для каждой уникальной переменной
+  const paths = uniqueVariables.map((variable: string) => resolveDataPath(variable, context))
+
+  // Создаем унифицированное выражение, заменяя переменные на индексы
+  let expr = value
+
+  // Защищаем строковые литералы от замены
+  const stringLiterals: string[] = []
+  let protectedExpr = expr
+    .replace(/"[^"]*"/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
+  uniqueVariables.forEach((variable: string, index: number) => {
+    // Заменяем переменные на индексы во всем выражении
+    const variableRegex = new RegExp(`(?<!\\w)${variable.replace(/\./g, "\\.")}(?!\\w)`, "g")
+    protectedExpr = protectedExpr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
+  })
+
+  // Восстанавливаем строковые литералы
+  stringLiterals.forEach((literal, index) => {
+    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
+  })
+
+  expr = protectedExpr
+
+  // Применяем форматирование к выражению
+  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
+
+  // Возвращаем результат в новом формате
+  return {
+    data: paths.length === 1 ? paths[0] || "" : paths,
+    expr: expr,
+  }
 }
 
 /**
@@ -1902,16 +1731,34 @@ export const createNodeDataMeta = (
     result.boolean = processBooleanAttributes(node.boolean, context)
   }
 
-  if (node.style) {
-    result.style = processStyleAttributes(node.style, context)
+  if (node.object) {
+    result.object = processObjectAttributes(node.object, context)
   }
 
   if (node.core) {
-    result.core = processObjectAttributes(node.core, context)
+    // Разбираем строку core и извлекаем data и expr
+    const coreResult = parseObjectString(node.core, context)
+    if (coreResult && coreResult.data) {
+      result.core = {
+        data: coreResult.data,
+        expr: coreResult.expr || node.core,
+      }
+    } else {
+      result.core = node.core
+    }
   }
 
   if (node.context) {
-    result.context = processObjectAttributes(node.context, context)
+    // Разбираем строку context и извлекаем data и expr
+    const contextResult = parseObjectString(node.context, context)
+    if (contextResult && contextResult.data) {
+      result.context = {
+        data: contextResult.data,
+        expr: contextResult.expr || node.context,
+      }
+    } else {
+      result.context = node.context
+    }
   }
 
   // Добавляем дочерние элементы, если они есть
@@ -1971,8 +1818,8 @@ export const createNodeDataElement = (
       result.boolean = processBooleanAttributes(node.boolean, context)
     }
 
-    if (node.style) {
-      result.style = processStyleAttributes(node.style, context)
+    if (node.object) {
+      result.object = processObjectAttributes(node.object, context)
     }
 
     return result
