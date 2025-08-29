@@ -872,7 +872,7 @@ describe("web-components", () => {
 
   describe("custom elements с булевыми атрибутами", () => {
     const mainHtml = extractMainHtmlBlock<{ isVisible: boolean; isDisabled: boolean }>(
-      ({ html, context }) => html` <custom-button ${context.isDisabled && "disabled"}> Click me </custom-button> `
+      ({ html, context }) => html` <custom-button ${context.isDisabled && "disabled"}>Click me</custom-button> `
     )
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = makeHierarchy(mainHtml, elements)

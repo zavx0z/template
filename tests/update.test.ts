@@ -205,7 +205,6 @@ describe("update", () => {
           </button>
         `
     )
-
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([

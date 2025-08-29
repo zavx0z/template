@@ -274,8 +274,12 @@ export const extractHtmlElements = (input: string): ElementToken[] => {
       return // Удаляем чистые пробелы-разделители
     }
 
-    if (formattedChunk.length > 0) {
-      out.push({ text: formattedChunk, index, name: "", kind: "text" })
+    // Если с обоих сторон исходного куска есть символы переноса строки, применяем trim()
+    const hasNewlinesOnBothSides = chunk.match(/^\s*\n.*\n\s*$/)
+    const finalChunk = hasNewlinesOnBothSides ? formattedChunk.trim() : formattedChunk
+
+    if (finalChunk.length > 0) {
+      out.push({ text: finalChunk, index, name: "", kind: "text" })
     }
   }
 

@@ -177,12 +177,13 @@ describe("map", () => {
 
   describe("map в элементе вложенный в map", () => {
     const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
+      // prettier-ignore
       ({ html, core }) => html`
         <ul>
           ${core.list.map(
             ({ title, nested }) => html`
               <li>
-                <p>${title}</p>
+                <p>${title} </p>
                 ${nested.map((n) => html`<em>${n}</em>`)}
               </li>
             `
@@ -196,13 +197,13 @@ describe("map", () => {
         { text: "<ul>", index: 9, name: "ul", kind: "open" },
         { text: "<li>", index: 83, name: "li", kind: "open" },
         { text: "<p>", index: 104, name: "p", kind: "open" },
-        { text: "${title}", index: 107, name: "", kind: "text" },
-        { text: "</p>", index: 115, name: "p", kind: "close" },
-        { text: "<em>", index: 161, name: "em", kind: "open" },
-        { text: "${n}", index: 165, name: "", kind: "text" },
-        { text: "</em>", index: 169, name: "em", kind: "close" },
-        { text: "</li>", index: 192, name: "li", kind: "close" },
-        { text: "</ul>", index: 222, name: "ul", kind: "close" },
+        { text: "${title} ", index: 107, name: "", kind: "text" },
+        { text: "</p>", index: 116, name: "p", kind: "close" },
+        { text: "<em>", index: 162, name: "em", kind: "open" },
+        { text: "${n}", index: 166, name: "", kind: "text" },
+        { text: "</em>", index: 170, name: "em", kind: "close" },
+        { text: "</li>", index: 193, name: "li", kind: "close" },
+        { text: "</ul>", index: 223, name: "ul", kind: "close" },
       ]))
     const hierarchy = makeHierarchy(mainHtml, elements)
     it("hierarchy", () =>
@@ -228,7 +229,7 @@ describe("map", () => {
                       child: [
                         {
                           type: "text",
-                          text: "${title}",
+                          text: "${title} ",
                         },
                       ],
                     },
@@ -442,7 +443,7 @@ describe("map", () => {
       expect(elements).toEqual([
         { text: "<ul>", index: 9, name: "ul", kind: "open" },
         { text: "<li>", index: 68, name: "li", kind: "open" },
-        { text: "${title}", index: 72, name: "", kind: "text" },
+        { text: "${title} ", index: 72, name: "", kind: "text" },
         { text: "<em>", index: 106, name: "em", kind: "open" },
         { text: "${n}", index: 110, name: "", kind: "text" },
         { text: "</em>", index: 114, name: "em", kind: "close" },
@@ -468,7 +469,7 @@ describe("map", () => {
                   child: [
                     {
                       type: "text",
-                      text: "${title}",
+                      text: "${title} ",
                     },
                     {
                       type: "map",
@@ -553,7 +554,7 @@ describe("map", () => {
       expect(elements).toEqual([
         { text: "<ul>", index: 31, name: "ul", kind: "open" },
         { text: "<li>", index: 94, name: "li", kind: "open" },
-          { text: "${title}", index: 98, name: "", kind: "text" },
+        { text: "${title} ", index: 98, name: "", kind: "text" },
         { text: "<em>", index: 132, name: "em", kind: "open" },
         { text: "${n}", index: 136, name: "", kind: "text" },
         { text: "</em>", index: 140, name: "em", kind: "close" },
@@ -585,7 +586,7 @@ describe("map", () => {
                     child: [
                       {
                         type: "text",
-                          text: "${title}",
+                        text: "${title} ",
                       },
                       {
                         type: "map",
