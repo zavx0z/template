@@ -92,13 +92,114 @@ const buildItemPath = (prefix: string, variableParts: string[], isDestructured: 
   return hasProperty ? `${prefix}[item]/${variableParts.slice(1).join("/")}` : `${prefix}[item]`
 }
 
+// ============================================================================
+// ATTRIBUTE PROCESSING FUNCTIONS
+// ============================================================================
+
 /**
- * Определяет путь к данным с учетом контекста map.
+ * Обрабатывает строку стилей с плоским по-ключевому парсингом.
  *
- * Универсальная функция для разрешения путей к данным в различных контекстах.
- * Сначала пытается найти переменную в стеке map контекстов, затем использует
- * логику обратной совместимости для простых случаев.
+ * Разбирает строку стилей на ключ-значение пары и разрешает пути к данным
+ * для каждого значения отдельно. Подходит для style атрибутов, где нужен
+ * адресный контроль по ключам.
  *
+ * @param str - Строка стилей в формате "{ key: value, key2: value2 }"
+ * @param ctx - Контекст парсера
+ * @returns Объект с ключами стилей и разрешенными путями к данным
+ */
+const processStyleAttributes = (
+  str: string,
+  ctx: ParseContext = { pathStack: [], level: 0 }
+): Record<string, string> | null => {
+  // Убираем фигурные скобки и пробелы
+  const cleanValue = str.replace(/^\{?\s*|\s*\}?$/g, "")
+
+  if (!cleanValue) {
+    return null
+  }
+
+  // Разбираем объект стилей
+  const styleObj: Record<string, string> = {}
+  const pairs = cleanValue.split(",")
+
+  for (const pair of pairs) {
+    const [key, value] = pair.split(":").map((s) => s.trim())
+    if (key && value) {
+      // Разрешаем путь к данным для значения
+      const resolvedPath = resolveDataPath(value, ctx)
+      styleObj[key] = resolvedPath
+    }
+  }
+
+  return Object.keys(styleObj).length > 0 ? styleObj : null
+}
+
+/**
+ * Обрабатывает семантические атрибуты (core/context) с подходом "единый литерал + переменные".
+ *
+ * Извлекает все переменные из строки и создает унифицированное выражение для дальнейшего eval.
+ * Подходит для core/context атрибутов, где нужна цельная строка для выполнения.
+ *
+ * @param str - Строка объекта в формате "{ key: value, key2: value2 }"
+ * @param ctx - Контекст парсера
+ * @returns Результат с путями к данным и унифицированным выражением
+ */
+const processSemanticAttributes = (
+  str: string,
+  ctx: ParseContext = { pathStack: [], level: 0 }
+): ParseAttributeResult | null => {
+  // Извлекаем все переменные из строки объекта
+  const variableMatches = str.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+
+  if (variableMatches.length === 0) {
+    return null
+  }
+
+  // Убираем дубликаты переменных
+  const uniqueVariables = [...new Set(variableMatches)]
+
+  // Разрешаем пути к данным для каждой уникальной переменной
+  const paths = uniqueVariables.map((variable: string) => resolveDataPath(variable, ctx) || variable)
+
+  // Создаем унифицированное выражение, заменяя переменные на индексы
+  let expr = str
+
+  // Защищаем строковые литералы от замены
+  const stringLiterals: string[] = []
+  let protectedExpr = expr
+    .replace(/"[^"]*"/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
+  uniqueVariables.forEach((variable: string, index: number) => {
+    // Заменяем переменные на индексы во всем выражении
+    const variableRegex = new RegExp(`(?<!\\w)${variable.replace(/\./g, "\\.")}(?!\\w)`, "g")
+    protectedExpr = protectedExpr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
+  })
+
+  // Восстанавливаем строковые литералы
+  stringLiterals.forEach((literal, index) => {
+    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
+  })
+
+  expr = protectedExpr
+
+  // Применяем форматирование к выражению
+  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
+
+  // Возвращаем результат в новом формате
+  return {
+    data: paths.length === 1 ? paths[0] || "" : paths,
+    expr: expr,
+  }
+}
+
+/**
  * Поддерживает различные типы параметров map функций:
  * - Простые параметры (один параметр)
  * - Деструктурированные свойства (несколько параметров)
@@ -989,94 +1090,6 @@ export const extractConditionExpression = (condText: string): string => {
 }
 
 /**
- * Парсит строку стилей в объект с путями к данным.
- */
-const parseStyleStringToObject = (
-  value: string,
-  context: ParseContext = { pathStack: [], level: 0 }
-): Record<string, string> | null => {
-  // Убираем фигурные скобки и пробелы
-  const cleanValue = value.replace(/^\{?\s*|\s*\}?$/g, "")
-
-  if (!cleanValue) {
-    return null
-  }
-
-  // Разбираем объект стилей
-  const styleObj: Record<string, string> = {}
-  const pairs = cleanValue.split(",")
-
-  for (const pair of pairs) {
-    const [key, value] = pair.split(":").map((s) => s.trim())
-    if (key && value) {
-      // Разрешаем путь к данным для значения
-      const resolvedPath = resolveDataPath(value, context)
-      styleObj[key] = resolvedPath || value
-    }
-  }
-
-  return Object.keys(styleObj).length > 0 ? styleObj : null
-}
-
-/**
- * Парсит строку объекта и извлекает переменные.
- */
-const parseObjectString = (
-  value: string,
-  context: ParseContext = { pathStack: [], level: 0 }
-): ParseAttributeResult | null => {
-  // Извлекаем все переменные из строки объекта
-  const variableMatches = value.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
-
-  if (variableMatches.length === 0) {
-    return null
-  }
-
-  // Убираем дубликаты переменных
-  const uniqueVariables = [...new Set(variableMatches)]
-
-  // Разрешаем пути к данным для каждой уникальной переменной
-  const paths = uniqueVariables.map((variable: string) => resolveDataPath(variable, context))
-
-  // Создаем унифицированное выражение, заменяя переменные на индексы
-  let expr = value
-
-  // Защищаем строковые литералы от замены
-  const stringLiterals: string[] = []
-  let protectedExpr = expr
-    .replace(/"[^"]*"/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-    .replace(/'[^']*'/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-
-  uniqueVariables.forEach((variable: string, index: number) => {
-    // Заменяем переменные на индексы во всем выражении
-    const variableRegex = new RegExp(`(?<!\\w)${variable.replace(/\./g, "\\.")}(?!\\w)`, "g")
-    protectedExpr = protectedExpr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
-  })
-
-  // Восстанавливаем строковые литералы
-  stringLiterals.forEach((literal, index) => {
-    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
-  })
-
-  expr = protectedExpr
-
-  // Применяем форматирование к выражению
-  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
-
-  // Возвращаем результат в новом формате
-  return {
-    data: paths.length === 1 ? paths[0] || "" : paths,
-    expr: expr,
-  }
-}
-
-/**
  * Парсит текстовые данные с путями.
  */
 // ============================================================================
@@ -1762,35 +1775,25 @@ export const createNodeDataMeta = (
   }
 
   if (node.style) {
-    // Разбираем строку стилей в объект и обрабатываем пути к данным
-    const styleObj = parseStyleStringToObject(node.style, context)
-    if (styleObj) {
-      result.style = styleObj
+    const styleResult = processStyleAttributes(node.style, context)
+    if (styleResult) {
+      result.style = styleResult
     }
-    // Если не удалось разобрать как объект, пропускаем
   }
 
   if (node.core) {
-    // Разбираем строку core и извлекаем data и expr
-    const coreResult = parseObjectString(node.core, context)
-    if (coreResult && coreResult.data) {
-      result.core = {
-        data: coreResult.data,
-        expr: coreResult.expr || node.core,
-      }
+    const coreResult = processSemanticAttributes(node.core, context)
+    if (coreResult) {
+      result.core = coreResult
     } else {
       result.core = node.core
     }
   }
 
   if (node.context) {
-    // Разбираем строку context и извлекаем data и expr
-    const contextResult = parseObjectString(node.context, context)
-    if (contextResult && contextResult.data) {
-      result.context = {
-        data: contextResult.data,
-        expr: contextResult.expr || node.context,
-      }
+    const contextResult = processSemanticAttributes(node.context, context)
+    if (contextResult) {
+      result.context = contextResult
     } else {
       result.context = node.context
     }
@@ -1854,12 +1857,10 @@ export const createNodeDataElement = (
     }
 
     if (node.style) {
-      // Разбираем строку стилей в объект и обрабатываем пути к данным
-      const styleObj = parseStyleStringToObject(node.style, context)
-      if (styleObj) {
-        result.style = styleObj
+      const styleResult = processStyleAttributes(node.style, context)
+      if (styleResult) {
+        result.style = styleResult
       }
-      // Если не удалось разобрать как объект, пропускаем
     }
 
     return result
