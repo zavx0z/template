@@ -5,6 +5,30 @@ import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 
 describe("meta-компоненты с core/context в map и condition", () => {
+  describe("meta-элемент с пустыми объектами", () => {
+    const mainHtml = extractMainHtmlBlock(({ html }) => html` <meta-hash context=${{}} core=${{}} /> `)
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = makeHierarchy(mainHtml, elements)
+    const attributes = extractAttributes(hierarchy)
+    it("attributes", () => {
+      expect(attributes, "при обработке пустых объектов не должен устанавливаться core и context").toEqual([
+        {
+          tag: "meta-hash",
+          type: "meta",
+        },
+      ])
+    })
+    const data = enrichWithData(attributes)
+
+    it("data", () => {
+      expect(data, "core и context не должно быть в data").toEqual([
+        {
+          tag: "meta-hash",
+          type: "meta",
+        },
+      ])
+    })
+  })
   describe("meta-компоненты в map с core объектами", () => {
     type Core = { items: any[]; tag: string; type: string }
     const mainHtml = extractMainHtmlBlock<any, Core>(

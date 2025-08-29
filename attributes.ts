@@ -624,6 +624,12 @@ export const parseAttributes = (
             : "{}"
           : formatExpression(value.slice(2, -1))
         : "{}"
+      
+      // Не добавляем пустые core и context атрибуты
+      if (objectValue === "{}") {
+        continue
+      }
+      
       // Для meta-компонентов context и core будут обработаны отдельно
       if (name === "context") {
         result.context = objectValue
@@ -882,6 +888,11 @@ export const parseMetaAttributes = (
             : "{}"
           : formatExpression(value.slice(2, -1))
         : "{}"
+
+      // Не добавляем пустые core и context атрибуты
+      if (objectValue === "{}") {
+        continue
+      }
 
       if (name === "context") {
         result.context = objectValue

@@ -231,16 +231,12 @@ describe("стили в виде JavaScript объекта (styled components)",
 
     it("meta-компонент с пустым context", () => {
       const attrs = parseAttributes("<meta-component context=${{}}>")
-      expect(attrs).toEqual({
-        context: "{}",
-      })
+      expect(attrs).toEqual({})
     })
 
     it("meta-компонент с пустым core", () => {
       const attrs = parseAttributes("<meta-component core=${{}}>")
-      expect(attrs).toEqual({
-        core: "{}",
-      })
+      expect(attrs).toEqual({})
     })
 
     it("meta-компонент с context, core и другими атрибутами", () => {
