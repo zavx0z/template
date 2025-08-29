@@ -18,7 +18,11 @@ export type AttributeString = Record<string, { type: ValueType; value: string }>
 
 export type AttributeBoolean = Record<string, { type: "dynamic" | "static"; value: boolean | string }>
 
-export type AttributeObject = Record<string, string>
+export type AttributeStyle = Record<string, string>
+
+export type AttributeCore = Record<string, string | { data: string | string[]; expr: string }>
+
+export type AttributeContext = Record<string, string | { data: string | string[]; expr: string }>
 
 export type PartAttrElement = {
   /** Имя HTML тега */
@@ -33,8 +37,8 @@ export type PartAttrElement = {
   array?: AttributeArray
   /** Строковые аттрибуты */
   string?: AttributeString
-  /** Объектные аттрибуты (стили) */
-  object?: AttributeObject
+  /** Стили */
+  style?: string
   /** Дочерние элементы (опционально) */
   child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]
 }
@@ -52,8 +56,12 @@ export type PartAttrMeta = {
   array?: AttributeArray
   /** Строковые аттрибуты */
   string?: AttributeString
-  /** Объектные аттрибуты (стили) */
-  object?: AttributeObject
+  /** Стили */
+  style?: string
+  /** Core объекты */
+  core?: string
+  /** Context объекты */
+  context?: string
   /** Дочерние элементы (опционально) */
   child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]
 }

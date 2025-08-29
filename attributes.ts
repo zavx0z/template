@@ -4,7 +4,9 @@ import type {
   AttributeArray,
   AttributeString,
   AttributeBoolean,
-  AttributeObject,
+  AttributeStyle,
+  AttributeCore,
+  AttributeContext,
   PartAttrs,
   PartAttrElement,
   PartAttrMeta,
@@ -100,6 +102,31 @@ function isEmptyAttributeValue(value: string | null): boolean {
   if (value.includes("${")) return false
   const normalized = normalizeValueForOutput(value)
   return normalized === "" || normalized.trim() === ""
+}
+
+/**
+ * Парсит поля стилей из строки вида "color: company.theme, borderColor: dept.color"
+ */
+function parseStyleFields(styleContent: string): Record<string, string> {
+  const result: Record<string, string> = {}
+  const parts = styleContent.split(",")
+
+  for (const part of parts) {
+    const trimmed = part.trim()
+    if (!trimmed) continue
+
+    const colonIndex = trimmed.indexOf(":")
+    if (colonIndex === -1) continue
+
+    const propertyName = trimmed.slice(0, colonIndex).trim()
+    const propertyValue = trimmed.slice(colonIndex + 1).trim()
+
+    if (propertyName && propertyValue) {
+      result[propertyName] = propertyValue
+    }
+  }
+
+  return result
 }
 
 /** Резка по разделителю на верхнем уровне (вне кавычек и ${...}) */
@@ -438,7 +465,9 @@ export const parseAttributes = (
   array?: AttributeArray
   string?: AttributeString
   boolean?: AttributeBoolean
-  object?: AttributeObject
+  style?: string
+  context?: string
+  core?: string
 } => {
   const inside = sliceInsideTag(tagSource)
   const len = inside.length
@@ -449,7 +478,9 @@ export const parseAttributes = (
     array?: AttributeArray
     string?: AttributeString
     boolean?: AttributeBoolean
-    object?: AttributeObject
+    style?: string
+    context?: string
+    core?: string
   } = {}
 
   const ensure = {
@@ -457,7 +488,9 @@ export const parseAttributes = (
     array: () => (result.array ??= {}),
     string: () => (result.string ??= {}),
     boolean: () => (result.boolean ??= {}),
-    object: () => (result.object ??= {}),
+    style: () => (result.style ??= ""),
+    context: () => (result.context ??= ""),
+    core: () => (result.core ??= ""),
   }
 
   while (i < len) {
@@ -560,14 +593,15 @@ export const parseAttributes = (
         i = r.nextIndex
       }
 
-      const styleValue = value
-        ? value.startsWith("${{")
-          ? value.slice(3, -2).trim()
-            ? `{ ${formatExpression(value.slice(3, -2))} }`
-            : "{}"
-          : formatExpression(value.slice(2, -1))
-        : "{}"
-      ensure.object()[name] = styleValue
+      if (value && value.startsWith("${{")) {
+        // Извлекаем содержимое объекта стилей и возвращаем как строку
+        const styleContent = value.slice(3, -2).trim()
+        if (styleContent) {
+          result.style = `{ ${formatExpression(styleContent)} }`
+        } else {
+          result.style = "{}"
+        }
+      }
       continue
     }
 
@@ -590,7 +624,252 @@ export const parseAttributes = (
             : "{}"
           : formatExpression(value.slice(2, -1))
         : "{}"
-      ensure.object()[name] = objectValue
+      // Для meta-компонентов context и core будут обработаны отдельно
+      if (name === "context") {
+        result.context = objectValue
+      } else {
+        result.core = objectValue
+      }
+      continue
+    }
+
+    while (i < len && /\s/.test(inside[i] || "")) i++
+
+    let value: string | null = null
+    let hasQuotes = false
+    if (inside[i] === "=") {
+      i++
+      hasQuotes = inside[i] === '"' || inside[i] === "'"
+      const r = readAttributeRawValue(inside, i)
+      value = r.value
+      i = r.nextIndex
+    } else {
+      // value остается null - это означает булевый атрибут со значением true
+    }
+
+    // списковые атрибуты (class и встроенные)
+    const isClass = name === "class"
+    const resolved = isClass ? null : getBuiltinResolved(name)
+
+    if (isClass || resolved) {
+      if (isEmptyAttributeValue(value)) {
+        continue
+      }
+
+      const tokens = isClass ? splitBySpace(value ?? "") : resolved!.fn(value ?? "")
+
+      // Если только одно значение, обрабатываем как строку
+      if (tokens.length === 1) {
+        ensure.string()[name] = {
+          type: classifyValue(value ?? ""),
+          value: normalizeValueForOutput(value ?? ""),
+        }
+        continue
+      }
+
+      const out = tokens.map((tok) => ({
+        type: classifyValue(tok),
+        value: normalizeValueForOutput(tok),
+      }))
+      // @ts-ignore
+      ensure.array()[name] = out
+      continue
+    }
+
+    if (
+      !hasQuotes &&
+      (value === null ||
+        value === "true" ||
+        value === "false" ||
+        (value && isFullyDynamicToken(value) && !value.includes("?") && !value.includes(":")) ||
+        (value &&
+          isFullyDynamicToken(value) &&
+          value.includes("?") &&
+          value.includes(":") &&
+          (value.includes("true") || value.includes("false"))))
+    ) {
+      if (value && isFullyDynamicToken(value)) {
+        ensure.boolean()[name] = {
+          type: "dynamic",
+          value: normalizeValueForOutput(value).replace(/^\${/, "").replace(/}$/, ""),
+        }
+      } else {
+        ensure.boolean()[name] = { type: "static", value: value === "true" || value === null }
+      }
+      continue
+    }
+
+    // string
+    if (!isEmptyAttributeValue(value)) {
+      ensure.string()[name] = {
+        type: classifyValue(value ?? ""),
+        value: normalizeValueForOutput(value ?? ""),
+      }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Парсит атрибуты для meta-компонентов, отдельно обрабатывая core и context.
+ */
+export const parseMetaAttributes = (
+  tagSource: string
+): {
+  event?: AttributeEvent
+  array?: AttributeArray
+  string?: AttributeString
+  boolean?: AttributeBoolean
+  style?: string
+  core?: string
+  context?: string
+} => {
+  const inside = sliceInsideTag(tagSource)
+  const len = inside.length
+  let i = 0
+
+  const result: {
+    event?: AttributeEvent
+    array?: AttributeArray
+    string?: AttributeString
+    boolean?: AttributeBoolean
+    style?: string
+    core?: string
+    context?: string
+  } = {}
+
+  const ensure = {
+    event: () => (result.event ??= {}),
+    array: () => (result.array ??= {}),
+    string: () => (result.string ??= {}),
+    boolean: () => (result.boolean ??= {}),
+    style: () => (result.style ??= ""),
+    core: () => (result.core ??= ""),
+    context: () => (result.context ??= ""),
+  }
+
+  while (i < len) {
+    while (i < len && /\s/.test(inside[i] || "")) i++
+    if (i >= len) break
+
+    // Обработка условных булевых атрибутов ${condition && 'attribute'}
+    if (inside[i] === "$" && inside[i + 1] === "{") {
+      const braceStart = i
+      const braceEnd = matchBalancedBraces(inside, i + 2)
+      if (braceEnd === -1) break
+
+      const braceContent = inside.slice(braceStart + 2, braceEnd - 1)
+
+      // Проверяем, является ли это условным выражением вида condition ? "attr1" : "attr2"
+      const ternaryMatch = braceContent.match(/^(.+?)\s*\?\s*["']([^"']+)["']\s*:\s*["']([^"']+)["']$/)
+
+      if (ternaryMatch) {
+        const [, condition, trueAttr, falseAttr] = ternaryMatch
+
+        if (condition && trueAttr && falseAttr) {
+          // Создаем два атрибута: один для true случая, другой для false
+          ensure.boolean()[trueAttr] = {
+            type: "dynamic",
+            value: condition.trim(),
+          }
+
+          ensure.boolean()[falseAttr] = {
+            type: "dynamic",
+            value: `!(${condition.trim()})`,
+          }
+        }
+
+        i = braceEnd
+        continue
+      }
+
+      // Обработка обычных условных атрибутов ${condition && 'attribute'}
+      const parts = braceContent.split("&&").map((s) => s.trim())
+
+      if (parts.length >= 2) {
+        // Последняя часть - это имя атрибута в кавычках
+        const attributeName = parts[parts.length - 1]?.replace(/['"]/g, "") // убираем кавычки
+
+        if (attributeName) {
+          // Все части кроме последней - это условие
+          const condition = parts.slice(0, -1).join(" && ")
+
+          ensure.boolean()[attributeName] = {
+            type: "dynamic",
+            value: condition || "",
+          }
+        }
+      }
+
+      i = braceEnd
+      continue
+    }
+
+    const nameStart = i
+    while (i < len) {
+      const ch = inside[i]
+      if (!ch || /\s/.test(ch) || ch === "=") break
+      i++
+    }
+    const name = inside.slice(nameStart, i)
+    if (!name) break
+
+    // Игнорируем атрибут "/" для самозакрывающихся тегов
+    if (name === "/") {
+      i++
+      continue
+    }
+
+    // style атрибут - обрабатываем как объект
+    if (name === "style") {
+      while (i < len && /\s/.test(inside[i] || "")) i++
+
+      let value: string | null = null
+      if (inside[i] === "=") {
+        i++
+        const r = readAttributeRawValue(inside, i)
+        value = r.value
+        i = r.nextIndex
+      }
+
+      if (value && value.startsWith("${{")) {
+        // Извлекаем содержимое объекта стилей и возвращаем как строку
+        const styleContent = value.slice(3, -2).trim()
+        if (styleContent) {
+          result.style = `{ ${formatExpression(styleContent)} }`
+        } else {
+          result.style = "{}"
+        }
+      }
+      continue
+    }
+
+    // context и core для meta-компонентов - обрабатываем как объекты
+    if (name === "context" || name === "core") {
+      while (i < len && /\s/.test(inside[i] || "")) i++
+
+      let value: string | null = null
+      if (inside[i] === "=") {
+        i++
+        const r = readAttributeRawValue(inside, i)
+        value = r.value
+        i = r.nextIndex
+      }
+
+      const objectValue = value
+        ? value.startsWith("${{")
+          ? value.slice(3, -2).trim()
+            ? `{ ${formatExpression(value.slice(3, -2))} }`
+            : "{}"
+          : formatExpression(value.slice(2, -1))
+        : "{}"
+
+      if (name === "context") {
+        result.context = objectValue
+      } else {
+        result.core = objectValue
+      }
       continue
     }
 
@@ -705,7 +984,7 @@ export const extractAttributes = (hierarchy: PartHierarchy): PartAttrs => {
 
     if (node.type === "meta") {
       // Извлекаем атрибуты из текста meta-элемента
-      const parsedAttributes = parseAttributes(node.text)
+      const parsedAttributes = parseMetaAttributes(node.text)
 
       // Создаем новый объект с добавленными атрибутами
       const result: PartAttrMeta = {
