@@ -678,6 +678,7 @@ export const parseAttributes = (
 
     if (
       !hasQuotes &&
+      !name.startsWith("on") &&
       (value === null ||
         value === "true" ||
         value === "false" ||
@@ -821,6 +822,23 @@ export const parseMetaAttributes = (
       continue
     }
 
+    // события - обрабатываем в первую очередь
+    if (name.startsWith("on")) {
+      while (i < len && /\s/.test(inside[i] || "")) i++
+
+      let value: string | null = null
+      if (inside[i] === "=") {
+        i++
+        const r = readAttributeRawValue(inside, i)
+        value = r.value
+        i = r.nextIndex
+      }
+
+      const eventValue = value ? formatExpression(value.slice(2, -1)) : ""
+      ensure.event()[name] = eventValue
+      continue
+    }
+
     // style атрибут - обрабатываем как объект
     if (name === "style") {
       while (i < len && /\s/.test(inside[i] || "")) i++
@@ -918,6 +936,7 @@ export const parseMetaAttributes = (
 
     if (
       !hasQuotes &&
+      !name.startsWith("on") &&
       (value === null ||
         value === "true" ||
         value === "false" ||
