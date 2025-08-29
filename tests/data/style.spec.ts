@@ -70,15 +70,80 @@ describe("object атрибуты (стили) с переменными из р
                           },
                         ],
                         style: {
-                          color: "../[item]/theme",
-                          borderColor: "[item]/color",
+                          color: { data: "../[item]/theme" },
+                          borderColor: { data: "[item]/color" },
                         },
                       },
                     ],
                   },
                 ],
                 style: {
-                  backgroundColor: "[item]/theme",
+                  backgroundColor: { data: "[item]/theme" },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ])
+  })
+
+  it("стили со смешанными статическими и динамическими значениями", () => {
+    const mainHtml = extractMainHtmlBlock<
+      any,
+      {
+        users: {
+          id: string
+          theme: string
+        }[]
+      }
+    >(
+      ({ html, core }) => html`
+        <div>
+          ${core.users.map(
+            (user) => html`
+              <div style="${{ 
+                color: "red", 
+                backgroundColor: user.theme,
+                border: "1px solid black",
+                fontSize: "14px"
+              }}">
+                User: ${user.id}
+              </div>
+            `
+          )}
+        </div>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = makeHierarchy(mainHtml, elements)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
+
+    expect(data).toEqual([
+      {
+        tag: "div",
+        type: "el",
+        child: [
+          {
+            type: "map",
+            data: "/core/users",
+            child: [
+              {
+                tag: "div",
+                type: "el",
+                child: [
+                  {
+                    type: "text",
+                    data: "[item]/id",
+                    expr: "User: ${[0]}",
+                  },
+                ],
+                style: {
+                  color: "red",
+                  backgroundColor: { data: "[item]/theme" },
+                  border: "1px solid black",
+                  fontSize: "14px",
                 },
               },
             ],

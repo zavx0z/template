@@ -1,5 +1,5 @@
 import type { ParseContext, ParseResult, ParseMapContext, ParseAttributeResult, ParseTextPart } from "./data.t"
-import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node } from "./index.t"
+import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node, AttrVariable, AttrDynamic, StyleObject } from "./index.t"
 import type { PartText } from "./hierarchy.t"
 import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs } from "./attributes.t"
 
@@ -110,7 +110,7 @@ const buildItemPath = (prefix: string, variableParts: string[], isDestructured: 
 const processStyleAttributes = (
   str: string,
   ctx: ParseContext = { pathStack: [], level: 0 }
-): Record<string, string> | null => {
+): StyleObject | null => {
   // Убираем фигурные скобки и пробелы
   const cleanValue = str.replace(/^\{?\s*|\s*\}?$/g, "")
 
@@ -119,15 +119,33 @@ const processStyleAttributes = (
   }
 
   // Разбираем объект стилей
-  const styleObj: Record<string, string> = {}
+  const styleObj: StyleObject = {}
   const pairs = cleanValue.split(",")
 
   for (const pair of pairs) {
     const [key, value] = pair.split(":").map((s) => s.trim())
     if (key && value) {
-      // Разрешаем путь к данным для значения
-      const resolvedPath = resolveDataPath(value, ctx)
-      styleObj[key] = resolvedPath
+      // Проверяем, содержит ли значение переменные (сложные выражения)
+      // Исключаем строковые литералы в кавычках
+      const cleanValue = value.replace(/"[^"]*"/g, "").replace(/'[^']*'/g, "")
+      const hasVariables = /[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*/.test(cleanValue)
+      
+      if (hasVariables) {
+        // Это выражение с переменными - разрешаем пути к данным
+        const variableMatches = value.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+        const uniqueVariables = [...new Set(variableMatches)]
+        
+        if (uniqueVariables.length > 0) {
+          const paths = uniqueVariables.map((variable: string) => resolveDataPath(variable, ctx) || variable)
+          styleObj[key] = { data: paths.length === 1 ? paths[0] || "" : paths } as AttrVariable
+        } else {
+          styleObj[key] = value
+        }
+      } else {
+        // Это статическое значение - убираем лишние кавычки
+        const staticValue = value.replace(/^"|"$/g, "").replace(/^'|'$/g, "")
+        styleObj[key] = staticValue
+      }
     }
   }
 
