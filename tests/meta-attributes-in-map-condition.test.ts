@@ -9,7 +9,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     const mainHtml = extractMainHtmlBlock(
       ({ html, core, context }) => html`
         <div>
-          ${context.items.map(
+          ${core.items.map(
             (item) => html`
               <meta-${core.tag}
                 core=${{ id: item.id, name: item.name, type: core.type }}
@@ -33,7 +33,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "map",
-              data: "/context/items",
+              data: "/core/items",
               child: [
                 {
                   tag: {
@@ -185,7 +185,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     const mainHtml = extractMainHtmlBlock(
       ({ html, core, context }) => html`
         <div>
-          ${context.items.map(
+          ${core.items.map(
             (item) => html`
               ${item.isActive
                 ? html`<meta-${core.tag}
@@ -217,7 +217,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "map",
-              data: "/context/items",
+              data: "/core/items",
               child: [
                 {
                   tag: {
@@ -270,7 +270,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     const mainHtml = extractMainHtmlBlock(
       ({ html, core, context }) => html`
         <div>
-          ${context.users.map(
+          ${core.users.map(
             (user) => html`
               ${user.permissions.includes("admin")
                 ? html`<meta-${core.tag}
@@ -350,7 +350,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "map",
-              data: "/context/users",
+              data: "/core/users",
               child: [
                 {
                   tag: {

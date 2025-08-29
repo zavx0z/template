@@ -76,7 +76,7 @@ export interface NodeCondition {
  * Мета-узел.
  * Представляет мета-тег с динамическим именем тега.
  */
-export interface NodeMeta extends MetaAttributesNode {
+export interface NodeMeta extends AttributesNode {
   /** Имя мета-тега (может быть динамическим) */
   tag: string | ParseAttributeResult
   /** Тип узла - всегда "meta" для мета-узлов */
@@ -95,15 +95,8 @@ interface AttributesNode {
   array?: AttributeArray
   /** Строковые аттрибуты */
   string?: AttributeString
-  /** Стили */
-  style?: AttributeStyle
-}
-
-interface MetaAttributesNode extends AttributesNode {
-  /** Core объекты */
-  core?: AttributeCore
-  /** Context объекты */
-  context?: AttributeContext
+  /** Объектные аттрибуты (стили) */
+  object?: AttributeObject
 }
 
 /**
@@ -141,10 +134,6 @@ type AttrStaticString = string
 
 export type AttributeBoolean = Record<string, boolean | AttrVariable | AttrDynamic>
 
-export type AttributeStyle = Record<string, string>
-
-export type AttributeCore = Record<string, string | { data: string | string[]; expr: string }>
-
-export type AttributeContext = Record<string, string | { data: string | string[]; expr: string }>
+export type AttributeObject = Record<string, Record<string, string>>
 
 export type Node = NodeMap | NodeCondition | NodeText | NodeElement | NodeMeta
