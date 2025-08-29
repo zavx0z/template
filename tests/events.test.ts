@@ -680,7 +680,7 @@ describe("events", () => {
                                           child: [
                                             {
                                               type: "text",
-                                              text: "\n                                  Member: ${member.name}\n                                ",
+                                              text: "Member: ${member.name}",
                                             },
                                           ],
                                         },

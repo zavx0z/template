@@ -35,9 +35,9 @@ describe("комплексные тесты с множественными ат
         },
         array: {
           coords: [
-            { type: "dynamic", value: "center.x" },
-            { type: "dynamic", value: "center.y" },
-            { type: "dynamic", value: "radius" },
+            { type: "dynamic", value: "${center.x}" },
+            { type: "dynamic", value: "${center.y}" },
+            { type: "dynamic", value: "${radius}" },
           ],
         },
         boolean: {
@@ -60,8 +60,8 @@ describe("комплексные тесты с множественными ат
           coords: [
             { type: "static", value: "0" },
             { type: "static", value: "0" },
-            { type: "dynamic", value: "width" },
-            { type: "dynamic", value: "height" },
+            { type: "dynamic", value: "${width}" },
+            { type: "dynamic", value: "${height}" },
             { type: "static", value: "50" },
             { type: "static", value: "50" },
           ],
@@ -81,7 +81,7 @@ describe("комплексные тесты с множественными ат
       expect(attrs).toEqual({
         string: {
           shape: { type: "static", value: "rect" },
-          coords: { type: "dynamic", value: 'isLarge ? "0,0,300,300" : "0,0,100,100"' },
+          coords: { type: "dynamic", value: '${isLarge ? "0,0,300,300" : "0,0,100,100"}' },
           alt: { type: "static", value: "Условный прямоугольник" },
         },
         boolean: {
@@ -127,10 +127,10 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: { type: "dynamic", value: "image.url" },
-          alt: { type: "dynamic", value: "image.alt" },
-          class: { type: "dynamic", value: "image.classes" },
-          srcset: { type: "dynamic", value: "image.srcset" },
+          src: { type: "dynamic", value: "${image.url}" },
+          alt: { type: "dynamic", value: "${image.alt}" },
+          class: { type: "dynamic", value: "${image.classes}" },
+          srcset: { type: "dynamic", value: "${image.srcset}" },
         },
         boolean: {
           disabled: { type: "dynamic", value: "context.disabled" },
@@ -153,7 +153,7 @@ describe("комплексные тесты с множественными ат
         array: {
           class: [
             { type: "static", value: "avatar" },
-            { type: "dynamic", value: "user.status" },
+            { type: "dynamic", value: "${user.status}" },
           ],
           srcset: [
             { type: "static", value: "base.jpg 1x" },
@@ -201,8 +201,8 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: { type: "dynamic", value: "page.url" },
-          allow: { type: "dynamic", value: 'permissions.join(";")' },
+          src: { type: "dynamic", value: "${page.url}" },
+          allow: { type: "dynamic", value: '${permissions.join(";")}' },
           sandbox: { type: "static", value: "allow-scripts" },
         },
         boolean: {
@@ -249,12 +249,12 @@ describe("комплексные тесты с множественными ат
       expect(attrs).toEqual({
         string: {
           type: { type: "static", value: "file" },
-          accept: { type: "dynamic", value: 'allowedTypes.join(",")' },
+          accept: { type: "dynamic", value: '${allowedTypes.join(",")}' },
         },
         array: {
           class: [
             { type: "static", value: "file-input" },
-            { type: "dynamic", value: 'isRequired ? "required" : ""' },
+            { type: "dynamic", value: '${isRequired ? "required" : ""}' },
           ],
         },
         boolean: {
@@ -296,8 +296,8 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          rel: { type: "dynamic", value: 'isPreload ? "preload" : "stylesheet"' },
-          href: { type: "dynamic", value: "style.url" },
+          rel: { type: "dynamic", value: '${isPreload ? "preload" : "stylesheet"}' },
+          href: { type: "dynamic", value: "${style.url}" },
           class: { type: "static", value: "styles" },
         },
         boolean: {
@@ -339,8 +339,8 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          href: { type: "dynamic", value: "link.url" },
-          ping: { type: "dynamic", value: 'analytics.urls.join(" ")' },
+          href: { type: "dynamic", value: "${link.url}" },
+          ping: { type: "dynamic", value: '${analytics.urls.join(" ")}' },
           rel: { type: "static", value: "noopener" },
         },
         boolean: {
@@ -459,12 +459,12 @@ describe("комплексные тесты с множественными ат
       expect(attrs).toEqual({
         string: {
           shape: { type: "static", value: "rect" },
-          coords: { type: "dynamic", value: 'isLarge ? "0,0,300,300" : "0,0,100,100"' },
+          coords: { type: "dynamic", value: '${isLarge ? "0,0,300,300" : "0,0,100,100"}' },
         },
         array: {
           class: [
-            { type: "dynamic", value: 'isActive ? "active" : "inactive"' },
-            { type: "dynamic", value: 'isVisible ? "visible" : "hidden"' },
+            { type: "dynamic", value: '${isActive ? "active" : "inactive"}' },
+            { type: "dynamic", value: '${isVisible ? "visible" : "hidden"}' },
           ],
         },
         boolean: {
@@ -482,11 +482,11 @@ describe("комплексные тесты с множественными ат
       )
       expect(attrs).toEqual({
         string: {
-          src: { type: "dynamic", value: "image.url" },
-          alt: { type: "dynamic", value: "image.alt" },
-          class: { type: "dynamic", value: "image.classes" },
-          srcset: { type: "dynamic", value: "image.srcset" },
-          sizes: { type: "dynamic", value: "image.sizes" },
+          src: { type: "dynamic", value: "${image.url}" },
+          alt: { type: "dynamic", value: "${image.alt}" },
+          class: { type: "dynamic", value: "${image.classes}" },
+          srcset: { type: "dynamic", value: "${image.srcset}" },
+          sizes: { type: "dynamic", value: "${image.sizes}" },
         },
         boolean: {
           disabled: { type: "dynamic", value: "context.disabled" },
@@ -504,13 +504,13 @@ describe("комплексные тесты с множественными ат
       expect(attrs).toEqual({
         string: {
           src: { type: "static", value: "https://example.com" },
-          allow: { type: "dynamic", value: 'permissions.join(";")' },
+          allow: { type: "dynamic", value: '${permissions.join(";")}' },
           class: { type: "static", value: "embed" },
         },
         array: {
           sandbox: [
             { type: "static", value: "allow-scripts" },
-            { type: "dynamic", value: 'user.canAccess ? "allow-same-origin" : ""' },
+            { type: "dynamic", value: '${user.canAccess ? "allow-same-origin" : ""}' },
           ],
         },
         boolean: {

@@ -35,13 +35,13 @@ describe.each([
     it("одно (чисто динамический токен)", () => {
       const attrs = parseAttributes(tag + ' srcset="${core.src}">')
       expect(attrs).toEqual({
-        string: { srcset: { type: "dynamic", value: "core.src" } },
+        string: { srcset: { type: "dynamic", value: "${core.src}" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " srcset=${core.src}>")
       expect(attrs).toEqual({
-        string: { srcset: { type: "dynamic", value: "core.src" } },
+        string: { srcset: { type: "dynamic", value: "${core.src}" } },
       })
     })
     it("несколько", () => {
@@ -49,8 +49,8 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           srcset: [
-            { type: "dynamic", value: "core.src" },
-            { type: "dynamic", value: "core.src" },
+            { type: "dynamic", value: "${core.src}" },
+            { type: "dynamic", value: "${core.src}" },
           ],
         },
       })
@@ -59,7 +59,9 @@ describe.each([
     it("с операторами сравнения", () => {
       const attrs = parseAttributes(tag + ' srcset="${core.type === "retina" ? "image@2x.jpg 2x" : "image.jpg 1x"}">')
       expect(attrs).toEqual({
-        string: { srcset: { type: "dynamic", value: 'core.type === "retina" ? "image@2x.jpg 2x" : "image.jpg 1x"' } },
+        string: {
+          srcset: { type: "dynamic", value: '${core.type === "retina" ? "image@2x.jpg 2x" : "image.jpg 1x"}' },
+        },
       })
     })
 
@@ -69,7 +71,10 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          srcset: { type: "dynamic", value: 'core.retina && core.webp ? "image@2x.webp 2x" : "image.jpg 1x"' },
+          srcset: {
+            type: "dynamic",
+            value: '${core.retina && core.webp ? "image@2x.webp 2x" : "image.jpg 1x"}',
+          },
         },
       })
     })
@@ -77,14 +82,21 @@ describe.each([
     it("с оператором ИЛИ", () => {
       const attrs = parseAttributes(tag + ' srcset="${core.retina || core.webp ? "image@2x.jpg 2x" : "image.jpg 1x"}">')
       expect(attrs).toEqual({
-        string: { srcset: { type: "dynamic", value: 'core.retina || core.webp ? "image@2x.jpg 2x" : "image.jpg 1x"' } },
+        string: {
+          srcset: {
+            type: "dynamic",
+            value: '${core.retina || core.webp ? "image@2x.jpg 2x" : "image.jpg 1x"}',
+          },
+        },
       })
     })
 
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' srcset="${!core.lowBandwidth ? "image@2x.jpg 2x" : "image.jpg 1x"}">')
       expect(attrs).toEqual({
-        string: { srcset: { type: "dynamic", value: '!core.lowBandwidth ? "image@2x.jpg 2x" : "image.jpg 1x"' } },
+        string: {
+          srcset: { type: "dynamic", value: '${!core.lowBandwidth ? "image@2x.jpg 2x" : "image.jpg 1x"}' },
+        },
       })
     })
   })
@@ -132,8 +144,8 @@ describe.each([
         array: {
           srcset: [
             { type: "static", value: "a.jpg 1x" },
-            { type: "dynamic", value: 'core.retina ? "a@2x.jpg 2x" : ""' },
-            { type: "dynamic", value: 'core.webp ? "a.webp 1x" : ""' },
+            { type: "dynamic", value: '${core.retina ? "a@2x.jpg 2x" : ""}' },
+            { type: "dynamic", value: '${core.webp ? "a.webp 1x" : ""}' },
           ],
         },
       })
@@ -152,7 +164,7 @@ describe.each([
         array: {
           srcset: [
             { type: "static", value: "a.jpg 1x" },
-            { type: "dynamic", value: 'core.retina ? "a@2x.jpg 2x" : ""' },
+            { type: "dynamic", value: '${core.retina ? "a@2x.jpg 2x" : ""}' },
           ],
         },
       })

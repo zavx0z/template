@@ -497,33 +497,14 @@ const processStringAttributes = (
     if (attr.type === "static") {
       result[key] = attr.value
     } else if (attr.type === "dynamic" || attr.type === "mixed") {
-      // Для динамических и смешанных атрибутов проверяем, есть ли уже ${} обертка
-      const hasBraces = attr.value.includes("${")
-      const valueWithBraces = hasBraces ? attr.value : `\${${attr.value}}`
-      const templateResult = parseTemplateLiteral(valueWithBraces, context)
+      const templateResult = parseTemplateLiteral(attr.value, context)
       if (templateResult && templateResult.data) {
-        // Проверяем, нужно ли добавлять expr
-        // Если это просто переменная без дополнительного текста, не добавляем expr
-        const isSimpleVariable =
-          !hasBraces &&
-          !attr.value.includes(" ") &&
-          !attr.value.includes("+") &&
-          !attr.value.includes("-") &&
-          !attr.value.includes("*") &&
-          !attr.value.includes("/") &&
-          !attr.value.includes("?") &&
-          !attr.value.includes(":") &&
-          !attr.value.includes("!")
+        // Проверяем, является ли это простой переменной (только одна переменная без дополнительного текста)
+        const isSimpleVariable = templateResult.expr === "${[0]}" && !Array.isArray(templateResult.data)
 
-        if (templateResult.expr && typeof templateResult.expr === "string" && !isSimpleVariable) {
-          result[key] = {
-            data: templateResult.data,
-            expr: templateResult.expr,
-          }
-        } else {
-          result[key] = {
-            data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
-          }
+        result[key] = {
+          data: templateResult.data,
+          ...(templateResult.expr && !isSimpleVariable && { expr: templateResult.expr }),
         }
       } else {
         result[key] = attr.value
@@ -614,7 +595,11 @@ const processArrayAttributes = (
         // Для динамических и смешанных атрибутов обрабатываем значение
         const templateResult = parseTemplateLiteral(item.value, context)
         if (templateResult && templateResult.data) {
-          if (templateResult.expr && typeof templateResult.expr === "string") {
+          // Проверяем, нужно ли добавлять expr
+          // Если expr равен "${[0]}" (что означает простую переменную), не добавляем expr
+          const isSimpleExpr = templateResult.expr === "${[0]}" || templateResult.expr === "[0]"
+
+          if (templateResult.expr && typeof templateResult.expr === "string" && !isSimpleExpr) {
             return {
               data: templateResult.data,
               expr: templateResult.expr,
@@ -959,6 +944,17 @@ export const extractConditionExpression = (condText: string): string => {
     return `\${${ARGUMENTS_PREFIX}[0]}`
   }
 
+  // Если найдена только одна переменная, но есть простые математические операции (например, i % 2)
+  if (pathMatches.length === 1 && hasComplexOperations && !hasLogicalOperators) {
+    // Заменяем переменную на индекс и оборачиваем в ${}
+    let expression = condText
+    expression = expression.replace(
+      new RegExp(`\\b${pathMatches[0].replace(/\./g, "\\.")}\\b`, "g"),
+      `${ARGUMENTS_PREFIX}[0]`
+    )
+    return `\${${expression}}`
+  }
+
   // Заменяем переменные на индексы ${${ARGUMENTS_PREFIX}[0]}, ${${ARGUMENTS_PREFIX}[1]}, и т.д.
   let expression = condText
   pathMatches.forEach((path, index) => {
@@ -969,34 +965,6 @@ export const extractConditionExpression = (condText: string): string => {
   })
 
   return expression.replace(/\s+/g, " ").trim()
-}
-
-/**
- * Форматирует текст по стандартам HTML (схлопывание пробельных символов).
- */
-const formatTextByHtmlStandards = (text: string): string => {
-  // Схлопываем последовательные пробельные символы в один пробел
-  // и удаляем пробелы в начале и конце
-  return text.replace(/\s+/g, " ").trim()
-}
-
-/**
- * Форматирует статический текст, сохраняя важные пробелы.
- */
-const formatStaticText = (text: string): string => {
-  // Если текст содержит только пробельные символы - удаляем их полностью
-  if (text.trim().length === 0) {
-    return ""
-  }
-
-  // Если текст содержит не-пробельные символы - форматируем по стандартам HTML
-  // НО только если это многострочный текст или содержит много пробелов
-  if (text.includes("\n") || text.includes("\t") || /\s{3,}/.test(text)) {
-    return formatTextByHtmlStandards(text)
-  }
-
-  // Иначе оставляем как есть
-  return text
 }
 
 /**
@@ -1011,7 +979,7 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
   if (!text.includes("${")) {
     return {
       type: "text",
-      value: formatStaticText(text),
+      value: text,
     }
   }
 
@@ -1086,7 +1054,7 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
     if (staticText) {
       return {
         type: "text",
-        value: formatStaticText(staticText),
+        value: staticText,
       }
     }
   }
@@ -1116,6 +1084,7 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
       }
     }
 
+    // Для простых переменных не добавляем expr
     return {
       type: "text",
       data: mainPath,
@@ -1132,6 +1101,19 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
       })
       .join("")
 
+    // Проверяем, является ли это простым выражением (только переменные без статического текста)
+    const isSimpleExpr =
+      expr === `\${${ARGUMENTS_PREFIX}[0]}` ||
+      expr === `\${${ARGUMENTS_PREFIX}[0]}\${${ARGUMENTS_PREFIX}[1]}` ||
+      expr === `\${${ARGUMENTS_PREFIX}[0]}-\${${ARGUMENTS_PREFIX}[1]}`
+
+    if (isSimpleExpr) {
+      return {
+        type: "text",
+        data: dynamicParts.map((part) => part.path),
+      }
+    }
+
     return {
       type: "text",
       data: dynamicParts.map((part) => part.path),
@@ -1143,8 +1125,8 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
   const hasStaticText = parts.some((part) => part.type === "static" && part.text.trim() !== "")
   const hasWhitespace = parts.some((part) => part.type === "static" && /\s/.test(part.text))
 
-  // Добавляем expr если есть статический текст или пробельные символы
-  if (hasStaticText || hasWhitespace) {
+  // Добавляем expr только если есть статический текст (не пробельные символы)
+  if (hasStaticText) {
     const expr = parts
       .map((part) => {
         if (part.type === "static") return part.text
@@ -1213,21 +1195,14 @@ export const parseTemplateLiteral = (
     return null
   }
 
-  // Извлекаем содержимое ${...} выражений
-  const templateMatches = value.match(/\$\{([^}]+)\}/g) || []
-
-  if (templateMatches.length === 0) {
-    return null
-  }
-
-  // Извлекаем переменные только из содержимого ${...}
+  // Извлекаем все переменные из выражения, включая вложенные ${...}
   const variables: string[] = []
-  templateMatches.forEach((match) => {
-    const content = match.slice(2, -1) // Убираем ${ и }
 
-    // Защищаем строковые литералы в содержимом
+  // Функция для извлечения переменных из строки с учетом вложенных ${...}
+  const extractVariables = (str: string) => {
+    // Защищаем строковые литералы
     const stringLiterals: string[] = []
-    let protectedContent = content
+    let protectedStr = str
       .replace(/"[^"]*"/g, (match) => {
         stringLiterals.push(match)
         return `__STRING_${stringLiterals.length - 1}__`
@@ -1237,24 +1212,102 @@ export const parseTemplateLiteral = (
         return `__STRING_${stringLiterals.length - 1}__`
       })
 
-    const variableMatches = protectedContent.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+    // Рекурсивно извлекаем переменные из всех ${...} выражений
+    const extractFromTemplate = (content: string) => {
+      // Находим переменные в текущем содержимом
+      const variableMatches = content.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
-    variableMatches.forEach((variable) => {
-      if (
-        variable.length > 1 &&
-        !variable.startsWith("__STRING_") &&
-        !variable.startsWith("STRING") &&
-        variable !== "true" &&
-        variable !== "false" &&
-        variable !== "null" &&
-        variable !== "undefined" &&
-        !variables.includes(variable) &&
-        // Исключаем статические части, которые не являются переменными
-        !["div", "btn", "text", "bg", "theme", "static", "value", "mixed", "user"].includes(variable)
-      ) {
-        variables.push(variable)
-      }
+      variableMatches.forEach((variable) => {
+        if (
+          variable.length > 1 &&
+          !variable.startsWith("__STRING_") &&
+          !variable.startsWith("STRING") &&
+          variable !== "true" &&
+          variable !== "false" &&
+          variable !== "null" &&
+          variable !== "undefined" &&
+          !variables.includes(variable)
+        ) {
+          variables.push(variable)
+        }
+      })
+
+      // Рекурсивно обрабатываем вложенные ${...}
+      const nestedMatches = content.match(/\$\{([^}]+)\}/g) || []
+      nestedMatches.forEach((nestedMatch) => {
+        const nestedContent = nestedMatch.slice(2, -1)
+        extractFromTemplate(nestedContent)
+      })
+    }
+
+    // Если строка содержит ${...}, извлекаем переменные из всего содержимого
+    if (protectedStr.includes("${")) {
+      // Находим все ${...} выражения
+      const templateMatches = protectedStr.match(/\$\{([^}]+)\}/g) || []
+
+      templateMatches.forEach((match) => {
+        // Извлекаем содержимое ${...}
+        const content = match.slice(2, -1) // убираем ${ и }
+        extractFromTemplate(content)
+      })
+    }
+  }
+
+  // Извлекаем переменные из всего выражения
+  extractVariables(value)
+
+  // Всегда извлекаем переменные из всего выражения, независимо от наличия ${...}
+
+  // Защищаем строковые литералы
+  const additionalStringLiterals: string[] = []
+  let protectedValue = value
+    .replace(/"[^"]*"/g, (match) => {
+      additionalStringLiterals.push(match)
+      return `__STRING_${additionalStringLiterals.length - 1}__`
     })
+    .replace(/'[^']*'/g, (match) => {
+      additionalStringLiterals.push(match)
+      return `__STRING_${additionalStringLiterals.length - 1}__`
+    })
+    // Защищаем строки внутри template literals (например, "active" в `${context.item}-active-${context.status}`)
+    .replace(/\$\{([^}]*)\}/g, (match, content) => {
+      const protectedContent = content.replace(/([a-zA-Z_$][\w$]*)/g, (word: string) => {
+        // Если это не переменная с точками, считаем строкой
+        if (!word.includes(".") && word !== "true" && word !== "false" && word !== "null" && word !== "undefined") {
+          additionalStringLiterals.push(word)
+          return `__STRING_${additionalStringLiterals.length - 1}__`
+        }
+        return word
+      })
+      return `\${${protectedContent}}`
+    })
+
+  // Извлекаем переменные только из ${} выражений или если они содержат точки
+  const allMatches = protectedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+  allMatches.forEach((variable) => {
+    // Переменная должна содержать точки (например, context.flag) или быть внутри ${} выражения
+    const hasDots = variable.includes(".")
+    const isInsideTemplateLiteral =
+      value.includes(`\${${variable}}`) || value.includes(`\${${variable} `) || value.includes(` ${variable}}`)
+
+    // Проверяем, является ли это простой переменной в выражении (например, i в i % 2)
+    const isSimpleVariableInExpression = !hasDots && value.includes(`${variable} `) && /[+\-*/%<>=!&|]/.test(value)
+
+    if (
+      variable.length > 1 &&
+      !variable.startsWith("__STRING_") &&
+      variable !== "true" &&
+      variable !== "false" &&
+      variable !== "null" &&
+      variable !== "undefined" &&
+      variable !== "active" &&
+      variable !== "inactive" &&
+      (hasDots || isInsideTemplateLiteral || isSimpleVariableInExpression) &&
+      !variables.includes(variable)
+    ) {
+      variables.push(variable)
+    }
   })
 
   if (variables.length === 0) {
@@ -1280,12 +1333,10 @@ export const parseTemplateLiteral = (
     })
 
   variables.forEach((variable: string, index: number) => {
-    // Заменяем переменные на индексы только внутри ${...} выражений
-    const variableRegex = new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g")
-    protectedExpr = protectedExpr.replace(new RegExp(`\\$\\{([^}]*?)\\}`, "g"), (match, content) => {
-      const updatedContent = content.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
-      return `\${${updatedContent}}`
-    })
+    // Заменяем переменные на индексы во всем выражении
+    // Используем более точное регулярное выражение для замены переменных
+    const variableRegex = new RegExp(`(?<!\\w)${variable.replace(/\./g, "\\.")}(?!\\w)`, "g")
+    protectedExpr = protectedExpr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
   })
 
   // Восстанавливаем строковые литералы

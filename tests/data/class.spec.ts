@@ -682,10 +682,16 @@ describe("class атрибуты в data.ts", () => {
         }
       >(
         ({ html, core }) =>
-          html`<div
-            class="base user-${core.user.id} ${core.isActive ? "active" : "inactive"} ${core.isAdmin
-              ? "admin"
-              : "user"} theme-${core.theme}"></div>`
+          html`
+            <div
+              class="
+              base 
+              user-${core.user.id} 
+              ${core.isActive ? "active" : "inactive"} 
+              ${core.isAdmin ? "admin" : "user"} 
+              theme-${core.theme}
+              "></div>
+          `
       )
       const elements = extractHtmlElements(mainHtml)
       const hierarchy = makeHierarchy(mainHtml, elements)

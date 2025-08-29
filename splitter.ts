@@ -265,8 +265,17 @@ export const extractHtmlElements = (input: string): ElementToken[] => {
       }
     }
 
-    if (processedChunk.trim().length > 0) {
-      out.push({ text: processedChunk, index, name: "", kind: "text" })
+    // Форматируем текст по стандартам HTML (схлопывание пробельных символов)
+    // Схлопываем множественные пробелы
+    const formattedChunk = processedChunk.replace(/\s+/g, " ")
+
+    // Удаляем только узлы, которые состоят из одного пробела (разделители между элементами)
+    if (formattedChunk === " ") {
+      return // Удаляем чистые пробелы-разделители
+    }
+
+    if (formattedChunk.length > 0) {
+      out.push({ text: formattedChunk, index, name: "", kind: "text" })
     }
   }
 

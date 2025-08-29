@@ -46,13 +46,13 @@ describe.each([
     it("aria-labelledby одно", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="${core.id}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": { type: "dynamic", value: "core.id" } },
+        string: { "aria-labelledby": { type: "dynamic", value: "${core.id}" } },
       })
     })
     it("aria-labelledby одно без кавычек", () => {
       const attrs = parseAttributes(tag + " aria-labelledby=${core.id}>")
       expect(attrs).toEqual({
-        string: { "aria-labelledby": { type: "dynamic", value: "core.id" } },
+        string: { "aria-labelledby": { type: "dynamic", value: "${core.id}" } },
       })
     })
     it("aria-labelledby несколько", () => {
@@ -60,8 +60,8 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           "aria-labelledby": [
-            { type: "dynamic", value: "core.id" },
-            { type: "dynamic", value: "core.id" },
+            { type: "dynamic", value: "${core.id}" },
+            { type: "dynamic", value: "${core.id}" },
           ],
         },
       })
@@ -71,7 +71,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' aria-labelledby="${core.type === "admin" ? "admin-title" : "user-title"}">')
       expect(attrs).toEqual({
         string: {
-          "aria-labelledby": { type: "dynamic", value: 'core.type === "admin" ? "admin-title" : "user-title"' },
+          "aria-labelledby": {
+            type: "dynamic",
+            value: '${core.type === "admin" ? "admin-title" : "user-title"}',
+          },
         },
       })
     })
@@ -84,7 +87,7 @@ describe.each([
         string: {
           "aria-labelledby": {
             type: "dynamic",
-            value: 'core.hasTitle && core.hasSubtitle ? "title subtitle" : "title"',
+            value: '${core.hasTitle && core.hasSubtitle ? "title subtitle" : "title"}',
           },
         },
       })
@@ -98,7 +101,7 @@ describe.each([
         string: {
           "aria-labelledby": {
             type: "dynamic",
-            value: 'core.hasTitle || core.hasSubtitle ? "title subtitle" : "default"',
+            value: '${core.hasTitle || core.hasSubtitle ? "title subtitle" : "default"}',
           },
         },
       })
@@ -107,7 +110,9 @@ describe.each([
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="${!core.hidden ? "title" : ""}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": { type: "dynamic", value: '!core.hidden ? "title" : ""' } },
+        string: {
+          "aria-labelledby": { type: "dynamic", value: '${!core.hidden ? "title" : ""}' },
+        },
       })
     })
   })
@@ -118,7 +123,7 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           "aria-describedby": [
-            { type: "dynamic", value: "core.id" },
+            { type: "dynamic", value: "${core.id}" },
             { type: "static", value: "note" },
           ],
         },
@@ -131,7 +136,7 @@ describe.each([
         array: {
           "aria-labelledby": [
             { type: "static", value: "title" },
-            { type: "dynamic", value: "core.subtitle" },
+            { type: "dynamic", value: "${core.subtitle}" },
           ],
         },
       })
@@ -140,7 +145,9 @@ describe.each([
     it("с операторами сравнения в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="title-${core.type === "admin" ? "admin" : "user"}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": { type: "mixed", value: 'title-${core.type === "admin" ? "admin" : "user"}' } },
+        string: {
+          "aria-labelledby": { type: "mixed", value: 'title-${core.type === "admin" ? "admin" : "user"}' },
+        },
       })
     })
 
@@ -150,7 +157,10 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          "aria-labelledby": { type: "mixed", value: 'label-${core.hasTitle && core.hasSubtitle ? "full" : "simple"}' },
+          "aria-labelledby": {
+            type: "mixed",
+            value: 'label-${core.hasTitle && core.hasSubtitle ? "full" : "simple"}',
+          },
         },
       })
     })
@@ -166,8 +176,8 @@ describe.each([
         array: {
           "aria-labelledby": [
             { type: "static", value: "title" },
-            { type: "dynamic", value: 'core.hasSubtitle ? "subtitle" : ""' },
-            { type: "dynamic", value: 'core.hasDescription ? "description" : ""' },
+            { type: "dynamic", value: '${core.hasSubtitle ? "subtitle" : ""}' },
+            { type: "dynamic", value: '${core.hasDescription ? "description" : ""}' },
           ],
         },
       })
@@ -176,7 +186,9 @@ describe.each([
     it("с вложенными выражениями", () => {
       const attrs = parseAttributes(tag + ' aria-labelledby="label/${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
-        string: { "aria-labelledby": { type: "mixed", value: 'label/${core.nested ? "nested" : "default"}' } },
+        string: {
+          "aria-labelledby": { type: "mixed", value: 'label/${core.nested ? "nested" : "default"}' },
+        },
       })
     })
 
@@ -186,7 +198,7 @@ describe.each([
         array: {
           "aria-labelledby": [
             { type: "static", value: "title" },
-            { type: "dynamic", value: 'core.hasSubtitle ? "subtitle" : ""' },
+            { type: "dynamic", value: '${core.hasSubtitle ? "subtitle" : ""}' },
           ],
         },
       })

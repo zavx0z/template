@@ -85,13 +85,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' accept="${core.mime}">')
       expect(attrs).toEqual({
-        string: { accept: { type: "dynamic", value: "core.mime" } },
+        string: { accept: { type: "dynamic", value: "${core.mime}" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " accept=${core.mime}>")
       expect(attrs).toEqual({
-        string: { accept: { type: "dynamic", value: "core.mime" } },
+        string: { accept: { type: "dynamic", value: "${core.mime}" } },
       })
     })
     it("несколько", () => {
@@ -99,8 +99,8 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           accept: [
-            { type: "dynamic", value: "core.mime" },
-            { type: "dynamic", value: "core.mime" },
+            { type: "dynamic", value: "${core.mime}" },
+            { type: "dynamic", value: "${core.mime}" },
           ],
         },
       })
@@ -109,7 +109,7 @@ describe.each([
     it("с операторами сравнения", () => {
       const attrs = parseAttributes(tag + ' accept="${core.type === "image" ? "image/*" : "text/*"}">')
       expect(attrs).toEqual({
-        string: { accept: { type: "dynamic", value: 'core.type === "image" ? "image/*" : "text/*"' } },
+        string: { accept: { type: "dynamic", value: '${core.type === "image" ? "image/*" : "text/*"}' } },
       })
     })
 
@@ -119,7 +119,7 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          accept: { type: "dynamic", value: 'core.allowImages && core.allowDocs ? "image/*,.pdf" : "text/*"' },
+          accept: { type: "dynamic", value: '${core.allowImages && core.allowDocs ? "image/*,.pdf" : "text/*"}' },
         },
       })
     })
@@ -130,7 +130,7 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          accept: { type: "dynamic", value: 'core.allowImages || core.allowVideos ? "image/*,video/*" : "text/*"' },
+          accept: { type: "dynamic", value: '${core.allowImages || core.allowVideos ? "image/*,video/*" : "text/*"}' },
         },
       })
     })
@@ -138,14 +138,16 @@ describe.each([
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' accept="${!core.restricted ? "image/*,video/*" : "text/*"}">')
       expect(attrs).toEqual({
-        string: { accept: { type: "dynamic", value: '!core.restricted ? "image/*,video/*" : "text/*"' } },
+        string: { accept: { type: "dynamic", value: '${!core.restricted ? "image/*,video/*" : "text/*"}' } },
       })
     })
 
     it("сложное выражение с запятыми", () => {
       const attrs = parseAttributes(tag + ' accept="${core.type === "image" ? "image/png,image/jpeg" : "text/plain"}">')
       expect(attrs).toEqual({
-        string: { accept: { type: "dynamic", value: 'core.type === "image" ? "image/png,image/jpeg" : "text/plain"' } },
+        string: {
+          accept: { type: "dynamic", value: '${core.type === "image" ? "image/png,image/jpeg" : "text/plain"}' },
+        },
       })
     })
 
@@ -155,7 +157,7 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          accept: { type: "dynamic", value: 'core.allowImages && core.allowDocs ? "image/*,.pdf,.doc" : "text/*"' },
+          accept: { type: "dynamic", value: '${core.allowImages && core.allowDocs ? "image/*,.pdf,.doc" : "text/*"}' },
         },
       })
     })
@@ -165,9 +167,9 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           accept: [
-            { type: "dynamic", value: "core.imageType" },
-            { type: "dynamic", value: "core.videoType" },
-            { type: "dynamic", value: "core.docType" },
+            { type: "dynamic", value: "${core.imageType}" },
+            { type: "dynamic", value: "${core.videoType}" },
+            { type: "dynamic", value: "${core.docType}" },
           ],
         },
       })
@@ -178,9 +180,9 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           accept: [
-            { type: "dynamic", value: "core.type1" },
-            { type: "dynamic", value: "core.type2" },
-            { type: "dynamic", value: "core.type3" },
+            { type: "dynamic", value: "${core.type1}" },
+            { type: "dynamic", value: "${core.type2}" },
+            { type: "dynamic", value: "${core.type3}" },
           ],
         },
       })
@@ -194,7 +196,7 @@ describe.each([
         array: {
           accept: [
             { type: "static", value: "image/*" },
-            { type: "dynamic", value: "core.mime" },
+            { type: "dynamic", value: "${core.mime}" },
           ],
         },
       })
@@ -206,7 +208,7 @@ describe.each([
         array: {
           accept: [
             { type: "static", value: "image/*" },
-            { type: "dynamic", value: "core.mime" },
+            { type: "dynamic", value: "${core.mime}" },
             { type: "static", value: ".pdf" },
           ],
         },
@@ -216,21 +218,36 @@ describe.each([
     it("с операторами сравнения в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' accept="image-${core.type === "png" ? "png" : "jpeg"}">')
       expect(attrs).toEqual({
-        string: { accept: { type: "mixed", value: 'image-${core.type === "png" ? "png" : "jpeg"}' } },
+        string: {
+          accept: {
+            type: "mixed",
+            value: 'image-${core.type === "png" ? "png" : "jpeg"}',
+          },
+        },
       })
     })
 
     it("с логическими операторами в смешанном значении", () => {
       const attrs = parseAttributes(tag + ' accept="file-${core.allowImages && core.allowVideos ? "media" : "doc"}">')
       expect(attrs).toEqual({
-        string: { accept: { type: "mixed", value: 'file-${core.allowImages && core.allowVideos ? "media" : "doc"}' } },
+        string: {
+          accept: {
+            type: "mixed",
+            value: 'file-${core.allowImages && core.allowVideos ? "media" : "doc"}',
+          },
+        },
       })
     })
 
     it("смешанное значение с запятыми", () => {
       const attrs = parseAttributes(tag + ' accept="type-${core.format === "image" ? "png,jpeg" : "pdf,doc"}">')
       expect(attrs).toEqual({
-        string: { accept: { type: "mixed", value: 'type-${core.format === "image" ? "png,jpeg" : "pdf,doc"}' } },
+        string: {
+          accept: {
+            type: "mixed",
+            value: 'type-${core.format === "image" ? "png,jpeg" : "pdf,doc"}',
+          },
+        },
       })
     })
 
@@ -270,8 +287,8 @@ describe.each([
         array: {
           accept: [
             { type: "static", value: "image/*" },
-            { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
-            { type: "dynamic", value: 'core.allowDoc ? ".doc" : ""' },
+            { type: "dynamic", value: '${core.allowPdf ? ".pdf" : ""}' },
+            { type: "dynamic", value: '${core.allowDoc ? ".doc" : ""}' },
           ],
         },
       })
@@ -280,7 +297,12 @@ describe.each([
     it("с вложенными выражениями", () => {
       const attrs = parseAttributes(tag + ' accept="media/${core.nested ? "nested" : "default"}">')
       expect(attrs).toEqual({
-        string: { accept: { type: "mixed", value: 'media/${core.nested ? "nested" : "default"}' } },
+        string: {
+          accept: {
+            type: "mixed",
+            value: 'media/${core.nested ? "nested" : "default"}',
+          },
+        },
       })
     })
 
@@ -290,7 +312,7 @@ describe.each([
         array: {
           accept: [
             { type: "static", value: "image/*" },
-            { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
+            { type: "dynamic", value: '${core.allowPdf ? ".pdf" : ""}' },
           ],
         },
       })
@@ -304,7 +326,7 @@ describe.each([
         string: {
           accept: {
             type: "dynamic",
-            value: 'core.type === "image" && core.quality === "high" ? "image/png,image/jpeg" : "image/*"',
+            value: '${core.type === "image" && core.quality === "high" ? "image/png,image/jpeg" : "image/*"}',
           },
         },
       })
@@ -318,7 +340,7 @@ describe.each([
         string: {
           accept: {
             type: "dynamic",
-            value: 'core.allowImages ? (core.highQuality ? "image/png,image/jpeg" : "image/*") : "text/*"',
+            value: '${core.allowImages ? (core.highQuality ? "image/png,image/jpeg" : "image/*") : "text/*"}',
           },
         },
       })
@@ -330,7 +352,7 @@ describe.each([
         array: {
           accept: [
             { type: "static", value: "image/*" },
-            { type: "dynamic", value: "core.videoType" },
+            { type: "dynamic", value: "${core.videoType}" },
             { type: "mixed", value: "video-${core.format}" },
           ],
         },
@@ -343,7 +365,7 @@ describe.each([
         array: {
           accept: [
             { type: "static", value: "image/*" },
-            { type: "dynamic", value: "core.videoType" },
+            { type: "dynamic", value: "${core.videoType}" },
             { type: "mixed", value: "video-${core.format}" },
             { type: "mixed", value: ".${core.ext}" },
           ],
@@ -360,9 +382,9 @@ describe.each([
         array: {
           accept: [
             { type: "static", value: "image/*" },
-            { type: "dynamic", value: 'core.allowPdf ? ".pdf" : ""' },
-            { type: "dynamic", value: 'core.allowDoc ? ".doc" : ""' },
-            { type: "dynamic", value: 'core.allowTxt ? ".txt" : ""' },
+            { type: "dynamic", value: '${core.allowPdf ? ".pdf" : ""}' },
+            { type: "dynamic", value: '${core.allowDoc ? ".doc" : ""}' },
+            { type: "dynamic", value: '${core.allowTxt ? ".txt" : ""}' },
           ],
         },
       })

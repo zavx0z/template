@@ -5,11 +5,12 @@ import { enrichWithData } from "../data"
 
 describe("text-formatting", () => {
   describe("форматирует текст по стандартам HTML (схлопывание пробельных символов)", () => {
-    const mainHtml = extractMainHtmlBlock<any, { name: string; title: string }>(
-      ({ html, context }) => html`
+    const mainHtml = extractMainHtmlBlock<{ name: string; title: string }, { items: { title: string }[] }>(
+      ({ html, context, core }) => html`
         <div>
           <p>Hello World</p>
-          <span> ${context.name} - ${context.title} </span>
+          <span>${context.name} - ${context.title}</span>
+          <span>${context.name} - ${core.items.map((item) => item.title).join(", ")}</span>
           <div>Welcome to our site!</div>
           <p>${context.name} is ${context.title}</p>
         </div>
@@ -17,87 +18,95 @@ describe("text-formatting", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
+    it("elements", () =>
+      expect(elements).toEqual([
+        { text: "<div>", index: 9, name: "div", kind: "open" },
+        { text: "<p>", index: 25, name: "p", kind: "open" },
+        { text: "Hello World", index: 28, name: "", kind: "text" },
+        { text: "</p>", index: 39, name: "p", kind: "close" },
+        { text: "<span>", index: 54, name: "span", kind: "open" },
+        { text: "${context.name} - ${context.title}", index: 60, name: "", kind: "text" },
+        { text: "</span>", index: 94 , name: "span", kind: "close" },
+        { text: "<span>", index: 112, name: "span", kind: "open" },
+        {
+          text: '${context.name} - ${core.items.map((item) => item.title).join(", ")}',
+          index: 118,
+          name: "",
+          kind: "text",
+        },
+        { text: "</span>", index: 186, name: "span", kind: "close" },
+        { text: "<div>", index: 204, name: "div", kind: "open" },
+        { text: "Welcome to our site!", index: 209, name: "", kind: "text" },
+        { text: "</div>", index: 229, name: "div", kind: "close" },
+        { text: "<p>", index: 246, name: "p", kind: "open" },
+        { text: "${context.name} is ${context.title}", index: 249, name: "", kind: "text" },
+        { text: "</p>", index: 284, name: "p", kind: "close" },
+        { text: "</div>", index: 297, name: "div", kind: "close" },
+      ]))
     const hierarchy = makeHierarchy(mainHtml, elements)
     const data = enrichWithData(hierarchy)
-
-    it("p1 element tag", () => {
-      const divElement = data[0] as any
-      const p1Element = divElement?.child?.[0] as any
-      expect(p1Element).toHaveProperty("tag", "p")
-    })
-
-    it("p1 text type", () => {
-      const divElement = data[0] as any
-      const p1Element = divElement?.child?.[0] as any
-      const p1Text = p1Element?.child?.[0] as any
-      expect(p1Text).toHaveProperty("type", "text")
-    })
-
-    it("p1 text value", () => {
-      const divElement = data[0] as any
-      const p1Element = divElement?.child?.[0] as any
-      const p1Text = p1Element?.child?.[0] as any
-      expect(p1Text?.value).toBe("Hello World")
-    })
-
-    it("span element tag", () => {
-      const divElement = data[0] as any
-      const spanElement = divElement?.child?.[1] as any
-      expect(spanElement).toHaveProperty("tag", "span")
-    })
-
-    it("span text type", () => {
-      const divElement = data[0] as any
-      const spanElement = divElement?.child?.[1] as any
-      const spanText = spanElement?.child?.[0] as any
-      expect(spanText).toHaveProperty("type", "text")
-    })
-
-    it("span text expr", () => {
-      const divElement = data[0] as any
-      const spanElement = divElement?.child?.[1] as any
-      const spanText = spanElement?.child?.[0] as any
-      expect(spanText?.expr).toBe("${[0]} - ${[1]}")
-    })
-
-    it("div2 element tag", () => {
-      const divElement = data[0] as any
-      const divElement2 = divElement?.child?.[2] as any
-      expect(divElement2).toHaveProperty("tag", "div")
-    })
-
-    it("div2 text type", () => {
-      const divElement = data[0] as any
-      const divElement2 = divElement?.child?.[2] as any
-      const divText = divElement2?.child?.[0] as any
-      expect(divText).toHaveProperty("type", "text")
-    })
-
-    it("div2 text value", () => {
-      const divElement = data[0] as any
-      const divElement2 = divElement?.child?.[2] as any
-      const divText = divElement2?.child?.[0] as any
-      expect(divText?.value).toBe("Welcome to our site!")
-    })
-
-    it("p2 element tag", () => {
-      const divElement = data[0] as any
-      const p2Element = divElement?.child?.[3] as any
-      expect(p2Element).toHaveProperty("tag", "p")
-    })
-
-    it("p2 text type", () => {
-      const divElement = data[0] as any
-      const p2Element = divElement?.child?.[3] as any
-      const p2Text = p2Element?.child?.[0] as any
-      expect(p2Text).toHaveProperty("type", "text")
-    })
-
-    it("p2 text expr", () => {
-      const divElement = data[0] as any
-      const p2Element = divElement?.child?.[3] as any
-      const p2Text = p2Element?.child?.[0] as any
-      expect(p2Text?.expr).toBe("${[0]} is ${[1]}")
-    })
+    console.log(data)
+    it("data", () =>
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              tag: "p",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  value: "Hello World",
+                },
+              ],
+            },
+            {
+              tag: "span",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  data: ["/context/name", "/context/title"],
+                  expr: "${[0]} - ${[1]}",
+                },
+              ],
+            },
+            {
+              tag: "span",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  data: "/context/name",
+                  expr: "${[0]} - ${[0]}",
+                },
+              ],
+            },
+            {
+              tag: "div",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  value: "Welcome to our site!",
+                },
+              ],
+            },
+            {
+              tag: "p",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  data: ["/context/name", "/context/title"],
+                  expr: "${[0]} is ${[1]}",
+                },
+              ],
+            },
+          ],
+        },
+      ]))
   })
 })

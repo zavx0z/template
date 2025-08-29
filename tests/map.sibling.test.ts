@@ -269,7 +269,7 @@ describe("map соседствующие", () => {
                   type: "el",
                   string: {
                     class: { type: "static", value: "item" },
-                    "data-category": { type: "dynamic", value: "item.categoryId" },
+                    "data-category": { type: "dynamic", value: "${item.categoryId}" },
                   },
                   child: [
                     {

@@ -336,7 +336,7 @@ describe("meta", () => {
           {
             type: "cond",
             data: "/core/items/length",
-            expr: "${[0]} > 0",
+            expr: "${[0] > 0}",
             true: {
               tag: {
                 data: "/core/tag",
@@ -450,7 +450,7 @@ describe("meta", () => {
       })
       const attributes = extractAttributes(hierarchy)
       const data = enrichWithData(attributes)
-      it("data", () => {
+      it("data", () =>
         expect(data).toEqual([
           {
             tag: {
@@ -468,8 +468,7 @@ describe("meta", () => {
               },
             },
           },
-        ])
-      })
+        ]))
     })
 
     describe("условные атрибуты", () => {
@@ -701,7 +700,7 @@ describe("meta", () => {
                 string: {
                   "data-id": {
                     type: "dynamic",
-                    value: "item.id",
+                    value: "${item.id}",
                   },
                   class: {
                     type: "mixed",

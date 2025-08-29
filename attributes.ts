@@ -87,14 +87,9 @@ function classifyValue(token: string): ValueType {
 
 /**
  * Нормализует исходное значение атрибута для записи в результат.
- * - Если токен полностью динамический (${...}) — снимает внешнюю обертку и форматирует содержимое
- * - Иначе форматирует строку целиком
+ * - Форматирует строку целиком, сохраняя структуру ${...}
  */
 function normalizeValueForOutput(token: string): string {
-  if (isFullyDynamicToken(token)) {
-    const v = token.trim()
-    return formatExpression(v.slice(2, -1))
-  }
   return formatExpression(token)
 }
 
@@ -588,12 +583,17 @@ export const parseAttributes = (
       // value остается null - это означает булевый атрибут со значением true
     }
 
-    // class — обрабатываем как обычный списковый атрибут
-    if (name === "class") {
+    // списковые атрибуты (class и встроенные)
+    const isClass = name === "class"
+    const resolved = isClass ? null : getBuiltinResolved(name)
+
+    if (isClass || resolved) {
       if (isEmptyAttributeValue(value)) {
         continue
       }
-      const tokens = splitBySpace(value ?? "")
+
+      const tokens = isClass ? splitBySpace(value ?? "") : resolved!.fn(value ?? "")
+
       // Если только одно значение, обрабатываем как строку
       if (tokens.length === 1) {
         ensure.string()[name] = {
@@ -602,6 +602,7 @@ export const parseAttributes = (
         }
         continue
       }
+
       const out = tokens.map((tok) => ({
         type: classifyValue(tok),
         value: normalizeValueForOutput(tok),
@@ -609,32 +610,6 @@ export const parseAttributes = (
       // @ts-ignore
       ensure.array()[name] = out
       continue
-    }
-
-    // списковые (только встроенные)
-    {
-      const resolved = getBuiltinResolved(name)
-      if (resolved) {
-        if (isEmptyAttributeValue(value)) {
-          continue
-        }
-        const tokens = resolved.fn(value ?? "")
-        // Если только одно значение, обрабатываем как строку
-        if (tokens.length === 1) {
-          ensure.string()[name] = {
-            type: classifyValue(value ?? ""),
-            value: normalizeValueForOutput(value ?? ""),
-          }
-          continue
-        }
-        const out = tokens.map((tok) => ({
-          type: classifyValue(tok),
-          value: normalizeValueForOutput(tok),
-        }))
-        // @ts-ignore
-        ensure.array()[name] = out
-        continue
-      }
     }
 
     if (
@@ -650,7 +625,10 @@ export const parseAttributes = (
           (value.includes("true") || value.includes("false"))))
     ) {
       if (value && isFullyDynamicToken(value)) {
-        ensure.boolean()[name] = { type: "dynamic", value: normalizeValueForOutput(value) }
+        ensure.boolean()[name] = {
+          type: "dynamic",
+          value: normalizeValueForOutput(value).replace(/^\${/, "").replace(/}$/, ""),
+        }
       } else {
         ensure.boolean()[name] = { type: "static", value: value === "true" || value === null }
       }

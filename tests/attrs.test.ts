@@ -221,7 +221,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               type: "dynamic",
-              value: 'context.flag ? "a > b" : "c < d"',
+              value: '${context.flag ? "a > b" : "c < d"}',
             },
           },
         },
@@ -275,7 +275,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               type: "dynamic",
-              value: 'context.flag ? "a > b" : "c < d"',
+              value: '${context.flag ? "a > b" : "c < d"}',
             },
           },
         },
@@ -330,7 +330,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               type: "dynamic",
-              value: 'context.flag ? "a > b" : "c < d"',
+              value: '${context.flag ? "a > b" : "c < d"}',
             },
           },
         },
@@ -385,7 +385,7 @@ describe("атрибуты", () => {
           boolean: {
             disabled: {
               type: "dynamic",
-              value: "context.flag",
+              value: "${context.flag}",
             },
           },
         },
@@ -474,7 +474,7 @@ describe("атрибуты", () => {
                     },
                     title: {
                       type: "dynamic",
-                      value: "item.name",
+                      value: "${item.name}",
                     },
                   },
                   child: [

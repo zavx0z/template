@@ -70,7 +70,7 @@ describe("formatting", () => {
     it("p element class expr", () => {
       const divElement = data[0] as any
       const pElement = divElement?.child?.[1] as any
-      expect(pElement?.string?.class?.expr).toBe('${context.flag && [0] ? "double-active" : "not-active"}')
+      expect(pElement?.string?.class?.expr).toBe('${[0] && [0] ? "double-active" : "not-active"}')
     })
 
     it("p text type", () => {

@@ -212,7 +212,7 @@ describe.each([
       )
       expect(attrs).toEqual({
         boolean: {
-          disabled: { type: "dynamic", value: "context.disabled" },
+            disabled: { type: "dynamic", value: "context.disabled" },
           readonly: { type: "dynamic", value: "context.readonly" },
           required: { type: "dynamic", value: "context.required" },
         },

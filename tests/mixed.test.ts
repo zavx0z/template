@@ -103,7 +103,7 @@ describe("mixed", () => {
                     {
                       type: "cond",
                       data: "[index]",
-                      expr: "${[0]} % 2",
+                      expr: "${[0] % 2}",
                       true: {
                         tag: "em",
                         type: "el",

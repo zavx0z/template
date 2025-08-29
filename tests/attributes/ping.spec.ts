@@ -35,13 +35,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' ping="${core.url}">')
       expect(attrs).toEqual({
-        string: { ping: { type: "dynamic", value: "core.url" } },
+        string: { ping: { type: "dynamic", value: "${core.url}" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " ping=${core.url}>")
       expect(attrs).toEqual({
-        string: { ping: { type: "dynamic", value: "core.url" } },
+        string: { ping: { type: "dynamic", value: "${core.url}" } },
       })
     })
     it("несколько", () => {
@@ -49,8 +49,8 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           ping: [
-            { type: "dynamic", value: "core.url" },
-            { type: "dynamic", value: "core.url" },
+            { type: "dynamic", value: "${core.url}" },
+            { type: "dynamic", value: "${core.url}" },
           ],
         },
       })
@@ -64,7 +64,7 @@ describe.each([
         string: {
           ping: {
             type: "dynamic",
-            value: 'core.type === "external" ? "https://tracker.example" : "https://internal.example"',
+            value: '${core.type === "external" ? "https://tracker.example" : "https://internal.example"}',
           },
         },
       })
@@ -80,7 +80,7 @@ describe.each([
           ping: {
             type: "dynamic",
             value:
-              'core.tracking && core.analytics ? "https://tracker.example https://analytics.example" : "https://basic.example"',
+              '${core.tracking && core.analytics ? "https://tracker.example https://analytics.example" : "https://basic.example"}',
           },
         },
       })
@@ -94,7 +94,7 @@ describe.each([
         string: {
           ping: {
             type: "dynamic",
-            value: 'core.tracking || core.analytics ? "https://tracker.example" : "https://basic.example"',
+            value: '${core.tracking || core.analytics ? "https://tracker.example" : "https://basic.example"}',
           },
         },
       })
@@ -103,7 +103,7 @@ describe.each([
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' ping="${!core.privacy ? "https://tracker.example" : ""}">')
       expect(attrs).toEqual({
-        string: { ping: { type: "dynamic", value: '!core.privacy ? "https://tracker.example" : ""' } },
+        string: { ping: { type: "dynamic", value: '${!core.privacy ? "https://tracker.example" : ""}' } },
       })
     })
   })
@@ -115,7 +115,7 @@ describe.each([
         array: {
           ping: [
             { type: "static", value: "https://a.example" },
-            { type: "dynamic", value: "core.url" },
+            { type: "dynamic", value: "${core.url}" },
           ],
         },
       })
@@ -127,7 +127,7 @@ describe.each([
         array: {
           ping: [
             { type: "static", value: "https://a.example" },
-            { type: "dynamic", value: "core.url" },
+            { type: "dynamic", value: "${core.url}" },
             { type: "static", value: "https://b.example" },
           ],
         },
@@ -167,8 +167,8 @@ describe.each([
         array: {
           ping: [
             { type: "static", value: "https://a.example" },
-            { type: "dynamic", value: 'core.tracking ? "https://tracker.example" : ""' },
-            { type: "dynamic", value: 'core.analytics ? "https://analytics.example" : ""' },
+            { type: "dynamic", value: '${core.tracking ? "https://tracker.example" : ""}' },
+            { type: "dynamic", value: '${core.analytics ? "https://analytics.example" : ""}' },
           ],
         },
       })
@@ -189,7 +189,7 @@ describe.each([
         array: {
           ping: [
             { type: "static", value: "https://a.example" },
-            { type: "dynamic", value: 'core.tracking ? "https://tracker.example" : ""' },
+            { type: "dynamic", value: '${core.tracking ? "https://tracker.example" : ""}' },
           ],
         },
       })

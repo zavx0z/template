@@ -43,7 +43,10 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.active ? "active" : "inactive"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
+          class: {
+            type: "dynamic",
+            value: '${core.active ? "active" : "inactive"}',
+          },
         },
       })
     })
@@ -52,8 +55,11 @@ describe.each([
       const attrs = parseAttributes(tag + ' class=${core.active ? "active" : "inactive"}>')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
-        },
+          class: {
+            type: "dynamic",
+            value: '${core.active ? "active" : "inactive"}',
+          },
+        },  
       })
     })
 
@@ -64,8 +70,8 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           class: [
-            { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
-            { type: "dynamic", value: 'core.active ? "active" : "inactive"' },
+            { type: "dynamic", value: '${core.active ? "active" : "inactive"}' },
+            { type: "dynamic", value: '${core.active ? "active" : "inactive"}' },
           ],
         },
       })
@@ -75,7 +81,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.count > 5 ? "large" : "small"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.count > 5 ? "large" : "small"' },
+          class: { type: "dynamic", value: '${core.count > 5 ? "large" : "small"}' },
         },
       })
     })
@@ -84,7 +90,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.status === "loading" ? "loading" : "ready"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.status === "loading" ? "loading" : "ready"' },
+          class: { type: "dynamic", value: '${core.status === "loading" ? "loading" : "ready"}' },
         },
       })
     })
@@ -93,7 +99,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.active && core.visible ? "show" : "hide"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.active && core.visible ? "show" : "hide"' },
+          class: { type: "dynamic", value: '${core.active && core.visible ? "show" : "hide"}' },
         },
       })
     })
@@ -102,7 +108,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.error || core.warning ? "alert" : "normal"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.error || core.warning ? "alert" : "normal"' },
+          class: { type: "dynamic", value: '${core.error || core.warning ? "alert" : "normal"}' },
         },
       })
     })
@@ -111,7 +117,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${!core.disabled ? "enabled" : "disabled"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: '!core.disabled ? "enabled" : "disabled"' },
+          class: { type: "dynamic", value: '${!core.disabled ? "enabled" : "disabled"}' },
         },
       })
     })
@@ -120,7 +126,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.active && "active"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.active && "active"' },
+          class: { type: "dynamic", value: '${core.active && "active"}' },
         },
       })
     })
@@ -129,7 +135,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.value >= 10 ? "high" : "low"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.value >= 10 ? "high" : "low"' },
+          class: { type: "dynamic", value: '${core.value >= 10 ? "high" : "low"}' },
         },
       })
     })
@@ -138,7 +144,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.type !== "admin" ? "user" : "admin"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.type !== "admin" ? "user" : "admin"' },
+          class: { type: "dynamic", value: '${core.type !== "admin" ? "user" : "admin"}' },
         },
       })
     })
@@ -147,7 +153,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.age <= 18 ? "minor" : "adult"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.age <= 18 ? "minor" : "adult"' },
+          class: { type: "dynamic", value: '${core.age <= 18 ? "minor" : "adult"}' },
         },
       })
     })
@@ -156,7 +162,7 @@ describe.each([
       const attrs = parseAttributes(tag + ' class="${core.score < 50 ? "fail" : "pass"}">')
       expect(attrs).toEqual({
         string: {
-          class: { type: "dynamic", value: 'core.score < 50 ? "fail" : "pass"' },
+          class: { type: "dynamic", value: '${core.score < 50 ? "fail" : "pass"}' },
         },
       })
     })
@@ -326,7 +332,7 @@ describe.each([
           class: [
             {
               type: "dynamic",
-              value: 'core.active ? "active" : "inactive"',
+              value: '${core.active ? "active" : "inactive"}',
             },
             {
               type: "static",
@@ -350,7 +356,7 @@ describe.each([
             },
             {
               type: "dynamic",
-              value: 'core.active ? "active" : "inactive"',
+              value: '${core.active ? "active" : "inactive"}',
             },
             {
               type: "mixed",
@@ -396,11 +402,11 @@ describe.each([
             },
             {
               type: "dynamic",
-              value: 'core.active ? "active" : "inactive"',
+              value: '${core.active ? "active" : "inactive"}',
             },
             {
               type: "dynamic",
-              value: 'core.disabled ? "disabled" : ""',
+              value: '${core.disabled ? "disabled" : ""}',
             },
           ],
         },
@@ -418,7 +424,7 @@ describe.each([
             },
             {
               type: "dynamic",
-              value: 'core.nested ? "nested" : "default"',
+              value: '${core.nested ? "nested" : "default"}',
             },
           ],
         },
@@ -438,11 +444,11 @@ describe.each([
             },
             {
               type: "dynamic",
-              value: 'core.hidden ? "" : "show"',
+              value: '${core.hidden ? "" : "show"}',
             },
             {
               type: "dynamic",
-              value: 'core.active ? "active" : ""',
+              value: '${core.active ? "active" : ""}',
             },
           ],
         },

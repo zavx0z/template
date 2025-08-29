@@ -36,13 +36,13 @@ describe.each([
     it("одно", () => {
       const attrs = parseAttributes(tag + ' rel="${core.rel}">')
       expect(attrs).toEqual({
-        string: { rel: { type: "dynamic", value: "core.rel" } },
+        string: { rel: { type: "dynamic", value: "${core.rel}" } },
       })
     })
     it("одно без кавычек", () => {
       const attrs = parseAttributes(tag + " rel=${core.rel}>")
       expect(attrs).toEqual({
-        string: { rel: { type: "dynamic", value: "core.rel" } },
+        string: { rel: { type: "dynamic", value: "${core.rel}" } },
       })
     })
     it("несколько", () => {
@@ -50,8 +50,8 @@ describe.each([
       expect(attrs).toEqual({
         array: {
           rel: [
-            { type: "dynamic", value: "core.rel" },
-            { type: "dynamic", value: "core.rel" },
+            { type: "dynamic", value: "${core.rel}" },
+            { type: "dynamic", value: "${core.rel}" },
           ],
         },
       })
@@ -60,7 +60,9 @@ describe.each([
     it("с операторами сравнения", () => {
       const attrs = parseAttributes(tag + ' rel="${core.type === "external" ? "nofollow noopener" : "nofollow"}">')
       expect(attrs).toEqual({
-        string: { rel: { type: "dynamic", value: 'core.type === "external" ? "nofollow noopener" : "nofollow"' } },
+        string: {
+          rel: { type: "dynamic", value: '${core.type === "external" ? "nofollow noopener" : "nofollow"}' },
+        },
       })
     })
 
@@ -70,7 +72,10 @@ describe.each([
       )
       expect(attrs).toEqual({
         string: {
-          rel: { type: "dynamic", value: 'core.external && core.secure ? "nofollow noopener noreferrer" : "nofollow"' },
+          rel: {
+            type: "dynamic",
+            value: '${core.external && core.secure ? "nofollow noopener noreferrer" : "nofollow"}',
+          },
         },
       })
     })
@@ -78,14 +83,16 @@ describe.each([
     it("с оператором ИЛИ", () => {
       const attrs = parseAttributes(tag + ' rel="${core.external || core.secure ? "nofollow noopener" : "nofollow"}">')
       expect(attrs).toEqual({
-        string: { rel: { type: "dynamic", value: 'core.external || core.secure ? "nofollow noopener" : "nofollow"' } },
+        string: {
+          rel: { type: "dynamic", value: '${core.external || core.secure ? "nofollow noopener" : "nofollow"}' },
+        },
       })
     })
 
     it("с оператором НЕ", () => {
       const attrs = parseAttributes(tag + ' rel="${!core.trusted ? "nofollow" : ""}">')
       expect(attrs).toEqual({
-        string: { rel: { type: "dynamic", value: '!core.trusted ? "nofollow" : ""' } },
+        string: { rel: { type: "dynamic", value: '${!core.trusted ? "nofollow" : ""}' } },
       })
     })
   })
@@ -133,8 +140,8 @@ describe.each([
         array: {
           rel: [
             { type: "static", value: "nofollow" },
-            { type: "dynamic", value: 'core.external ? "noopener" : ""' },
-            { type: "dynamic", value: 'core.secure ? "noreferrer" : ""' },
+            { type: "dynamic", value: '${core.external ? "noopener" : ""}' },
+            { type: "dynamic", value: '${core.secure ? "noreferrer" : ""}' },
           ],
         },
       })
@@ -153,7 +160,7 @@ describe.each([
         array: {
           rel: [
             { type: "static", value: "nofollow" },
-            { type: "dynamic", value: 'core.external ? "noopener" : ""' },
+            { type: "dynamic", value: '${core.external ? "noopener" : ""}' },
           ],
         },
       })

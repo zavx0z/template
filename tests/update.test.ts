@@ -215,18 +215,8 @@ describe("update", () => {
           name: "button",
           kind: "open",
         },
-        {
-          text: "\n            OK\n          ",
-          index: 116,
-          name: "",
-          kind: "text",
-        },
-        {
-          text: "</button>",
-          index: 142,
-          name: "button",
-          kind: "close",
-        },
+        { text: "OK", index: 116, name: "", kind: "text" },
+        { text: "</button>", index: 142, name: "button", kind: "close" },
       ])
     })
 
@@ -240,7 +230,7 @@ describe("update", () => {
           child: [
             {
               type: "text",
-              text: "\n            OK\n          ",
+              text: "OK",
             },
           ],
         },
@@ -248,6 +238,23 @@ describe("update", () => {
     })
 
     const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "button",
+          type: "el",
+          event: {
+            onclick: "() => update({ count: core.count + context.count, iteration: context.iteration + 1 })",
+          },
+          child: [
+            {
+              type: "text",
+              text: "OK",
+            },
+          ],
+        },
+      ]))
+
     const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
@@ -299,7 +306,7 @@ describe("update", () => {
           kind: "open",
         },
         {
-          text: "\n                OK\n              ",
+          text: "OK",
           index: 157,
           name: "",
           kind: "text",
@@ -327,7 +334,7 @@ describe("update", () => {
               child: [
                 {
                   type: "text",
-                  text: "\n                OK\n              ",
+                  text: "OK",
                 },
               ],
             },

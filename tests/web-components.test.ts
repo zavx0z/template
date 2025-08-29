@@ -292,11 +292,11 @@ describe("web-components", () => {
           string: {
             id: {
               type: "dynamic",
-              value: "context.userId",
+              value: "${context.userId}",
             },
             theme: {
               type: "dynamic",
-              value: "context.theme",
+              value: "${context.theme}",
             },
           },
         },
@@ -452,7 +452,7 @@ describe("web-components", () => {
                   string: {
                     id: {
                       type: "dynamic",
-                      value: "user.id",
+                      value: "${user.id}",
                     },
                   },
                   child: [
@@ -669,12 +669,7 @@ describe("web-components", () => {
           name: "modal-dialog",
           kind: "open",
         },
-        {
-          text: "</modal-dialog>",
-          index: 117,
-          name: "modal-dialog",
-          kind: "close",
-        },
+        { text: "</modal-dialog>", index: 117, name: "modal-dialog", kind: "close" },
       ]))
 
     const hierarchy = makeHierarchy(mainHtml, elements)
@@ -891,7 +886,7 @@ describe("web-components", () => {
           child: [
             {
               type: "text",
-              value: " Click me ",
+              value: "Click me",
             },
           ],
           boolean: {

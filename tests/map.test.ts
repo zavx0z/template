@@ -398,7 +398,7 @@ describe("map", () => {
                     {
                       type: "cond",
                       data: "[index]",
-                      expr: "${[0]} % 2",
+                      expr: "${[0] % 2}",
                       true: {
                         tag: "em",
                         type: "el",
@@ -442,7 +442,7 @@ describe("map", () => {
       expect(elements).toEqual([
         { text: "<ul>", index: 9, name: "ul", kind: "open" },
         { text: "<li>", index: 68, name: "li", kind: "open" },
-        { text: "${title} ", index: 72, name: "", kind: "text" },
+        { text: "${title}", index: 72, name: "", kind: "text" },
         { text: "<em>", index: 106, name: "em", kind: "open" },
         { text: "${n}", index: 110, name: "", kind: "text" },
         { text: "</em>", index: 114, name: "em", kind: "close" },
@@ -468,7 +468,7 @@ describe("map", () => {
                   child: [
                     {
                       type: "text",
-                      text: "${title} ",
+                      text: "${title}",
                     },
                     {
                       type: "map",
@@ -513,7 +513,6 @@ describe("map", () => {
                     {
                       type: "text",
                       data: "[item]/title",
-                      expr: "${[0]}",
                     },
                     {
                       type: "map",
@@ -554,7 +553,7 @@ describe("map", () => {
       expect(elements).toEqual([
         { text: "<ul>", index: 31, name: "ul", kind: "open" },
         { text: "<li>", index: 94, name: "li", kind: "open" },
-        { text: "${title} ", index: 98, name: "", kind: "text" },
+          { text: "${title}", index: 98, name: "", kind: "text" },
         { text: "<em>", index: 132, name: "em", kind: "open" },
         { text: "${n}", index: 136, name: "", kind: "text" },
         { text: "</em>", index: 140, name: "em", kind: "close" },
@@ -586,7 +585,7 @@ describe("map", () => {
                     child: [
                       {
                         type: "text",
-                        text: "${title} ",
+                          text: "${title}",
                       },
                       {
                         type: "map",
@@ -646,7 +645,6 @@ describe("map", () => {
                       {
                         type: "text",
                         data: "[item]/title",
-                        expr: "${[0]}",
                       },
                       {
                         type: "map",
