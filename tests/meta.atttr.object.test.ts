@@ -23,10 +23,8 @@ describe("core/context в атрибутах", () => {
           },
           type: "meta",
           core: {
-            core: {
-              data: ["/context/id", "/context/name"],
-              expr: "{ id: [0], name: [1] }",
-            },
+            data: ["/context/id", "/context/name"],
+            expr: "{ id: [0], name: [1] }",
           },
         },
       ])

@@ -989,6 +989,36 @@ export const extractConditionExpression = (condText: string): string => {
 }
 
 /**
+ * Парсит строку стилей в объект с путями к данным.
+ */
+const parseStyleStringToObject = (
+  value: string,
+  context: ParseContext = { pathStack: [], level: 0 }
+): Record<string, string> | null => {
+  // Убираем фигурные скобки и пробелы
+  const cleanValue = value.replace(/^\{?\s*|\s*\}?$/g, "")
+  
+  if (!cleanValue) {
+    return null
+  }
+
+  // Разбираем объект стилей
+  const styleObj: Record<string, string> = {}
+  const pairs = cleanValue.split(",")
+  
+  for (const pair of pairs) {
+    const [key, value] = pair.split(":").map(s => s.trim())
+    if (key && value) {
+      // Разрешаем путь к данным для значения
+      const resolvedPath = resolveDataPath(value, context)
+      styleObj[key] = resolvedPath || value
+    }
+  }
+
+  return Object.keys(styleObj).length > 0 ? styleObj : null
+}
+
+/**
  * Парсит строку объекта и извлекает переменные.
  */
 const parseObjectString = (
@@ -1820,6 +1850,16 @@ export const createNodeDataElement = (
 
     if (node.object) {
       result.object = processObjectAttributes(node.object, context)
+    }
+
+    if (node.style) {
+      // Разбираем строку стилей в объект и обрабатываем пути к данным
+      const styleObj = parseStyleStringToObject(node.style, context)
+      if (styleObj) {
+        result.style = styleObj
+      } else {
+        result.style = node.style
+      }
     }
 
     return result
