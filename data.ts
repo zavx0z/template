@@ -672,8 +672,29 @@ const processBooleanAttributes = (
         })
 
         if (paths.length === 1) {
-          result[key] = {
-            data: paths[0] || "",
+          // Проверяем, есть ли отрицание или другие операции
+          const hasNegation = booleanValue.includes("!(") || booleanValue.includes("!")
+          const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(booleanValue)
+
+          // Проверяем, является ли это просто переменной без операций
+          const isSimpleVariable = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(booleanValue.trim())
+
+          if ((hasNegation || hasComplexOperations) && !isSimpleVariable) {
+            // Для отрицания убираем лишние скобки
+            let finalExpr = expr
+            if (hasNegation && expr.includes("!(") && expr.includes(")")) {
+              finalExpr = expr.replace(/^!\(/, "!").replace(/\)$/, "")
+            }
+
+            result[key] = {
+              data: paths[0] || "",
+              expr: finalExpr,
+            }
+          } else {
+            // Простая переменная без операций
+            result[key] = {
+              data: paths[0] || "",
+            }
           }
         } else {
           result[key] = {
@@ -1288,11 +1309,22 @@ export const parseTemplateLiteral = (
   allMatches.forEach((variable) => {
     // Переменная должна содержать точки (например, context.flag) или быть внутри ${} выражения
     const hasDots = variable.includes(".")
+
+    // Проверяем, находится ли переменная внутри ${} выражения
+    // Переменная может быть только внутри ${}, а не в статическом тексте
     const isInsideTemplateLiteral =
-      value.includes(`\${${variable}}`) || value.includes(`\${${variable} `) || value.includes(` ${variable}}`)
+      value.includes(`\${${variable}}`) ||
+      value.includes(`\${${variable} `) ||
+      value.includes(` ${variable}}`) ||
+      // Более точная проверка для variable. - должна быть отдельным паттерном
+      new RegExp(`\${${variable.replace(/\./g, "\\.")}\\.`).test(value)
 
     // Проверяем, является ли это простой переменной в выражении (например, i в i % 2)
-    const isSimpleVariableInExpression = !hasDots && value.includes(`${variable} `) && /[+\-*/%<>=!&|]/.test(value)
+    // Переменная должна быть внутри ${} выражения, а не просто в строке
+    const isSimpleVariableInExpression = !hasDots && value.includes(`\${${variable} `) && /[+\-*/%<>=!&|]/.test(value)
+
+    // Переменная должна быть ТОЛЬКО внутри ${} выражения
+    const isPartOfTemplateExpression = isInsideTemplateLiteral || isSimpleVariableInExpression
 
     if (
       variable.length > 1 &&
@@ -1303,7 +1335,7 @@ export const parseTemplateLiteral = (
       variable !== "undefined" &&
       variable !== "active" &&
       variable !== "inactive" &&
-      (hasDots || isInsideTemplateLiteral || isSimpleVariableInExpression) &&
+      (hasDots || isPartOfTemplateExpression) &&
       !variables.includes(variable)
     ) {
       variables.push(variable)

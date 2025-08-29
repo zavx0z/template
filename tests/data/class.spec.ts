@@ -727,4 +727,33 @@ describe("class атрибуты в data.ts", () => {
       ])
     })
   })
+  describe("постфикс с условием и статическими значениями", () => {
+    const mainHtml = extractMainHtmlBlock<{ status: boolean }>(
+      ({ html, context }) => html`<div class="${context.status ? "active" : "inactive"}-status">Status</div>`
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = makeHierarchy(mainHtml, elements)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
+    it("парсинг", () => {
+      expect(data, "суффикс с условием").toEqual([
+        {
+          tag: "div",
+          type: "el",
+          string: {
+            class: {
+              data: "/context/status",
+              expr: '${[0] ? "active" : "inactive"}-status',
+            },
+          },
+          child: [
+            {
+              type: "text",
+              value: "Status",
+            },
+          ],
+        },
+      ])
+    })
+  })
 })

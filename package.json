@@ -1,8 +1,26 @@
 {
-  "name": "html-parser",
-  "module": "index.ts",
+  "name": "@zavx0z/html-parser",
+  "version": "1.0.0",
+  "description": "HTML template parser for MetaFor",
+  "author": "zavx0z",
+  "license": "MIT",
+  "keywords": [
+    "html",
+    "parser",
+    "metafor"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zavx0z/html-parser.git"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
-  "private": true,
+  "private": false,
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@types/bun": "latest",
     "diff": "^8.0.2",
@@ -12,6 +30,8 @@
     "typescript": "^5"
   },
   "scripts": {
-    "build": "bun run script/build.ts --dev"
+    "build": "bun run script/build.ts --dev",
+    "prepublishOnly": "bun run build",
+    "publish:npm": "bun publish --access public"
   }
 }

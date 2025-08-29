@@ -471,6 +471,31 @@ export const parseAttributes = (
       if (braceEnd === -1) break
 
       const braceContent = inside.slice(braceStart + 2, braceEnd - 1)
+
+      // Проверяем, является ли это условным выражением вида condition ? "attr1" : "attr2"
+      const ternaryMatch = braceContent.match(/^(.+?)\s*\?\s*["']([^"']+)["']\s*:\s*["']([^"']+)["']$/)
+
+      if (ternaryMatch) {
+        const [, condition, trueAttr, falseAttr] = ternaryMatch
+
+        if (condition && trueAttr && falseAttr) {
+          // Создаем два атрибута: один для true случая, другой для false
+          ensure.boolean()[trueAttr] = {
+            type: "dynamic",
+            value: condition.trim(),
+          }
+
+          ensure.boolean()[falseAttr] = {
+            type: "dynamic",
+            value: `!(${condition.trim()})`,
+          }
+        }
+
+        i = braceEnd
+        continue
+      }
+
+      // Обработка обычных условных атрибутов ${condition && 'attribute'}
       const parts = braceContent.split("&&").map((s) => s.trim())
 
       if (parts.length >= 2) {

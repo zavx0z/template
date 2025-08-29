@@ -4,7 +4,7 @@ import { makeHierarchy } from "../../hierarchy"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 
-describe("boolean атрибуты с переменными из разных уровней map", () => {
+describe("boolean атрибуты", () => {
   it("булевые атрибуты с переменными из разных уровней вложенности", () => {
     const mainHtml = extractMainHtmlBlock<
       any,
@@ -86,6 +86,33 @@ describe("boolean атрибуты с переменными из разных �
             ],
           },
         ],
+      },
+    ])
+  })
+  describe("boolean атрибуты с переменными из разных уровней map", () => {
+    const mainHtml = extractMainHtmlBlock<any, { visible: boolean }>(
+      ({ html, context }) => html`<img src="https://example.com" ${context.visible ? "visible" : "hidden"} />`
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = makeHierarchy(mainHtml, elements)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
+    expect(data).toEqual([
+      {
+        tag: "img",
+        type: "el",
+        string: {
+          src: "https://example.com",
+        },
+        boolean: {
+          visible: {
+            data: "/context/visible",
+          },
+          hidden: {
+            data: "/context/visible",
+            expr: "!${[0]}",
+          },
+        },
       },
     ])
   })
