@@ -97,6 +97,12 @@ interface AttributesNode {
   string?: AttributeString
   /** Объектные аттрибуты (стили) */
   object?: AttributeObject
+  /** Стили */
+  style?: AttributeObject
+  /** Core атрибуты для meta-компонентов */
+  core?: string | ParseAttributeResult
+  /** Context атрибуты для meta-компонентов */
+  context?: string | ParseAttributeResult
 }
 
 /**
@@ -134,6 +140,6 @@ type AttrStaticString = string
 
 export type AttributeBoolean = Record<string, boolean | AttrVariable | AttrDynamic>
 
-export type AttributeObject = Record<string, Record<string, string>>
+export type AttributeObject = Record<string, string>
 
 export type Node = NodeMap | NodeCondition | NodeText | NodeElement | NodeMeta

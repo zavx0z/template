@@ -6,7 +6,8 @@ import { extractAttributes } from "../attributes"
 
 describe("meta-компоненты с core/context в map и condition", () => {
   describe("meta-компоненты в map с core объектами", () => {
-    const mainHtml = extractMainHtmlBlock(
+    type Core = { items: any[]; tag: string; type: string }
+    const mainHtml = extractMainHtmlBlock<any, Core>(
       ({ html, core, context }) => html`
         <div>
           ${core.items.map(
@@ -105,7 +106,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
   })
 
   describe("meta-компоненты в map внутри condition", () => {
-    const mainHtml = extractMainHtmlBlock(
+    type Core = { items: any[]; tag: string; type: string }
+    const mainHtml = extractMainHtmlBlock<any, Core>(
       ({ html, core, context }) => html`
         <div>
           ${context.showList
@@ -182,8 +184,9 @@ describe("meta-компоненты с core/context в map и condition", () => 
   })
 
   describe("meta-компоненты в condition внутри map", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html, core, context }) => html`
+    type Core = { items: any[]; tag: string }
+    const mainHtml = extractMainHtmlBlock<any, Core>(
+      ({ html, core }) => html`
         <div>
           ${core.items.map(
             (item) => html`
@@ -267,7 +270,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
   })
 
   describe("сложные meta-компоненты с вложенными core/context объектами", () => {
-    const mainHtml = extractMainHtmlBlock(
+    type Core = { users: any[]; tag: string }
+    const mainHtml = extractMainHtmlBlock<any, Core>(
       ({ html, core, context }) => html`
         <div>
           ${core.users.map(
@@ -406,10 +410,11 @@ describe("meta-компоненты с core/context в map и condition", () => 
   })
 
   describe("meta-компоненты с динамическими core/context объектами", () => {
-    const mainHtml = extractMainHtmlBlock(
+    type Core = { items: any[]; tag: string; type: string }
+    const mainHtml = extractMainHtmlBlock<any, Core>(
       ({ html, core, context }) => html`
         <div>
-          ${context.items.map(
+          ${core.items.map(
             (item) => html`
               <meta-${core.tag}
                 core=${{
@@ -454,7 +459,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "map",
-              data: "/context/items",
+              data: "/core/items",
               child: [
                 {
                   tag: {

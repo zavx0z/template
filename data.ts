@@ -997,7 +997,7 @@ const parseStyleStringToObject = (
 ): Record<string, string> | null => {
   // Убираем фигурные скобки и пробелы
   const cleanValue = value.replace(/^\{?\s*|\s*\}?$/g, "")
-  
+
   if (!cleanValue) {
     return null
   }
@@ -1005,9 +1005,9 @@ const parseStyleStringToObject = (
   // Разбираем объект стилей
   const styleObj: Record<string, string> = {}
   const pairs = cleanValue.split(",")
-  
+
   for (const pair of pairs) {
-    const [key, value] = pair.split(":").map(s => s.trim())
+    const [key, value] = pair.split(":").map((s) => s.trim())
     if (key && value) {
       // Разрешаем путь к данным для значения
       const resolvedPath = resolveDataPath(value, context)
@@ -1761,8 +1761,13 @@ export const createNodeDataMeta = (
     result.boolean = processBooleanAttributes(node.boolean, context)
   }
 
-  if (node.object) {
-    result.object = processObjectAttributes(node.object, context)
+  if (node.style) {
+    // Разбираем строку стилей в объект и обрабатываем пути к данным
+    const styleObj = parseStyleStringToObject(node.style, context)
+    if (styleObj) {
+      result.style = styleObj
+    }
+    // Если не удалось разобрать как объект, пропускаем
   }
 
   if (node.core) {
@@ -1848,18 +1853,13 @@ export const createNodeDataElement = (
       result.boolean = processBooleanAttributes(node.boolean, context)
     }
 
-    if (node.object) {
-      result.object = processObjectAttributes(node.object, context)
-    }
-
     if (node.style) {
       // Разбираем строку стилей в объект и обрабатываем пути к данным
       const styleObj = parseStyleStringToObject(node.style, context)
       if (styleObj) {
         result.style = styleObj
-      } else {
-        result.style = node.style
       }
+      // Если не удалось разобрать как объект, пропускаем
     }
 
     return result
