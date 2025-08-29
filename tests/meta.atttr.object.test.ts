@@ -46,9 +46,7 @@ describe("core/context в атрибутах", () => {
             expr: "meta-${[0]}",
           },
           type: "meta",
-          core: {
-            core: '{ id: "1", name: "2" }',
-          },
+          core: '{ id: "1", name: "2" }',
         },
       ])
     })
@@ -72,10 +70,8 @@ describe("core/context в атрибутах", () => {
           },
           type: "meta",
           context: {
-            context: {
-              data: ["/context/id", "/context/name"],
-              expr: "{ id: [0], name: [1] }",
-            },
+            data: ["/context/id", "/context/name"],
+            expr: "{ id: [0], name: [1] }",
           },
         },
       ])
@@ -104,16 +100,12 @@ describe("core/context в атрибутах", () => {
           },
           type: "meta",
           core: {
-            core: {
-              data: ["/context/id", "/context/name"],
-              expr: "{ id: [0], name: [1] }",
-            },
+            data: ["/context/id", "/context/name"],
+            expr: "{ id: [0], name: [1] }",
           },
           context: {
-            context: {
-              data: ["/context/id", "/context/name"],
-              expr: "{ id: [0], name: [1] }",
-            },
+            data: ["/context/id", "/context/name"],
+            expr: "{ id: [0], name: [1] }",
           },
         },
       ])
