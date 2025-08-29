@@ -538,7 +538,7 @@ describe("meta", () => {
       it("elements", () => {
         expect(elements).toEqual([
           {
-            text: "<meta-${core.tag}\n            onclick=${() => core.handleClick(core.id)}\n            onchange=${(e) => core.handleChange(e, core.value)} />",
+            text: "<meta-${core.tag} onclick=${() => core.handleClick(core.id)} onchange=${(e) => core.handleChange(e, core.value)} />",
             index: 0,
             name: "meta-${core.tag}",
             kind: "self",
@@ -552,7 +552,7 @@ describe("meta", () => {
           {
             tag: "meta-${core.tag}",
             type: "meta",
-            text: "<meta-${core.tag}\n            onclick=${() => core.handleClick(core.id)}\n            onchange=${(e) => core.handleChange(e, core.value)} />",
+            text: "<meta-${core.tag} onclick=${() => core.handleClick(core.id)} onchange=${(e) => core.handleChange(e, core.value)} />",
           },
         ])
       })
@@ -644,27 +644,29 @@ describe("meta", () => {
     })
 
     describe("смешанные атрибуты", () => {
-      const mainHtml = extractMainHtmlBlock<
-        any,
-        { items: { tag: string; id: string; active: boolean; handleClick: (id: string) => void }[] }
-      >(
-        ({ html, core }) =>
-          html`${core.items.map(
-            (item) =>
-              html`<meta-${item.tag}
+      type Core = {
+        items: { tag: string; id: string; active: boolean; handleClick: (id: string) => void }[]
+      }
+      const mainHtml = extractMainHtmlBlock<any, Core>(
+        ({ html, core }) => html`
+          ${core.items.map(
+            (item) => html`
+              <meta-${item.tag}
                 data-id="${item.id}"
                 ${item.active && "data-active"}
                 class="meta-${item.active ? "active" : "inactive"}"
-                onclick=${() => item.handleClick(item.id)} />`
-          )}`
+                onclick=${() => item.handleClick(item.id)} />
+            `
+          )}
+        `
       )
 
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
         expect(elements).toEqual([
           {
-            text: '<meta-${item.tag}\n                data-id="${item.id}"\n                ${item.active && "data-active"}\n                class="meta-${item.active ? "active" : "inactive"}"\n                onclick=${() => item.handleClick(item.id)} />',
-            index: 32,
+            text: '<meta-${item.tag} data-id="${item.id}" ${item.active && "data-active"} class="meta-${item.active ? "active" : "inactive"}" onclick=${() => item.handleClick(item.id)} />',
+            index: 58,
             name: "meta-${item.tag}",
             kind: "self",
           },
@@ -681,7 +683,7 @@ describe("meta", () => {
               {
                 tag: "meta-${item.tag}",
                 type: "meta",
-                text: '<meta-${item.tag}\n                data-id="${item.id}"\n                ${item.active && "data-active"}\n                class="meta-${item.active ? "active" : "inactive"}"\n                onclick=${() => item.handleClick(item.id)} />',
+                text: '<meta-${item.tag} data-id="${item.id}" ${item.active && "data-active"} class="meta-${item.active ? "active" : "inactive"}" onclick=${() => item.handleClick(item.id)} />',
               },
             ],
           },

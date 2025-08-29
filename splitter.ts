@@ -198,6 +198,15 @@ export type ElementKind = TagKind | "text"
 export type ElementToken = { text: string; index: number; name: string; kind: ElementKind }
 
 /**
+ * Форматирует текст атрибутов, удаляя переносы строк и лишние пробелы
+ */
+const formatAttributeText = (text: string): string =>
+  text
+    .replace(/\s*\n\s*/g, " ") // Заменяем переносы строк на пробелы
+    .replace(/\s+/g, " ") // Схлопываем множественные пробелы
+    .trim() // Убираем пробелы по краям
+
+/**
  * Извлекает из HTML-строки единый плоский список узлов (теги + текст).
  * - Текстовые узлы формируются из промежутков между последовательными тегами.
  * - JavaScript-выражения в ${...} пропускаются и не включаются в текстовые узлы.
@@ -287,7 +296,7 @@ export const extractHtmlElements = (input: string): ElementToken[] => {
     if (tag.index > cursor) {
       pushText(input.slice(cursor, tag.index), cursor)
     }
-    out.push(tag as unknown as ElementToken)
+    out.push({ ...tag, text: formatAttributeText(tag.text) })
     cursor = tag.index + tag.text.length
   }
 
