@@ -115,6 +115,11 @@ describe("meta-компоненты с core/context в map и condition", () => 
                 expr: "meta-${[0]}",
               },
               type: "meta",
+              core: {
+                data: ["/context/id", "/context/name"],
+                expr: "{ id: [0], name: [1] }",
+              },
+              context: '{ type: "primary", active: true }',
             },
             {
               tag: {
@@ -122,6 +127,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                 expr: "meta-${[0]}",
               },
               type: "meta",
+              core: '{ id: "default", name: "default" }',
+              context: '{ type: "secondary", active: false }',
             },
           ],
         },

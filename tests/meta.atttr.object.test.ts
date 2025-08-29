@@ -37,6 +37,14 @@ describe("core/context в атрибутах", () => {
     const elements = extractHtmlElements(mainHtml)
     const hierarchy = makeHierarchy(mainHtml, elements)
     const attributes = extractAttributes(hierarchy)
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "meta-${core.tag}",
+          type: "meta",
+          core: '{ id: "1", name: "2" }',
+        },
+      ]))
     const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
@@ -47,6 +55,55 @@ describe("core/context в атрибутах", () => {
           },
           type: "meta",
           core: '{ id: "1", name: "2" }',
+        },
+      ])
+    })
+  })
+
+  describe("core/context во вложенных элементах", () => {
+    const mainHtml = extractMainHtmlBlock(
+      ({ html, core, context }) => html`
+        <div><meta-${core.tag} context=${{ id: context.id, name: context.name }} /></div>
+      `
+    )
+
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = makeHierarchy(mainHtml, elements)
+    const attributes = extractAttributes(hierarchy)
+
+    it("attributes", () =>
+      expect(attributes).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              tag: "meta-${core.tag}",
+              type: "meta",
+              context: "{ id: context.id, name: context.name }",
+            },
+          ],
+        },
+      ]))
+    const data = enrichWithData(attributes)
+    it("data", () => {
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              tag: {
+                data: "/core/tag",
+                expr: "meta-${[0]}",
+              },
+              type: "meta",
+              context: {
+                data: ["/context/id", "/context/name"],
+                expr: "{ id: [0], name: [1] }",
+              },
+            },
+          ],
         },
       ])
     })
