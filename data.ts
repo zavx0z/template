@@ -1,5 +1,15 @@
 import type { ParseContext, ParseResult, ParseMapContext, ParseAttributeResult, ParseTextPart } from "./data.t"
-import type { NodeText, NodeMap, NodeCondition, NodeElement, NodeMeta, Node, AttrVariable, AttrDynamic, StyleObject } from "./index.t"
+import type {
+  NodeText,
+  NodeMap,
+  NodeCondition,
+  NodeElement,
+  NodeMeta,
+  Node,
+  AttrVariable,
+  AttrDynamic,
+  StyleObject,
+} from "./index.t"
 import type { PartText } from "./hierarchy.t"
 import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs } from "./attributes.t"
 
@@ -107,10 +117,7 @@ const buildItemPath = (prefix: string, variableParts: string[], isDestructured: 
  * @param ctx - Контекст парсера
  * @returns Объект с ключами стилей и разрешенными путями к данным
  */
-const processStyleAttributes = (
-  str: string,
-  ctx: ParseContext = { pathStack: [], level: 0 }
-): StyleObject | null => {
+const processStyleAttributes = (str: string, ctx: ParseContext = { pathStack: [], level: 0 }): StyleObject | null => {
   // Убираем фигурные скобки и пробелы
   const cleanValue = str.replace(/^\{?\s*|\s*\}?$/g, "")
 
@@ -129,12 +136,12 @@ const processStyleAttributes = (
       // Исключаем строковые литералы в кавычках
       const cleanValue = value.replace(/"[^"]*"/g, "").replace(/'[^']*'/g, "")
       const hasVariables = /[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*/.test(cleanValue)
-      
+
       if (hasVariables) {
         // Это выражение с переменными - разрешаем пути к данным
         const variableMatches = value.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
         const uniqueVariables = [...new Set(variableMatches)]
-        
+
         if (uniqueVariables.length > 0) {
           const paths = uniqueVariables.map((variable: string) => resolveDataPath(variable, ctx) || variable)
           styleObj[key] = { data: paths.length === 1 ? paths[0] || "" : paths } as AttrVariable

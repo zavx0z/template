@@ -102,12 +102,13 @@ describe("object атрибуты (стили) с переменными из р
         <div>
           ${core.users.map(
             (user) => html`
-              <div style="${{ 
-                color: "red", 
-                backgroundColor: user.theme,
-                border: "1px solid black",
-                fontSize: "14px"
-              }}">
+              <div
+                style="${{
+                  color: "red",
+                  backgroundColor: user.theme,
+                  border: "1px solid black",
+                  fontSize: "14px",
+                }}">
                 User: ${user.id}
               </div>
             `
