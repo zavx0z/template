@@ -5,24 +5,6 @@ import type { Context, Core, State, RenderParams } from "./index.t"
 // HTML EXTRACTION
 // ============================================================================
 
-/**
- * @fileoverview HTML Tag Scanner
- *
- * Предоставляет утилиты для:
- *  - извлечения основного HTML-блока из render-функции
- *  - сканирования HTML-строки и выделения тегов с их типами и позициями
- *
- * Алгоритм использует два регулярных выражения:
- *  TAG_LOOKAHEAD — быстрое определение возможных тегов
- *  TAG_MATCH     — точный парсер одного тега
- *
- * Поддерживаются:
- *  - Простые, вложенные, self и void теги
- *  - Namespace-теги (например, svg:use)
- *  - Атрибуты с кавычками и спецсимволами
- * Игнорируются: комментарии, DOCTYPE, processing instructions
- */
-
 const VOID_TAGS = new Set([
   "area",
   "base",
@@ -40,24 +22,14 @@ const VOID_TAGS = new Set([
   "wbr",
 ])
 
-// Упрощенное регулярное выражение для поиска тегов
+// Быстрый lookahead на теги (включая meta-${...})
 const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>|<\/?meta-[^>]*>|<\/?meta-\$\{[^}]*\}[^>]*>)/gi
 
-// Функция для валидации имени тега
 const isValidTagName = (name: string) =>
   (/^[A-Za-z][A-Za-z0-9:-]*$/.test(name) && !name.includes("*")) || name.startsWith("meta-")
 
 const shouldIgnoreAt = (input: string, i: number) => input[i + 1] === "!" || input[i + 1] === "?"
 
-/**
- * Извлекает основной HTML-блок из render-функции.
- *
- * @template C extends Content
- * @template I extends Core
- * @template S extends State
- * @param {Render<C,I,S>} render - функция вида ({ html, context, core, state }) => html`...`
- * @returns {string} сырой HTML-текст внутри template literal
- */
 export const extractMainHtmlBlock = <C extends Context = Context, I extends Core = Core, S extends State = State>(
   render: (params: RenderParams<C, I, S>) => void
 ): string => {
@@ -67,27 +39,14 @@ export const extractMainHtmlBlock = <C extends Context = Context, I extends Core
   const lastBacktick = src.lastIndexOf("`")
   if (lastBacktick === -1 || lastBacktick <= firstIndex) throw new Error("render function does not contain html`")
   const htmlContent = src.slice(firstIndex + 5, lastBacktick)
-
-  // Восстанавливаем минифицированные булевые значения
   return htmlContent.replace(/!0/g, "true").replace(/!1/g, "false")
 }
 
-/**
- * Сканирует HTML-строку и возвращает список токенов тегов.
- *
- * Алгоритм:
- * 1. Ищет возможные теги через TAG_LOOKAHEAD (быстрое обнаружение).
- * 2. Находит точное совпадение с помощью TAG_MATCH.
- * 3. Определяет тип тега (open/close/self/void).
- * 4. Формирует массив токенов с index и текстом.
- *
- * @param html - входная HTML-строка
- * @returns список токенов с полями { text, index, name, kind }
- */
 export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
   const out: TagToken[] = []
   TAG_LOOKAHEAD.lastIndex = 0
   let m: RegExpExecArray | null
+
   while ((m = TAG_LOOKAHEAD.exec(input)) !== null) {
     const localIndex = m.index
     if (shouldIgnoreAt(input, localIndex)) {
@@ -95,50 +54,54 @@ export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
       continue
     }
 
-    // Находим правильный конец тега, учитывая вложенные кавычки и template literals
     const tagStart = localIndex
     let tagEnd = -1
     let i = localIndex + 1
 
     while (i < input.length) {
-      const char = input[i]
-      if (char === ">") {
+      const ch = input[i]
+
+      if (ch === ">") {
         tagEnd = i + 1
         break
-      } else if (char === '"' || char === "'") {
-        // Пропускаем содержимое кавычек
-        const quote = char
+      }
+
+      if (ch === `"` || ch === `'`) {
+        const quote = ch
         i++
         while (i < input.length && input[i] !== quote) {
           if (input[i] === "\\") {
-            i++ // пропускаем экранированные символы
-            i++
-          } else if (input[i] === "$" && i + 1 < input.length && input[i + 1] === "{") {
-            // Пропускаем template literal внутри кавычек
-            i += 2 // пропускаем ${
-            let braceCount = 1
-            while (i < input.length && braceCount > 0) {
-              if (input[i] === "{") braceCount++
-              else if (input[i] === "}") braceCount--
+            i += 2
+            continue
+          }
+          if (input[i] === "$" && input[i + 1] === "{") {
+            i += 2
+            let b = 1
+            while (i < input.length && b > 0) {
+              if (input[i] === "{") b++
+              else if (input[i] === "}") b--
               i++
             }
-          } else {
-            i++
+            continue
           }
-        }
-        if (i < input.length) i++ // пропускаем закрывающую кавычку
-      } else if (char === "$" && i + 1 < input.length && input[i + 1] === "{") {
-        // Пропускаем template literal, но обрабатываем вложенные template literals
-        i += 2 // пропускаем ${
-        let braceCount = 1
-        while (i < input.length && braceCount > 0) {
-          if (input[i] === "{") braceCount++
-          else if (input[i] === "}") braceCount--
           i++
         }
-      } else {
-        i++
+        if (i < input.length) i++
+        continue
       }
+
+      if (ch === "$" && input[i + 1] === "{") {
+        i += 2
+        let b = 1
+        while (i < input.length && b > 0) {
+          if (input[i] === "{") b++
+          else if (input[i] === "}") b--
+          i++
+        }
+        continue
+      }
+
+      i++
     }
 
     if (tagEnd === -1) {
@@ -148,32 +111,28 @@ export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
 
     const full = input.slice(tagStart, tagEnd)
 
-    // Извлекаем имя тега вручную
     let name = ""
-    let isValidName = false
+    let valid = false
 
-    // Проверяем обычные теги
     const tagNameMatch = full.match(/^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s|>|\/)/i)
     if (tagNameMatch) {
       name = (tagNameMatch[1] || "").toLowerCase()
-      isValidName = isValidTagName(tagNameMatch[1] || "")
+      valid = isValidTagName(tagNameMatch[1] || "")
     }
 
-    // Проверяем динамические meta-теги
-    if (!isValidName) {
+    if (!valid) {
       const metaMatch = full.match(/^<\/?(meta-\$\{[^}]+\})/i)
       if (metaMatch) {
         name = metaMatch[1] || ""
-        isValidName = true
+        valid = true
       }
     }
 
-    if (!isValidName) {
+    if (!valid) {
       TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
     }
 
-    // Определяем тип тега
     let kind: TagKind
     if (full.startsWith("</")) kind = "close"
     else if (full.endsWith("/>")) kind = "self"
@@ -183,35 +142,40 @@ export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
     out.push({ text: full, index: offset + localIndex, name, kind })
     TAG_LOOKAHEAD.lastIndex = tagEnd
   }
+
   return out
 }
 
-/**
- * Унифицированные виды узлов: теги + текст
- */
 export type ElementKind = TagKind | "text"
-
-/**
- * Унифицированный токен узла: для тегов сохраняем name и исходный фрагмент,
- * для текста: name = "" (пустая строка), kind = "text".
- */
 export type ElementToken = { text: string; index: number; name: string; kind: ElementKind }
 
-/**
- * Форматирует текст атрибутов, удаляя переносы строк и лишние пробелы
- */
 const formatAttributeText = (text: string): string =>
   text
-    .replace(/\s*\n\s*/g, " ") // Заменяем переносы строк на пробелы
-    .replace(/\s+/g, " ") // Схлопываем множественные пробелы
-    .trim() // Убираем пробелы по краям
+    .replace(/\s*\n\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+// Чистый «клей» между шаблонами (целиком служебный кусок)
+const isPureGlue = (trimmed: string): boolean =>
+  !!trimmed &&
+  (trimmed === "`" ||
+    trimmed.startsWith("`") || // закрытие предыдущего html`
+    /^`}\)?\s*;?\s*$/.test(trimmed) || // `} или `}) (+ ;)
+    /^`\)\}\s*,?\s*$/.test(trimmed)) // `)} (иногда с запятой)
+
+// Обрезаем всё после первого открытия следующего html-шаблона
+const cutBeforeNextHtml = (s: string): string => {
+  const idx = s.indexOf("html`")
+  return idx >= 0 ? s.slice(0, idx) : s
+}
 
 /**
  * Извлекает из HTML-строки единый плоский список узлов (теги + текст).
- * - Текстовые узлы формируются из промежутков между последовательными тегами.
- * - JavaScript-выражения в ${...} пропускаются и не включаются в текстовые узлы.
- * - Пустые или состоящие только из пробелов/переводов строк узлы игнорируются.
- * - Для текста поле `name` — пустая строка.
+ * - Текстовые узлы берутся из промежутков между тегами.
+ * - ${...} сохраняются, если внутри куска они полностью закрыты.
+ * - Если в куске встречается начало нового html` — всё справа от него отбрасываем.
+ * - Чистый «клей» (` , `} , `)} …) игнорируется.
+ * - Пустые/пробельные узлы удаляются (одиночный пробел-разделитель тоже).
  */
 export const extractHtmlElements = (input: string): ElementToken[] => {
   const tags = scanHtmlTags(input)
@@ -219,76 +183,46 @@ export const extractHtmlElements = (input: string): ElementToken[] => {
   let cursor = 0
 
   const pushText = (chunk: string, index: number) => {
-    // Обрабатываем текст между тегами
-    // Template literals включаются в текст только если они полностью закрываются в этом куске
-    let processedChunk = ""
+    if (!chunk || /^\s+$/.test(chunk)) return
+
+    const trimmed = chunk.trim()
+    if (isPureGlue(trimmed)) return
+
+    // Сохраняем левую «видимую» часть до html`
+    let visible = cutBeforeNextHtml(chunk)
+    if (!visible || /^\s+$/.test(visible)) return
+
+    // Собираем, оставляя только полностью закрытые ${...}
+    let processed = ""
     let i = 0
-
-    // Проверяем, не является ли весь кусок частью незакрытого template literal
-    // Ищем незакрытые скобки или ` в начале/конце (части большого template literal)
-    if (
-      chunk.startsWith("`") ||
-      chunk.match(/^\s*:\s*html`/) ||
-      chunk.match(/`\}\s*$/) ||
-      chunk.match(/^\s*`\}\s*$/) ||
-      chunk.match(/^\s+`\)\}\s*$/) ||
-      chunk.match(/^\s*`\s*:\s*html`\s*$/)
-    ) {
-      return // пропускаем куски, которые явно являются частями template literals
-    }
-
-    // Проверяем, является ли кусок разделителем между map-выражениями
-    if (chunk.match(/^\s*`\)\}\s*\n\s*$/)) {
-      return // пропускаем разделители между map-выражениями
-    }
-
-    // Проверяем, содержит ли кусок конец map-выражения
-    if (chunk.includes("`)}")) {
-      return // пропускаем куски, содержащие конец map-выражения
-    }
-
-    while (i < chunk.length) {
-      if (chunk[i] === "$" && i + 1 < chunk.length && chunk[i + 1] === "{") {
-        // Нашли начало template literal
-        const startPos = i
-        i += 2 // пропускаем ${
-        let braceCount = 1
-
-        // Ищем закрывающую скобку
-        while (i < chunk.length && braceCount > 0) {
-          if (chunk[i] === "{") braceCount++
-          else if (chunk[i] === "}") braceCount--
+    while (i < visible.length) {
+      const ch = visible[i]
+      if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
+        const start = i
+        i += 2
+        let b = 1
+        while (i < visible.length && b > 0) {
+          if (visible[i] === "{") b++
+          else if (visible[i] === "}") b--
           i++
         }
-
-        if (braceCount === 0) {
-          // Литерал полностью закрывается в этом куске - включаем в текст
-          processedChunk += chunk.slice(startPos, i)
+        if (b === 0) {
+          processed += visible.slice(start, i) // закрытая интерполяция — сохраняем
+          continue
         } else {
-          // Литерал не закрывается - остальное пропускаем
-          break
+          break // незакрытая — это «клей», остаток отбрасываем
         }
-      } else {
-        processedChunk += chunk[i]
-        i++
       }
+      processed += ch
+      i++
     }
 
-    // Форматируем текст по стандартам HTML (схлопывание пробельных символов)
-    // Схлопываем множественные пробелы
-    const formattedChunk = processedChunk.replace(/\s+/g, " ")
+    const collapsed = processed.replace(/\s+/g, " ")
+    if (collapsed === " ") return
 
-    // Удаляем только узлы, которые состоят из одного пробела (разделители между элементами)
-    if (formattedChunk === " ") {
-      return // Удаляем чистые пробелы-разделители
-    }
-
-    // Если с обоих сторон исходного куска есть символы переноса строки, применяем trim()
-    const hasNewlinesOnBothSides = chunk.match(/^\s*\n.*\n\s*$/)
-    const finalChunk = hasNewlinesOnBothSides ? formattedChunk.trim() : formattedChunk
-
-    if (finalChunk.length > 0) {
-      out.push({ text: finalChunk, index, name: "", kind: "text" })
+    const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
+    if (final.length > 0) {
+      out.push({ text: final, index, name: "", kind: "text" })
     }
   }
 
