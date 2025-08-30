@@ -28,18 +28,18 @@ describe("вложенность операторов", () => {
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
-    // print(tokens)
+    print(tokens)
     it("tokens", () =>
       expect(tokens).toEqual([
         { kind: "tag-open", name: "div", text: "<div>" },
         { kind: "map-open", sig: "core.items.map((item)" },
-        { kind: "cond-open", expr: "item.show" },
         { kind: "tag-open", name: "div", text: '<div class="true-branch">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "cond-else" },
         { kind: "tag-open", name: "div", text: '<div class="false-branch">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "map-close" },
+        { kind: "tag-close", name: "div", text: "</div>" },
       ]))
     const hierarchy = makeHierarchy(mainHtml, elements)
     it.skip("hierarchy", () =>

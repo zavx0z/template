@@ -72,40 +72,40 @@ function extractPatterns(expr: string): StreamToken[] {
     .map(([, token]) => token)
 }
 
+const condOpenRegex = /\$\{([^?]+)\?/g
 const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
-  const condOpenRegex = /\$\{([^?]+)\?/g
   let match
   while ((match = condOpenRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-open", expr: match[1]!.trim() }]
   }
 }
 
+const condElseRegex = /: /g
 const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
-  const condElseRegex = /: /g
   let match
   while ((match = condElseRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-else" }]
   }
 }
 
+const condCloseRegex = /[^\)]}/g
 const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
-  const condCloseRegex = /}/g
   let match
   while ((match = condCloseRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-close" }]
   }
 }
 
+const mapOpenRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
 const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
-  const mapOpenRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
   let match
   while ((match = mapOpenRegex.exec(expr)) !== null) {
     return [match.index, { kind: "map-open", sig: match[1]! }]
   }
 }
 
+const mapCloseRegex = /`?\)\}/g
 const findMapClose = (expr: string): [number, TokenMapClose] | undefined => {
-  const mapCloseRegex = /`?\)\}/g
   let closeMatch
   while ((closeMatch = mapCloseRegex.exec(expr)) !== null) {
     return [closeMatch.index, { kind: "map-close" }]
