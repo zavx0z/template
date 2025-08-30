@@ -1,5 +1,20 @@
-import type { StreamToken } from "./token.t"
+import type { StreamToken, TokenCondClose, TokenCondElse, TokenCondOpen, TokenMapClose, TokenMapOpen } from "./token.t"
 import type { ElementToken } from "./splitter"
+
+const elementPartToToken = (element: ElementToken): StreamToken => {
+  switch (element.kind) {
+    case "open":
+      return { text: element.text, name: element.name, kind: "tag-open" }
+    case "close":
+      return { text: element.text, name: element.name, kind: "tag-close" }
+    case "self":
+      return { text: element.text, name: element.name, kind: "tag-self" }
+    case "text":
+      return { text: element.text, kind: "text" }
+    default:
+      throw new Error(`Unknown element kind: ${element.kind}`)
+  }
+}
 
 export function extractTokens(mainHtml: string, elements: ElementToken[]): StreamToken[] {
   const allTokens: StreamToken[] = []
@@ -13,20 +28,7 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
   // Затем обрабатываем все элементы
   elements.reduce((prev: ElementToken | null, curr: ElementToken, index: number) => {
     if (prev) {
-      switch (prev.kind) {
-        case "open":
-          allTokens.push({ text: prev.text, name: prev.name, kind: "tag-open" })
-          break
-        case "close":
-          allTokens.push({ text: prev.text, name: prev.name, kind: "tag-close" })
-          break
-        case "self":
-          allTokens.push({ text: prev.text, name: prev.name, kind: "tag-self" })
-          break
-        case "text":
-          allTokens.push({ text: prev.text, kind: "text" })
-          break
-      }
+      allTokens.push(elementPartToToken(prev))
       // Выводим строку между предыдущим и текущим элементом, если она не пустая
       const string = mainHtml.slice(prev.end, curr.start).trim()
       if (string) allTokens.push(...extractPatterns(string))
@@ -34,8 +36,9 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
     return curr
   }, null)
 
-  // И, наконец, добавляем текст после последнего элемента
+  // И, наконец, добавляем последний элемент и текст после него
   if (elements.length > 0) {
+    allTokens.push(elementPartToToken(elements[elements.length - 1]!))
     const string = mainHtml.slice(elements[elements.length - 1]!.end, mainHtml.length).trim()
     if (string) allTokens.push(...extractPatterns(string))
   }
@@ -46,56 +49,65 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
 function extractPatterns(expr: string): StreamToken[] {
   const tokens = new Map<number, StreamToken>()
 
-  // Ищем условие (тернарный оператор)
-  const condOpenIndex = expr.indexOf("?")
-  if (condOpenIndex !== -1) {
-    // Ищем начало условия - обычно это после =>
-    const arrowIndex = expr.lastIndexOf("=>", condOpenIndex)
-    const startIndex = arrowIndex !== -1 ? arrowIndex + 2 : 0
-    let conditionText = expr.slice(startIndex, condOpenIndex).trim()
+  // --------- conditions ---------
+  const tokenCondOpen = findCondOpen(expr)
+  if (tokenCondOpen) tokens.set(...tokenCondOpen)
 
-    // Убираем ${ в начале, если есть
-    if (conditionText.startsWith("${")) {
-      conditionText = conditionText.slice(2)
-    }
+  const tokenCondElse = findCondElse(expr)
+  if (tokenCondElse) tokens.set(...tokenCondElse)
 
-    tokens.set(condOpenIndex, { kind: "cond-open", expr: conditionText })
-  }
+  const tokenCondClose = findCondClose(expr)
+  if (tokenCondClose) tokens.set(...tokenCondClose)
 
-  // Ищем else часть условия
-  const condElseIndex = expr.indexOf(" : ")
-  if (condElseIndex !== -1) {
-    tokens.set(condElseIndex, { kind: "cond-else" })
-  }
+  // ------------- map -------------
+  const tokenMapOpen = findMapOpen(expr)
+  if (tokenMapOpen) tokens.set(...tokenMapOpen)
 
-  // Ищем закрывающую скобку условия (после тернарного оператора)
-  // Ищем только если есть условие и это не часть map-close
-  if (condOpenIndex !== -1) {
-    const condCloseIndex = expr.indexOf("}")
-    if (condCloseIndex !== -1 && !expr.includes("`)}")) {
-      tokens.set(condCloseIndex, { kind: "cond-close" })
-    }
-  }
-
-  // Ищем паттерн ${...map(...)} с различными аргументами
-  const mapRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
-  let match
-  while ((match = mapRegex.exec(expr)) !== null) {
-    const mapText = match[1] // core.items.map((item)
-    if (mapText) {
-      tokens.set(match.index, { kind: "map-open", sig: mapText })
-    }
-  }
-
-  // Ищем }) с возможными символами перед ним (например, `})
-  const mapCloseRegex = /`?\)\}/g
-  let closeMatch
-  while ((closeMatch = mapCloseRegex.exec(expr)) !== null) {
-    tokens.set(closeMatch.index, { kind: "map-close" })
-  }
+  const tokenMapClose = findMapClose(expr)
+  if (tokenMapClose) tokens.set(...tokenMapClose)
 
   // Сортируем по позиции и возвращаем токены
   return Array.from(tokens.entries())
     .sort(([a], [b]) => a - b)
     .map(([, token]) => token)
+}
+
+const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
+  const condOpenRegex = /\$\{([^?]+)\?/g
+  let match
+  while ((match = condOpenRegex.exec(expr)) !== null) {
+    return [match.index, { kind: "cond-open", expr: match[1]!.trim() }]
+  }
+}
+
+const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
+  const condElseRegex = /: /g
+  let match
+  while ((match = condElseRegex.exec(expr)) !== null) {
+    return [match.index, { kind: "cond-else" }]
+  }
+}
+
+const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
+  const condCloseRegex = /}/g
+  let match
+  while ((match = condCloseRegex.exec(expr)) !== null) {
+    return [match.index, { kind: "cond-close" }]
+  }
+}
+
+const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
+  const mapOpenRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
+  let match
+  while ((match = mapOpenRegex.exec(expr)) !== null) {
+    return [match.index, { kind: "map-open", sig: match[1]! }]
+  }
+}
+
+const findMapClose = (expr: string): [number, TokenMapClose] | undefined => {
+  const mapCloseRegex = /`?\)\}/g
+  let closeMatch
+  while ((closeMatch = mapCloseRegex.exec(expr)) !== null) {
+    return [closeMatch.index, { kind: "map-close" }]
+  }
 }
