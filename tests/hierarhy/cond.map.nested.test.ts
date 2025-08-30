@@ -30,14 +30,17 @@ describe("вложенность операторов", () => {
     const tokens = extractTokens(mainHtml, elements)
     it("tokens", () =>
       expect(tokens).toEqual([
-        { kind: "tag-open", text: "<div>", name: "div" },
+        { kind: "tag-open", name: "div", text: "<div>" },
+        { kind: "cond-open", expr: "${context.show" },
         { kind: "map-open", sig: "core.items.map((item)" },
-        { kind: "cond-open", expr: "item.show" },
-        { kind: "tag-open", text: '<div class="true-branch">', name: "div" },
-        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "tag-open", name: "div", text: '<div class="true-${item}">' },
+        { kind: "tag-close", name: "div", text: "</div>" },
+        { kind: "map-close" },
+        { kind: "cond-close" },
         { kind: "cond-else" },
-        { kind: "tag-open", text: '<div class="false-branch">', name: "div" },
-        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "map-open", sig: "core.items.map((item)" },
+        { kind: "tag-open", name: "div", text: '<div class="false-${item}">' },
+        { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "map-close" },
         { kind: "cond-close" },
       ]))

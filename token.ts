@@ -74,7 +74,7 @@ function extractPatterns(expr: string): StreamToken[] {
   }
 
   // Ищем паттерн ${...map(...)} с различными аргументами
-  const mapRegex = /\$\{([^}]*\.map\([^)]*\))/g
+  const mapRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
   let match
   while ((match = mapRegex.exec(expr)) !== null) {
     const mapText = match[1] // core.items.map((item)
