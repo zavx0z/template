@@ -11,7 +11,7 @@ import type {
   PartAttrElement,
   PartAttrMeta,
 } from "./attributes.t"
-import type { PartHierarchy } from "./hierarchy.t"
+import type { PartsHierarchy } from "./hierarchy.t"
 
 // ============================================================================
 // ATTRIBUTE PARSING
@@ -624,12 +624,12 @@ export const parseAttributes = (
             : "{}"
           : formatExpression(value.slice(2, -1))
         : "{}"
-      
+
       // Не добавляем пустые core и context атрибуты
       if (objectValue === "{}") {
         continue
       }
-      
+
       // Для meta-компонентов context и core будут обработаны отдельно
       if (name === "context") {
         result.context = objectValue
@@ -982,7 +982,7 @@ export const parseMetaAttributes = (
 }
 
 /** Извлечь атрибуты из дерева */
-export const extractAttributes = (hierarchy: PartHierarchy): PartAttrs => {
+export const extractAttributes = (hierarchy: PartsHierarchy): PartAttrs => {
   return hierarchy.map((node) => {
     if (node.type === "el") {
       // Извлекаем атрибуты из текста элемента

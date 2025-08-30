@@ -1,5 +1,5 @@
 import type { ElementToken } from "./splitter"
-import type { PartMap, PartCondition, PartElement, PartMeta, PartHierarchy, StackItem, PartText } from "./hierarchy.t"
+import type { PartMap, PartCondition, PartElement, PartMeta, PartsHierarchy, StackItem, PartText } from "./hierarchy.t"
 
 /**
  * Создает PartMap узел
@@ -27,7 +27,7 @@ const createConditionNode = (
 /**
  * Фильтрует элементы, которые могут быть обработаны map/condition
  */
-const getProcessableElements = (hierarchy: PartHierarchy): (PartElement | PartText | PartMeta)[] =>
+const getProcessableElements = (hierarchy: PartsHierarchy): (PartElement | PartText | PartMeta)[] =>
   hierarchy.filter((item) => item.type === "el" || item.type === "text" || item.type === "meta") as (
     | PartElement
     | PartText
@@ -102,8 +102,8 @@ const processMultipleConditions = (
  * Формирует иерархию элементов на основе последовательности токенов.
  * Ключевое отличие: условия (${cond ? A : B}) схлопываются при встрече парной '}'.
  */
-export const makeHierarchy = (html: string, elements: ElementToken[]): PartHierarchy => {
-  const hierarchy: PartHierarchy = []
+export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHierarchy => {
+  const hierarchy: PartsHierarchy = []
   const stack: StackItem[] = []
 
   // --- Новая модель сбора условий: запоминаем старт и закрываем на '}' ---
@@ -117,7 +117,7 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartHiera
   // Для map оставляем прежнюю схему (оборачивание на закрытии родителя)
   const mapStack: { parent: PartElement | PartMeta | null; text: string; startChildIndex: number }[] = []
 
-  const getTargetChildren = (parent: PartElement | PartMeta | null, root: PartHierarchy) =>
+  const getTargetChildren = (parent: PartElement | PartMeta | null, root: PartsHierarchy) =>
     parent ? (parent.child ||= []) : root
 
   const closeLastConditionIfPossible = () => {
@@ -314,7 +314,7 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartHiera
   const topLevelConditions = [] as { parent: null; text: string }[] // conditionStack к этому моменту пуст
 
   if (topLevelMapInfos.length > 0 || topLevelConditions.length > 0) {
-    const newHierarchy: PartHierarchy = []
+    const newHierarchy: PartsHierarchy = []
     const processable = getProcessableElements(hierarchy)
 
     if (topLevelMapInfos.length > 0) {
