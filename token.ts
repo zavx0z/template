@@ -74,9 +74,12 @@ function extractPatterns(expr: string): StreamToken[] {
   }
 
   // Ищем закрывающую скобку условия (после тернарного оператора)
-  const condCloseIndex = expr.indexOf("}")
-  if (condCloseIndex !== -1) {
-    tokens.set(condCloseIndex, { kind: "cond-close" })
+  // Ищем только если есть условие и это не часть map-close
+  if (condOpenIndex !== -1) {
+    const condCloseIndex = expr.indexOf("}")
+    if (condCloseIndex !== -1 && !expr.includes("`)}")) {
+      tokens.set(condCloseIndex, { kind: "cond-close" })
+    }
   }
 
   // Ищем паттерн ${...map(...)} с различными аргументами

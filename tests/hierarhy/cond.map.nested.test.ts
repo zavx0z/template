@@ -40,7 +40,6 @@ describe("вложенность операторов", () => {
         { kind: "tag-open", name: "div", text: '<div class="false-branch">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "map-close" },
-        { kind: "cond-close" },
       ]))
     const hierarchy = makeHierarchy(mainHtml, elements)
     it.skip("hierarchy", () =>
@@ -107,13 +106,11 @@ describe("вложенность операторов", () => {
         { kind: "tag-open", name: "div", text: '<div class="true-${item}">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "map-close" },
-        { kind: "cond-close" },
         { kind: "cond-else" },
         { kind: "map-open", sig: "core.items.map((item)" },
         { kind: "tag-open", name: "div", text: '<div class="false-${item}">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "map-close" },
-        { kind: "cond-close" },
       ]))
 
     const hierarchy = makeHierarchy(mainHtml, elements)
