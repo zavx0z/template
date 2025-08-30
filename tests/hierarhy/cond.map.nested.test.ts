@@ -28,18 +28,16 @@ describe("вложенность операторов", () => {
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
+    // print(tokens)
     it("tokens", () =>
       expect(tokens).toEqual([
         { kind: "tag-open", name: "div", text: "<div>" },
-        { kind: "cond-open", expr: "${context.show" },
         { kind: "map-open", sig: "core.items.map((item)" },
-        { kind: "tag-open", name: "div", text: '<div class="true-${item}">' },
+        { kind: "cond-open", expr: "item.show" },
+        { kind: "tag-open", name: "div", text: '<div class="true-branch">' },
         { kind: "tag-close", name: "div", text: "</div>" },
-        { kind: "map-close" },
-        { kind: "cond-close" },
         { kind: "cond-else" },
-        { kind: "map-open", sig: "core.items.map((item)" },
-        { kind: "tag-open", name: "div", text: '<div class="false-${item}">' },
+        { kind: "tag-open", name: "div", text: '<div class="false-branch">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "map-close" },
         { kind: "cond-close" },
@@ -100,12 +98,12 @@ describe("вложенность операторов", () => {
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
-    print(tokens)
+    // print(tokens)
     it("tokens", () =>
       expect(tokens).toEqual([
         { kind: "tag-open", name: "div", text: "<div>" },
-        { kind: "map-open", sig: "context.show ? html` ${core.items.map((item)" },
-        { kind: "cond-open", expr: "${context.show" },
+        { kind: "cond-open", expr: "context.show" },
+        { kind: "map-open", sig: "core.items.map((item)" },
         { kind: "tag-open", name: "div", text: '<div class="true-${item}">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "map-close" },

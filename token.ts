@@ -57,7 +57,13 @@ function extractPatterns(expr: string): StreamToken[] {
     // Ищем начало условия - обычно это после =>
     const arrowIndex = expr.lastIndexOf("=>", condOpenIndex)
     const startIndex = arrowIndex !== -1 ? arrowIndex + 2 : 0
-    const conditionText = expr.slice(startIndex, condOpenIndex).trim()
+    let conditionText = expr.slice(startIndex, condOpenIndex).trim()
+
+    // Убираем ${ в начале, если есть
+    if (conditionText.startsWith("${")) {
+      conditionText = conditionText.slice(2)
+    }
+
     tokens.set(condOpenIndex, { kind: "cond-open", expr: conditionText })
   }
 
