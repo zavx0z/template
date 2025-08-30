@@ -91,6 +91,77 @@ describe("conditions", () => {
     })
   })
 
+  describe("простой тернарный оператор с context с оберткой и соседними элементами", () => {
+    const mainHtml = extractMainHtmlBlock(
+      ({ html, context }) => html`
+        <div>
+          <header>Header</header>
+          ${context.isActive ? html`<span>Active</span>` : html`<span>Inactive</span>`}
+          <footer>Footer</footer>
+        </div>
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const hierarchy = makeHierarchy(mainHtml, elements)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
+
+    it("парсинг", () => {
+      expect(data, "простой тернарный оператор с context с оберткой и соседними элементами").toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              tag: "header",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  value: "Header",
+                },
+              ],
+            },
+            {
+              type: "cond",
+              data: "/context/isActive",
+              true: {
+                tag: "span",
+                type: "el",
+                child: [
+                  {
+                    type: "text",
+                    value: "Active",
+                  },
+                ],
+              },
+              false: {
+                tag: "span",
+                type: "el",
+                child: [
+                  {
+                    type: "text",
+                    value: "Inactive",
+                  },
+                ],
+              },
+            },
+            {
+              tag: "footer",
+              type: "el",
+              child: [
+                {
+                  type: "text",
+                  value: "Footer",
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+  })
+
   describe("сравнение нескольких переменных", () => {
     const mainHtml = extractMainHtmlBlock(
       ({ html, context }) => html`<div>${context.cond && context.cond2 ? html`<em>A</em>` : html`<span>b</span>`}</div>`
