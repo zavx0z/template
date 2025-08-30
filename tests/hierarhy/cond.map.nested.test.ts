@@ -42,7 +42,7 @@ describe("вложенность операторов", () => {
         { kind: "map-close" },
         { kind: "tag-close", name: "div", text: "</div>" },
       ]))
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it.skip("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -116,7 +116,7 @@ describe("вложенность операторов", () => {
         { kind: "tag-close", name: "div", text: "</div>" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it.skip("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
