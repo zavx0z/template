@@ -1,21 +1,47 @@
 import type { ElementToken } from "./splitter"
 
+export type PartHierarchy = PartElement | PartMeta | PartText | PartCondition | PartMap
+export type PartsHierarchy = PartHierarchy[]
+
+/**
+ * Элемент.
+ *
+ * @description
+ * Представляет HTML элемент в иерархии. div, span, p, etc.
+ */
+export type PartElement = {
+  /** Имя HTML тега */
+  tag: string
+  /** Тип узла */
+  type: "el"
+  /** Исходный текст тега */
+  text: string
+  /** Дочерние элементы */
+  child?: PartsHierarchy
+}
+
+/**
+ * Meta-элемент.
+ *
+ * @description
+ * Представляет web-component с тегом начинающимся с meta-* в иерархии элементов.
+ */
+export type PartMeta = {
+  /** Тег web-component. Всегда начинается с meta-* */
+  tag: string
+  /** Тип узла */
+  type: "meta"
+  /** Исходный текст тега */
+  text: string
+  /** Дочерние элементы */
+  child?: PartsHierarchy
+}
+
 /**
  * Текстовый узел.
  *
  * @description
  * Представляет текстовое содержимое в иерархии элементов.
- *
- * @property {string} type - Тип узла, всегда "text"
- * @property {string} text - Исходный текст
- *
- * @example
- * ```typescript
- * const textNode: PartText = {
- *   type: "text",
- *   text: "Hello ${name}"
- * }
- * ```
  */
 export type PartText = {
   /** Тип узла */
@@ -25,15 +51,11 @@ export type PartText = {
 }
 
 /**
- * Узел map-операции с шаблоном элемента.
+ * Узел map-операции.
  *
  * @description
  * Представляет цикл по коллекции данных. Содержит исходный текст map-выражения
  * и дочерние элементы, которые будут повторены для каждого элемента коллекции.
- *
- * @property {string} type - Тип узла, всегда "map"
- * @property {string} text - Исходный текст map-выражения
- * @property {(PartElement | PartText)[]} child - Дочерние элементы, повторяемые для каждого элемента коллекции
  *
  * @example
  * ```typescript
@@ -52,20 +74,14 @@ export type PartMap = {
   /** Исходный текст map-выражения */
   text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (PartElement | PartText | PartMap | PartCondition | PartMeta)[]
+  child: PartsHierarchy
 }
 
 /**
- * Узел условия (тернарный оператор) с ветками true/false.
+ * Узел условия (тернарный оператор).
  *
  * @description
- * Представляет условный рендеринг на основе значения из context или core.
  * Содержит исходный текст условия и две ветки: для случая когда условие истинно и когда ложно.
- *
- * @property {string} type - Тип узла, всегда "cond"
- * @property {string} text - Исходный текст условия
- * @property {PartElement} true - Элемент, рендерящийся когда условие истинно
- * @property {PartElement} false - Элемент, рендерящийся когда условие ложно
  *
  * @example
  * ```typescript
@@ -83,88 +99,20 @@ export type PartCondition = {
   /** Исходный текст условия */
   text: string
   /** Элемент, рендерящийся когда условие истинно */
-  true: PartElement | PartCondition | PartMeta
+  true: PartHierarchy
   /** Элемент, рендерящийся когда условие ложно */
-  false: PartElement | PartCondition | PartMeta
+  false: PartHierarchy
 }
 
-/**
- * Узел иерархии элементов, соответствующий открытому тегу.
- *
- * @description
- * Представляет HTML элемент в иерархии. Может содержать дочерние элементы,
- * включая другие элементы, условия, map-операции и текстовые узлы.
- *
- * @property {string} tag - Имя HTML тега (например, "div", "span", "p")
- * @property {string} type - Тип узла, всегда "el"
- * @property {string} text - Исходный текст тега
- * @property {(PartElement | PartCondition | PartMap | PartText)[]} [child] - Дочерние элементы (опционально)
- *
- * @example
- * ```typescript
- * const elementNode: PartElement = {
- *   tag: "div",
- *   type: "el",
- *   text: "<div>",
- *   child: [
- *     { type: "text", text: "Hello" },
- *     { tag: "span", type: "el", text: "<span>", child: [...] }
- *   ]
- * }
- * ```
- */
-export type PartElement = {
-  /** Имя HTML тега */
-  tag: string
-  /** Тип узла */
-  type: "el"
-  /** Исходный текст тега */
-  text: string
-  /** Дочерние элементы (опционально) */
-  child?: (PartElement | PartCondition | PartMap | PartText | PartMeta)[]
-}
-
-/**
- * Корневая иерархия элементов для переданного HTML.
- *
- * @description
- * Массив узлов верхнего уровня, представляющий полную структуру HTML документа.
- * Может содержать элементы, условия, map-операции и текстовые узлы.
- *
- * @example
- * ```typescript
- * const hierarchy: PartHierarchy = [
- *   { tag: "div", type: "el", text: "<div>", child: [...] },
- *   { type: "cond", text: "context.showHeader ?", true: {...}, false: {...} },
- *   { type: "map", text: "core.items.map(...)", child: [...] }
- * ]
- * ```
- */
-/**
- * Мета-узел иерархии.
- * Представляет мета-тег в иерархии элементов.
- */
-export type PartMeta = {
-  /** Имя мета-тега */
-  tag: string
-  /** Тип узла */
-  type: "meta"
-  /** Исходный текст тега */
-  text: string
-  /** Дочерние элементы (опционально) */
-  child?: (PartElement | PartCondition | PartMap | PartText | PartMeta)[]
-}
-
-export type PartHierarchy = (PartElement | PartCondition | PartMap | PartText | PartMeta)[]
-
+// ---------------- STACK ----------------
 /**
  * Элемент стека для отслеживания открытых тегов.
  *
  * @description
  * Используется внутренне для построения иерархии элементов.
  *
- * @property {ElementToken} tag - Токен открывающего тега
- * @property {PartElement} element - Соответствующий элемент иерархии
+ * @property tag - Токен открывающего тега
+ * @property element - Соответствующий элемент иерархии
  */
 export type StackItem = {
   /** Токен открывающего тега */
@@ -179,9 +127,9 @@ export type StackItem = {
  * @description
  * Используется для отслеживания map-операций во время построения иерархии.
  *
- * @property {ElementToken} startElement - Элемент начала map-операции
- * @property {ElementToken} endElement - Элемент конца map-операции
- * @property {string} text - Исходный текст map-выражения
+ * @property startElement - Элемент начала map-операции
+ * @property endElement - Элемент конца map-операции
+ * @property text - Исходный текст map-выражения
  */
 export type MapStackItem = {
   /** Элемент начала map-операции */
@@ -198,9 +146,9 @@ export type MapStackItem = {
  * @description
  * Используется для отслеживания условных операторов во время построения иерархии.
  *
- * @property {ElementToken} startElement - Элемент начала условия
- * @property {ElementToken} endElement - Элемент конца условия
- * @property {string} text - Исходный текст условия
+ * @property startElement - Элемент начала условия
+ * @property endElement - Элемент конца условия
+ * @property text - Исходный текст условия
  */
 export type ConditionStackItem = {
   /** Элемент начала условия */
