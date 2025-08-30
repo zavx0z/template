@@ -139,7 +139,14 @@ export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
     else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) kind = "void"
     else kind = "open"
 
-    out.push({ text: full, index: offset + localIndex, name, kind })
+    out.push({
+      text: full,
+      start: offset + tagStart, // начало тега в исходной строке (включительно)
+      end: offset + tagEnd, // конец тега в исходной строке (исключительно)
+      name,
+      kind,
+    })
+
     TAG_LOOKAHEAD.lastIndex = tagEnd
   }
 
@@ -147,7 +154,13 @@ export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
 }
 
 export type ElementKind = TagKind | "text"
-export type ElementToken = { text: string; index: number; name: string; kind: ElementKind }
+export type ElementToken = {
+  text: string
+  start: number // индекс начала по оригинальному входу (включительно)
+  end: number // индекс конца по оригинальному входу (исключительно)
+  name: string
+  kind: ElementKind
+}
 
 const formatAttributeText = (text: string): string =>
   text
@@ -176,29 +189,32 @@ const cutBeforeNextHtml = (s: string): string => {
  * - Если в куске встречается начало нового html` — всё справа от него отбрасываем.
  * - Чистый «клей» (` , `} , `)} …) игнорируется.
  * - Пустые/пробельные узлы удаляются (одиночный пробел-разделитель тоже).
+ * ВАЖНО: start/end считаются по исходной строке БЕЗ каких-либо нормализаций.
  */
 export const extractHtmlElements = (input: string): ElementToken[] => {
   const tags = scanHtmlTags(input)
   const out: ElementToken[] = []
   let cursor = 0
 
-  const pushText = (chunk: string, index: number) => {
+  const pushText = (chunk: string, start: number) => {
     if (!chunk || /^\s+$/.test(chunk)) return
 
     const trimmed = chunk.trim()
     if (isPureGlue(trimmed)) return
 
     // Сохраняем левую «видимую» часть до html`
-    let visible = cutBeforeNextHtml(chunk)
+    const visible = cutBeforeNextHtml(chunk)
     if (!visible || /^\s+$/.test(visible)) return
 
     // Собираем, оставляя только полностью закрытые ${...}
     let processed = ""
     let i = 0
+    let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
+
     while (i < visible.length) {
       const ch = visible[i]
       if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
-        const start = i
+        const exprStart = i
         i += 2
         let b = 1
         while (i < visible.length && b > 0) {
@@ -207,31 +223,51 @@ export const extractHtmlElements = (input: string): ElementToken[] => {
           i++
         }
         if (b === 0) {
-          processed += visible.slice(start, i) // закрытая интерполяция — сохраняем
+          // закрытая интерполяция — целиком сохраняем
+          processed += visible.slice(exprStart, i)
+          usedEndLocal = i
           continue
         } else {
-          break // незакрытая — это «клей», остаток отбрасываем
+          // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
+          // индексы конца должны соответствовать реально использованной части
+          break
         }
       }
       processed += ch
       i++
+      usedEndLocal = i
     }
 
     const collapsed = processed.replace(/\s+/g, " ")
     if (collapsed === " ") return
 
     const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
+
     if (final.length > 0) {
-      out.push({ text: final, index, name: "", kind: "text" })
+      out.push({
+        text: final,
+        start,
+        end: start + usedEndLocal, // точный конец по исходнику (исключительно)
+        name: "",
+        kind: "text",
+      })
     }
   }
 
   for (const tag of tags) {
-    if (tag.index > cursor) {
-      pushText(input.slice(cursor, tag.index), cursor)
+    if (tag.start > cursor) {
+      // текст между предыдущим концом и началом текущего тега
+      pushText(input.slice(cursor, tag.start), cursor)
     }
-    out.push({ ...tag, text: formatAttributeText(tag.text) })
-    cursor = tag.index + tag.text.length
+    // теги: нормализуем только отображаемый text, но индексы — сырые
+    out.push({
+      text: formatAttributeText(tag.text),
+      start: tag.start,
+      end: tag.end,
+      name: tag.name,
+      kind: tag.kind,
+    })
+    cursor = tag.end
   }
 
   if (cursor < input.length) {
