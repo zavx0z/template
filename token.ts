@@ -4,46 +4,41 @@ import type { ElementToken } from "./splitter"
 export function extractTokens(mainHtml: string, elements: ElementToken[]): StreamToken[] {
   const allTokens: StreamToken[] = []
 
-  elements.reduce((prev: ElementToken | null, curr: ElementToken) => {
+  // Сначала добавляем текст до первого элемента
+  if (elements.length > 0) {
+    const string = mainHtml.slice(0, elements[0]!.start).trim()
+    if (string) allTokens.push(...extractPatterns(string))
+  }
+
+  // Затем обрабатываем все элементы
+  elements.reduce((prev: ElementToken | null, curr: ElementToken, index: number) => {
     if (prev) {
       switch (prev.kind) {
         case "open":
-          allTokens.push({
-            text: prev.text,
-            name: prev.name,
-            kind: "tag-open",
-          })
+          allTokens.push({ text: prev.text, name: prev.name, kind: "tag-open" })
           break
         case "close":
-          allTokens.push({
-            text: prev.text,
-            name: prev.name,
-            kind: "tag-close",
-          })
+          allTokens.push({ text: prev.text, name: prev.name, kind: "tag-close" })
           break
         case "self":
-          allTokens.push({
-            text: prev.text,
-            name: prev.name,
-            kind: "tag-self",
-          })
+          allTokens.push({ text: prev.text, name: prev.name, kind: "tag-self" })
           break
         case "text":
-          allTokens.push({
-            text: prev.text,
-            kind: "text",
-          })
+          allTokens.push({ text: prev.text, kind: "text" })
           break
       }
-      // Выводим строку между предыдущим и текущим элементом
+      // Выводим строку между предыдущим и текущим элементом, если она не пустая
       const string = mainHtml.slice(prev.end, curr.start).trim()
-      if (string) {
-        const patterns = extractPatterns(string)
-        allTokens.push(...patterns)
-      }
+      if (string) allTokens.push(...extractPatterns(string))
     }
     return curr
   }, null)
+
+  // И, наконец, добавляем текст после последнего элемента
+  if (elements.length > 0) {
+    const string = mainHtml.slice(elements[elements.length - 1]!.end, mainHtml.length).trim()
+    if (string) allTokens.push(...extractPatterns(string))
+  }
 
   return allTokens
 }
