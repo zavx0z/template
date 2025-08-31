@@ -221,7 +221,7 @@ describe("events", () => {
           child: [
             {
               type: "map",
-              text: "core.items.map((item)`",
+              text: "core.items.map((item)",
               child: [
                 {
                   tag: "li",
@@ -302,7 +302,7 @@ describe("events", () => {
           child: [
             {
               type: "map",
-              text: "core.buttons.map((btn)`",
+              text: "core.buttons.map((btn)",
               child: [
                 {
                   tag: "button",
@@ -616,7 +616,7 @@ describe("events", () => {
           child: [
             {
               type: "map",
-              text: "core.companies.map((company)`",
+              text: "core.companies.map((company)",
               child: [
                 {
                   tag: "section",
@@ -637,7 +637,7 @@ describe("events", () => {
                     },
                     {
                       type: "map",
-                      text: "company.departments.map((dept)`",
+                      text: "company.departments.map((dept)",
                       child: [
                         {
                           tag: "article",
@@ -658,7 +658,7 @@ describe("events", () => {
                             },
                             {
                               type: "map",
-                              text: "dept.teams.map((team)`",
+                              text: "dept.teams.map((team)",
                               child: [
                                 {
                                   tag: "div",
@@ -679,7 +679,7 @@ describe("events", () => {
                                     },
                                     {
                                       type: "map",
-                                      text: "team.members.map((member)`",
+                                      text: "team.members.map((member)",
                                       child: [
                                         {
                                           tag: "p",

@@ -4,8 +4,54 @@ import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import { extractTokens } from "../token"
+import { print } from "../fixture"
 
 describe.skip("nested.conditions", () => {
+  describe("двойное условие", () => {
+    const mainHtml = extractMainHtmlBlock<any, { flag1: boolean; flag2: boolean }>(
+      ({ html, context }) => html`
+        ${context.flag1
+          ? html`<div class="flag1"></div>`
+          : context.flag2
+          ? html`<div class="flag2"></div>`
+          : html`<div class="flag3"></div>`}
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    const tokens = extractTokens(mainHtml, elements)
+    it("tokens", () => {
+      expect(tokens).toEqual([
+        { kind: "cond-open", expr: "context.flag1" },
+        { kind: "tag-open", name: "div", text: '<div class="flag1">' },
+        { kind: "tag-close", name: "div", text: "</div>" },
+        { kind: "cond-else" },
+        { kind: "tag-open", name: "div", text: '<div class="flag2">' },
+        { kind: "tag-close", name: "div", text: "</div>" },
+        { kind: "cond-else" },
+        { kind: "tag-open", name: "div", text: '<div class="flag3">' },
+        { kind: "tag-close", name: "div", text: "</div>" },
+        { kind: "cond-close" },
+      ])
+    })
+    const hierarchy = makeHierarchy(tokens)
+    it("hierarchy", () =>
+      expect(hierarchy).toEqual([
+        {
+          type: "cond",
+          text: "context.flag1",
+          true: {
+            tag: "div",
+            type: "el",
+            text: '<div class="flag1">',
+          },
+          false: {
+            tag: "div",
+            type: "el",
+            text: '<div class="flag2">',
+          },
+        },
+      ]))
+  })
   it("условия с элементами на разных уровнях вложенности с переменными из разных уровней", () => {
     const mainHtml = extractMainHtmlBlock<
       any,

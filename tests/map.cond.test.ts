@@ -485,8 +485,6 @@ describe("map с условиями", () => {
         },
       ]))
     const data = enrichWithData(attributes)
-    console.log(data)
-
     it("data", () =>
       expect(data).toEqual([
         {

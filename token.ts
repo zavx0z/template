@@ -120,16 +120,54 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
 }
 
 const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
-  // Ищем ${...} ? или => ... ? для условий
-  const condOpenRegex = /(\$\{|=>)\s*([^?]*?)\s*\?/g
-  let match
-  while ((match = condOpenRegex.exec(expr)) !== null) {
-    return [match.index, { kind: "cond-open", expr: match[2]!.trim() }]
+  let i = 0
+  while (i < expr.length) {
+    const d = expr.indexOf("${", i)
+    const a = expr.indexOf("=>", i)
+    if (d === -1 && a === -1) return
+
+    const useDollar = d !== -1 && (a === -1 || d < a)
+    const start = useDollar ? d : a
+    let j = start + 2
+    while (j < expr.length && /\s/.test(expr[j]!)) j++
+
+    const q = expr.indexOf("?", j)
+    if (q === -1) return
+
+    const between = expr.slice(j, q)
+
+    // если это ветка "=>", и до '?' попался backtick, то это тегированный шаблон:
+    // переносим курсор на сам backtick и ищем следующий кандидат (внутренний ${ ... ? ... }).
+    if (!useDollar) {
+      const bt = between.indexOf("`")
+      if (bt !== -1) {
+        i = j + bt + 1
+        continue
+      }
+    }
+
+    // если это ветка "${", и до '?' попался .map( — пропускаем внешний map-кандидат
+    // и двигаемся внутрь.
+    if (useDollar) {
+      const m = between.indexOf(".map(")
+      if (m !== -1) {
+        i = j + m + 1
+        continue
+      }
+      // защитно: если внутри выражения внезапно встретился backtick — тоже двигаемся к нему
+      const bt = between.indexOf("`")
+      if (bt !== -1) {
+        i = j + bt + 1
+        continue
+      }
+    }
+
+    return [j, { kind: "cond-open", expr: between.trim() }]
   }
 }
 
 const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
-  const condElseRegex = /: /g
+  const condElseRegex = /:\s*/g // допускаем произвольные пробелы/переводы строк
   let match
   while ((match = condElseRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-else" }]

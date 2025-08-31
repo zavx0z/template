@@ -3,7 +3,6 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
-import { print } from "../fixture"
 import { extractTokens } from "../token"
 
 describe("условия соседствующие", () => {

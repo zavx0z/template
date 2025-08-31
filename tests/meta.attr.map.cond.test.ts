@@ -4,6 +4,7 @@ import { describe, it, expect } from "bun:test"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import { extractTokens } from "../token"
+import { print } from "../fixture"
 
 describe("meta-компоненты с core/context в map и condition", () => {
   describe("meta-элемент с пустыми объектами", () => {
@@ -106,38 +107,40 @@ describe("meta-компоненты с core/context в map и condition", () => 
     const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
-
-    it("data", () => {
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "div",
           type: "el",
           child: [
             {
-              tag: {
-                data: "/core/tag",
-                expr: "meta-${[0]}",
+              type: "cond",
+              data: "/context/showMeta",
+              true: {
+                tag: {
+                  data: "/core/tag",
+                  expr: "meta-${[0]}",
+                },
+                type: "meta",
+                core: {
+                  data: ["/context/id", "/context/name"],
+                  expr: "{ id: [0], name: [1] }",
+                },
+                context: '{ type: "primary", active: true }',
               },
-              type: "meta",
-              core: {
-                data: ["/context/id", "/context/name"],
-                expr: "{ id: [0], name: [1] }",
+              false: {
+                tag: {
+                  data: "/core/tag",
+                  expr: "meta-${[0]}",
+                },
+                type: "meta",
+                core: '{ id: "default", name: "default" }',
+                context: '{ type: "secondary", active: false }',
               },
-              context: '{ type: "primary", active: true }',
-            },
-            {
-              tag: {
-                data: "/core/tag",
-                expr: "meta-${[0]}",
-              },
-              type: "meta",
-              core: '{ id: "default", name: "default" }',
-              context: '{ type: "secondary", active: false }',
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("meta-компоненты в map внутри condition", () => {
@@ -176,8 +179,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
-
-    it("data", () => {
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "div",
@@ -188,35 +190,38 @@ describe("meta-компоненты с core/context в map и condition", () => 
               data: "/core/items",
               child: [
                 {
-                  tag: {
-                    data: "/core/tag",
-                    expr: "meta-${[0]}",
+                  type: "cond",
+                  data: "[item]/context/showList",
+                  true: {
+                    tag: {
+                      data: "/core/tag",
+                      expr: "meta-${[0]}",
+                    },
+                    type: "meta",
+                    core: {
+                      data: ["[item]/id", "[item]/name", "/core/type", "[item]/metadata"],
+                      expr: "{ id: [0], name: [1], type: [2], metadata: [3] }",
+                    },
+                    context: {
+                      data: ["[item]/status", "[item]/active", "[item]/permissions"],
+                      expr: "{ status: [0], active: [1], permissions: [2] }",
+                    },
                   },
-                  type: "meta",
-                  core: {
-                    data: ["[item]/id", "[item]/name", "/core/type", "[item]/metadata"],
-                    expr: "{ id: [0], name: [1], type: [2], metadata: [3] }",
+                  false: {
+                    tag: {
+                      data: "/core/tag",
+                      expr: "meta-${[0]}",
+                    },
+                    type: "meta",
+                    core: '{ id: "empty", name: "empty" }',
+                    context: '{ type: "empty", active: false }',
                   },
-                  context: {
-                    data: ["[item]/status", "[item]/active", "[item]/permissions"],
-                    expr: "{ status: [0], active: [1], permissions: [2] }",
-                  },
-                },
-                {
-                  tag: {
-                    data: "/core/tag",
-                    expr: "meta-${[0]}",
-                  },
-                  type: "meta",
-                  context: '{ type: "empty", active: false }',
-                  core: '{ id: "empty", name: "empty" }',
                 },
               ],
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("meta-компоненты в condition внутри map", () => {
@@ -242,14 +247,41 @@ describe("meta-компоненты с core/context в map и condition", () => 
         </div>
       `
     )
-
     const elements = extractHtmlElements(mainHtml)
     const tokens = extractTokens(mainHtml, elements)
+    // print(tokens)
+    it("tokens", () => {
+      expect(tokens).toEqual([
+        { kind: "tag-open", name: "div", text: "<div>" },
+        { kind: "map-open", sig: "core.items.map((item)" },
+        { kind: "cond-open", expr: "item.isActive" },
+        {
+          kind: "tag-self",
+          name: "meta-${core.tag}",
+          text: '<meta-${core.tag} core=${{ id: item.id, name: item.name, type: "active" }} context=${{ status: "active", permissions: item.permissions }} />',
+        },
+        { kind: "cond-else" },
+        {
+          kind: "tag-self",
+          name: "meta-${core.tag}",
+          text: '<meta-${core.tag} core=${{ id: item.id, name: item.name, type: "error" }} context=${{ status: "error", message: "Item has error" }} />',
+        },
+        { kind: "cond-else" },
+        {
+          kind: "tag-self",
+          name: "meta-${core.tag}",
+          text: '<meta-${core.tag} core=${{ id: item.id, name: item.name, type: "inactive" }} context=${{ status: "inactive" }} />',
+        },
+        { kind: "cond-close" },
+        { kind: "cond-close" },
+        { kind: "map-close" },
+        { kind: "tag-close", name: "div", text: "</div>" },
+      ])
+    })
     const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
-
-    it("data", () => {
+    it("data", () =>
       expect(data).toEqual([
         {
           tag: "div",
@@ -260,50 +292,41 @@ describe("meta-компоненты с core/context в map и condition", () => 
               data: "/core/items",
               child: [
                 {
-                  tag: {
-                    data: "/core/tag",
-                    expr: "meta-${[0]}",
+                  type: "cond",
+                  data: "[item]/isActive",
+                  true: {
+                    tag: {
+                      data: "/core/tag",
+                      expr: "meta-${[0]}",
+                    },
+                    type: "meta",
+                    core: {
+                      data: ["[item]/id", "[item]/name"],
+                      expr: '{ id: [0], name: [1], type: "active" }',
+                    },
+                    context: {
+                      data: "[item]/permissions",
+                      expr: '{ status: "active", permissions: [0] }',
+                    },
                   },
-                  type: "meta",
-                  context: {
-                    data: "[item]/permissions",
-                    expr: '{ status: "active", permissions: [0] }',
-                  },
-                  core: {
-                    data: ["[item]/id", "[item]/name"],
-                    expr: '{ id: [0], name: [1], type: "active" }',
-                  },
-                },
-                {
-                  tag: {
-                    data: "/core/tag",
-                    expr: "meta-${[0]}",
-                  },
-                  type: "meta",
-                  context: '{ status: "error", message: "Item has error" }',
-                  core: {
-                    data: ["[item]/id", "[item]/name"],
-                    expr: '{ id: [0], name: [1], type: "error" }',
-                  },
-                },
-                {
-                  tag: {
-                    data: "/core/tag",
-                    expr: "meta-${[0]}",
-                  },
-                  type: "meta",
-                  context: '{ status: "inactive" }',
-                  core: {
-                    data: ["[item]/id", "[item]/name"],
-                    expr: '{ id: [0], name: [1], type: "inactive" }',
+                  false: {
+                    tag: {
+                      data: "/core/tag",
+                      expr: "meta-${[0]}",
+                    },
+                    type: "meta",
+                    core: {
+                      data: ["[item]/id", "[item]/name"],
+                      expr: '{ id: [0], name: [1], type: "error" }',
+                    },
+                    context: '{ status: "error", message: "Item has error" }',
                   },
                 },
               ],
             },
           ],
         },
-      ])
-    })
+      ]))
   })
 
   describe("сложные meta-компоненты с вложенными core/context объектами", () => {
@@ -383,7 +406,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
-
+    console.log(data)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -395,48 +418,38 @@ describe("meta-компоненты с core/context в map и condition", () => 
               data: "/core/users",
               child: [
                 {
-                  tag: {
-                    data: "/core/tag",
-                    expr: "meta-${[0]}",
+                  type: "cond",
+                  data: ["[item]/permissions/includes", "[item]/admin"],
+                  expr: '${[0]}("${[1]}")',
+                  true: {
+                    tag: {
+                      data: "/core/tag",
+                      expr: "meta-${[0]}",
+                    },
+                    type: "meta",
+                    core: {
+                      data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                      expr: '{ id: [0], name: [1], type: "admin", permissions: [2], metadata: { level: "admin", access: "full", settings: [3] } }',
+                    },
+                    context: {
+                      data: "[item]/isOnline",
+                      expr: '{ status: "admin", active: [0], canEdit: true, canDelete: true, canManage: true }',
+                    },
                   },
-                  type: "meta",
-                  context: {
-                    data: "[item]/isOnline",
-                    expr: '{ status: "admin", active: [0], canEdit: true, canDelete: true, canManage: true }',
-                  },
-                  core: {
-                    data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                    expr: '{ id: [0], name: [1], type: "admin", permissions: [2], metadata: { level: "admin", access: "full", settings: [3] } }',
-                  },
-                },
-                {
-                  tag: {
-                    data: "/core/tag",
-                    expr: "meta-${[0]}",
-                  },
-                  type: "meta",
-                  context: {
-                    data: "[item]/isOnline",
-                    expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
-                  },
-                  core: {
-                    data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                    expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
-                  },
-                },
-                {
-                  tag: {
-                    data: "/core/tag",
-                    expr: "meta-${[0]}",
-                  },
-                  type: "meta",
-                  context: {
-                    data: "[item]/isOnline",
-                    expr: '{ status: "user", active: [0], canEdit: false, canDelete: false, canManage: false }',
-                  },
-                  core: {
-                    data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                    expr: '{ id: [0], name: [1], type: "user", permissions: [2], metadata: { level: "user", access: "basic", settings: [3] } }',
+                  false: {
+                    tag: {
+                      data: "/core/tag",
+                      expr: "meta-${[0]}",
+                    },
+                    type: "meta",
+                    core: {
+                      data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                      expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
+                    },
+                    context: {
+                      data: "[item]/isOnline",
+                      expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
+                    },
                   },
                 },
               ],
