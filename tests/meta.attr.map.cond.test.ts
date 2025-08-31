@@ -186,13 +186,13 @@ describe("meta-компоненты с core/context в map и condition", () => 
           type: "el",
           child: [
             {
-              type: "map",
-              data: "/core/items",
-              child: [
-                {
-                  type: "cond",
-                  data: "[item]/context/showList",
-                  true: {
+              type: "cond",
+              data: "/context/showList",
+              true: {
+                type: "map",
+                data: "/core/items",
+                child: [
+                  {
                     tag: {
                       data: "/core/tag",
                       expr: "meta-${[0]}",
@@ -207,17 +207,17 @@ describe("meta-компоненты с core/context в map и condition", () => 
                       expr: "{ status: [0], active: [1], permissions: [2] }",
                     },
                   },
-                  false: {
-                    tag: {
-                      data: "/core/tag",
-                      expr: "meta-${[0]}",
-                    },
-                    type: "meta",
-                    core: '{ id: "empty", name: "empty" }',
-                    context: '{ type: "empty", active: false }',
-                  },
+                ],
+              },
+              false: {
+                tag: {
+                  data: "/core/tag",
+                  expr: "meta-${[0]}",
                 },
-              ],
+                type: "meta",
+                core: '{ id: "empty", name: "empty" }',
+                context: '{ type: "empty", active: false }',
+              },
             },
           ],
         },

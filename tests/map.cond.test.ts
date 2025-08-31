@@ -347,46 +347,46 @@ describe("map с условиями", () => {
                     },
                   ],
                 },
-                {
-                  type: "cond",
-                  text: "context.flag",
-                  true: {
-                    tag: "div",
-                    type: "el",
-                    text: '<div class="conditional">',
+              ],
+            },
+            {
+              type: "cond",
+              text: "context.flag",
+              true: {
+                tag: "div",
+                type: "el",
+                text: '<div class="conditional">',
+                child: [
+                  {
+                    type: "map",
+                    text: "core.list2.map(({ title })",
                     child: [
                       {
-                        type: "map",
-                        text: "core.list2.map(({ title })",
+                        tag: "div",
+                        type: "el",
+                        text: '<div class="item2">',
                         child: [
                           {
-                            tag: "div",
-                            type: "el",
-                            text: '<div class="item2">',
-                            child: [
-                              {
-                                type: "text",
-                                text: "${title}",
-                              },
-                            ],
+                            type: "text",
+                            text: "${title}",
                           },
                         ],
                       },
                     ],
                   },
-                  false: {
-                    tag: "div",
-                    type: "el",
-                    text: '<div class="fallback">',
-                    child: [
-                      {
-                        type: "text",
-                        text: "No items",
-                      },
-                    ],
+                ],
+              },
+              false: {
+                tag: "div",
+                type: "el",
+                text: '<div class="fallback">',
+                child: [
+                  {
+                    type: "text",
+                    text: "No items",
                   },
-                },
-              ],
+                ],
+              },
             },
           ],
         },
@@ -425,61 +425,61 @@ describe("map с условиями", () => {
                     },
                   ],
                 },
-                {
-                  type: "cond",
-                  text: "context.flag",
-                  true: {
-                    tag: "div",
-                    type: "el",
-                    string: {
-                      class: {
-                        type: "static",
-                        value: "conditional",
-                      },
-                    },
+              ],
+            },
+            {
+              type: "cond",
+              text: "context.flag",
+              true: {
+                tag: "div",
+                type: "el",
+                string: {
+                  class: {
+                    type: "static",
+                    value: "conditional",
+                  },
+                },
+                child: [
+                  {
+                    type: "map",
+                    text: "core.list2.map(({ title })",
                     child: [
                       {
-                        type: "map",
-                        text: "core.list2.map(({ title })",
+                        tag: "div",
+                        type: "el",
+                        string: {
+                          class: {
+                            type: "static",
+                            value: "item2",
+                          },
+                        },
                         child: [
                           {
-                            tag: "div",
-                            type: "el",
-                            string: {
-                              class: {
-                                type: "static",
-                                value: "item2",
-                              },
-                            },
-                            child: [
-                              {
-                                type: "text",
-                                text: "${title}",
-                              },
-                            ],
+                            type: "text",
+                            text: "${title}",
                           },
                         ],
                       },
                     ],
                   },
-                  false: {
-                    tag: "div",
-                    type: "el",
-                    string: {
-                      class: {
-                        type: "static",
-                        value: "fallback",
-                      },
-                    },
-                    child: [
-                      {
-                        type: "text",
-                        text: "No items",
-                      },
-                    ],
+                ],
+              },
+              false: {
+                tag: "div",
+                type: "el",
+                string: {
+                  class: {
+                    type: "static",
+                    value: "fallback",
                   },
                 },
-              ],
+                child: [
+                  {
+                    type: "text",
+                    text: "No items",
+                  },
+                ],
+              },
             },
           ],
         },
@@ -508,52 +508,52 @@ describe("map с условиями", () => {
                     class: "item1",
                   },
                 },
-                {
-                  type: "cond",
-                  data: "[item]/context/flag",
-                  true: {
-                    tag: "div",
-                    type: "el",
+              ],
+            },
+            {
+              type: "cond",
+              data: "/context/flag",
+              true: {
+                tag: "div",
+                type: "el",
+                child: [
+                  {
+                    type: "map",
+                    data: "/core/list2",
                     child: [
                       {
-                        type: "map",
-                        data: "[item]/list2",
+                        tag: "div",
+                        type: "el",
                         child: [
                           {
-                            tag: "div",
-                            type: "el",
-                            child: [
-                              {
-                                type: "text",
-                                data: "[item]/title",
-                              },
-                            ],
-                            string: {
-                              class: "item2",
-                            },
+                            type: "text",
+                            data: "[item]/title",
                           },
                         ],
+                        string: {
+                          class: "item2",
+                        },
                       },
                     ],
-                    string: {
-                      class: "conditional",
-                    },
                   },
-                  false: {
-                    tag: "div",
-                    type: "el",
-                    child: [
-                      {
-                        type: "text",
-                        value: "No items",
-                      },
-                    ],
-                    string: {
-                      class: "fallback",
-                    },
-                  },
+                ],
+                string: {
+                  class: "conditional",
                 },
-              ],
+              },
+              false: {
+                tag: "div",
+                type: "el",
+                child: [
+                  {
+                    type: "text",
+                    value: "No items",
+                  },
+                ],
+                string: {
+                  class: "fallback",
+                },
+              },
             },
           ],
           string: {

@@ -4,7 +4,6 @@ import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import { extractTokens } from "../token"
-import { print } from "../fixture"
 
 describe("nested.conditions", () => {
   describe("двойное условие", () => {
@@ -61,7 +60,7 @@ describe("nested.conditions", () => {
         },
       ]))
   })
-  it.skip("условия с элементами на разных уровнях вложенности с переменными из разных уровней", () => {
+  describe("условия с элементами на разных уровнях вложенности с переменными из разных уровней", () => {
     const mainHtml = extractMainHtmlBlock<
       any,
       {
@@ -155,132 +154,37 @@ describe("nested.conditions", () => {
     const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
-
-    expect(data).toEqual([
-      {
-        tag: "div",
-        type: "el",
-        child: [
-          {
-            type: "map",
-            data: "/core/companies",
-            child: [
-              {
-                tag: "section",
-                type: "el",
-                string: {
-                  "data-company": {
-                    data: "[item]/id",
-                  },
-                },
-                child: [
-                  {
-                    tag: "h1",
-                    type: "el",
-                    child: [
-                      {
-                        type: "text",
-                        data: "[item]/id",
-                        expr: "Company: ${[0]}",
-                      },
-                    ],
-                  },
-                  {
-                    type: "cond",
-                    data: "[item]/active",
-                    true: {
-                      tag: "div",
+    it("data", () =>
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/companies",
+              child: [
+                {
+                  tag: "section",
+                  type: "el",
+                  child: [
+                    {
+                      tag: "h1",
                       type: "el",
-                      string: {
-                        class: "company-active",
-                      },
-                      child: [
-                        {
-                          tag: "h2",
-                          type: "el",
-                          child: [
-                            {
-                              type: "text",
-                              data: "[item]/id",
-                              expr: "Active Company: ${[0]}",
-                            },
-                          ],
-                        },
-                        {
-                          type: "map",
-                          data: "[item]/departments",
-                          child: [
-                            {
-                              tag: "div",
-                              type: "el",
-                              string: {
-                                class: "dept-summary",
-                              },
-                              child: [
-                                {
-                                  type: "cond",
-                                  data: "[item]/active",
-                                  true: {
-                                    tag: "span",
-                                    type: "el",
-                                    string: {
-                                      class: "dept-active-summary",
-                                    },
-                                    child: [
-                                      {
-                                        type: "text",
-                                        data: "[item]/id",
-                                        expr: "Active Dept: ${[0]}",
-                                      },
-                                    ],
-                                  },
-                                  false: {
-                                    tag: "span",
-                                    type: "el",
-                                    string: {
-                                      class: "dept-inactive-summary",
-                                    },
-                                    child: [
-                                      {
-                                        type: "text",
-                                        data: "[item]/id",
-                                        expr: "Inactive Dept: ${[0]}",
-                                      },
-                                    ],
-                                  },
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                    false: {
-                      tag: "div",
-                      type: "el",
-                      string: {
-                        class: "company-inactive",
-                      },
                       child: [
                         {
                           type: "text",
-                          value: "Inactive Company",
+                          data: "[item]/id",
+                          expr: "Company: ${[0]}",
                         },
                       ],
                     },
-                  },
-                  {
-                    type: "map",
-                    data: "[item]/departments",
-                    child: [
-                      {
-                        tag: "article",
+                    {
+                      type: "cond",
+                      data: "[item]/active",
+                      true: {
+                        tag: "div",
                         type: "el",
-                        string: {
-                          "data-dept": {
-                            data: "[item]/id",
-                          },
-                        },
                         child: [
                           {
                             tag: "h2",
@@ -288,232 +192,326 @@ describe("nested.conditions", () => {
                             child: [
                               {
                                 type: "text",
-                                data: ["[item]/id", "[index]"],
-                                expr: "Dept: ${[0]} (Index: ${[1]})",
+                                data: "[item]/id",
+                                expr: "Active Company: ${[0]}",
                               },
                             ],
                           },
                           {
-                            type: "cond",
-                            data: ["../[item]/active", "[item]/active"],
-                            expr: "${[0]} && ${[1]}",
-                            true: {
-                              tag: "div",
-                              type: "el",
-                              string: {
-                                class: "dept-active",
-                              },
-                              child: [
-                                {
-                                  type: "text",
-                                  value: "Active Department",
-                                },
-                              ],
-                            },
-                            false: {
-                              tag: "div",
-                              type: "el",
-                              string: {
-                                class: "dept-inactive",
-                              },
-                              child: [
-                                {
-                                  type: "text",
-                                  value: "Inactive Department",
-                                },
-                              ],
-                            },
-                          },
-                          {
                             type: "map",
-                            data: "[item]/teams",
+                            data: "[item]/departments",
                             child: [
                               {
                                 tag: "div",
                                 type: "el",
-                                string: {
-                                  "data-team": {
-                                    data: "[item]/id",
-                                  },
-                                },
                                 child: [
                                   {
-                                    tag: "h3",
-                                    type: "el",
-                                    child: [
-                                      {
-                                        type: "text",
-                                        data: ["[item]/id", "../[index]", "[index]"],
-                                        expr: "Team: ${[0]} (Dept Index: ${[1]}, Team Index: ${[2]})",
-                                      },
-                                    ],
-                                  },
-                                  {
                                     type: "cond",
-                                    data: ["../../[item]/active", "../[item]/active", "[item]/active"],
-                                    expr: "${[0]} && ${[1]} && ${[2]}",
+                                    data: "[item]/active",
                                     true: {
-                                      tag: "div",
+                                      tag: "span",
                                       type: "el",
-                                      string: {
-                                        class: "team-active",
-                                      },
                                       child: [
                                         {
                                           type: "text",
-                                          value: "Active Team",
+                                          data: "[item]/id",
+                                          expr: "Active Dept: ${[0]}",
                                         },
                                       ],
+                                      string: {
+                                        class: "dept-active-summary",
+                                      },
                                     },
                                     false: {
-                                      tag: "div",
+                                      tag: "span",
                                       type: "el",
-                                      string: {
-                                        class: "team-inactive",
-                                      },
                                       child: [
                                         {
                                           type: "text",
-                                          value: "Inactive Team",
+                                          data: "[item]/id",
+                                          expr: "Inactive Dept: ${[0]}",
                                         },
                                       ],
-                                    },
-                                  },
-                                  {
-                                    tag: {
-                                      data: "[item]/id",
-                                      expr: "meta-${[0]}",
-                                    },
-                                    type: "meta",
-                                  },
-                                  {
-                                    type: "map",
-                                    data: "[item]/members",
-                                    child: [
-                                      {
-                                        tag: "p",
-                                        type: "el",
-                                        string: {
-                                          "data-member": {
-                                            data: "[item]/id",
-                                          },
-                                        },
-                                        child: [
-                                          {
-                                            tag: "span",
-                                            type: "el",
-                                            string: {
-                                              class: "member-name",
-                                            },
-                                            child: [
-                                              {
-                                                type: "text",
-                                                data: "[item]/name",
-                                              },
-                                            ],
-                                          },
-                                          {
-                                            tag: "span",
-                                            type: "el",
-                                            string: {
-                                              class: "member-indices",
-                                            },
-                                            child: [
-                                              {
-                                                type: "text",
-                                                data: ["../../[index]", "../[index]", "[index]"],
-                                                expr: "Indices: Dept=${[0]}, Team=${[1]}, Member=${[2]}",
-                                              },
-                                            ],
-                                          },
-                                          {
-                                            type: "cond",
-                                            data: "[item]/active",
-                                            true: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "member-status-active",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "Fully Active",
-                                                },
-                                              ],
-                                            },
-                                            false: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "member-status-inactive",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "Not Fully Active",
-                                                },
-                                              ],
-                                            },
-                                          },
-                                          {
-                                            type: "cond",
-                                            data: [
-                                              "../../../[item]/active",
-                                              "../../[item]/active",
-                                              "../[item]/active",
-                                              "[item]/active",
-                                            ],
-                                            expr: "${[0]} && ${[1]} && ${[2]} && ${[3]}",
-                                            true: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "member-online",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "Online",
-                                                },
-                                              ],
-                                            },
-                                            false: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "member-offline",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "Offline",
-                                                },
-                                              ],
-                                            },
-                                          },
-                                        ],
+                                      string: {
+                                        class: "dept-inactive-summary",
                                       },
-                                    ],
+                                    },
                                   },
                                 ],
+                                string: {
+                                  class: "dept-summary",
+                                },
                               },
                             ],
                           },
                         ],
+                        string: {
+                          class: "company-active",
+                        },
                       },
-                    ],
+                      false: {
+                        tag: "div",
+                        type: "el",
+                        child: [
+                          {
+                            type: "text",
+                            value: "Inactive Company",
+                          },
+                        ],
+                        string: {
+                          class: "company-inactive",
+                        },
+                      },
+                    },
+                    {
+                      type: "map",
+                      data: "[item]/departments",
+                      child: [
+                        {
+                          tag: "article",
+                          type: "el",
+                          child: [
+                            {
+                              tag: "h2",
+                              type: "el",
+                              child: [
+                                {
+                                  type: "text",
+                                  data: ["[item]/id", "[index]"],
+                                  expr: "Dept: ${[0]} (Index: ${[1]})",
+                                },
+                              ],
+                            },
+                            {
+                              type: "cond",
+                              data: ["../[item]/active", "[item]/active"],
+                              expr: "${[0]} && ${[1]}",
+                              true: {
+                                tag: "div",
+                                type: "el",
+                                child: [
+                                  {
+                                    type: "text",
+                                    value: "Active Department",
+                                  },
+                                ],
+                                string: {
+                                  class: "dept-active",
+                                },
+                              },
+                              false: {
+                                tag: "div",
+                                type: "el",
+                                child: [
+                                  {
+                                    type: "text",
+                                    value: "Inactive Department",
+                                  },
+                                ],
+                                string: {
+                                  class: "dept-inactive",
+                                },
+                              },
+                            },
+                            {
+                              type: "map",
+                              data: "[item]/teams",
+                              child: [
+                                {
+                                  tag: "div",
+                                  type: "el",
+                                  child: [
+                                    {
+                                      tag: "h3",
+                                      type: "el",
+                                      child: [
+                                        {
+                                          type: "text",
+                                          data: ["[item]/id", "../[index]", "[index]"],
+                                          expr: "Team: ${[0]} (Dept Index: ${[1]}, Team Index: ${[2]})",
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      type: "cond",
+                                      data: ["../../[item]/active", "../[item]/active", "[item]/active"],
+                                      expr: "${[0]} && ${[1]} && ${[2]}",
+                                      true: {
+                                        tag: "div",
+                                        type: "el",
+                                        child: [
+                                          {
+                                            type: "text",
+                                            value: "Active Team",
+                                          },
+                                        ],
+                                        string: {
+                                          class: "team-active",
+                                        },
+                                      },
+                                      false: {
+                                        tag: "div",
+                                        type: "el",
+                                        child: [
+                                          {
+                                            type: "text",
+                                            value: "Inactive Team",
+                                          },
+                                        ],
+                                        string: {
+                                          class: "team-inactive",
+                                        },
+                                      },
+                                    },
+                                    {
+                                      tag: {
+                                        data: "[item]/id",
+                                        expr: "meta-${[0]}",
+                                      },
+                                      type: "meta",
+                                    },
+                                    {
+                                      type: "map",
+                                      data: "[item]/members",
+                                      child: [
+                                        {
+                                          tag: "p",
+                                          type: "el",
+                                          child: [
+                                            {
+                                              tag: "span",
+                                              type: "el",
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  data: "[item]/name",
+                                                },
+                                              ],
+                                              string: {
+                                                class: "member-name",
+                                              },
+                                            },
+                                            {
+                                              tag: "span",
+                                              type: "el",
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  data: ["../../[index]", "../[index]", "[index]"],
+                                                  expr: "Indices: Dept=${[0]}, Team=${[1]}, Member=${[2]}",
+                                                },
+                                              ],
+                                              string: {
+                                                class: "member-indices",
+                                              },
+                                            },
+                                            {
+                                              type: "cond",
+                                              data: [
+                                                "../../../[item]/active",
+                                                "../../[item]/active",
+                                                "../[item]/active",
+                                                "[item]/active",
+                                              ],
+                                              expr: "${[0]} && ${[1]} && ${[2]} && ${[3]}",
+                                              true: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "Fully Active",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "member-status-active",
+                                                },
+                                              },
+                                              false: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "Not Fully Active",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "member-status-inactive",
+                                                },
+                                              },
+                                            },
+                                            {
+                                              type: "cond",
+                                              data: "[item]/active",
+                                              true: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "Online",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "member-online",
+                                                },
+                                              },
+                                              false: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "Offline",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "member-offline",
+                                                },
+                                              },
+                                            },
+                                          ],
+                                          string: {
+                                            "data-member": {
+                                              data: "[item]/id",
+                                            },
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                  string: {
+                                    "data-team": {
+                                      data: "[item]/id",
+                                    },
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                          string: {
+                            "data-dept": {
+                              data: "[item]/id",
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                  string: {
+                    "data-company": {
+                      data: "[item]/id",
+                    },
                   },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ])
+                },
+              ],
+            },
+          ],
+        },
+      ]))
   })
-
-  it.skip("условия с индексами разных уровней вложенности", () => {
+  describe("условия с индексами разных уровней вложенности", () => {
     const mainHtml = extractMainHtmlBlock<
       any,
       {
@@ -589,283 +587,283 @@ describe("nested.conditions", () => {
     const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
-
-    expect(data).toEqual([
-      {
-        tag: "div",
-        type: "el",
-        child: [
-          {
-            type: "map",
-            data: "/core/companies",
-            child: [
-              {
-                tag: "section",
-                type: "el",
-                string: {
-                  "data-company": {
-                    data: "[item]/id",
-                  },
-                },
-                child: [
-                  {
-                    tag: "h1",
-                    type: "el",
-                    child: [
-                      {
-                        type: "text",
-                        data: ["[index]", "[item]/id"],
-                        expr: "Company ${[0]}: ${[1]}",
-                      },
-                    ],
-                  },
-                  {
-                    type: "map",
-                    data: "[item]/departments",
-                    child: [
-                      {
-                        tag: "article",
-                        type: "el",
-                        string: {
-                          "data-dept": {
-                            data: "[item]/id",
-                          },
+    it("data", () =>
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/companies",
+              child: [
+                {
+                  tag: "section",
+                  type: "el",
+                  child: [
+                    {
+                      tag: "h1",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          data: ["[index]", "[item]/id"],
+                          expr: "Company ${[0]}: ${[1]}",
                         },
-                        child: [
-                          {
-                            tag: "h2",
-                            type: "el",
-                            child: [
-                              {
-                                type: "text",
-                                data: ["[index]", "../[index]", "[item]/id"],
-                                expr: "Dept ${[0]} in Company ${[1]}: ${[2]}",
-                              },
-                            ],
-                          },
-                          {
-                            type: "cond",
-                            data: ["[index]", "../[index]"],
-                            expr: "${[0]} === 0 && ${[1]} === 0",
-                            true: {
-                              tag: "div",
+                      ],
+                    },
+                    {
+                      type: "map",
+                      data: "[item]/departments",
+                      child: [
+                        {
+                          tag: "article",
+                          type: "el",
+                          child: [
+                            {
+                              tag: "h2",
                               type: "el",
-                              string: {
-                                class: "first-dept-first-company",
-                              },
                               child: [
                                 {
                                   type: "text",
-                                  value: "First Dept in First Company",
+                                  data: ["[index]", "../[index]", "[item]/id"],
+                                  expr: "Dept ${[0]} in Company ${[1]}: ${[2]}",
                                 },
                               ],
                             },
-                            false: {
-                              tag: "div",
-                              type: "el",
-                              string: {
-                                class: "other-dept",
-                              },
-                              child: [
-                                {
-                                  type: "text",
-                                  value: "Other Department",
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            type: "map",
-                            data: "[item]/teams",
-                            child: [
-                              {
+                            {
+                              type: "cond",
+                              data: ["[index]", "../[index]"],
+                              expr: "${[0]} === 0 && ${[1]} === 0",
+                              true: {
                                 tag: "div",
                                 type: "el",
-                                string: {
-                                  "data-team": {
-                                    data: "[item]/id",
-                                  },
-                                },
                                 child: [
                                   {
-                                    tag: "h3",
-                                    type: "el",
-                                    child: [
-                                      {
-                                        type: "text",
-                                        data: ["[index]", "../[index]", "[item]/id"],
-                                        expr: "Team ${[0]} in Dept ${[1]}: ${[2]}",
-                                      },
-                                    ],
-                                  },
-                                  {
-                                    type: "cond",
-                                    data: ["[index]", "../[index]"],
-                                    expr: "${[0]} === 0 && ${[1]} === 0",
-                                    true: {
-                                      tag: "div",
-                                      type: "el",
-                                      string: {
-                                        class: "first-team-first-dept",
-                                      },
-                                      child: [
-                                        {
-                                          type: "text",
-                                          value: "First Team in First Dept",
-                                        },
-                                      ],
-                                    },
-                                    false: {
-                                      tag: "div",
-                                      type: "el",
-                                      string: {
-                                        class: "other-team",
-                                      },
-                                      child: [
-                                        {
-                                          type: "text",
-                                          value: "Other Team",
-                                        },
-                                      ],
-                                    },
-                                  },
-                                  {
-                                    type: "map",
-                                    data: "[item]/members",
-                                    child: [
-                                      {
-                                        tag: "p",
-                                        type: "el",
-                                        string: {
-                                          "data-member": {
-                                            data: "[item]/id",
-                                          },
-                                        },
-                                        child: [
-                                          {
-                                            tag: "span",
-                                            type: "el",
-                                            string: {
-                                              class: "member-name",
-                                            },
-                                            child: [
-                                              {
-                                                type: "text",
-                                                data: "[item]/name",
-                                              },
-                                            ],
-                                          },
-                                          {
-                                            type: "cond",
-                                            data: ["../../../[index]", "../../[index]", "../[index]", "[index]"],
-                                            expr: "${[0]} === 0 && ${[1]} === 0 && ${[2]} === 0 && ${[3]} === 0",
-                                            true: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "first-member-first-team-first-dept",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "First Member in First Team in First Dept",
-                                                },
-                                              ],
-                                            },
-                                            false: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "other-member",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "Other Member",
-                                                },
-                                              ],
-                                            },
-                                          },
-                                          {
-                                            type: "cond",
-                                            data: ["[index]", "../[index]"],
-                                            expr: "${[0]} > 0 && ${[1]} > 0",
-                                            true: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "not-first-member-not-first-team",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "Not First Member and Not First Team",
-                                                },
-                                              ],
-                                            },
-                                            false: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "first-member-or-first-team",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "First Member or First Team",
-                                                },
-                                              ],
-                                            },
-                                          },
-                                          {
-                                            type: "cond",
-                                            data: ["[index]", "../[index]", "../../[index]"],
-                                            expr: "${[0]} === 0 && ${[1]} === 0 && ${[2]} === 0",
-                                            true: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "all-first",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "All First",
-                                                },
-                                              ],
-                                            },
-                                            false: {
-                                              tag: "span",
-                                              type: "el",
-                                              string: {
-                                                class: "not-all-first",
-                                              },
-                                              child: [
-                                                {
-                                                  type: "text",
-                                                  value: "Not All First",
-                                                },
-                                              ],
-                                            },
-                                          },
-                                        ],
-                                      },
-                                    ],
+                                    type: "text",
+                                    value: "First Dept in First Company",
                                   },
                                 ],
+                                string: {
+                                  class: "first-dept-first-company",
+                                },
                               },
-                            ],
+                              false: {
+                                tag: "div",
+                                type: "el",
+                                child: [
+                                  {
+                                    type: "text",
+                                    value: "Other Department",
+                                  },
+                                ],
+                                string: {
+                                  class: "other-dept",
+                                },
+                              },
+                            },
+                            {
+                              type: "map",
+                              data: "[item]/teams",
+                              child: [
+                                {
+                                  tag: "div",
+                                  type: "el",
+                                  child: [
+                                    {
+                                      tag: "h3",
+                                      type: "el",
+                                      child: [
+                                        {
+                                          type: "text",
+                                          data: ["[index]", "../[index]", "[item]/id"],
+                                          expr: "Team ${[0]} in Dept ${[1]}: ${[2]}",
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      type: "cond",
+                                      data: ["[index]", "../[index]"],
+                                      expr: "${[0]} === 0 && ${[1]} === 0",
+                                      true: {
+                                        tag: "div",
+                                        type: "el",
+                                        child: [
+                                          {
+                                            type: "text",
+                                            value: "First Team in First Dept",
+                                          },
+                                        ],
+                                        string: {
+                                          class: "first-team-first-dept",
+                                        },
+                                      },
+                                      false: {
+                                        tag: "div",
+                                        type: "el",
+                                        child: [
+                                          {
+                                            type: "text",
+                                            value: "Other Team",
+                                          },
+                                        ],
+                                        string: {
+                                          class: "other-team",
+                                        },
+                                      },
+                                    },
+                                    {
+                                      type: "map",
+                                      data: "[item]/members",
+                                      child: [
+                                        {
+                                          tag: "p",
+                                          type: "el",
+                                          child: [
+                                            {
+                                              tag: "span",
+                                              type: "el",
+                                              child: [
+                                                {
+                                                  type: "text",
+                                                  data: "[item]/name",
+                                                },
+                                              ],
+                                              string: {
+                                                class: "member-name",
+                                              },
+                                            },
+                                            {
+                                              type: "cond",
+                                              data: ["[index]", "../[index]", "../../[index]"],
+                                              expr: "${[0]} === 0 && ${[1]} === 0 && ${[2]} === 0",
+                                              true: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "First Member in First Team in First Dept",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "first-member-first-team-first-dept",
+                                                },
+                                              },
+                                              false: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "Other Member",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "other-member",
+                                                },
+                                              },
+                                            },
+                                            {
+                                              type: "cond",
+                                              data: ["[index]", "../[index]"],
+                                              expr: "${[0]} > 0 && ${[1]} > 0",
+                                              true: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "Not First Member and Not First Team",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "not-first-member-not-first-team",
+                                                },
+                                              },
+                                              false: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "First Member or First Team",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "first-member-or-first-team",
+                                                },
+                                              },
+                                            },
+                                            {
+                                              type: "cond",
+                                              data: ["../../../[index]", "../../[index]", "../[index]", "[index]"],
+                                              expr: "${[0]} === 0 && ${[1]} === 0 && ${[2]} === 0 && ${[3]} === 0",
+                                              true: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "All First",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "all-first",
+                                                },
+                                              },
+                                              false: {
+                                                tag: "span",
+                                                type: "el",
+                                                child: [
+                                                  {
+                                                    type: "text",
+                                                    value: "Not All First",
+                                                  },
+                                                ],
+                                                string: {
+                                                  class: "not-all-first",
+                                                },
+                                              },
+                                            },
+                                          ],
+                                          string: {
+                                            "data-member": {
+                                              data: "[item]/id",
+                                            },
+                                          },
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                  string: {
+                                    "data-team": {
+                                      data: "[item]/id",
+                                    },
+                                  },
+                                },
+                              ],
+                            },
+                          ],
+                          string: {
+                            "data-dept": {
+                              data: "[item]/id",
+                            },
                           },
-                        ],
-                      },
-                    ],
+                        },
+                      ],
+                    },
+                  ],
+                  string: {
+                    "data-company": {
+                      data: "[item]/id",
+                    },
                   },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ])
+                },
+              ],
+            },
+          ],
+        },
+      ]))
   })
 })

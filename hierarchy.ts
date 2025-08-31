@@ -17,8 +17,8 @@ const createMapNode = (text: string, child: (PartElement | PartText | PartMeta)[
 /** Создает PartCondition узел */
 const createConditionNode = (
   text: string,
-  trueBranch: PartElement | PartMeta,
-  falseBranch: PartElement | PartMeta | PartCondition
+  trueBranch: PartElement | PartMeta | PartMap,
+  falseBranch: PartElement | PartMeta | PartMap | PartCondition
 ): PartCondition => ({
   type: "cond",
   text,
@@ -27,10 +27,11 @@ const createConditionNode = (
 })
 
 /** Что считаем «ветвящимися» элементами для условий */
-const isBranchable = (n: any): n is PartElement | PartMeta => n && (n.type === "el" || n.type === "meta")
+const isBranchable = (n: any): n is PartElement | PartMeta | PartMap =>
+  n && (n.type === "el" || n.type === "meta" || n.type === "map")
 
 /** Возвращает первый ветвящийся элемент из диапазона */
-const pickFirstBranchable = (arr: any[]): PartElement | PartMeta | undefined => {
+const pickFirstBranchable = (arr: any[]): PartElement | PartMeta | PartMap | undefined => {
   for (const n of arr) if (isBranchable(n)) return n
 }
 
@@ -78,7 +79,12 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
   const stack: TokenStackItem[] = []
 
   // Map: оставляем прежнюю механику «схлопывания» на закрытии родителя
-  const mapStack: { parent: PartElement | PartMeta | null; text: string; startChildIndex: number }[] = []
+  const mapStack: {
+    parent: PartElement | PartMeta | null
+    text: string
+    startChildIndex: number
+    conditionContext: CondCtx | null
+  }[] = []
 
   // Cond: теперь только копим границы и собираем по close
   const condStack: CondCtx[] = []
@@ -111,7 +117,7 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
     if (!elseBranch) return
 
     // Собираем цепочку с конца к началу:
-    let acc: PartElement | PartMeta | PartCondition = elseBranch
+    let acc: PartElement | PartMeta | PartMap | PartCondition = elseBranch
     for (let i = ctx.exprs.length - 1; i >= 0; i--) {
       const segStart = ctx.boundaries[i]!
       const segEnd = ctx.boundaries[i + 1]!
@@ -168,7 +174,48 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
     if (token.kind === "map-open") {
       const parent = stack[stack.length - 1]?.element || null
       const tgt = parent ? (parent.child ||= []) : hierarchy
-      mapStack.push({ parent, text: token.sig, startChildIndex: tgt.length })
+      // Запоминаем, в каком condition контексте был открыт map
+      const activeCondition = condStack[condStack.length - 1]
+      mapStack.push({
+        parent,
+        text: token.sig,
+        startChildIndex: tgt.length,
+        conditionContext: activeCondition || null,
+      })
+      continue
+    }
+
+    if (token.kind === "map-close") {
+      // Находим последний открытый map в стеке
+      const lastMap = mapStack[mapStack.length - 1]
+      if (lastMap) {
+        // Определяем правильный target для схлопывания
+        // Для вложенных map используем родительский элемент
+        // Для map в condition используем condition target
+        // Для map на верхнем уровне используем hierarchy
+        let tgt: (PartElement | PartText | PartMeta | PartMap | PartCondition)[]
+
+        if (lastMap.parent && lastMap.parent.type === "el") {
+          // Если родитель - элемент, используем его child
+          tgt = lastMap.parent.child ||= []
+        } else if (lastMap.conditionContext) {
+          // Если map был открыт в контексте condition, используем его target
+          tgt = lastMap.conditionContext.target
+        } else {
+          // Иначе используем hierarchy
+          tgt = hierarchy
+        }
+
+        // Схлопываем map
+        const startIdx = Math.max(0, lastMap.startChildIndex)
+        const before = tgt.slice(0, startIdx)
+        const mapChildren = tgt.slice(startIdx) as (PartElement | PartText | PartMeta)[]
+
+        tgt.splice(0, tgt.length, ...before, createMapNode(lastMap.text, mapChildren))
+
+        // Удаляем map из стека
+        mapStack.pop()
+      }
       continue
     }
 

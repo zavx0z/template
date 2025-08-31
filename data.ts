@@ -29,10 +29,6 @@ const UPDATE_OBJECT_PATTERN = /update\(\s*\{([^}]+)\}\s*\)/
 const OBJECT_KEY_PATTERN = /([a-zA-Z_$][\w$]*)\s*:/g
 const CONDITIONAL_OPERATORS_PATTERN = /\?.*:/
 
-// Паттерны для парсинга template literals
-const TEMPLATE_LITERAL_PATTERN = /\$\{([^}]+)\}/g
-const CONDITIONAL_MIXED_PATTERN = /^(.*?)\$\{(.*?\?.*?:.*?)\}(.*)$/
-
 // Паттерны для форматирования
 const WHITESPACE_PATTERN = /\s+/g
 const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g

@@ -2,7 +2,8 @@ import { describe, it, expect } from "bun:test"
 import { makeHierarchy } from "../../hierarchy"
 import { extractHtmlElements, extractMainHtmlBlock } from "../../splitter"
 import { extractTokens } from "../../token"
-import { print } from "../../fixture"
+import { extractAttributes } from "../../attributes"
+import { enrichWithData } from "../../data"
 
 describe("вложенность операторов", () => {
   describe("condition внутри map", () => {
@@ -43,7 +44,7 @@ describe("вложенность операторов", () => {
         { kind: "tag-close", name: "div", text: "</div>" },
       ]))
     const hierarchy = makeHierarchy(tokens)
-    it.skip("hierarchy", () =>
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "div",
@@ -56,7 +57,7 @@ describe("вложенность операторов", () => {
               child: [
                 {
                   type: "cond",
-                  text: "core.items.map((item) => item.show",
+                  text: "item.show",
                   true: {
                     tag: "div",
                     type: "el",
@@ -66,6 +67,41 @@ describe("вложенность операторов", () => {
                     tag: "div",
                     type: "el",
                     text: '<div class="false-branch">',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
+    it("data", () =>
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/items",
+              child: [
+                {
+                  type: "cond",
+                  data: "[item]/show",
+                  true: {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: "true-branch",
+                    },
+                  },
+                  false: {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: "false-branch",
+                    },
                   },
                 },
               ],
@@ -117,7 +153,7 @@ describe("вложенность операторов", () => {
       ]))
 
     const hierarchy = makeHierarchy(tokens)
-    it.skip("hierarchy", () =>
+    it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
           tag: "div",
@@ -146,6 +182,53 @@ describe("вложенность операторов", () => {
                     tag: "div",
                     type: "el",
                     text: '<div class="false-${item}">',
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ]))
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
+    it("data", () =>
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "cond",
+              data: "/context/show",
+              true: {
+                type: "map",
+                data: "/core/items",
+                child: [
+                  {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: {
+                        data: "[item]",
+                        expr: "true-${[0]}",
+                      },
+                    },
+                  },
+                ],
+              },
+              false: {
+                type: "map",
+                data: "/core/items",
+                child: [
+                  {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: {
+                        data: "[item]",
+                        expr: "false-${[0]}",
+                      },
+                    },
                   },
                 ],
               },
