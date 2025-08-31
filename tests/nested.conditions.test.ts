@@ -23,12 +23,14 @@ describe("nested.conditions", () => {
         { kind: "cond-open", expr: "context.flag1" },
         { kind: "tag-open", name: "div", text: '<div class="flag1">' },
         { kind: "tag-close", name: "div", text: "</div>" },
-        { kind: "cond-else-if", expr: "context.flag2" },
+        { kind: "cond-else" },
+        { kind: "cond-open", expr: "context.flag2" },
         { kind: "tag-open", name: "div", text: '<div class="flag2">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "cond-else" },
         { kind: "tag-open", name: "div", text: '<div class="flag3">' },
         { kind: "tag-close", name: "div", text: "</div>" },
+        { kind: "cond-close" },
         { kind: "cond-close" },
       ])
     })

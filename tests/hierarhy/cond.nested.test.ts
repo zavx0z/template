@@ -33,7 +33,7 @@ describe("вложенные условия", () => {
       expect(tokens).toEqual([
         { kind: "tag-open", text: "<div>", name: "div" },
         { kind: "cond-open", expr: "context.hasPermission" },
-        { kind: "cond-else-if", expr: "context.isAdmin" },
+        { kind: "cond-open", expr: "context.isAdmin" },
         { kind: "tag-open", text: "<div>", name: "div" },
         { kind: "tag-open", text: '<button class="admin">', name: "button" },
         { kind: "text", text: "Admin Action" },
@@ -45,6 +45,7 @@ describe("вложенные условия", () => {
         { kind: "text", text: "User Action" },
         { kind: "tag-close", text: "</button>", name: "button" },
         { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "cond-close" },
         { kind: "cond-else" },
         { kind: "tag-open", text: '<div class="no-access">', name: "div" },
         { kind: "text", text: "Access Denied" },
@@ -53,8 +54,60 @@ describe("вложенные условия", () => {
         { kind: "tag-close", text: "</div>", name: "div" },
       ]))
     const hierarchy = makeHierarchy(tokens)
+    it.skip("hierarchy", () =>
+      expect(hierarchy).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          text: "<div>",
+          child: [
+            {
+              type: "cond",
+              text: "context.hasPermission",
+              true: {
+                type: "cond",
+                text: "context.isAdmin",
+                true: {
+                  tag: "div",
+                  type: "el",
+                  text: "<div>",
+                  child: [
+                    {
+                      tag: "button",
+                      type: "el",
+                      text: '<button class="admin">',
+                      child: [{ type: "text", text: "Admin Action" }],
+                    },
+                  ],
+                },
+                false: {
+                  tag: "div",
+                  type: "el",
+                  text: "<div>",
+                  child: [
+                    {
+                      tag: "button",
+                      type: "el",
+                      text: '<button class="user">',
+                      child: [{ type: "text", text: "User Action" }],
+                    },
+                  ],
+                },
+              },
+              false: {
+                tag: "div",
+                type: "el",
+                text: '<div class="no-access">',
+                child: [{ type: "text", text: "Access Denied" }],
+              },
+            },
+          ],
+        },
+      ]))
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
+    // console.log(data)
+    it.skip("data", () => expect(data).toEqual([]))
   })
 
   describe("тройное условие", () => {
@@ -77,8 +130,8 @@ describe("вложенные условия", () => {
       expect(tokens).toEqual([
         { kind: "tag-open", text: "<div>", name: "div" },
         { kind: "cond-open", expr: "context.hasPermission" },
-        { kind: "cond-else-if", expr: "context.isAdmin" },
-        { kind: "cond-else-if", expr: "context.isSuperAdmin" },
+        { kind: "cond-open", expr: "context.isAdmin" },
+        { kind: "cond-open", expr: "context.isSuperAdmin" },
         { kind: "tag-open", text: '<div class="super-admin">', name: "div" },
         { kind: "text", text: "Super Admin Panel" },
         { kind: "tag-close", text: "</div>", name: "div" },

@@ -105,7 +105,9 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
 
     // Валидация минимального количества сегментов:
     // exprs.length >= 1, boundaries должно быть exprs.length + 2 (start, ...else-if/else, end)
-    if (ctx.exprs.length === 0 || ctx.boundaries.length < ctx.exprs.length + 2) return
+    if (ctx.exprs.length === 0 || ctx.boundaries.length < ctx.exprs.length + 2) {
+      return
+    }
 
     // Последний диапазон — это «else»-ветка (может быть пустым, но в тесте он есть)
     const elseStart = ctx.boundaries[ctx.exprs.length]!
@@ -114,16 +116,20 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
     const elseBranch = pickFirstBranchable(elseRange)
 
     // Если вдруг нет ветвящегося элемента — ничего не собираем (защитно)
-    if (!elseBranch) return
+    if (!elseBranch) {
+      return
+    }
 
-    // Собираем цепочку с конца к началу:
+    // Собираем цепочку с начала к концу для вложенных условий:
     let acc: PartElement | PartMeta | PartMap | PartCondition = elseBranch
     for (let i = ctx.exprs.length - 1; i >= 0; i--) {
       const segStart = ctx.boundaries[i]!
       const segEnd = ctx.boundaries[i + 1]!
       const seg = tgt.slice(segStart, segEnd)
       const trueBranch = pickFirstBranchable(seg)
-      if (!trueBranch) return // защитно: без true-ветки собирать нечего
+      if (!trueBranch) {
+        return // защитно: без true-ветки собирать нечего
+      }
       acc = createConditionNode(ctx.exprs[i]!, trueBranch, acc)
     }
 
@@ -137,21 +143,20 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
 
     if (token.kind === "cond-open") {
       const tgt = currentChildren()
-      condStack.push({
-        target: tgt,
-        startIdx: tgt.length,
-        exprs: [token.expr],
-        boundaries: [tgt.length], // стартовая граница для первой true-ветки
-      })
-      continue
-    }
-
-    if (token.kind === "cond-else-if") {
-      const ctx = condStack[condStack.length - 1]
-      if (ctx) {
-        // Текущий размер target — начало следующего сегмента (true ветка для нового expr)
-        ctx.boundaries.push(ctx.target.length)
-        ctx.exprs.push(token.expr)
+      // Если у нас уже есть активное условие, создаем вложенное условие
+      if (condStack.length > 0) {
+        const parentCtx = condStack[condStack.length - 1]!
+        // Добавляем границу для текущего сегмента родительского условия
+        parentCtx.boundaries.push(parentCtx.target.length)
+        parentCtx.exprs.push(token.expr)
+      } else {
+        // Создаем новое условие
+        condStack.push({
+          target: tgt,
+          startIdx: tgt.length,
+          exprs: [token.expr],
+          boundaries: [], // Не добавляем границу сразу, добавим когда встретим первый элемент
+        })
       }
       continue
     }
@@ -167,7 +172,9 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
 
     if (token.kind === "cond-close") {
       const ctx = condStack.pop()
-      if (ctx) finalizeCondition(ctx)
+      if (ctx) {
+        finalizeCondition(ctx)
+      }
       continue
     }
 
@@ -220,6 +227,12 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
     }
 
     if (token.kind === "tag-open" || token.kind === "tag-self") {
+      // Добавляем границу для активного условия, если это первый элемент
+      const activeCondition = condStack[condStack.length - 1]
+      if (activeCondition && activeCondition.boundaries.length === 0) {
+        activeCondition.boundaries.push(activeCondition.target.length)
+      }
+
       // META-элемент
       if (token.name && token.name.startsWith("meta-")) {
         const metaNode: PartMeta = { tag: token.name, type: "meta", text: token.text || "" }
@@ -289,6 +302,12 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
     }
 
     if (token.kind === "text") {
+      // Добавляем границу для активного условия, если это первый элемент
+      const activeCondition = condStack[condStack.length - 1]
+      if (activeCondition && activeCondition.boundaries.length === 0) {
+        activeCondition.boundaries.push(activeCondition.target.length)
+      }
+
       const tgt = currentChildren()
       const textNode: PartText = { type: "text", text: token.text || "" }
       tgt.push(textNode)
