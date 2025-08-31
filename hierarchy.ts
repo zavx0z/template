@@ -178,16 +178,9 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
       // Обработка else части условия - ничего не делаем, просто отмечаем
       // что мы перешли к else части
     } else if (token.kind === "cond-close") {
-      // Закрытие условия - увеличиваем счетчик закрытий
+      // Закрытие условия - закрываем при первом cond-close
       if (conditionStack.length > 0) {
-        const lastCondition = conditionStack[conditionStack.length - 1]
-        if (lastCondition) {
-          lastCondition.closeCount++
-          // Закрываем условие только если это второй cond-close (после cond-else)
-          if (lastCondition.closeCount >= 2) {
-            closeOneCondition()
-          }
-        }
+        closeOneCondition()
       }
     } else if (token.kind === "map-open") {
       // Открытие map

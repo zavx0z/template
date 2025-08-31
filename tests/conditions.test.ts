@@ -120,6 +120,7 @@ describe("conditions", () => {
         { kind: "tag-open", text: "<span>", name: "span" },
         { kind: "text", text: "Inactive" },
         { kind: "tag-close", text: "</span>", name: "span" },
+        { kind: "cond-close" },
         { kind: "tag-open", text: "<footer>", name: "footer" },
         { kind: "text", text: "Footer" },
         { kind: "tag-close", text: "</footer>", name: "footer" },
