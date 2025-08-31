@@ -59,19 +59,16 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
 
     // --------- conditions ---------
     const tokenCondOpen = findCondOpen(expr)
-    if (tokenCondOpen) {
-      tokens.set(...tokenCondOpen)
-    }
+    if (tokenCondOpen) tokens.set(...tokenCondOpen)
 
     const tokenCondElse = findCondElse(expr)
-    if (tokenCondElse) {
-      tokens.set(...tokenCondElse)
-    }
+    if (tokenCondElse) tokens.set(...tokenCondElse)
 
     const tokenCondElseIf = findCondElseIf(expr)
-    if (tokenCondElseIf) {
-      tokens.set(...tokenCondElseIf)
-    }
+    if (tokenCondElseIf) tokens.set(...tokenCondElseIf)
+
+    const allNestedCondElseIf = findAllNestedCondElseIf(expr)
+    allNestedCondElseIf.forEach(([index, token]) => tokens.set(index, token))
 
     const tokenCondClose = findCondClose(expr)
     if (tokenCondClose) tokens.set(...tokenCondClose)
@@ -194,6 +191,36 @@ const findCondElseIf = (expr: string): [number, TokenCondElseIf] | undefined => 
   while ((match = condElseIfRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-else-if", expr: match[1]!.trim() }]
   }
+}
+
+const findAllNestedCondElseIf = (expr: string): [number, TokenCondElseIf][] => {
+  // Ищем все вложенные условия вида: условие ? вложенное_условие ? ...
+  // Это нужно для случаев типа: context.hasPermission ? context.isAdmin ? context.isSuperAdmin ? ...
+  const results: [number, TokenCondElseIf][] = []
+
+  // Ищем все пары ? ... ? в выражении
+  let i = 0
+  while (i < expr.length) {
+    const questionMark1 = expr.indexOf("?", i)
+    if (questionMark1 === -1) break
+
+    // Ищем следующий ? после первого
+    const questionMark2 = expr.indexOf("?", questionMark1 + 1)
+    if (questionMark2 === -1) break
+
+    // Извлекаем условие между ? и ?
+    const condition = expr.slice(questionMark1 + 1, questionMark2).trim()
+
+    // Проверяем, что это не пустое условие и не содержит html`
+    if (condition && !condition.includes("html`")) {
+      results.push([questionMark1 + 1, { kind: "cond-else-if", expr: condition }])
+    }
+
+    // Продолжаем поиск с позиции после первого ? (не второго!)
+    i = questionMark1 + 1
+  }
+
+  return results
 }
 
 const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
