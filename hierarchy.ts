@@ -147,13 +147,10 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
 
     if (!trueBranch || !falseBranch) return
 
-    const i1 = target.indexOf(trueBranch)
-    const i2 = target.indexOf(falseBranch)
-    if (i1 === -1 || i2 === -1) return
-
-    const start = Math.min(i1, i2)
-    const count = Math.abs(i2 - i1) + 1
-    target.splice(start, count, createConditionNode(cond.text, trueBranch, falseBranch))
+    // Удаляем элементы из диапазона и заменяем их на условие
+    const startIndex = cond.startChildIndex
+    const endIndex = startIndex + range.length
+    target.splice(startIndex, range.length, createConditionNode(cond.text, trueBranch, falseBranch))
   }
 
   // Функция для закрытия одного условия (последнего открытого)
@@ -179,18 +176,12 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
         order: conditionOrder++,
         closeCount: 0,
       })
+    } else if (token.kind === "cond-else") {
+      // Обработка else части условия - ничего не делаем, просто отмечаем
+      // что мы перешли к else части
     } else if (token.kind === "cond-close") {
-      // Закрытие условия - увеличиваем счетчик закрытий
-      if (conditionStack.length > 0) {
-        const lastCondition = conditionStack[conditionStack.length - 1]
-        if (lastCondition) {
-          lastCondition.closeCount++
-          // Закрываем условие только если это последний cond-close
-          if (lastCondition.closeCount >= 2) {
-            closeOneCondition()
-          }
-        }
-      }
+      // Закрытие условия - закрываем последнее открытое условие
+      closeOneCondition()
     } else if (token.kind === "map-open") {
       // Открытие map
       const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null

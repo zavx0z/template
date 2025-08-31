@@ -120,7 +120,8 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
 }
 
 const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
-  const condOpenRegex = /(\$\{|=>)\s*([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*)\s*\?/g
+  // Ищем ${...} ? или => ... ? для условий
+  const condOpenRegex = /(\$\{|=>)\s*([^?]*?)\s*\?/g
   let match
   while ((match = condOpenRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-open", expr: match[2]!.trim() }]

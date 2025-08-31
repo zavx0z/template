@@ -14,14 +14,14 @@ describe("conditions", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<div>", index: 0, name: "div", kind: "open" },
-        { text: "<em>", index: 27, name: "em", kind: "open" },
-        { text: "A", index: 31, name: "", kind: "text" },
-        { text: "</em>", index: 32, name: "em", kind: "close" },
-        { text: "<span>", index: 46, name: "span", kind: "open" },
-        { text: "b", index: 52, name: "", kind: "text" },
-        { text: "</span>", index: 53, name: "span", kind: "close" },
-        { text: "</div>", index: 62, name: "div", kind: "close" },
+        { text: "<div>", start: 0, end: 5, name: "div", kind: "open" },
+        { text: "<em>", start: 27, end: 31, name: "em", kind: "open" },
+        { text: "A", start: 31, end: 32, name: "", kind: "text" },
+        { text: "</em>", start: 32, end: 37, name: "em", kind: "close" },
+        { text: "<span>", start: 46, end: 52, name: "span", kind: "open" },
+        { text: "b", start: 52, end: 53, name: "", kind: "text" },
+        { text: "</span>", start: 53, end: 60, name: "span", kind: "close" },
+        { text: "</div>", start: 62, end: 68, name: "div", kind: "close" },
       ])
     })
 
@@ -173,14 +173,14 @@ describe("conditions", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<div>", index: 0, name: "div", kind: "open" },
-        { text: "<em>", index: 44, name: "em", kind: "open" },
-        { text: "A", index: 48, name: "", kind: "text" },
-        { text: "</em>", index: 49, name: "em", kind: "close" },
-        { text: "<span>", index: 63, name: "span", kind: "open" },
-        { text: "b", index: 69, name: "", kind: "text" },
-        { text: "</span>", index: 70, name: "span", kind: "close" },
-        { text: "</div>", index: 79, name: "div", kind: "close" },
+        { text: "<div>", start: 0, end: 5, name: "div", kind: "open" },
+        { text: "<em>", start: 44, end: 48, name: "em", kind: "open" },
+        { text: "A", start: 48, end: 49, name: "", kind: "text" },
+        { text: "</em>", start: 49, end: 54, name: "em", kind: "close" },
+        { text: "<span>", start: 63, end: 69, name: "span", kind: "open" },
+        { text: "b", start: 69, end: 70, name: "", kind: "text" },
+        { text: "</span>", start: 70, end: 77, name: "span", kind: "close" },
+        { text: "</div>", start: 79, end: 85, name: "div", kind: "close" },
       ])
     })
 
@@ -253,14 +253,14 @@ describe("conditions", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<div>", index: 9, name: "div", kind: "open" },
-        { text: "<em>", index: 54, name: "em", kind: "open" },
-        { text: "A", index: 58, name: "", kind: "text" },
-        { text: "</em>", index: 59, name: "em", kind: "close" },
-        { text: "<span>", index: 73, name: "span", kind: "open" },
-        { text: "b", index: 79, name: "", kind: "text" },
-        { text: "</span>", index: 80, name: "span", kind: "close" },
-        { text: "</div>", index: 89, name: "div", kind: "close" },
+        { text: "<div>", start: 9, end: 14, name: "div", kind: "open" },
+        { text: "<em>", start: 54, end: 58, name: "em", kind: "open" },
+        { text: "A", start: 58, end: 59, name: "", kind: "text" },
+        { text: "</em>", start: 59, end: 64, name: "em", kind: "close" },
+        { text: "<span>", start: 73, end: 79, name: "span", kind: "open" },
+        { text: "b", start: 79, end: 80, name: "", kind: "text" },
+        { text: "</span>", start: 80, end: 87, name: "span", kind: "close" },
+        { text: "</div>", start: 89, end: 95, name: "div", kind: "close" },
       ])
     })
 
@@ -328,10 +328,11 @@ describe("conditions", () => {
 
     const elements = extractHtmlElements(html)
     it("elements", () => {
-      expect(elements).toEqual([{ text: 'a < b && c > d ? "1" : "0"', index: 0, name: "", kind: "text" }])
+      expect(elements).toEqual([{ text: 'a < b && c > d ? "1" : "0"', start: 0, end: 26, name: "", kind: "text" }])
     })
 
-    const hierarchy = makeHierarchy(html, elements)
+    const tokens = extractTokens(html, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -350,10 +351,10 @@ describe("conditions", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<div>", index: 0, name: "div", kind: "open" },
-        { text: "<br />", index: 27, name: "br", kind: "self" },
-        { text: '<img src="x" />', index: 42, name: "img", kind: "self" },
-        { text: "</div>", index: 59, name: "div", kind: "close" },
+        { text: "<div>", start: 0, end: 5, name: "div", kind: "open" },
+        { text: "<br />", start: 27, end: 33, name: "br", kind: "self" },
+        { text: '<img src="x" />', start: 42, end: 57, name: "img", kind: "self" },
+        { text: "</div>", start: 59, end: 65, name: "div", kind: "close" },
       ])
     })
 
