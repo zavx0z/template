@@ -45,9 +45,18 @@ describe("nested.conditions", () => {
             text: '<div class="flag1">',
           },
           false: {
-            tag: "div",
-            type: "el",
-            text: '<div class="flag2">',
+            type: "cond",
+            text: "context.flag2",
+            true: {
+              tag: "div",
+              type: "el",
+              text: '<div class="flag2">',
+            },
+            false: {
+              tag: "div",
+              type: "el",
+              text: '<div class="flag3">',
+            },
           },
         },
       ]))

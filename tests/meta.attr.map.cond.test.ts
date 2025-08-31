@@ -249,7 +249,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     )
     const elements = extractHtmlElements(mainHtml)
     const tokens = extractTokens(mainHtml, elements)
-    print(tokens)
+    // print(tokens)
     it("tokens", () => {
       expect(tokens).toEqual([
         { kind: "tag-open", name: "div", text: "<div>" },
@@ -310,16 +310,32 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     },
                   },
                   false: {
-                    tag: {
-                      data: "/core/tag",
-                      expr: "meta-${[0]}",
+                    type: "cond",
+                    data: "[item]/hasError",
+                    true: {
+                      tag: {
+                        data: "/core/tag",
+                        expr: "meta-${[0]}",
+                      },
+                      type: "meta",
+                      core: {
+                        data: ["[item]/id", "[item]/name"],
+                        expr: '{ id: [0], name: [1], type: "error" }',
+                      },
+                      context: '{ status: "error", message: "Item has error" }',
                     },
-                    type: "meta",
-                    core: {
-                      data: ["[item]/id", "[item]/name"],
-                      expr: '{ id: [0], name: [1], type: "error" }',
+                    false: {
+                      tag: {
+                        data: "/core/tag",
+                        expr: "meta-${[0]}",
+                      },
+                      type: "meta",
+                      core: {
+                        data: ["[item]/id", "[item]/name"],
+                        expr: '{ id: [0], name: [1], type: "inactive" }',
+                      },
+                      context: '{ status: "inactive" }',
                     },
-                    context: '{ status: "error", message: "Item has error" }',
                   },
                 },
               ],
@@ -406,7 +422,6 @@ describe("meta-компоненты с core/context в map и condition", () => 
     const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
-    console.log(data)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -437,18 +452,38 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     },
                   },
                   false: {
-                    tag: {
-                      data: "/core/tag",
-                      expr: "meta-${[0]}",
+                    type: "cond",
+                    data: ["[item]/permissions/includes", "[item]/moderator"],
+                    expr: '${[0]}("${[1]}")',
+                    true: {
+                      tag: {
+                        data: "/core/tag",
+                        expr: "meta-${[0]}",
+                      },
+                      type: "meta",
+                      core: {
+                        data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                        expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
+                      },
+                      context: {
+                        data: "[item]/isOnline",
+                        expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
+                      },
                     },
-                    type: "meta",
-                    core: {
-                      data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                      expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
-                    },
-                    context: {
-                      data: "[item]/isOnline",
-                      expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
+                    false: {
+                      tag: {
+                        data: "/core/tag",
+                        expr: "meta-${[0]}",
+                      },
+                      type: "meta",
+                      core: {
+                        data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                        expr: '{ id: [0], name: [1], type: "user", permissions: [2], metadata: { level: "user", access: "basic", settings: [3] } }',
+                      },
+                      context: {
+                        data: "[item]/isOnline",
+                        expr: '{ status: "user", active: [0], canEdit: false, canDelete: false, canManage: false }',
+                      },
                     },
                   },
                 },
