@@ -30,7 +30,7 @@ describe("hierarchy", () => {
         child: [
           {
             type: "map",
-            text: "core.list.map(({ title, nested })`",
+            text: "core.list.map(({ title, nested })",
             child: [
               {
                 tag: "li",
@@ -50,7 +50,7 @@ describe("hierarchy", () => {
                   },
                   {
                     type: "map",
-                    text: "nested.map((n)`",
+                    text: "nested.map((n)",
                     child: [
                       {
                         tag: "em",
@@ -97,7 +97,7 @@ describe("hierarchy", () => {
           child: [
             {
               type: "map",
-              text: "core.list.map(({ title, nested })`",
+              text: "core.list.map(({ title, nested })",
               child: [
                 {
                   tag: "li",
@@ -110,7 +110,7 @@ describe("hierarchy", () => {
                     },
                     {
                       type: "map",
-                      text: "nested.map((n)`",
+                      text: "nested.map((n)",
                       child: [
                         {
                           tag: "em",
@@ -202,7 +202,7 @@ describe("hierarchy", () => {
         child: [
           {
             type: "map",
-            text: "core.items.map((item)`",
+            text: "core.items.map((item)",
             child: [
               {
                 tag: "li",
@@ -248,7 +248,7 @@ describe("hierarchy", () => {
         child: [
           {
             type: "map",
-            text: "core.users.map((user)`",
+            text: "core.users.map((user)",
             child: [
               {
                 tag: "div",
@@ -366,7 +366,7 @@ describe("hierarchy", () => {
         child: [
           {
             type: "map",
-            text: "core.posts.map((post)`",
+            text: "core.posts.map((post)",
             child: [
               {
                 tag: "article",
@@ -476,7 +476,7 @@ describe("hierarchy", () => {
         child: [
           {
             type: "map",
-            text: "core.categories.map((category)`",
+            text: "core.categories.map((category)",
             child: [
               {
                 tag: "section",
@@ -496,7 +496,7 @@ describe("hierarchy", () => {
                   },
                   {
                     type: "map",
-                    text: "category.products.map((product)`",
+                    text: "category.products.map((product)",
                     child: [
                       {
                         tag: "article",
@@ -516,7 +516,7 @@ describe("hierarchy", () => {
                           },
                           {
                             type: "map",
-                            text: "product.variants.map((variant)`",
+                            text: "product.variants.map((variant)",
                             child: [
                               {
                                 tag: "span",

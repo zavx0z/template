@@ -147,7 +147,7 @@ const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
   const mapOpenRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
   let match
   while ((match = mapOpenRegex.exec(expr)) !== null) {
-    return [match.index, { kind: "map-open", sig: match[1]! + "`" }]
+    return [match.index, { kind: "map-open", sig: match[1]! }]
   }
 }
 

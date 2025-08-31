@@ -66,7 +66,7 @@ describe("извлечение тегов", () => {
       expect(elements).toEqual([
         { text: "<div>", start: 11, end: 16, name: "div", kind: "open" },
         { text: "<br />", start: 29, end: 35, name: "br", kind: "self" },
-        { text: '<img src="x" />', start: 48, name: "img", kind: "self" },
+        { text: '<img src="x" />', start: 48, end: 63, name: "img", kind: "self" },
         { text: "<input disabled />", start: 76, end: 94, name: "input", kind: "self" },
         { text: "</div>", start: 105, end: 111, name: "div", kind: "close" },
       ])
@@ -95,7 +95,7 @@ describe("извлечение тегов", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<svg:use xlink:href="#id"></svg:use>`)
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<svg:use xlink:href="#id">', start: 0, name: "svg:use", kind: "open" },
+        { text: '<svg:use xlink:href="#id">', start: 0, end: 26, name: "svg:use", kind: "open" },
         { text: "</svg:use>", start: 26, end: 36, name: "svg:use", kind: "close" },
       ])
     })
@@ -104,7 +104,7 @@ describe("извлечение тегов", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<a href="https://e.co" target="_blank">x</a>`)
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<a href="https://e.co" target="_blank">', start: 0, name: "a", kind: "open" },
+        { text: '<a href="https://e.co" target="_blank">', start: 0, end: 39, name: "a", kind: "open" },
         { text: "x", start: 39, end: 40, name: "", kind: "text" },
         { text: "</a>", start: 40, end: 44, name: "a", kind: "close" },
       ])
@@ -114,7 +114,7 @@ describe("извлечение тегов", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<div title="a > b, c < d"></div>`)
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<div title="a > b, c < d">', start: 0, name: "div", kind: "open" },
+        { text: '<div title="a > b, c < d">', start: 0, end: 26, name: "div", kind: "open" },
         { text: "</div>", start: 26, end: 32, name: "div", kind: "close" },
       ])
     })
@@ -124,7 +124,7 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<div title="${context.flag ? "a > b" : "c < d"}">', start: 0, name: "div", kind: "open" },
+        { text: '<div title="${context.flag ? "a > b" : "c < d"}">', start: 0, end: 49, name: "div", kind: "open" },
         { text: "</div>", start: 49, end: 55, name: "div", kind: "close" },
       ])
     })
@@ -134,7 +134,7 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<div title=${context.flag ? "a > b" : "c < d"}>', start: 0, name: "div", kind: "open" },
+        { text: '<div title=${context.flag ? "a > b" : "c < d"}>', start: 0, end: 47, name: "div", kind: "open" },
         { text: "</div>", start: 47, end: 53, name: "div", kind: "close" },
       ])
     })
@@ -145,7 +145,7 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', start: 0, name: "div", kind: "open" },
+        { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', start: 0, end: 49, name: "div", kind: "open" },
         { text: "</div>", start: 49, end: 55, name: "div", kind: "close" },
       ])
     })
@@ -155,7 +155,7 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<button ${context.flag && "disabled"}>', start: 0, name: "button", kind: "open" },
+        { text: '<button ${context.flag && "disabled"}>', start: 0, end: 38, name: "button", kind: "open" },
         { text: "</button>", start: 38, end: 47, name: "button", kind: "close" },
       ])
     })
