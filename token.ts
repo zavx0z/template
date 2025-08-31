@@ -137,7 +137,9 @@ const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
 }
 
 const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
-  const condCloseRegex = /}[^\)]?/g
+  // Ищем } которая НЕ является частью деструктуризации в параметрах функции
+  // Исключаем случаи типа ({ title }) => или (({ title })) =>
+  const condCloseRegex = /[^\)]}(?!\s*\)\s*=>)/g
   let match
   while ((match = condCloseRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-close" }]

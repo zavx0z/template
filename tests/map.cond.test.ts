@@ -41,7 +41,29 @@ describe("map с условиями", () => {
         { end: 290, kind: "close", name: "div", start: 284, text: "</div>" },
       ]))
     const tokens = extractTokens(mainHtml, elements)
+    it("tokens", () =>
+      expect(tokens).toEqual([
+        { kind: "map-open", sig: "core.list1.map(({ title })" },
+        { kind: "tag-open", text: '<div class="item1">', name: "div" },
+        { kind: "text", text: "${title}" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "map-close" },
+        { kind: "cond-open", expr: "context.flag" },
+        { kind: "tag-open", text: '<div class="conditional">', name: "div" },
+        { kind: "map-open", sig: "core.list2.map(({ title })" },
+        { kind: "tag-open", text: '<div class="item2">', name: "div" },
+        { kind: "text", text: "${title}" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "map-close" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "cond-else" },
+        { kind: "tag-open", text: '<div class="fallback">', name: "div" },
+        { kind: "text", text: "No items" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "cond-close" },
+      ]))
     const hierarchy = makeHierarchy(tokens)
+    // console.log(hierarchy)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -278,7 +300,6 @@ describe("map с условиями", () => {
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
-    // print(tokens)
     it("tokens", () =>
       expect(tokens).toEqual([
         { kind: "tag-open", text: '<div class="container">', name: "div" },
@@ -299,6 +320,7 @@ describe("map с условиями", () => {
         { kind: "tag-open", text: '<div class="fallback">', name: "div" },
         { kind: "text", text: "No items" },
         { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "cond-close" },
         { kind: "tag-close", text: "</div>", name: "div" },
       ]))
 
@@ -326,54 +348,61 @@ describe("map с условиями", () => {
                   ],
                 },
                 {
-                  tag: "div",
-                  type: "el",
-                  text: '<div class="conditional">',
-                  child: [
-                    {
-                      type: "map",
-                      text: "core.list2.map(({ title })",
-                      child: [
-                        {
-                          tag: "div",
-                          type: "el",
-                          text: '<div class="item2">',
-                          child: [
-                            {
-                              type: "text",
-                              text: "${title}",
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  type: "el",
-                  text: '<div class="fallback">',
-                  child: [
-                    {
-                      type: "text",
-                      text: "No items",
-                    },
-                  ],
+                  type: "cond",
+                  text: "context.flag",
+                  true: {
+                    tag: "div",
+                    type: "el",
+                    text: '<div class="conditional">',
+                    child: [
+                      {
+                        type: "map",
+                        text: "core.list2.map(({ title })",
+                        child: [
+                          {
+                            tag: "div",
+                            type: "el",
+                            text: '<div class="item2">',
+                            child: [
+                              {
+                                type: "text",
+                                text: "${title}",
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  false: {
+                    tag: "div",
+                    type: "el",
+                    text: '<div class="fallback">',
+                    child: [
+                      {
+                        type: "text",
+                        text: "No items",
+                      },
+                    ],
+                  },
                 },
               ],
             },
           ],
         },
       ]))
+
     const attributes = extractAttributes(hierarchy)
-    const data = enrichWithData(attributes)
     it("attributes", () =>
       expect(attributes).toEqual([
         {
           tag: "div",
           type: "el",
           string: {
-            class: { type: "static", value: "container" },
+            class: {
+              type: "static",
+              value: "container",
+            },
           },
           child: [
             {
@@ -384,7 +413,10 @@ describe("map с условиями", () => {
                   tag: "div",
                   type: "el",
                   string: {
-                    class: { type: "static", value: "item1" },
+                    class: {
+                      type: "static",
+                      value: "item1",
+                    },
                   },
                   child: [
                     {
@@ -394,59 +426,72 @@ describe("map с условиями", () => {
                   ],
                 },
                 {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: { type: "static", value: "conditional" },
-                  },
-                  child: [
-                    {
-                      type: "map",
-                      text: "core.list2.map(({ title })",
-                      child: [
-                        {
-                          tag: "div",
-                          type: "el",
-                          string: {
-                            class: { type: "static", value: "item2" },
-                          },
-                          child: [
-                            {
-                              type: "text",
-                              text: "${title}",
+                  type: "cond",
+                  text: "context.flag",
+                  true: {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: {
+                        type: "static",
+                        value: "conditional",
+                      },
+                    },
+                    child: [
+                      {
+                        type: "map",
+                        text: "core.list2.map(({ title })",
+                        child: [
+                          {
+                            tag: "div",
+                            type: "el",
+                            string: {
+                              class: {
+                                type: "static",
+                                value: "item2",
+                              },
                             },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: { type: "static", value: "fallback" },
+                            child: [
+                              {
+                                type: "text",
+                                text: "${title}",
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
                   },
-                  child: [
-                    {
-                      type: "text",
-                      text: "No items",
+                  false: {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: {
+                        type: "static",
+                        value: "fallback",
+                      },
                     },
-                  ],
+                    child: [
+                      {
+                        type: "text",
+                        text: "No items",
+                      },
+                    ],
+                  },
                 },
               ],
             },
           ],
         },
       ]))
+    const data = enrichWithData(attributes)
+    console.log(data)
+
     it("data", () =>
       expect(data).toEqual([
         {
           tag: "div",
           type: "el",
-          string: {
-            class: "container",
-          },
           child: [
             {
               type: "map",
@@ -455,60 +500,67 @@ describe("map с условиями", () => {
                 {
                   tag: "div",
                   type: "el",
-                  string: {
-                    class: "item1",
-                  },
                   child: [
                     {
                       type: "text",
                       data: "[item]/title",
                     },
                   ],
+                  string: {
+                    class: "item1",
+                  },
                 },
                 {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: "conditional",
-                  },
-                  child: [
-                    {
-                      type: "map",
-                      data: "[item]/list2",
-                      child: [
-                        {
-                          tag: "div",
-                          type: "el",
-                          string: {
-                            class: "item2",
-                          },
-                          child: [
-                            {
-                              type: "text",
-                              data: "[item]/title",
+                  type: "cond",
+                  data: "[item]/context/flag",
+                  true: {
+                    tag: "div",
+                    type: "el",
+                    child: [
+                      {
+                        type: "map",
+                        data: "[item]/list2",
+                        child: [
+                          {
+                            tag: "div",
+                            type: "el",
+                            child: [
+                              {
+                                type: "text",
+                                data: "[item]/title",
+                              },
+                            ],
+                            string: {
+                              class: "item2",
                             },
-                          ],
-                        },
-                      ],
+                          },
+                        ],
+                      },
+                    ],
+                    string: {
+                      class: "conditional",
                     },
-                  ],
-                },
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: "fallback",
                   },
-                  child: [
-                    {
-                      type: "text",
-                      value: "No items",
+                  false: {
+                    tag: "div",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        value: "No items",
+                      },
+                    ],
+                    string: {
+                      class: "fallback",
                     },
-                  ],
+                  },
                 },
               ],
             },
           ],
+          string: {
+            class: "container",
+          },
         },
       ]))
   })
