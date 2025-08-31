@@ -118,6 +118,7 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
     text: string
     startChildIndex: number
     order: number // порядок появления условия
+    closeCount: number // количество cond-close токенов для этого условия
   }
   const conditionStack: CondInfo[] = []
   let conditionOrder = 0
@@ -176,10 +177,20 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
         text: token.expr,
         startChildIndex: target.length,
         order: conditionOrder++,
+        closeCount: 0,
       })
     } else if (token.kind === "cond-close") {
-      // Закрытие условия - закрываем последнее открытое условие
-      closeOneCondition()
+      // Закрытие условия - увеличиваем счетчик закрытий
+      if (conditionStack.length > 0) {
+        const lastCondition = conditionStack[conditionStack.length - 1]
+        if (lastCondition) {
+          lastCondition.closeCount++
+          // Закрываем условие только если это последний cond-close
+          if (lastCondition.closeCount >= 2) {
+            closeOneCondition()
+          }
+        }
+      }
     } else if (token.kind === "map-open") {
       // Открытие map
       const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null

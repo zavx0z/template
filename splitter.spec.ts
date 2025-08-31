@@ -7,8 +7,8 @@ describe("извлечение тегов", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<div></div>`)
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<div>", index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 5, name: "div", kind: "close" },
+        { text: "<div>", start: 0, end: 5, name: "div", kind: "open" },
+        { text: "</div>", start: 5, end: 11, name: "div", kind: "close" },
       ])
     })
 
@@ -21,12 +21,12 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<div>", index: 11, name: "div", kind: "open" },
-        { text: "a", index: 16, name: "", kind: "text" },
-        { text: "</div>", index: 17, name: "div", kind: "close" },
-        { text: "<div>", index: 34, name: "div", kind: "open" },
-        { text: "b", index: 39, name: "", kind: "text" },
-        { text: "</div>", index: 40, name: "div", kind: "close" },
+        { text: "<div>", start: 11, end: 16, name: "div", kind: "open" },
+        { text: "a", start: 16, end: 17, name: "", kind: "text" },
+        { text: "</div>", start: 17, end: 23, name: "div", kind: "close" },
+        { text: "<div>", start: 34, end: 39, name: "div", kind: "open" },
+        { text: "b", start: 39, end: 40, name: "", kind: "text" },
+        { text: "</div>", start: 40, end: 46, name: "div", kind: "close" },
       ])
     })
 
@@ -41,14 +41,14 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<ul>", index: 11, name: "ul", kind: "open" },
-        { text: "<li>", index: 28, name: "li", kind: "open" },
-        { text: "a", index: 32, name: "", kind: "text" },
-        { text: "</li>", index: 33, name: "li", kind: "close" },
-        { text: "<li>", index: 51, name: "li", kind: "open" },
-        { text: "b", index: 55, name: "", kind: "text" },
-        { text: "</li>", index: 56, name: "li", kind: "close" },
-        { text: "</ul>", index: 72, name: "ul", kind: "close" },
+        { text: "<ul>", start: 11, end: 15, name: "ul", kind: "open" },
+        { text: "<li>", start: 28, end: 32, name: "li", kind: "open" },
+        { text: "a", start: 32, end: 33, name: "", kind: "text" },
+        { text: "</li>", start: 33, end: 38, name: "li", kind: "close" },
+        { text: "<li>", start: 51, end: 55, name: "li", kind: "open" },
+        { text: "b", start: 55, end: 56, name: "", kind: "text" },
+        { text: "</li>", start: 56, end: 61, name: "li", kind: "close" },
+        { text: "</ul>", start: 72, end: 77, name: "ul", kind: "close" },
       ])
     })
 
@@ -64,11 +64,11 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<div>", index: 11, name: "div", kind: "open" },
-        { text: "<br />", index: 29, name: "br", kind: "self" },
-        { text: '<img src="x" />', index: 48, name: "img", kind: "self" },
-        { text: "<input disabled />", index: 76, name: "input", kind: "self" },
-        { text: "</div>", index: 105, name: "div", kind: "close" },
+        { text: "<div>", start: 11, end: 16, name: "div", kind: "open" },
+        { text: "<br />", start: 29, end: 35, name: "br", kind: "self" },
+        { text: '<img src="x" />', start: 48, name: "img", kind: "self" },
+        { text: "<input disabled />", start: 76, end: 94, name: "input", kind: "self" },
+        { text: "</div>", start: 105, end: 111, name: "div", kind: "close" },
       ])
     })
 
@@ -82,11 +82,11 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<meta-hash>", index: 11, name: "meta-hash", kind: "open" },
-        { text: "</meta-hash>", index: 22, name: "meta-hash", kind: "close" },
-        { text: "<meta-hash />", index: 45, name: "meta-hash", kind: "self" },
-        { text: "<meta-${core.tag}>", index: 69, name: "meta-${core.tag}", kind: "open" },
-        { text: "</meta-${core.tag}>", index: 87, name: "meta-${core.tag}", kind: "close" },
+        { text: "<meta-hash>", start: 11, end: 22, name: "meta-hash", kind: "open" },
+        { text: "</meta-hash>", start: 22, end: 34, name: "meta-hash", kind: "close" },
+        { text: "<meta-hash />", start: 45, end: 58, name: "meta-hash", kind: "self" },
+        { text: "<meta-${core.tag}>", start: 69, end: 87, name: "meta-${core.tag}", kind: "open" },
+        { text: "</meta-${core.tag}>", start: 87, end: 106, name: "meta-${core.tag}", kind: "close" },
       ])
     })
   })
@@ -95,8 +95,8 @@ describe("извлечение тегов", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<svg:use xlink:href="#id"></svg:use>`)
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<svg:use xlink:href="#id">', index: 0, name: "svg:use", kind: "open" },
-        { text: "</svg:use>", index: 26, name: "svg:use", kind: "close" },
+        { text: '<svg:use xlink:href="#id">', start: 0, name: "svg:use", kind: "open" },
+        { text: "</svg:use>", start: 26, end: 36, name: "svg:use", kind: "close" },
       ])
     })
 
@@ -104,9 +104,9 @@ describe("извлечение тегов", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<a href="https://e.co" target="_blank">x</a>`)
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<a href="https://e.co" target="_blank">', index: 0, name: "a", kind: "open" },
-        { text: "x", index: 39, name: "", kind: "text" },
-        { text: "</a>", index: 40, name: "a", kind: "close" },
+        { text: '<a href="https://e.co" target="_blank">', start: 0, name: "a", kind: "open" },
+        { text: "x", start: 39, end: 40, name: "", kind: "text" },
+        { text: "</a>", start: 40, end: 44, name: "a", kind: "close" },
       ])
     })
 
@@ -114,8 +114,8 @@ describe("извлечение тегов", () => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<div title="a > b, c < d"></div>`)
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<div title="a > b, c < d">', index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 26, name: "div", kind: "close" },
+        { text: '<div title="a > b, c < d">', start: 0, name: "div", kind: "open" },
+        { text: "</div>", start: 26, end: 32, name: "div", kind: "close" },
       ])
     })
     it("условие в атрибуте", () => {
@@ -124,8 +124,8 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<div title="${context.flag ? "a > b" : "c < d"}">', index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 49, name: "div", kind: "close" },
+        { text: '<div title="${context.flag ? "a > b" : "c < d"}">', start: 0, name: "div", kind: "open" },
+        { text: "</div>", start: 49, end: 55, name: "div", kind: "close" },
       ])
     })
     it("условие в аттрибуте без кавычек", () => {
@@ -134,8 +134,8 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<div title=${context.flag ? "a > b" : "c < d"}>', index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 47, name: "div", kind: "close" },
+        { text: '<div title=${context.flag ? "a > b" : "c < d"}>', start: 0, name: "div", kind: "open" },
+        { text: "</div>", start: 47, end: 53, name: "div", kind: "close" },
       ])
     })
     it("условие в аттрибуте с одинарными кавычками", () => {
@@ -145,8 +145,8 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 49, name: "div", kind: "close" },
+        { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', start: 0, name: "div", kind: "open" },
+        { text: "</div>", start: 49, end: 55, name: "div", kind: "close" },
       ])
     })
     it("булевые атрибуты", () => {
@@ -155,8 +155,8 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: '<button ${context.flag && "disabled"}>', index: 0, name: "button", kind: "open" },
-        { text: "</button>", index: 38, name: "button", kind: "close" },
+        { text: '<button ${context.flag && "disabled"}>', start: 0, name: "button", kind: "open" },
+        { text: "</button>", start: 38, end: 47, name: "button", kind: "close" },
       ])
     })
   })
@@ -169,14 +169,14 @@ describe("извлечение тегов", () => {
       const elements = extractHtmlElements(mainHtml)
 
       expect(elements).toEqual([
-        { text: "<div>", index: 1, name: "div", kind: "open" },
-        { text: "<p>", index: 28, name: "p", kind: "open" },
-        { text: "a", index: 31, name: "", kind: "text" },
-        { text: "</p>", index: 32, name: "p", kind: "close" },
-        { text: "<span>", index: 45, name: "span", kind: "open" },
-        { text: "b", index: 51, name: "", kind: "text" },
-        { text: "</span>", index: 52, name: "span", kind: "close" },
-        { text: "</div>", index: 61, name: "div", kind: "close" },
+        { text: "<div>", start: 1, end: 6, name: "div", kind: "open" },
+        { text: "<p>", start: 28, end: 31, name: "p", kind: "open" },
+        { text: "a", start: 31, end: 32, name: "", kind: "text" },
+        { text: "</p>", start: 32, end: 36, name: "p", kind: "close" },
+        { text: "<span>", start: 45, end: 51, name: "span", kind: "open" },
+        { text: "b", start: 51, end: 52, name: "", kind: "text" },
+        { text: "</span>", start: 52, end: 59, name: "span", kind: "close" },
+        { text: "</div>", start: 61, end: 67, name: "div", kind: "close" },
       ])
     })
 
@@ -190,11 +190,11 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<ul>", index: 11, name: "ul", kind: "open" },
-        { text: "<li>", index: 62, name: "li", kind: "open" },
-        { text: "${name}", index: 66, name: "", kind: "text" },
-        { text: "</li>", index: 73, name: "li", kind: "close" },
-        { text: "</ul>", index: 92, name: "ul", kind: "close" },
+        { text: "<ul>", start: 11, end: 15, name: "ul", kind: "open" },
+        { text: "<li>", start: 62, end: 66, name: "li", kind: "open" },
+        { text: "${name}", start: 66, end: 73, name: "", kind: "text" },
+        { text: "</li>", start: 73, end: 78, name: "li", kind: "close" },
+        { text: "</ul>", start: 92, end: 97, name: "ul", kind: "close" },
       ])
     })
 
@@ -213,12 +213,12 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<ul>", index: 11, name: "ul", kind: "open" },
-        { text: "<li>", index: 79, name: "li", kind: "open" },
-        { text: "${name}", index: 83, name: "", kind: "text" },
-        { text: "</li>", index: 90, name: "li", kind: "close" },
-        { text: "<br />", index: 112, name: "br", kind: "self" },
-        { text: "</ul>", index: 147, name: "ul", kind: "close" },
+        { text: "<ul>", start: 11, end: 15, name: "ul", kind: "open" },
+        { text: "<li>", start: 79, end: 83, name: "li", kind: "open" },
+        { text: "${name}", start: 83, end: 90, name: "", kind: "text" },
+        { text: "</li>", start: 90, end: 95, name: "li", kind: "close" },
+        { text: "<br />", start: 112, end: 118, name: "br", kind: "self" },
+        { text: "</ul>", start: 147, end: 152, name: "ul", kind: "close" },
       ])
     })
 
@@ -238,17 +238,17 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<ul>", index: 50, name: "ul", kind: "open" },
-        { text: "<li>", index: 117, name: "li", kind: "open" },
-        { text: "${title} ", index: 121, name: "", kind: "text" },
-        { text: "<em>", index: 155, name: "em", kind: "open" },
-        { text: "${n}", index: 159, name: "", kind: "text" },
-        { text: "</em>", index: 163, name: "em", kind: "close" },
-        { text: "</li>", index: 171, name: "li", kind: "close" },
-        { text: "</ul>", index: 196, name: "ul", kind: "close" },
-        { text: "<div>", index: 225, name: "div", kind: "open" },
-        { text: "x", index: 230, name: "", kind: "text" },
-        { text: "</div>", index: 231, name: "div", kind: "close" },
+        { text: "<ul>", start: 50, end: 54, name: "ul", kind: "open" },
+        { text: "<li>", start: 117, end: 121, name: "li", kind: "open" },
+        { text: "${title} ", start: 121, end: 130, name: "", kind: "text" },
+        { text: "<em>", start: 155, end: 159, name: "em", kind: "open" },
+        { text: "${n}", start: 159, end: 163, name: "", kind: "text" },
+        { text: "</em>", start: 163, end: 168, name: "em", kind: "close" },
+        { text: "</li>", start: 171, end: 176, name: "li", kind: "close" },
+        { text: "</ul>", start: 196, end: 201, name: "ul", kind: "close" },
+        { text: "<div>", start: 225, end: 230, name: "div", kind: "open" },
+        { text: "x", start: 230, end: 231, name: "", kind: "text" },
+        { text: "</div>", start: 231, end: 237, name: "div", kind: "close" },
       ])
     })
 
@@ -260,14 +260,14 @@ describe("извлечение тегов", () => {
       )
       const elements = extractHtmlElements(mainHtml)
       expect(elements).toEqual([
-        { text: "<div>", index: 11, name: "div", kind: "open" },
-        { text: "<p>", index: 38, name: "p", kind: "open" },
-        { text: "Visible: ${context.name}", index: 41, name: "", kind: "text" },
-        { text: "</p>", index: 65, name: "p", kind: "close" },
-        { text: "<p>", index: 78, name: "p", kind: "open" },
-        { text: "Hidden", index: 81, name: "", kind: "text" },
-        { text: "</p>", index: 87, name: "p", kind: "close" },
-        { text: "</div>", index: 93, name: "div", kind: "close" },
+        { text: "<div>", start: 11, end: 16, name: "div", kind: "open" },
+        { text: "<p>", start: 38, end: 41, name: "p", kind: "open" },
+        { text: "Visible: ${context.name}", start: 41, end: 65, name: "", kind: "text" },
+        { text: "</p>", start: 65, end: 69, name: "p", kind: "close" },
+        { text: "<p>", start: 78, end: 81, name: "p", kind: "open" },
+        { text: "Hidden", start: 81, end: 87, name: "", kind: "text" },
+        { text: "</p>", start: 87, end: 91, name: "p", kind: "close" },
+        { text: "</div>", start: 93, end: 99, name: "div", kind: "close" },
       ])
     })
   })
