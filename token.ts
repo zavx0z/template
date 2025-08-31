@@ -1,4 +1,12 @@
-import type { StreamToken, TokenCondClose, TokenCondElse, TokenCondOpen, TokenMapClose, TokenMapOpen } from "./token.t"
+import type {
+  StreamToken,
+  TokenCondClose,
+  TokenCondElse,
+  TokenCondOpen,
+  TokenCondElseIf,
+  TokenMapClose,
+  TokenMapOpen,
+} from "./token.t"
 import type { ElementToken } from "./splitter"
 
 const elementPartToToken = (element: ElementToken): StreamToken => {
@@ -58,6 +66,11 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
     const tokenCondElse = findCondElse(expr)
     if (tokenCondElse) {
       tokens.set(...tokenCondElse)
+    }
+
+    const tokenCondElseIf = findCondElseIf(expr)
+    if (tokenCondElseIf) {
+      tokens.set(...tokenCondElseIf)
     }
 
     const tokenCondClose = findCondClose(expr)
@@ -171,6 +184,15 @@ const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
   let match
   while ((match = condElseRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-else" }]
+  }
+}
+
+const findCondElseIf = (expr: string): [number, TokenCondElseIf] | undefined => {
+  // Ищем : ... ? для else-if условий
+  const condElseIfRegex = /:\s*([^?]*?)\s*\?/g
+  let match
+  while ((match = condElseIfRegex.exec(expr)) !== null) {
+    return [match.index, { kind: "cond-else-if", expr: match[1]!.trim() }]
   }
 }
 

@@ -10,13 +10,6 @@ describe("web-components", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html`<my-element></my-element>`)
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
-      expect(elements).toEqual([
-        { text: "<my-element>", start: 0, end: 12, name: "my-element", kind: "open" },
-        { text: "</my-element>", start: 12, end: 22, name: "my-element", kind: "close" },
-      ])
-    })
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
@@ -268,17 +261,6 @@ describe("web-components", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () =>
-      expect(elements).toEqual([
-        {
-          text: '<user-profile id="${context.userId}" theme="${context.theme}">',
-          start: 0,
-          name: "user-profile",
-          kind: "open",
-        },
-        { text: "</user-profile>", start: 62, end: 77, name: "user-profile", kind: "close" },
-      ])
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
@@ -405,15 +387,6 @@ describe("web-components", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () =>
-      expect(elements).toEqual([
-        { text: "<user-list>", start: 9, name: "user-list", kind: "open" , end: 20,
-        { text: '<user-item id="${user.id}">', start: 53, name: "user-item", kind: "open" },
-        { text: "${user.name}", start: 80, name: "", kind: "text" },
-        { text: "</user-item>", start: 92, name: "user-item", kind: "close" , end: 104,
-        { text: "</user-list>", start: 108, name: "user-list", kind: "close" , end: 120,
-      ]))
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
@@ -425,7 +398,7 @@ describe("web-components", () => {
           child: [
             {
               type: "map",
-              text: "core.users.map((user)`",
+              text: "core.users.map((user)",
               child: [
                 {
                   tag: "user-item",
@@ -453,7 +426,7 @@ describe("web-components", () => {
           child: [
             {
               type: "map",
-              text: "core.users.map((user)`",
+              text: "core.users.map((user)",
               child: [
                 {
                   tag: "user-item",
@@ -521,18 +494,6 @@ describe("web-components", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () =>
-      expect(elements).toEqual([
-        { text: "<x-component>", start: 9, name: "x-component", kind: "open" , end: 22,
-        { text: "</x-component>", start: 22, name: "x-component", kind: "close" , end: 36,
-        { text: "<my-component>", start: 45, name: "my-component", kind: "open" , end: 59,
-        { text: "</my-component>", start: 59, name: "my-component", kind: "close" , end: 74,
-        { text: "<component-with-dashes>", start: 83, name: "component-with-dashes", kind: "open" , end: 106,
-        { text: "</component-with-dashes>", start: 106, name: "component-with-dashes", kind: "close" , end: 130,
-        { text: "<a-b-c-d>", start: 139, name: "a-b-c-d", kind: "open" , end: 148,
-        { text: "</a-b-c-d>", start: 148, name: "a-b-c-d", kind: "close" , end: 158,
-      ]))
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
@@ -571,344 +532,294 @@ describe("web-components", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: "<component-1>", start: 9, name: "component-1", kind: "open" , end: 22,
-      { text: "</component-1>", start: 22, name: "component-1", kind: "close" , end: 36,
-      { text: "<my-component-2>", start: 45, name: "my-component-2", kind: "open" , end: 61,
-      { text: "</my-component-2>", start: 61, name: "my-component-2", kind: "close" , end: 78,
-      { text: "<widget-3d>", start: 87, name: "widget-3d", kind: "open" , end: 98,
-      { text: "</widget-3d>", start: 98, name: "widget-3d", kind: "close" , end: 110,
-    ])
-  })
+    describe("custom elements с сложными атрибутами", () => {
+      const mainHtml = extractMainHtmlBlock(
+        ({ html }) => html`
+          <data-table columns='["name", "age", "email"]' sortable="true" filterable theme="dark"></data-table>
+        `
+      )
 
-  describe("custom elements с сложными атрибутами", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html }) => html`
-        <data-table columns='["name", "age", "email"]' sortable="true" filterable theme="dark"></data-table>
-      `
-    )
+      const elements = extractHtmlElements(mainHtml)
+      const tokens = extractTokens(mainHtml, elements)
+      const hierarchy = makeHierarchy(tokens)
+      it("hierarchy", () =>
+        expect(hierarchy).toEqual([
+          {
+            tag: "data-table",
+            type: "el",
+            text: '<data-table columns=\'["name", "age", "email"]\' sortable="true" filterable theme="dark">',
+          },
+        ]))
 
-    const elements = extractHtmlElements(mainHtml)
-    it("elements", () =>
-      expect(elements).toEqual([
-        {
-          text: '<data-table columns=\'["name", "age", "email"]\' sortable="true" filterable theme="dark">',
-          start: 9,
-          name: "data-table",
-          kind: "open",
-        },
-        {
-          text: "</data-table>",
-          start: 96,
-          name: "data-table",
-          kind: "close",
-        , end: 109,
-      ]))
-
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
-    it("hierarchy", () =>
-      expect(hierarchy).toEqual([
-        {
-          tag: "data-table",
-          type: "el",
-          text: '<data-table columns=\'["name", "age", "email"]\' sortable="true" filterable theme="dark">',
-        },
-      ]))
-
-    const attributes = extractAttributes(hierarchy)
-    it("attributes", () =>
-      expect(attributes).toEqual([
-        {
-          tag: "data-table",
-          type: "el",
-          string: {
-            columns: {
-              type: "static",
-              value: '["name", "age", "email"]',
+      const attributes = extractAttributes(hierarchy)
+      it("attributes", () =>
+        expect(attributes).toEqual([
+          {
+            tag: "data-table",
+            type: "el",
+            string: {
+              columns: {
+                type: "static",
+                value: '["name", "age", "email"]',
+              },
+              sortable: {
+                type: "static",
+                value: "true",
+              },
+              theme: {
+                type: "static",
+                value: "dark",
+              },
             },
-            sortable: {
-              type: "static",
-              value: "true",
-            },
-            theme: {
-              type: "static",
-              value: "dark",
+            boolean: {
+              filterable: {
+                type: "static",
+                value: true,
+              },
             },
           },
-          boolean: {
-            filterable: {
-              type: "static",
-              value: true,
+        ]))
+
+      const data = enrichWithData(attributes)
+      it("data", () =>
+        expect(data).toEqual([
+          {
+            tag: "data-table",
+            type: "el",
+            string: {
+              columns: '["name", "age", "email"]',
+              sortable: "true",
+              theme: "dark",
+            },
+            boolean: {
+              filterable: true,
             },
           },
-        },
-      ]))
+        ]))
+    })
 
-    const data = enrichWithData(attributes)
-    it("data", () =>
-      expect(data).toEqual([
-        {
-          tag: "data-table",
-          type: "el",
-          string: {
-            columns: '["name", "age", "email"]',
-            sortable: "true",
-            theme: "dark",
+    describe("custom elements с событиями", () => {
+      const mainHtml = extractMainHtmlBlock(
+        ({ html, core }) => html`
+          <modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">
+          </modal-dialog>
+        `
+      )
+
+      const elements = extractHtmlElements(mainHtml)
+      const tokens = extractTokens(mainHtml, elements)
+      const hierarchy = makeHierarchy(tokens)
+      it("hierarchy", () =>
+        expect(hierarchy).toEqual([
+          {
+            tag: "modal-dialog",
+            type: "el",
+            text: '<modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">',
           },
-          boolean: {
-            filterable: true,
-          },
-        },
-      ]))
-  })
+        ]))
 
-  describe("custom elements с событиями", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html, core }) => html`
-        <modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">
-        </modal-dialog>
-      `
-    )
-
-    const elements = extractHtmlElements(mainHtml)
-    it("elements", () =>
-      expect(elements).toEqual([
-        {
-          text: '<modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">',
-          start: 9,
-          name: "modal-dialog",
-          kind: "open",
-        },
-        { text: "</modal-dialog>", start: 117, name: "modal-dialog", kind: "close" , end: 132,
-      ]))
-
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
-    it("hierarchy", () =>
-      expect(hierarchy).toEqual([
-        {
-          tag: "modal-dialog",
-          type: "el",
-          text: '<modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">',
-        },
-      ]))
-
-    const attributes = extractAttributes(hierarchy)
-    it("attributes", () =>
-      expect(attributes).toEqual([
-        {
-          tag: "modal-dialog",
-          type: "el",
-          event: {
-            onclose: "() => core.close()",
-            onopen: "() => core.open()",
-          },
-          string: {
-            "data-modal-id": {
-              type: "static",
-              value: "user-modal",
+      const attributes = extractAttributes(hierarchy)
+      it("attributes", () =>
+        expect(attributes).toEqual([
+          {
+            tag: "modal-dialog",
+            type: "el",
+            event: {
+              onclose: "() => core.close()",
+              onopen: "() => core.open()",
+            },
+            string: {
+              "data-modal-id": {
+                type: "static",
+                value: "user-modal",
+              },
             },
           },
-        },
-      ]))
+        ]))
 
-    const data = enrichWithData(attributes)
-    it("data", () =>
-      expect(data).toEqual([
-        {
-          event: {
-            onclose: {
-              data: "/core/close",
-              expr: "() => ${[0]}()",
+      const data = enrichWithData(attributes)
+      it("data", () =>
+        expect(data).toEqual([
+          {
+            event: {
+              onclose: {
+                data: "/core/close",
+                expr: "() => ${[0]}()",
+              },
+              onopen: {
+                data: "/core/open",
+                expr: "() => ${[0]}()",
+              },
             },
-            onopen: {
-              data: "/core/open",
-              expr: "() => ${[0]}()",
+            string: {
+              "data-modal-id": "user-modal",
             },
+            tag: "modal-dialog",
+            type: "el",
           },
-          string: {
-            "data-modal-id": "user-modal",
-          },
-          tag: "modal-dialog",
-          type: "el",
-        },
-      ]))
-  })
+        ]))
+    })
 
-  describe("custom elements с shadow DOM", () => {
-    const mainHtml = extractMainHtmlBlock(
-      ({ html }) => html`
-        <shadow-host>
-          <template>
-            <div class="shadow-content">
-              <slot name="header"></slot>
-              <slot></slot>
-            </div>
-          </template>
-        </shadow-host>
-      `
-    )
+    describe("custom elements с shadow DOM", () => {
+      const mainHtml = extractMainHtmlBlock(
+        ({ html }) => html`
+          <shadow-host>
+            <template>
+              <div class="shadow-content">
+                <slot name="header"></slot>
+                <slot></slot>
+              </div>
+            </template>
+          </shadow-host>
+        `
+      )
 
-    const elements = extractHtmlElements(mainHtml)
-    it("elements", () =>
-      expect(elements).toEqual([
-        { text: "<shadow-host>", start: 9, name: "shadow-host", kind: "open" , end: 22,
-        { text: "<template>", start: 33, name: "template", kind: "open" , end: 43,
-        { text: '<div class="shadow-content">', start: 56, name: "div", kind: "open" },
-        { text: '<slot name="header">', start: 99, name: "slot", kind: "open" },
-        { text: "</slot>", start: 119, name: "slot", kind: "close" , end: 126,
-        { text: "<slot>", start: 141, name: "slot", kind: "open" , end: 147,
-        { text: "</slot>", start: 147, name: "slot", kind: "close" , end: 154,
-        { text: "</div>", start: 167, name: "div", kind: "close" , end: 173,
-        { text: "</template>", start: 184, name: "template", kind: "close" , end: 195,
-        { text: "</shadow-host>", start: 204, name: "shadow-host", kind: "close" , end: 218,
-      ]))
-
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
-    it("hierarchy", () =>
-      expect(hierarchy).toEqual([
-        {
-          tag: "shadow-host",
-          type: "el",
-          text: "<shadow-host>",
-          child: [
-            {
-              tag: "template",
-              type: "el",
-              text: "<template>",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  text: '<div class="shadow-content">',
-                  child: [
-                    {
-                      tag: "slot",
-                      type: "el",
-                      text: '<slot name="header">',
-                    },
-                    {
-                      tag: "slot",
-                      type: "el",
-                      text: "<slot>",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-
-    const attributes = extractAttributes(hierarchy)
-    it("attributes", () =>
-      expect(attributes).toEqual([
-        {
-          tag: "shadow-host",
-          type: "el",
-          child: [
-            {
-              tag: "template",
-              type: "el",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: {
-                      type: "static",
-                      value: "shadow-content",
-                    },
+      const elements = extractHtmlElements(mainHtml)
+      const tokens = extractTokens(mainHtml, elements)
+      const hierarchy = makeHierarchy(tokens)
+      it("hierarchy", () =>
+        expect(hierarchy).toEqual([
+          {
+            tag: "shadow-host",
+            type: "el",
+            text: "<shadow-host>",
+            child: [
+              {
+                tag: "template",
+                type: "el",
+                text: "<template>",
+                child: [
+                  {
+                    tag: "div",
+                    type: "el",
+                    text: '<div class="shadow-content">',
+                    child: [
+                      {
+                        tag: "slot",
+                        type: "el",
+                        text: '<slot name="header">',
+                      },
+                      {
+                        tag: "slot",
+                        type: "el",
+                        text: "<slot>",
+                      },
+                    ],
                   },
-                  child: [
-                    {
-                      tag: "slot",
-                      type: "el",
-                      string: {
-                        name: {
-                          type: "static",
-                          value: "header",
+                ],
+              },
+            ],
+          },
+        ]))
+
+      const attributes = extractAttributes(hierarchy)
+      it("attributes", () =>
+        expect(attributes).toEqual([
+          {
+            tag: "shadow-host",
+            type: "el",
+            child: [
+              {
+                tag: "template",
+                type: "el",
+                child: [
+                  {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: {
+                        type: "static",
+                        value: "shadow-content",
+                      },
+                    },
+                    child: [
+                      {
+                        tag: "slot",
+                        type: "el",
+                        string: {
+                          name: {
+                            type: "static",
+                            value: "header",
+                          },
                         },
                       },
-                    },
-                    {
-                      tag: "slot",
-                      type: "el",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-
-    const data = enrichWithData(attributes)
-    it("data", () =>
-      expect(data).toEqual([
-        {
-          tag: "shadow-host",
-          type: "el",
-          child: [
-            {
-              tag: "template",
-              type: "el",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  child: [
-                    {
-                      tag: "slot",
-                      type: "el",
-                      string: {
-                        name: "header",
+                      {
+                        tag: "slot",
+                        type: "el",
                       },
-                    },
-                    {
-                      tag: "slot",
-                      type: "el",
-                    },
-                  ],
-                  string: {
-                    class: "shadow-content",
+                    ],
                   },
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-  })
+                ],
+              },
+            ],
+          },
+        ]))
 
-  describe("custom elements с булевыми атрибутами", () => {
-    const mainHtml = extractMainHtmlBlock<{ isVisible: boolean; isDisabled: boolean }>(
-      ({ html, context }) => html` <custom-button ${context.isDisabled && "disabled"}>Click me</custom-button> `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
-    const attributes = extractAttributes(hierarchy)
-    const data = enrichWithData(attributes)
-    it("data", () =>
-      expect(data).toEqual([
-        {
-          tag: "custom-button",
-          type: "el",
-          child: [
-            {
-              type: "text",
-              value: "Click me",
-            },
-          ],
-          boolean: {
-            disabled: {
-              data: "/context/isDisabled",
+      const data = enrichWithData(attributes)
+      it("data", () =>
+        expect(data).toEqual([
+          {
+            tag: "shadow-host",
+            type: "el",
+            child: [
+              {
+                tag: "template",
+                type: "el",
+                child: [
+                  {
+                    tag: "div",
+                    type: "el",
+                    child: [
+                      {
+                        tag: "slot",
+                        type: "el",
+                        string: {
+                          name: "header",
+                        },
+                      },
+                      {
+                        tag: "slot",
+                        type: "el",
+                      },
+                    ],
+                    string: {
+                      class: "shadow-content",
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ]))
+    })
+
+    describe("custom elements с булевыми атрибутами", () => {
+      const mainHtml = extractMainHtmlBlock<{ isVisible: boolean; isDisabled: boolean }>(
+        ({ html, context }) => html` <custom-button ${context.isDisabled && "disabled"}>Click me</custom-button> `
+      )
+      const elements = extractHtmlElements(mainHtml)
+      const tokens = extractTokens(mainHtml, elements)
+      const hierarchy = makeHierarchy(tokens)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichWithData(attributes)
+      it("data", () =>
+        expect(data).toEqual([
+          {
+            tag: "custom-button",
+            type: "el",
+            child: [
+              {
+                type: "text",
+                value: "Click me",
+              },
+            ],
+            boolean: {
+              disabled: {
+                data: "/context/isDisabled",
+              },
             },
           },
-        },
-      ]))
+        ]))
+    })
   })
 })

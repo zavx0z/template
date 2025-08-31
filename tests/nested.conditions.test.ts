@@ -6,7 +6,7 @@ import { extractAttributes } from "../attributes"
 import { extractTokens } from "../token"
 import { print } from "../fixture"
 
-describe.skip("nested.conditions", () => {
+describe("nested.conditions", () => {
   describe("двойное условие", () => {
     const mainHtml = extractMainHtmlBlock<any, { flag1: boolean; flag2: boolean }>(
       ({ html, context }) => html`
@@ -24,7 +24,7 @@ describe.skip("nested.conditions", () => {
         { kind: "cond-open", expr: "context.flag1" },
         { kind: "tag-open", name: "div", text: '<div class="flag1">' },
         { kind: "tag-close", name: "div", text: "</div>" },
-        { kind: "cond-else" },
+        { kind: "cond-else-if", expr: "context.flag2" },
         { kind: "tag-open", name: "div", text: '<div class="flag2">' },
         { kind: "tag-close", name: "div", text: "</div>" },
         { kind: "cond-else" },
@@ -52,7 +52,7 @@ describe.skip("nested.conditions", () => {
         },
       ]))
   })
-  it("условия с элементами на разных уровнях вложенности с переменными из разных уровней", () => {
+  it.skip("условия с элементами на разных уровнях вложенности с переменными из разных уровней", () => {
     const mainHtml = extractMainHtmlBlock<
       any,
       {

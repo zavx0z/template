@@ -249,7 +249,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     )
     const elements = extractHtmlElements(mainHtml)
     const tokens = extractTokens(mainHtml, elements)
-    // print(tokens)
+    print(tokens)
     it("tokens", () => {
       expect(tokens).toEqual([
         { kind: "tag-open", name: "div", text: "<div>" },
@@ -260,7 +260,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
           name: "meta-${core.tag}",
           text: '<meta-${core.tag} core=${{ id: item.id, name: item.name, type: "active" }} context=${{ status: "active", permissions: item.permissions }} />',
         },
-        { kind: "cond-else" },
+        { kind: "cond-else-if", expr: "item.hasError" },
         {
           kind: "tag-self",
           name: "meta-${core.tag}",
