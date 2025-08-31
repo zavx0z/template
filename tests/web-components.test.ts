@@ -276,8 +276,8 @@ describe("web-components", () => {
           name: "user-profile",
           kind: "open",
         },
-        { text: "</user-profile>", start: 62, name: "user-profile", kind: "close" , end: 77,
-      ]))
+        { text: "</user-profile>", start: 62, end: 77, name: "user-profile", kind: "close" },
+      ])
 
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
@@ -336,10 +336,10 @@ describe("web-components", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<admin-panel>", start: 25, name: "admin-panel", kind: "open" , end: 38,
-        { text: "</admin-panel>", start: 38, name: "admin-panel", kind: "close" , end: 52,
-        { text: "<user-panel>", start: 61, name: "user-panel", kind: "open" , end: 73,
-        { text: "</user-panel>", start: 73, name: "user-panel", kind: "close" , end: 86,
+        { text: "<admin-panel>", start: 25, end: 38, name: "admin-panel", kind: "open" },
+        { text: "</admin-panel>", start: 38, end: 52, name: "admin-panel", kind: "close" },
+        { text: "<user-panel>", start: 61, end: 73, name: "user-panel", kind: "open" },
+        { text: "</user-panel>", start: 73, end: 86, name: "user-panel", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)

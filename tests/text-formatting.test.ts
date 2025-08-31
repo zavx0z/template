@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("text-formatting", () => {
   describe("форматирует текст по стандартам HTML (схлопывание пробельных символов)", () => {

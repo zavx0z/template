@@ -3,7 +3,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("map соседствующие", () => {
   describe("map соседствующий с map на верхнем уровне", () => {

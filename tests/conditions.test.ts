@@ -3,7 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("conditions", () => {
   describe("тернарник с внутренними тегами", () => {

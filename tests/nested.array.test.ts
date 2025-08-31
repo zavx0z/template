@@ -3,7 +3,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("nested.array", () => {
   it("4 уровня вложенности map с переменными из предыдущих уровней (полный тест)", () => {

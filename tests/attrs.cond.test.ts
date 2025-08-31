@@ -3,7 +3,7 @@ import { enrichWithData } from "../data"
 import { makeHierarchy } from "../hierarchy"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { describe, it, expect } from "bun:test"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("", () => {
   describe("тернарный оператор в атрибуте с числом в качестве условия", () => {

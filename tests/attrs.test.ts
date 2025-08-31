@@ -4,7 +4,7 @@ import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import { parse } from "../index"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("атрибуты", () => {
   describe("namespace", () => {

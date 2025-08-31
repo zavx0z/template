@@ -3,7 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { describe, it, expect } from "bun:test"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("meta-компоненты с core/context в map и condition", () => {
   describe("meta-элемент с пустыми объектами", () => {

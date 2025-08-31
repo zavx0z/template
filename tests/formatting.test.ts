@@ -3,7 +3,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { extractAttributes } from "../attributes"
 import { enrichWithData } from "../data"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("formatting", () => {
   describe("форматирует тернарные выражения, удаляя лишние пробелы и переносы строк", () => {
