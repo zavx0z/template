@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { parseAttributes } from "../../attributes.ts"
+import { extractTokens } from "./token"
 
 describe("комплексные тесты с множественными атрибутами", () => {
   describe("элемент area с shape и coords", () => {

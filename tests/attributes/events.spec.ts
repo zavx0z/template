@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test"
 import { parseAttributes } from "../../attributes.ts"
+import { extractTokens } from "./token"
 
 describe("события (events) с атрибутами on...", () => {
   describe("простые события", () => {

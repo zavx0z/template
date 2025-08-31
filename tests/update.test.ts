@@ -3,6 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
+import { extractTokens } from "./token"
 
 describe("update", () => {
   describe("функция обновления контекста в функции рендера", () => {
@@ -34,7 +35,8 @@ describe("update", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -94,7 +96,8 @@ describe("update", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -154,7 +157,8 @@ describe("update", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -219,7 +223,8 @@ describe("update", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -319,7 +324,8 @@ describe("update", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {

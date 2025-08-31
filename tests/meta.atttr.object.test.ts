@@ -3,6 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { describe, it, expect } from "bun:test"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
+import { extractTokens } from "./token"
 
 describe("core/context в атрибутах", () => {
   describe("core с динамическими значениями", () => {
@@ -11,7 +12,8 @@ describe("core/context в атрибутах", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
     it("data", () => {
@@ -35,7 +37,8 @@ describe("core/context в атрибутах", () => {
     const mainHtml = extractMainHtmlBlock(({ html, core }) => html`<meta-${core.tag} core=${{ id: "1", name: "2" }} />`)
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     it("attributes", () =>
       expect(attributes).toEqual([
@@ -68,7 +71,8 @@ describe("core/context в атрибутах", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
 
     it("attributes", () =>
@@ -115,7 +119,8 @@ describe("core/context в атрибутах", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
     it("data", () => {
@@ -145,7 +150,8 @@ describe("core/context в атрибутах", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
     it("data", () => {

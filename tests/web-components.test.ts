@@ -3,6 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
+import { extractTokens } from "./token"
 
 describe("web-components", () => {
   describe("базовые custom elements", () => {
@@ -16,7 +17,8 @@ describe("web-components", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -59,7 +61,8 @@ describe("web-components", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -119,7 +122,8 @@ describe("web-components", () => {
         },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -171,7 +175,8 @@ describe("web-components", () => {
         { text: "</app-header>", index: 113, name: "app-header", kind: "close" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -273,7 +278,8 @@ describe("web-components", () => {
         { text: "</user-profile>", index: 62, name: "user-profile", kind: "close" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -335,7 +341,8 @@ describe("web-components", () => {
         { text: "</user-panel>", index: 73, name: "user-panel", kind: "close" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -406,7 +413,8 @@ describe("web-components", () => {
         { text: "</user-list>", index: 108, name: "user-list", kind: "close" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -524,7 +532,8 @@ describe("web-components", () => {
         { text: "</a-b-c-d>", index: 148, name: "a-b-c-d", kind: "close" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         { tag: "x-component", type: "el", text: "<x-component>" },
@@ -595,7 +604,8 @@ describe("web-components", () => {
         },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -672,7 +682,8 @@ describe("web-components", () => {
         { text: "</modal-dialog>", index: 117, name: "modal-dialog", kind: "close" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -753,7 +764,8 @@ describe("web-components", () => {
         { text: "</shadow-host>", index: 204, name: "shadow-host", kind: "close" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -875,7 +887,8 @@ describe("web-components", () => {
       ({ html, context }) => html` <custom-button ${context.isDisabled && "disabled"}>Click me</custom-button> `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
     it("data", () =>

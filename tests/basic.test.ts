@@ -3,6 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { extractAttributes } from "../attributes"
 import { enrichWithData } from "../data"
+import { extractTokens } from "./token"
 
 describe("basic", () => {
   describe("простая пара тегов", () => {
@@ -16,7 +17,8 @@ describe("basic", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -72,7 +74,8 @@ describe("basic", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -194,7 +197,8 @@ describe("basic", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {

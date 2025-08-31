@@ -3,6 +3,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { extractAttributes } from "../attributes"
 import { enrichWithData } from "../data"
+import { extractTokens } from "./token"
 
 describe("formatting", () => {
   describe("форматирует тернарные выражения, удаляя лишние пробелы и переносы строк", () => {
@@ -18,7 +19,8 @@ describe("formatting", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -104,7 +106,8 @@ describe("formatting", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 

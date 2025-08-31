@@ -3,6 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
+import { extractTokens } from "./token"
 
 describe("mixed", () => {
   describe("map + условия", () => {
@@ -32,7 +33,8 @@ describe("mixed", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -143,7 +145,8 @@ describe("mixed", () => {
     expect(elements).toEqual([
       { index: 0, kind: "text", name: "", text: '${context.a < context.b && context.c > context.d ? "1" : "0"}' },
     ])
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     expect(hierarchy).toEqual([
       {
         type: "text",

@@ -3,6 +3,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
+import { extractTokens } from "./token"
 
 describe("map с условиями", () => {
   describe("map соседствующий с map в условии на верхнем уровне", () => {
@@ -38,7 +39,8 @@ describe("map с условиями", () => {
         { text: "No items", index: 276, name: "", kind: "text" },
         { text: "</div>", index: 284, name: "div", kind: "close" },
       ]))
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -273,7 +275,8 @@ describe("map с условиями", () => {
         { text: "</div>", index: 324, name: "div", kind: "close" },
         { text: "</div>", index: 341, name: "div", kind: "close" },
       ]))
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -530,7 +533,8 @@ describe("map с условиями", () => {
       expect(elements.some((el) => el.text.includes("fallback"))).toBe(true)
       expect(elements.some((el) => el.text.includes("deep-fallback"))).toBe(true)
     })
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       // Проверяем структуру иерархии
       expect(hierarchy.length).toBeGreaterThan(0)

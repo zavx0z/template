@@ -3,6 +3,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
+import { extractTokens } from "./token"
 
 describe("map", () => {
   describe("простой map", () => {
@@ -25,7 +26,8 @@ describe("map", () => {
       ])
     })
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
       expect(hierarchy).toEqual([
         {
@@ -109,7 +111,8 @@ describe("map", () => {
         { text: "</ul>", index: 135, name: "ul", kind: "close" },
       ]))
 
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -205,7 +208,8 @@ describe("map", () => {
         { text: "</li>", index: 193, name: "li", kind: "close" },
         { text: "</ul>", index: 223, name: "ul", kind: "close" },
       ]))
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -330,7 +334,8 @@ describe("map", () => {
         { text: "</li>", index: 116, name: "li", kind: "close" },
         { text: "</ul>", index: 133, name: "ul", kind: "close" },
       ]))
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -450,7 +455,8 @@ describe("map", () => {
         { text: "</li>", index: 122, name: "li", kind: "close" },
         { text: "</ul>", index: 139, name: "ul", kind: "close" },
       ]))
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {
@@ -564,7 +570,8 @@ describe("map", () => {
         { text: "x", index: 188, name: "", kind: "text" },
         { text: "</div>", index: 189, name: "div", kind: "close" },
       ]))
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
         {

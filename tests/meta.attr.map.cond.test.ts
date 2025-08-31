@@ -3,12 +3,14 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { describe, it, expect } from "bun:test"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
+import { extractTokens } from "./token"
 
 describe("meta-компоненты с core/context в map и condition", () => {
   describe("meta-элемент с пустыми объектами", () => {
     const mainHtml = extractMainHtmlBlock(({ html }) => html` <meta-hash context=${{}} core=${{}} /> `)
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     it("attributes", () => {
       expect(attributes, "при обработке пустых объектов не должен устанавливаться core и context").toEqual([
@@ -46,7 +48,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -99,7 +102,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -168,7 +172,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -239,7 +244,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -373,7 +379,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -478,7 +485,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
     )
 
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 

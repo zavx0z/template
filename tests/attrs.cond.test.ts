@@ -3,6 +3,7 @@ import { enrichWithData } from "../data"
 import { makeHierarchy } from "../hierarchy"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { describe, it, expect } from "bun:test"
+import { extractTokens } from "./token"
 
 describe("", () => {
   describe("тернарный оператор в атрибуте с числом в качестве условия", () => {
@@ -12,7 +13,8 @@ describe("", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -46,7 +48,8 @@ describe("", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy, "hierarchy").toEqual([
         {

@@ -3,6 +3,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../../splitter"
 import { makeHierarchy } from "../../hierarchy"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
+import { extractTokens } from "../../token"
 
 describe("object атрибуты (стили) с переменными из разных уровней map", () => {
   it("стили с переменными из разных уровней вложенности", () => {
@@ -38,7 +39,8 @@ describe("object атрибуты (стили) с переменными из р
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 
@@ -117,7 +119,8 @@ describe("object атрибуты (стили) с переменными из р
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
 

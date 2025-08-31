@@ -2,6 +2,7 @@ import { describe, it, expect } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
+import { extractTokens } from "./token"
 
 describe("text-formatting", () => {
   describe("форматирует текст по стандартам HTML (схлопывание пробельных символов)", () => {
@@ -43,7 +44,8 @@ describe("text-formatting", () => {
         { text: "</p>", index: 284, name: "p", kind: "close" },
         { text: "</div>", index: 297, name: "div", kind: "close" },
       ]))
-    const hierarchy = makeHierarchy(mainHtml, elements)
+    const tokens = extractTokens(mainHtml, elements)
+    const hierarchy = makeHierarchy(tokens)
     const data = enrichWithData(hierarchy)
     console.log(data)
     it("data", () =>
