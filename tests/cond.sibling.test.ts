@@ -315,7 +315,7 @@ describe("условия соседствующие", () => {
           child: [
             {
               type: "cond",
-              text: "context.flag2",
+              text: "context.flag1",
               true: {
                 tag: "div",
                 type: "el",
@@ -341,7 +341,7 @@ describe("условия соседствующие", () => {
             },
             {
               type: "cond",
-              text: "context.flag1",
+              text: "context.flag2",
               true: {
                 tag: "div",
                 type: "el",
@@ -381,7 +381,7 @@ describe("условия соседствующие", () => {
           child: [
             {
               type: "cond",
-              text: "context.flag2",
+              text: "context.flag1",
               true: {
                 tag: "div",
                 type: "el",
@@ -411,7 +411,7 @@ describe("условия соседствующие", () => {
             },
             {
               type: "cond",
-              text: "context.flag1",
+              text: "context.flag2",
               true: {
                 tag: "div",
                 type: "el",
@@ -453,7 +453,7 @@ describe("условия соседствующие", () => {
           child: [
             {
               type: "cond",
-              data: "/context/flag2",
+              data: "/context/flag1",
               true: {
                 tag: "div",
                 type: "el",
@@ -483,7 +483,7 @@ describe("условия соседствующие", () => {
             },
             {
               type: "cond",
-              data: "/context/flag1",
+              data: "/context/flag2",
               true: {
                 tag: "div",
                 type: "el",

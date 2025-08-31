@@ -2,6 +2,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "./splitter"
 import { makeHierarchy } from "./hierarchy"
 import { extractAttributes } from "./attributes"
 import { enrichWithData } from "./data"
+import { extractTokens } from "./token"
 import type { Node } from "./index.t"
 import type { RenderParams, Context, Core, State } from "./index.t"
 
@@ -69,8 +70,11 @@ export const parse = <C extends Context, I extends Core, S extends State>(
   // Разбиваем HTML на токены элементов
   const elements = extractHtmlElements(mainHtml)
 
+  // Извлекаем токены
+  const tokens = extractTokens(mainHtml, elements)
+
   // Строим иерархию элементов
-  const hierarchy = makeHierarchy(mainHtml, elements)
+  const hierarchy = makeHierarchy(tokens)
 
   // Извлекаем атрибуты
   const attributes = extractAttributes(hierarchy)

@@ -1,5 +1,11 @@
-import type { ElementToken } from "./splitter"
-import type { PartMap, PartCondition, PartElement, PartMeta, PartsHierarchy, StackItem, PartText } from "./hierarchy.t"
+import type { StreamToken } from "./token.t"
+import type { PartMap, PartCondition, PartElement, PartMeta, PartsHierarchy, PartText } from "./hierarchy.t"
+
+// Тип для работы с токенами в стеке
+type TokenStackItem = {
+  tag: { name: string; text: string }
+  element: PartElement | PartMeta
+}
 
 /**
  * Создает PartMap узел
@@ -102,17 +108,19 @@ const processMultipleConditions = (
  * Формирует иерархию элементов на основе последовательности токенов.
  * Ключевое отличие: условия (${cond ? A : B}) схлопываются при встрече парной '}'.
  */
-export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHierarchy => {
+export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
   const hierarchy: PartsHierarchy = []
-  const stack: StackItem[] = []
+  const stack: TokenStackItem[] = []
 
   // --- Новая модель сбора условий: запоминаем старт и закрываем на '}' ---
   type CondInfo = {
     parent: PartElement | PartMeta | null
     text: string
     startChildIndex: number
+    order: number // порядок появления условия
   }
   const conditionStack: CondInfo[] = []
+  let conditionOrder = 0
 
   // Для map оставляем прежнюю схему (оборачивание на закрытии родителя)
   const mapStack: { parent: PartElement | PartMeta | null; text: string; startChildIndex: number }[] = []
@@ -136,6 +144,8 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
     const trueBranch = branchables[0]
     const falseBranch = branchables[1]
 
+    if (!trueBranch || !falseBranch) return
+
     const i1 = target.indexOf(trueBranch)
     const i2 = target.indexOf(falseBranch)
     if (i1 === -1 || i2 === -1) return
@@ -145,62 +155,47 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
     target.splice(start, count, createConditionNode(cond.text, trueBranch, falseBranch))
   }
 
-  // Детект старта/закрытия условий + детект map в одном «межтокенном» слайсе
-  const processInterTokenSlice = (slice: string) => {
-    // 1) сначала закрываем все '}' (LIFO — закрывает последние открытые условия)
-    const closes = (slice.match(/}/g) || []).length
-    for (let i = 0; i < closes; i++) closeLastConditionIfPossible()
+  // Функция для закрытия одного условия (последнего открытого)
+  const closeOneCondition = () => {
+    if (conditionStack.length > 0) {
+      closeLastConditionIfPossible()
+    }
+  }
 
-    // 2) затем детектим старты условий `${ expr ?`
-    const reCond = /\$\{([^?]+)\?/g
-    let m: RegExpExecArray | null
-    while ((m = reCond.exec(slice))) {
+  // основной проход по токенам
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i]
+    if (!token) continue
+
+    if (token.kind === "cond-open") {
+      // Открытие условия
       const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
       const target = getTargetChildren(parent, hierarchy)
       conditionStack.push({
         parent,
-        text: (m[1] || "").trim(),
+        text: token.expr,
         startChildIndex: target.length,
+        order: conditionOrder++,
       })
-    }
-
-    // 3) детектим map(...) перед очередным узлом
-    const mapMatch = slice.match(/(\w+(?:\.\w+)*\.map\([^)]*\))/)
-    if (mapMatch) {
-      const mapText = mapMatch[1] || ""
-      const mapEnd = slice.indexOf(mapText) + mapText.length
-      const afterMap = slice.slice(mapEnd)
-      let finalMapText = mapText
-      if (/^\s*=>\s*html`/.test(afterMap)) finalMapText += "`" // добираем бэктик, если он «прилип» в шаблоне
-
+    } else if (token.kind === "cond-close") {
+      // Закрытие условия - закрываем последнее открытое условие
+      closeOneCondition()
+    } else if (token.kind === "map-open") {
+      // Открытие map
       const parent = stack.length > 0 ? stack[stack.length - 1]?.element || null : null
       const target = getTargetChildren(parent, hierarchy)
-      const startChildIndex = target.length
-      mapStack.push({ parent, text: finalMapText, startChildIndex })
-    }
-  }
-
-  // основной проход
-  for (let i = 0; i < elements.length; i++) {
-    const element = elements[i]
-    if (!element) continue
-
-    // межтокенный фрагмент
-    const prev = elements[i - 1]
-    const sliceStart = i === 0 ? 0 : (prev?.index || 0) + (prev?.text?.length || 0)
-    const sliceEnd = element.index || 0
-    const slice = html.slice(sliceStart, sliceEnd)
-
-    // СНАЧАЛА обрабатываем '}', старты условий и map
-    processInterTokenSlice(slice)
-
-    if (element.kind === "open" || element.kind === "self") {
+      mapStack.push({
+        parent,
+        text: token.sig,
+        startChildIndex: target.length,
+      })
+    } else if (token.kind === "tag-open" || token.kind === "tag-self") {
       // META-элемент
-      if (element.name && element.name.startsWith("meta-")) {
+      if (token.name && token.name.startsWith("meta-")) {
         const metaNode: PartMeta = {
-          tag: element.name,
+          tag: token.name,
           type: "meta",
-          text: element.text || "",
+          text: token.text || "",
         }
 
         const parent = stack.length > 0 ? stack[stack.length - 1] : null
@@ -210,17 +205,17 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
           hierarchy.push(metaNode)
         }
 
-        if (element.kind === "open") {
-          stack.push({ tag: element, element: metaNode })
+        if (token.kind === "tag-open") {
+          stack.push({ tag: { name: token.name, text: token.text }, element: metaNode })
         }
         continue
       }
 
       // Обычный HTML элемент
       const nodeElement: PartElement = {
-        tag: element.name || "",
+        tag: token.name || "",
         type: "el",
-        text: element.text || "",
+        text: token.text || "",
       }
 
       const parent = stack.length > 0 ? stack[stack.length - 1] : null
@@ -230,14 +225,14 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
         hierarchy.push(nodeElement)
       }
 
-      if (element.kind === "open") {
-        stack.push({ tag: element, element: nodeElement })
+      if (token.kind === "tag-open") {
+        stack.push({ tag: { name: token.name, text: token.text }, element: nodeElement })
       }
-    } else if (element.kind === "close") {
+    } else if (token.kind === "tag-close") {
       // Закрывающий тег
       if (stack.length > 0) {
         const last = stack[stack.length - 1]
-        if (last && last.tag.name === (element.name || "")) {
+        if (last && last.tag.name === (token.name || "")) {
           const parentElement = last.element
 
           // MAP: схлопываем на закрытии родителя
@@ -253,6 +248,7 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
 
               for (let k = 0; k < mapInfos.length; k++) {
                 const info = mapInfos[k]
+                if (!info) continue
                 const startIndex = k * elementsPerMap
                 const endIndex = Math.min(startIndex + elementsPerMap, mapable.length)
                 const mapElements = mapable.slice(startIndex, endIndex)
@@ -260,7 +256,7 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
               }
 
               const nonMap = parentElement.child.filter(
-                (it) => !(it.type === "el" || it.type === "text" || it.type === "meta")
+                (it: any) => !(it.type === "el" || it.type === "text" || it.type === "meta")
               )
               newChildren.push(...nonMap)
               parentElement.child = newChildren
@@ -282,13 +278,12 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
             }
           }
 
-          // ВАЖНО: старую логику формирования условий «по последней паре» удалили.
           stack.pop()
         }
       }
-    } else if (element.kind === "text") {
+    } else if (token.kind === "text") {
       // Текстовый узел
-      const textNode: PartText = { type: "text", text: element.text || "" }
+      const textNode: PartText = { type: "text", text: token.text || "" }
       const parent = stack.length > 0 ? stack[stack.length - 1] : null
       if (parent && parent.element && (parent.element.type === "el" || parent.element.type === "meta")) {
         ;(parent.element.child ||= []).push(textNode)
@@ -296,14 +291,6 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
         hierarchy.push(textNode)
       }
     }
-  }
-
-  // обработать «хвост» (последний слайс до конца html): может лежать закрывающая '}'
-  if (elements.length > 0) {
-    const last = elements[elements.length - 1]
-    const tailStart = (last?.index || 0) + (last?.text?.length || 0)
-    const tail = html.slice(tailStart)
-    if (tail) processInterTokenSlice(tail)
   }
 
   // Если остались незакрытые условия (маловероятно, но на всякий случай) — закрыть их в порядке LIFO
@@ -335,6 +322,8 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
           const trueBranch = processable[0]
           const falseBranch = processable[1]
           if (
+            trueBranch &&
+            falseBranch &&
             (trueBranch.type === "el" || trueBranch.type === "meta") &&
             (falseBranch.type === "el" || falseBranch.type === "meta")
           ) {
@@ -351,7 +340,9 @@ export const makeHierarchy = (html: string, elements: ElementToken[]): PartsHier
     }
 
     // Добавляем «непроцессируемые» элементы, если были
-    const nonProcessable = hierarchy.filter((it) => !(it.type === "el" || it.type === "text" || it.type === "meta"))
+    const nonProcessable = hierarchy.filter(
+      (it: any) => !(it.type === "el" || it.type === "text" || it.type === "meta")
+    )
     newHierarchy.push(...nonProcessable)
 
     hierarchy.splice(0, hierarchy.length, ...newHierarchy)
