@@ -13,8 +13,8 @@ describe("атрибуты", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<svg:use xlink:href="#id">', index: 0, name: "svg:use", kind: "open" },
-        { text: "</svg:use>", index: 26, name: "svg:use", kind: "close" },
+        { text: '<svg:use xlink:href="#id">', start: 0, end: 26, name: "svg:use", kind: "open" },
+        { text: "</svg:use>", start: 26, end: 36, name: "svg:use", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -77,9 +77,9 @@ describe("атрибуты", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<a href="https://e.co" target="_blank">', index: 0, name: "a", kind: "open" },
-        { text: "x", index: 39, name: "", kind: "text" },
-        { text: "</a>", index: 40, name: "a", kind: "close" },
+        { text: '<a href="https://e.co" target="_blank">', start: 0, end: 39, name: "a", kind: "open" },
+        { text: "x", start: 39, end: 40, name: "", kind: "text" },
+        { text: "</a>", start: 40, end: 44, name: "a", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -150,8 +150,8 @@ describe("атрибуты", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<div title="a > b, c < d">', index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 26, name: "div", kind: "close" },
+        { text: '<div title="a > b, c < d">', start: 0, end: 26, name: "div", kind: "open" },
+        { text: "</div>", start: 26, end: 32, name: "div", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -202,8 +202,8 @@ describe("атрибуты", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<div title="${context.flag ? "a > b" : "c < d"}">', index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 49, name: "div", kind: "close" },
+        { text: '<div title="${context.flag ? "a > b" : "c < d"}">', start: 0, end: 49, name: "div", kind: "open" },
+        { text: "</div>", start: 49, end: 55, name: "div", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -257,8 +257,8 @@ describe("атрибуты", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<div title=${context.flag ? "a > b" : "c < d"}>', index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 47, name: "div", kind: "close" },
+        { text: '<div title=${context.flag ? "a > b" : "c < d"}>', start: 0, end: 47, name: "div", kind: "open" },
+        { text: "</div>", start: 47, end: 53, name: "div", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -313,8 +313,8 @@ describe("атрибуты", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 49, name: "div", kind: "close" },
+        { text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>', start: 0, end: 49, name: "div", kind: "open" },
+        { text: "</div>", start: 49, end: 55, name: "div", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -425,11 +425,11 @@ describe("атрибуты", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: '<li class="item-${item.type}" title="${item.name}">', index: 56, name: "li", kind: "open" },
-        { text: "${item.name}", index: 107, name: "", kind: "text" },
-        { text: "</li>", index: 119, name: "li", kind: "close" },
-        { text: "</ul>", index: 136, name: "ul", kind: "close" },
+        { text: "<ul>", start: 9, end: 13, name: "ul", kind: "open" },
+        { text: '<li class="item-${item.type}" title="${item.name}">', start: 56, end: 107, name: "li", kind: "open" },
+        { text: "${item.name}", start: 107, end: 119, name: "", kind: "text" },
+        { text: "</li>", start: 119, end: 124, name: "li", kind: "close" },
+        { text: "</ul>", start: 136, end: 141, name: "ul", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -443,7 +443,7 @@ describe("атрибуты", () => {
           child: [
             {
               type: "map",
-              text: "core.items.map((item)`",
+              text: "core.items.map((item)",
               child: [
                 {
                   tag: "li",
@@ -471,7 +471,7 @@ describe("атрибуты", () => {
           child: [
             {
               type: "map",
-              text: "core.items.map((item)`",
+              text: "core.items.map((item)",
               child: [
                 {
                   tag: "li",
@@ -545,9 +545,9 @@ describe("атрибуты", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<div class="div-${core.active ? "active" : "inactive"}">', index: 0, name: "div", kind: "open" },
-        { text: "Content", index: 56, name: "", kind: "text" },
-        { text: "</div>", index: 63, name: "div", kind: "close" },
+        { text: '<div class="div-${core.active ? "active" : "inactive"}">', start: 0, end: 56, name: "div", kind: "open" },
+        { text: "Content", start: 56, end: 63, name: "", kind: "text" },
+        { text: "</div>", start: 63, end: 69, name: "div", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)

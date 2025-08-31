@@ -12,8 +12,8 @@ describe("basic", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<div>", index: 0, name: "div", kind: "open" },
-        { text: "</div>", index: 5, name: "div", kind: "close" },
+        { text: "<div>", start: 0, end: 5, name: "div", kind: "open" },
+        { text: "</div>", start: 5, end: 11, name: "div", kind: "close" },
       ])
     })
 
@@ -63,14 +63,14 @@ describe("basic", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: "<li>", index: 24, name: "li", kind: "open" },
-        { text: "a", index: 28, name: "", kind: "text" },
-        { text: "</li>", index: 29, name: "li", kind: "close" },
-        { text: "<li>", index: 45, name: "li", kind: "open" },
-        { text: "b", index: 49, name: "", kind: "text" },
-        { text: "</li>", index: 50, name: "li", kind: "close" },
-        { text: "</ul>", index: 64, name: "ul", kind: "close" },
+        { text: "<ul>", start: 9, end: 13, name: "ul", kind: "open" },
+        { text: "<li>", start: 24, end: 28, name: "li", kind: "open" },
+        { text: "a", start: 28, end: 29, name: "", kind: "text" },
+        { text: "</li>", start: 29, end: 34, name: "li", kind: "close" },
+        { text: "<li>", start: 45, end: 49, name: "li", kind: "open" },
+        { text: "b", start: 49, end: 50, name: "", kind: "text" },
+        { text: "</li>", start: 50, end: 55, name: "li", kind: "close" },
+        { text: "</ul>", start: 64, end: 69, name: "ul", kind: "close" },
       ])
     })
 
@@ -189,11 +189,11 @@ describe("basic", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<div>", index: 9, name: "div", kind: "open" },
-        { text: "<br />", index: 25, name: "br", kind: "self" },
-        { text: '<img src="x" />', index: 42, name: "img", kind: "self" },
-        { text: "<input disabled />", index: 68, name: "input", kind: "self" },
-        { text: "</div>", index: 95, name: "div", kind: "close" },
+        { text: "<div>", start: 9, end: 14, name: "div", kind: "open" },
+        { text: "<br />", start: 25, end: 31, name: "br", kind: "self" },
+        { text: '<img src="x" />', start: 42, end: 57, name: "img", kind: "self" },
+        { text: "<input disabled />", start: 68, end: 86, name: "input", kind: "self" },
+        { text: "</div>", start: 95, end: 101, name: "div", kind: "close" },
       ])
     })
 
