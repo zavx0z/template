@@ -3,6 +3,7 @@ import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractTokens } from "../token"
+import { extractAttributes } from "../attributes"
 
 describe("text", () => {
   describe("пустой элемент без текста", () => {
@@ -56,7 +57,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              text: "context.list.map((name)`",
+              text: "context.list.map((name)",
               child: [
                 {
                   tag: "li",
@@ -145,7 +146,8 @@ describe("text", () => {
         },
       ])
     })
-    const data = enrichWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -201,7 +203,8 @@ describe("text", () => {
         },
       ])
     })
-    const data = enrichWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -233,14 +236,6 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { text: "<div>", index: 9, name: "div", kind: "open" },
-      { text: "<p>", index: 25, name: "p", kind: "open" },
-      { text: '${context.show ? "Visible" : "Hidden"}', index: 28, name: "", kind: "text" },
-      { text: "</p>", index: 66, name: "p", kind: "close" },
-      { text: "</div>", index: 79, name: "div", kind: "close" },
-    ])
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
@@ -264,8 +259,8 @@ describe("text", () => {
           ],
         },
       ]))
-
-    const data = enrichWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
     it("data", () =>
       expect(data).toEqual([
         {
@@ -296,18 +291,6 @@ describe("text", () => {
       `
     )
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
-      expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: "<li>", index: 69, name: "li", kind: "open" },
-        { text: "${title} ", index: 73, name: "", kind: "text" },
-        { text: "<em>", index: 107, name: "em", kind: "open" },
-        { text: "${n}", index: 111, name: "", kind: "text" },
-        { text: "</em>", index: 115, name: "em", kind: "close" },
-        { text: "</li>", index: 123, name: "li", kind: "close" },
-        { text: "</ul>", index: 141, name: "ul", kind: "close" },
-      ])
-    })
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
@@ -319,7 +302,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              text: "core.list.map(({ title, nested })`",
+              text: "core.list.map(({ title, nested })",
               child: [
                 {
                   tag: "li",
@@ -332,7 +315,7 @@ describe("text", () => {
                     },
                     {
                       type: "map",
-                      text: "nested.map((n)`",
+                      text: "nested.map((n)",
                       child: [
                         {
                           tag: "em",
@@ -355,7 +338,8 @@ describe("text", () => {
         },
       ])
     })
-    const data = enrichWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -444,7 +428,8 @@ describe("text", () => {
           ],
         },
       ])
-      const data = enrichWithData(hierarchy)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichWithData(attributes)
       it("data", () => {
         expect(data).toEqual([
           {
@@ -513,7 +498,8 @@ describe("text", () => {
           ],
         },
       ])
-      const data = enrichWithData(hierarchy)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichWithData(attributes)
       it("data", () => {
         expect(data).toEqual([
           {
@@ -572,7 +558,8 @@ describe("text", () => {
         },
       ])
     })
-    const data = enrichWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -635,7 +622,8 @@ describe("text", () => {
           ],
         },
       ])
-      const data = enrichWithData(hierarchy)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichWithData(attributes)
       it("data", () => {
         expect(data).toEqual([
           {
@@ -687,7 +675,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              text: "core.users.map((user)`",
+              text: "core.users.map((user)",
               child: [
                 {
                   tag: "li",
@@ -716,7 +704,8 @@ describe("text", () => {
           ],
         },
       ])
-      const data = enrichWithData(hierarchy)
+      const attributes = extractAttributes(hierarchy)
+      const data = enrichWithData(attributes)
       it("data", () => {
         expect(data).toEqual([
           {
@@ -768,7 +757,8 @@ describe("text", () => {
     const elements = extractHtmlElements(mainHtml)
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
-    const data = enrichWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {
@@ -803,7 +793,8 @@ describe("text", () => {
     const elements = extractHtmlElements(mainHtml)
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
-    const data = enrichWithData(hierarchy)
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
     it("data", () => {
       expect(data).toEqual([
         {

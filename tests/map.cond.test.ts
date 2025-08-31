@@ -4,6 +4,7 @@ import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import { extractTokens } from "../token"
+import { print } from "../fixture"
 
 describe("map с условиями", () => {
   describe("map соседствующий с map в условии на верхнем уровне", () => {
@@ -27,17 +28,17 @@ describe("map с условиями", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<div class="item1">', index: 46, name: "div", kind: "open" },
-        { text: "${title}", index: 65, name: "", kind: "text" },
-        { text: "</div>", index: 73, name: "div", kind: "close" },
-        { text: '<div class="conditional">', index: 113, name: "div", kind: "open" },
-        { text: '<div class="item2">', index: 190, name: "div", kind: "open" },
-        { text: "${title}", index: 209, name: "", kind: "text" },
-        { text: "</div>", index: 217, name: "div", kind: "close" },
-        { text: "</div>", index: 239, name: "div", kind: "close" },
-        { text: '<div class="fallback">', index: 254, name: "div", kind: "open" },
-        { text: "No items", index: 276, name: "", kind: "text" },
-        { text: "</div>", index: 284, name: "div", kind: "close" },
+        { end: 65, kind: "open", name: "div", start: 46, text: '<div class="item1">' },
+        { end: 73, kind: "text", name: "", start: 65, text: "${title}" },
+        { end: 79, kind: "close", name: "div", start: 73, text: "</div>" },
+        { end: 138, kind: "open", name: "div", start: 113, text: '<div class="conditional">' },
+        { end: 209, kind: "open", name: "div", start: 190, text: '<div class="item2">' },
+        { end: 217, kind: "text", name: "", start: 209, text: "${title}" },
+        { end: 223, kind: "close", name: "div", start: 217, text: "</div>" },
+        { end: 245, kind: "close", name: "div", start: 239, text: "</div>" },
+        { end: 276, kind: "open", name: "div", start: 254, text: '<div class="fallback">' },
+        { end: 284, kind: "text", name: "", start: 276, text: "No items" },
+        { end: 290, kind: "close", name: "div", start: 284, text: "</div>" },
       ]))
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
@@ -45,7 +46,7 @@ describe("map с условиями", () => {
       expect(hierarchy).toEqual([
         {
           type: "map",
-          text: "core.list1.map(({ title })`",
+          text: "core.list1.map(({ title })",
           child: [
             {
               tag: "div",
@@ -70,7 +71,7 @@ describe("map с условиями", () => {
             child: [
               {
                 type: "map",
-                text: "core.list2.map(({ title })`",
+                text: "core.list2.map(({ title })",
                 child: [
                   {
                     tag: "div",
@@ -106,7 +107,7 @@ describe("map с условиями", () => {
       expect(attributes).toEqual([
         {
           type: "map",
-          text: "core.list1.map(({ title })`",
+          text: "core.list1.map(({ title })",
           child: [
             {
               tag: "div",
@@ -135,7 +136,7 @@ describe("map с условиями", () => {
             child: [
               {
                 type: "map",
-                text: "core.list2.map(({ title })`",
+                text: "core.list2.map(({ title })",
                 child: [
                   {
                     tag: "div",
@@ -261,21 +262,46 @@ describe("map с условиями", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: '<div class="container">', index: 9, name: "div", kind: "open" },
-        { text: '<div class="item1">', index: 80, name: "div", kind: "open" },
-        { text: "${title}", index: 99, name: "", kind: "text" },
-        { text: "</div>", index: 107, name: "div", kind: "close" },
-        { text: '<div class="conditional">', index: 149, name: "div", kind: "open" },
-        { text: '<div class="item2">', index: 228, name: "div", kind: "open" },
-        { text: "${title}", index: 247, name: "", kind: "text" },
-        { text: "</div>", index: 255, name: "div", kind: "close" },
-        { text: "</div>", index: 279, name: "div", kind: "close" },
-        { text: '<div class="fallback">', index: 294, name: "div", kind: "open" },
-        { text: "No items", index: 316, name: "", kind: "text" },
-        { text: "</div>", index: 324, name: "div", kind: "close" },
-        { text: "</div>", index: 341, name: "div", kind: "close" },
+        { end: 32, kind: "open", name: "div", start: 9, text: '<div class="container">' },
+        { end: 99, kind: "open", name: "div", start: 80, text: '<div class="item1">' },
+        { end: 107, kind: "text", name: "", start: 99, text: "${title}" },
+        { end: 113, kind: "close", name: "div", start: 107, text: "</div>" },
+        { end: 174, kind: "open", name: "div", start: 149, text: '<div class="conditional">' },
+        { end: 247, kind: "open", name: "div", start: 228, text: '<div class="item2">' },
+        { end: 255, kind: "text", name: "", start: 247, text: "${title}" },
+        { end: 261, kind: "close", name: "div", start: 255, text: "</div>" },
+        { end: 285, kind: "close", name: "div", start: 279, text: "</div>" },
+        { end: 316, kind: "open", name: "div", start: 294, text: '<div class="fallback">' },
+        { end: 324, kind: "text", name: "", start: 316, text: "No items" },
+        { end: 330, kind: "close", name: "div", start: 324, text: "</div>" },
+        { end: 347, kind: "close", name: "div", start: 341, text: "</div>" },
       ]))
+
     const tokens = extractTokens(mainHtml, elements)
+    // print(tokens)
+    it("tokens", () =>
+      expect(tokens).toEqual([
+        { kind: "tag-open", text: '<div class="container">', name: "div" },
+        { kind: "map-open", sig: "core.list1.map(({ title })" },
+        { kind: "tag-open", text: '<div class="item1">', name: "div" },
+        { kind: "text", text: "${title}" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "map-close" },
+        { kind: "cond-open", expr: "context.flag" },
+        { kind: "tag-open", text: '<div class="conditional">', name: "div" },
+        { kind: "map-open", sig: "core.list2.map(({ title })" },
+        { kind: "tag-open", text: '<div class="item2">', name: "div" },
+        { kind: "text", text: "${title}" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "map-close" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "cond-else" },
+        { kind: "tag-open", text: '<div class="fallback">', name: "div" },
+        { kind: "text", text: "No items" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+      ]))
+
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () =>
       expect(hierarchy).toEqual([
@@ -286,7 +312,7 @@ describe("map с условиями", () => {
           child: [
             {
               type: "map",
-              text: "core.list1.map(({ title })`",
+              text: "core.list1.map(({ title })",
               child: [
                 {
                   tag: "div",
@@ -306,7 +332,7 @@ describe("map с условиями", () => {
                   child: [
                     {
                       type: "map",
-                      text: "core.list2.map(({ title })`",
+                      text: "core.list2.map(({ title })",
                       child: [
                         {
                           tag: "div",
@@ -352,7 +378,7 @@ describe("map с условиями", () => {
           child: [
             {
               type: "map",
-              text: "core.list1.map(({ title })`",
+              text: "core.list1.map(({ title })",
               child: [
                 {
                   tag: "div",
@@ -376,7 +402,7 @@ describe("map с условиями", () => {
                   child: [
                     {
                       type: "map",
-                      text: "core.list2.map(({ title })`",
+                      text: "core.list2.map(({ title })",
                       child: [
                         {
                           tag: "div",

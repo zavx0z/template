@@ -13,13 +13,13 @@ describe("meta", () => {
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
         expect(elements).toEqual([
-          { text: "<meta-hash>", index: 0, name: "meta-hash", kind: "open" },
-          { text: "</meta-hash>", index: 11, name: "meta-hash", kind: "close" },
+          { text: "<meta-hash>", start: 0, end: 11, name: "meta-hash", kind: "open" },
+          { text: "</meta-hash>", start: 11, end: 23, name: "meta-hash", kind: "close" },
         ])
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -47,11 +47,11 @@ describe("meta", () => {
 
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
-        expect(elements).toEqual([{ text: "<meta-hash />", index: 0, name: "meta-hash", kind: "self" }])
+        expect(elements).toEqual([{ text: "<meta-hash />", start: 0, end: 13, name: "meta-hash", kind: "self" }])
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -80,12 +80,12 @@ describe("meta", () => {
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
         expect(elements).toEqual([
-          { text: "<meta-${core.actors.child} />", index: 0, name: "meta-${core.actors.child}", kind: "self" },
+          { text: "<meta-${core.actors.child} />", start: 0, end: 29, name: "meta-${core.actors.child}", kind: "self" },
         ])
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -119,13 +119,19 @@ describe("meta", () => {
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
         expect(elements).toEqual([
-          { text: "<meta-${core.actors.child}>", index: 0, name: "meta-${core.actors.child}", kind: "open" },
-          { text: "</meta-${core.actors.child}>", index: 27, name: "meta-${core.actors.child}", kind: "close" },
+          { text: "<meta-${core.actors.child}>", start: 0, end: 27, name: "meta-${core.actors.child}", kind: "open" },
+          {
+            text: "</meta-${core.actors.child}>",
+            start: 27,
+            end: 55,
+            name: "meta-${core.actors.child}",
+            kind: "close",
+          },
         ])
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -157,14 +163,14 @@ describe("meta", () => {
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
         expect(elements).toEqual([
-          { text: "<div>", index: 0, name: "div", kind: "open" },
-          { text: "<meta-${core.tag} />", index: 5, name: "meta-${core.tag}", kind: "self" },
-          { text: "</div>", index: 25, name: "div", kind: "close" },
+          { text: "<div>", start: 0, end: 5, name: "div", kind: "open" },
+          { text: "<meta-${core.tag} />", start: 5, end: 25, name: "meta-${core.tag}", kind: "self" },
+          { text: "</div>", start: 25, end: 31, name: "div", kind: "close" },
         ])
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -209,14 +215,14 @@ describe("meta", () => {
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
         expect(elements).toEqual([
-          { text: "<meta-hash>", index: 0, name: "meta-hash", kind: "open" },
-          { text: "<meta-${core.tag} />", index: 11, name: "meta-${core.tag}", kind: "self" },
-          { text: "</meta-hash>", index: 31, name: "meta-hash", kind: "close" },
+          { text: "<meta-hash>", start: 0, end: 11, name: "meta-hash", kind: "open" },
+          { text: "<meta-${core.tag} />", start: 11, end: 31, name: "meta-${core.tag}", kind: "self" },
+          { text: "</meta-hash>", start: 31, end: 43, name: "meta-hash", kind: "close" },
         ])
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -262,16 +268,18 @@ describe("meta", () => {
 
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
-        expect(elements).toEqual([{ text: "<meta-${item.tag} />", index: 32, name: "meta-${item.tag}", kind: "self" }])
+        expect(elements).toEqual([
+          { text: "<meta-${item.tag} />", start: 32, end: 52, name: "meta-${item.tag}", kind: "self" },
+        ])
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
             type: "map",
-            text: "core.items.map((item)`",
+            text: "core.items.map((item)",
             child: [
               {
                 tag: "meta-${item.tag}",
@@ -312,13 +320,13 @@ describe("meta", () => {
       const elements = extractHtmlElements(mainHtml)
       it("elements", () => {
         expect(elements).toEqual([
-          { text: "<meta-${core.tag} />", index: 31, name: "meta-${core.tag}", kind: "self" },
-          { text: "<meta-${core.tag} />", index: 60, name: "meta-${core.tag}", kind: "self" },
+          { text: "<meta-${core.tag} />", start: 31, end: 51, name: "meta-${core.tag}", kind: "self" },
+          { text: "<meta-${core.tag} />", start: 60, end: 80, name: "meta-${core.tag}", kind: "self" },
         ])
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -377,7 +385,8 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             text: '<meta-hash data-type="component" class="meta-element" />',
-            index: 0,
+            start: 0,
+            end: 56,
             name: "meta-hash",
             kind: "self",
           },
@@ -385,7 +394,7 @@ describe("meta", () => {
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -441,7 +450,8 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             text: '<meta-${core.tag} data-id="${core.id}" class="meta-${core.type}" />',
-            index: 0,
+            start: 0,
+            end: 67,
             name: "meta-${core.tag}",
             kind: "self",
           },
@@ -449,7 +459,7 @@ describe("meta", () => {
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -493,7 +503,8 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             text: '<meta-${core.tag} ${core.active && "data-active"} class="${core.active ? "active" : "inactive"}" />',
-            index: 0,
+            start: 0,
+            end: 99,
             name: "meta-${core.tag}",
             kind: "self",
           },
@@ -501,7 +512,7 @@ describe("meta", () => {
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -551,7 +562,8 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             text: "<meta-${core.tag} onclick=${() => core.handleClick(core.id)} onchange=${(e) => core.handleChange(e, core.value)} />",
-            index: 0,
+            start: 0,
+            end: 139,
             name: "meta-${core.tag}",
             kind: "self",
           },
@@ -559,7 +571,7 @@ describe("meta", () => {
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -605,7 +617,8 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             text: "<meta-${core.tag} onclick=${() => update({ selected: core.id })} />",
-            index: 0,
+            start: 0,
+            end: 67,
             name: "meta-${core.tag}",
             kind: "self",
           },
@@ -613,7 +626,7 @@ describe("meta", () => {
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
@@ -680,7 +693,8 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             text: '<meta-${item.tag} data-id="${item.id}" ${item.active && "data-active"} class="meta-${item.active ? "active" : "inactive"}" onclick=${() => item.handleClick(item.id)} />',
-            index: 58,
+            start: 58,
+            end: 290,
             name: "meta-${item.tag}",
             kind: "self",
           },
@@ -688,12 +702,12 @@ describe("meta", () => {
       })
 
       const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+      const hierarchy = makeHierarchy(tokens)
       it("hierarchy", () => {
         expect(hierarchy).toEqual([
           {
             type: "map",
-            text: "core.items.map((item)`",
+            text: "core.items.map((item)",
             child: [
               {
                 tag: "meta-${item.tag}",
@@ -709,7 +723,7 @@ describe("meta", () => {
         expect(attributes).toEqual([
           {
             type: "map",
-            text: "core.items.map((item)`",
+            text: "core.items.map((item)",
             child: [
               {
                 tag: "meta-${item.tag}",

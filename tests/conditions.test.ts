@@ -4,6 +4,7 @@ import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import { extractTokens } from "../token"
+import { print } from "../fixture"
 
 describe("conditions", () => {
   describe("тернарник с внутренними тегами", () => {
@@ -105,11 +106,84 @@ describe("conditions", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const tokens = extractTokens(mainHtml, elements)
+    it("tokens", () => {
+      expect(tokens).toEqual([
+        { kind: "tag-open", text: "<div>", name: "div" },
+        { kind: "tag-open", text: "<header>", name: "header" },
+        { kind: "text", text: "Header" },
+        { kind: "tag-close", text: "</header>", name: "header" },
+        { kind: "cond-open", expr: "context.isActive" },
+        { kind: "tag-open", text: "<span>", name: "span" },
+        { kind: "text", text: "Active" },
+        { kind: "tag-close", text: "</span>", name: "span" },
+        { kind: "cond-else" },
+        { kind: "tag-open", text: "<span>", name: "span" },
+        { kind: "text", text: "Inactive" },
+        { kind: "tag-close", text: "</span>", name: "span" },
+        { kind: "tag-open", text: "<footer>", name: "footer" },
+        { kind: "text", text: "Footer" },
+        { kind: "tag-close", text: "</footer>", name: "footer" },
+        { kind: "tag-close", text: "</div>", name: "div" },
+      ])
+    })
     const hierarchy = makeHierarchy(tokens)
+    it("hierarchy", () => {
+      expect(hierarchy).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          text: "<div>",
+          child: [
+            {
+              tag: "header",
+              type: "el",
+              text: "<header>",
+              child: [
+                {
+                  type: "text",
+                  text: "Header",
+                },
+              ],
+            },
+            {
+              type: "cond",
+              text: "context.isActive",
+              true: {
+                tag: "span",
+                type: "el",
+                text: "<span>",
+                child: [
+                  {
+                    type: "text",
+                    text: "Active",
+                  },
+                ],
+              },
+              false: {
+                tag: "span",
+                type: "el",
+                text: "<span>",
+                child: [
+                  {
+                    type: "text",
+                    text: "Inactive",
+                  },
+                ],
+              },
+            },
+            {
+              tag: "footer",
+              type: "el",
+              text: "<footer>",
+              child: [{ type: "text", text: "Footer" }],
+            },
+          ],
+        },
+      ])
+    })
     const attributes = extractAttributes(hierarchy)
     const data = enrichWithData(attributes)
-
-    it("парсинг", () => {
+    it("data", () => {
       expect(data, "простой тернарный оператор с context с оберткой и соседними элементами").toEqual([
         {
           tag: "div",

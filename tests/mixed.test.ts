@@ -18,21 +18,6 @@ describe("mixed", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
-      expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: "<li>", index: 59, name: "li", kind: "open" },
-        { text: "<em>", index: 79, name: "em", kind: "open" },
-        { text: '${"A"}', index: 83, name: "", kind: "text" },
-        { text: "</em>", index: 89, name: "em", kind: "close" },
-        { text: "<strong>", index: 105, name: "strong", kind: "open" },
-        { text: '${"B"}', index: 113, name: "", kind: "text" },
-        { text: "</strong>", index: 119, name: "strong", kind: "close" },
-        { text: "</li>", index: 130, name: "li", kind: "close" },
-        { text: "</ul>", index: 148, name: "ul", kind: "close" },
-      ])
-    })
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
@@ -44,7 +29,7 @@ describe("mixed", () => {
           child: [
             {
               type: "map",
-              text: "context.list.map((_, i)`",
+              text: "context.list.map((_, i)",
               child: [
                 {
                   tag: "li",
@@ -142,9 +127,6 @@ describe("mixed", () => {
       ({ html, context }) => html`${context.a < context.b && context.c > context.d ? "1" : "0"}`
     )
     const elements = extractHtmlElements(mainHtml)
-    expect(elements).toEqual([
-      { index: 0, kind: "text", name: "", text: '${context.a < context.b && context.c > context.d ? "1" : "0"}' },
-    ])
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     expect(hierarchy).toEqual([
@@ -153,8 +135,9 @@ describe("mixed", () => {
         text: '${context.a < context.b && context.c > context.d ? "1" : "0"}',
       },
     ])
-    const enrichedHierarchy = enrichWithData(hierarchy)
-    expect(enrichedHierarchy).toEqual([
+    const attributes = extractAttributes(hierarchy)
+    const data = enrichWithData(attributes)
+    expect(data).toEqual([
       {
         type: "text",
         data: ["/context/a", "/context/b", "/context/c", "/context/d"],

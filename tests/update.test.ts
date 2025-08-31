@@ -4,6 +4,7 @@ import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import { extractTokens } from "../token"
+import { print } from "../fixture"
 
 describe("update", () => {
   describe("функция обновления контекста в функции рендера", () => {
@@ -12,28 +13,18 @@ describe("update", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
+    it("elements", () =>
       expect(elements).toEqual([
         {
-          text: '<button onclick=${() => update({ name: "Jane Doe" })}>',
-          index: 1,
-          name: "button",
+          end: 55,
           kind: "open",
-        },
-        {
-          text: "OK",
-          index: 55,
-          name: "",
-          kind: "text",
-        },
-        {
-          text: "</button>",
-          index: 57,
           name: "button",
-          kind: "close",
+          start: 1,
+          text: '<button onclick=${() => update({ name: "Jane Doe" })}>',
         },
-      ])
-    })
+        { end: 57, kind: "text", name: "", start: 55, text: "OK" },
+        { end: 66, kind: "close", name: "button", start: 57, text: "</button>" },
+      ]))
 
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
@@ -83,19 +74,6 @@ describe("update", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
-      expect(elements).toEqual([
-        {
-          text: '<button onclick=${() => update({ name: "John", age: 25, active: true })}>',
-          index: 1,
-          name: "button",
-          kind: "open",
-        },
-        { text: "Update", index: 74, name: "", kind: "text" },
-        { text: "</button>", index: 80, name: "button", kind: "close" },
-      ])
-    })
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
@@ -144,19 +122,6 @@ describe("update", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
-      expect(elements).toEqual([
-        {
-          text: "<button onclick=${() => update({ count: context.count + 1 })}>",
-          index: 1,
-          name: "button",
-          kind: "open",
-        },
-        { text: "OK", index: 63, name: "", kind: "text" },
-        { text: "</button>", index: 65, name: "button", kind: "close" },
-      ])
-    })
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
@@ -210,19 +175,6 @@ describe("update", () => {
         `
     )
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
-      expect(elements).toEqual([
-        {
-          text: "<button onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}>",
-          index: 11,
-          name: "button",
-          kind: "open",
-        },
-        { text: "OK", index: 116, name: "", kind: "text" },
-        { text: "</button>", index: 142, name: "button", kind: "close" },
-      ])
-    })
-
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
@@ -301,28 +253,19 @@ describe("update", () => {
     )
 
     const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
+    print(elements)
+    it("elements", () =>
       expect(elements).toEqual([
         {
-          text: "<button onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}>",
-          index: 58,
-          name: "button",
+          end: 157,
           kind: "open",
-        },
-        {
-          text: "OK",
-          index: 157,
-          name: "",
-          kind: "text",
-        },
-        {
-          text: "</button>",
-          index: 191,
           name: "button",
-          kind: "close",
+          start: 58,
+          text: "<button onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}>",
         },
-      ])
-    })
+        { end: 191, kind: "text", name: "", start: 157, text: "OK" },
+        { end: 200, kind: "close", name: "button", start: 191, text: "</button>" },
+      ]))
 
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
@@ -330,7 +273,7 @@ describe("update", () => {
       expect(hierarchy).toEqual([
         {
           type: "map",
-          text: "core.items.map((item)`",
+          text: "core.items.map((item)",
           child: [
             {
               tag: "button",

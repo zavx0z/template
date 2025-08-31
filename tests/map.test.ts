@@ -18,11 +18,11 @@ describe("map", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: "<li>", index: 58, name: "li", kind: "open" },
-        { text: "${name}", index: 62, name: "", kind: "text" },
-        { text: "</li>", index: 69, name: "li", kind: "close" },
-        { text: "</ul>", index: 86, name: "ul", kind: "close" },
+        { text: "<ul>", start: 9, end: 13, name: "ul", kind: "open" },
+        { text: "<li>", start: 58, end: 62, name: "li", kind: "open" },
+        { text: "${name}", start: 62, end: 69, name: "", kind: "text" },
+        { text: "</li>", start: 69, end: 74, name: "li", kind: "close" },
+        { text: "</ul>", start: 86, end: 91, name: "ul", kind: "close" },
       ])
     })
 
@@ -37,7 +37,7 @@ describe("map", () => {
           child: [
             {
               type: "map",
-              text: "context.list.map((name)`",
+              text: "context.list.map((name)",
               child: [
                 {
                   tag: "li",
@@ -103,12 +103,12 @@ describe("map", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: "<li>", index: 73, name: "li", kind: "open" },
-        { text: "${name}", index: 77, name: "", kind: "text" },
-        { text: "</li>", index: 84, name: "li", kind: "close" },
-        { text: "<br />", index: 104, name: "br", kind: "self" },
-        { text: "</ul>", index: 135, name: "ul", kind: "close" },
+        { text: "<ul>", start: 9, end: 13, name: "ul", kind: "open" },
+        { text: "<li>", start: 73, end: 77, name: "li", kind: "open" },
+        { text: "${name}", start: 77, end: 84, name: "", kind: "text" },
+        { text: "</li>", start: 84, end: 89, name: "li", kind: "close" },
+        { text: "<br />", start: 104, end: 110, name: "br", kind: "self" },
+        { text: "</ul>", start: 135, end: 140, name: "ul", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -122,7 +122,7 @@ describe("map", () => {
           child: [
             {
               type: "map",
-              text: "context.list.map((name)`",
+              text: "context.list.map((name)",
               child: [
                 {
                   tag: "li",
@@ -197,16 +197,16 @@ describe("map", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: "<li>", index: 83, name: "li", kind: "open" },
-        { text: "<p>", index: 104, name: "p", kind: "open" },
-        { text: "${title} ", index: 107, name: "", kind: "text" },
-        { text: "</p>", index: 116, name: "p", kind: "close" },
-        { text: "<em>", index: 162, name: "em", kind: "open" },
-        { text: "${n}", index: 166, name: "", kind: "text" },
-        { text: "</em>", index: 170, name: "em", kind: "close" },
-        { text: "</li>", index: 193, name: "li", kind: "close" },
-        { text: "</ul>", index: 223, name: "ul", kind: "close" },
+        { text: "<ul>", start: 9, end: 13, name: "ul", kind: "open" },
+        { text: "<li>", start: 83, end: 87, name: "li", kind: "open" },
+        { text: "<p>", start: 104, end: 107, name: "p", kind: "open" },
+        { text: "${title} ", start: 107, end: 116, name: "", kind: "text" },
+        { text: "</p>", start: 116, end: 120, name: "p", kind: "close" },
+        { text: "<em>", start: 162, end: 166, name: "em", kind: "open" },
+        { text: "${n}", start: 166, end: 170, name: "", kind: "text" },
+        { text: "</em>", start: 170, end: 175, name: "em", kind: "close" },
+        { text: "</li>", start: 193, end: 198, name: "li", kind: "close" },
+        { text: "</ul>", start: 223, end: 228, name: "ul", kind: "close" },
       ]))
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
@@ -219,7 +219,7 @@ describe("map", () => {
           child: [
             {
               type: "map",
-              text: "core.list.map(({ title, nested })`",
+              text: "core.list.map(({ title, nested })",
               child: [
                 {
                   tag: "li",
@@ -239,7 +239,7 @@ describe("map", () => {
                     },
                     {
                       type: "map",
-                      text: "nested.map((n)`",
+                      text: "nested.map((n)",
                       child: [
                         {
                           tag: "em",
@@ -323,16 +323,16 @@ describe("map", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: "<li>", index: 58, name: "li", kind: "open" },
-        { text: "<em>", index: 77, name: "em", kind: "open" },
-        { text: "A", index: 81, name: "", kind: "text" },
-        { text: "</em>", index: 82, name: "em", kind: "close" },
-        { text: "<strong>", index: 96, name: "strong", kind: "open" },
-        { text: "B", index: 104, name: "", kind: "text" },
-        { text: "</strong>", index: 105, name: "strong", kind: "close" },
-        { text: "</li>", index: 116, name: "li", kind: "close" },
-        { text: "</ul>", index: 133, name: "ul", kind: "close" },
+        { text: "<ul>", start: 9, end: 13, name: "ul", kind: "open" },
+        { text: "<li>", start: 58, end: 62, name: "li", kind: "open" },
+        { text: "<em>", start: 77, end: 81, name: "em", kind: "open" },
+        { text: "A", start: 81, end: 82, name: "", kind: "text" },
+        { text: "</em>", start: 82, end: 87, name: "em", kind: "close" },
+        { text: "<strong>", start: 96, end: 104, name: "strong", kind: "open" },
+        { text: "B", start: 104, end: 105, name: "", kind: "text" },
+        { text: "</strong>", start: 105, end: 114, name: "strong", kind: "close" },
+        { text: "</li>", start: 116, end: 121, name: "li", kind: "close" },
+        { text: "</ul>", start: 133, end: 138, name: "ul", kind: "close" },
       ]))
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
@@ -345,7 +345,7 @@ describe("map", () => {
           child: [
             {
               type: "map",
-              text: "context.list.map((_, i)`",
+              text: "context.list.map((_, i)",
               child: [
                 {
                   tag: "li",
@@ -446,14 +446,14 @@ describe("map", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<ul>", index: 9, name: "ul", kind: "open" },
-        { text: "<li>", index: 68, name: "li", kind: "open" },
-        { text: "${title} ", index: 72, name: "", kind: "text" },
-        { text: "<em>", index: 106, name: "em", kind: "open" },
-        { text: "${n}", index: 110, name: "", kind: "text" },
-        { text: "</em>", index: 114, name: "em", kind: "close" },
-        { text: "</li>", index: 122, name: "li", kind: "close" },
-        { text: "</ul>", index: 139, name: "ul", kind: "close" },
+        { text: "<ul>", start: 9, end: 13, name: "ul", kind: "open" },
+        { text: "<li>", start: 68, end: 72, name: "li", kind: "open" },
+        { text: "${title} ", start: 72, end: 81, name: "", kind: "text" },
+        { text: "<em>", start: 106, end: 110, name: "em", kind: "open" },
+        { text: "${n}", start: 110, end: 114, name: "", kind: "text" },
+        { text: "</em>", start: 114, end: 119, name: "em", kind: "close" },
+        { text: "</li>", start: 122, end: 127, name: "li", kind: "close" },
+        { text: "</ul>", start: 139, end: 144, name: "ul", kind: "close" },
       ]))
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
@@ -466,7 +466,7 @@ describe("map", () => {
           child: [
             {
               type: "map",
-              text: "core.list.map(({ title, nested })`",
+              text: "core.list.map(({ title, nested })",
               child: [
                 {
                   tag: "li",
@@ -479,7 +479,7 @@ describe("map", () => {
                     },
                     {
                       type: "map",
-                      text: "nested.map((n)`",
+                      text: "nested.map((n)",
                       child: [
                         {
                           tag: "em",
@@ -558,17 +558,17 @@ describe("map", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<ul>", index: 31, name: "ul", kind: "open" },
-        { text: "<li>", index: 94, name: "li", kind: "open" },
-        { text: "${title} ", index: 98, name: "", kind: "text" },
-        { text: "<em>", index: 132, name: "em", kind: "open" },
-        { text: "${n}", index: 136, name: "", kind: "text" },
-        { text: "</em>", index: 140, name: "em", kind: "close" },
-        { text: "</li>", index: 148, name: "li", kind: "close" },
-        { text: "</ul>", index: 169, name: "ul", kind: "close" },
-        { text: "<div>", index: 183, name: "div", kind: "open" },
-        { text: "x", index: 188, name: "", kind: "text" },
-        { text: "</div>", index: 189, name: "div", kind: "close" },
+        { text: "<ul>", start: 31, end: 35, name: "ul", kind: "open" },
+        { text: "<li>", start: 94, end: 98, name: "li", kind: "open" },
+        { text: "${title} ", start: 98, end: 107, name: "", kind: "text" },
+        { text: "<em>", start: 132, end: 136, name: "em", kind: "open" },
+        { text: "${n}", start: 136, end: 140, name: "", kind: "text" },
+        { text: "</em>", start: 140, end: 145, name: "em", kind: "close" },
+        { text: "</li>", start: 148, end: 153, name: "li", kind: "close" },
+        { text: "</ul>", start: 169, end: 174, name: "ul", kind: "close" },
+        { text: "<div>", start: 183, end: 188, name: "div", kind: "open" },
+        { text: "x", start: 188, end: 189, name: "", kind: "text" },
+        { text: "</div>", start: 189, end: 195, name: "div", kind: "close" },
       ]))
     const tokens = extractTokens(mainHtml, elements)
     const hierarchy = makeHierarchy(tokens)
@@ -584,7 +584,7 @@ describe("map", () => {
             child: [
               {
                 type: "map",
-                text: "core.list.map(({ title, nested })`",
+                text: "core.list.map(({ title, nested })",
                 child: [
                   {
                     tag: "li",
@@ -597,7 +597,7 @@ describe("map", () => {
                       },
                       {
                         type: "map",
-                        text: "nested.map((n)`",
+                        text: "nested.map((n)",
                         child: [
                           {
                             tag: "em",

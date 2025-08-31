@@ -137,7 +137,7 @@ const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
 }
 
 const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
-  const condCloseRegex = /[^\)]}/g
+  const condCloseRegex = /[^\)]}[^\)]/g
   let match
   while ((match = condCloseRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-close" }]
