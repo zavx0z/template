@@ -3,7 +3,7 @@ import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
 import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
-import { extractTokens } from "./token"
+import { extractTokens } from "../token"
 
 describe("web-components", () => {
   describe("базовые custom elements", () => {
@@ -12,8 +12,8 @@ describe("web-components", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: "<my-element>", index: 0, name: "my-element", kind: "open" },
-        { text: "</my-element>", index: 12, name: "my-element", kind: "close" },
+        { text: "<my-element>", start: 0, end: 12, name: "my-element", kind: "open" },
+        { text: "</my-element>", start: 12, end: 22, name: "my-element", kind: "close" },
       ])
     })
 
@@ -56,8 +56,8 @@ describe("web-components", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () => {
       expect(elements).toEqual([
-        { text: '<user-card name="John" age="25">', index: 0, name: "user-card", kind: "open" },
-        { text: "</user-card>", index: 32, name: "user-card", kind: "close" },
+        { text: '<user-card name="John" age="25">', start: 0, end: 32, name: "user-card", kind: "open" },
+        { text: "</user-card>", start: 32, end: 44, name: "user-card", kind: "close" },
       ])
     })
 
@@ -116,7 +116,8 @@ describe("web-components", () => {
       expect(elements).toEqual([
         {
           text: "<loading-spinner />",
-          index: 0,
+          start: 0,
+          end: 19,
           name: "loading-spinner",
           kind: "self",
         },
@@ -166,13 +167,13 @@ describe("web-components", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<app-header>", index: 9, name: "app-header", kind: "open" },
-        { text: "<nav-menu>", index: 32, name: "nav-menu", kind: "open" },
-        { text: "<menu-item>", index: 55, name: "menu-item", kind: "open" },
-        { text: "Home", index: 66, name: "", kind: "text" },
-        { text: "</menu-item>", index: 70, name: "menu-item", kind: "close" },
-        { text: "</nav-menu>", index: 93, name: "nav-menu", kind: "close" },
-        { text: "</app-header>", index: 113, name: "app-header", kind: "close" },
+        { text: "<app-header>", start: 9, end: 21, name: "app-header", kind: "open" },
+        { text: "<nav-menu>", start: 32, end: 42, name: "nav-menu", kind: "open" },
+        { text: "<menu-item>", start: 55, end: 66, name: "menu-item", kind: "open" },
+        { text: "Home", start: 66, end: 70, name: "", kind: "text" },
+        { text: "</menu-item>", start: 70, end: 82, name: "menu-item", kind: "close" },
+        { text: "</nav-menu>", start: 93, end: 104, name: "nav-menu", kind: "close" },
+        { text: "</app-header>", start: 113, end: 126, name: "app-header", kind: "close" },
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -271,11 +272,11 @@ describe("web-components", () => {
       expect(elements).toEqual([
         {
           text: '<user-profile id="${context.userId}" theme="${context.theme}">',
-          index: 0,
+          start: 0,
           name: "user-profile",
           kind: "open",
         },
-        { text: "</user-profile>", index: 62, name: "user-profile", kind: "close" },
+        { text: "</user-profile>", start: 62, name: "user-profile", kind: "close" , end: 77,
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -335,10 +336,10 @@ describe("web-components", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<admin-panel>", index: 25, name: "admin-panel", kind: "open" },
-        { text: "</admin-panel>", index: 38, name: "admin-panel", kind: "close" },
-        { text: "<user-panel>", index: 61, name: "user-panel", kind: "open" },
-        { text: "</user-panel>", index: 73, name: "user-panel", kind: "close" },
+        { text: "<admin-panel>", start: 25, name: "admin-panel", kind: "open" , end: 38,
+        { text: "</admin-panel>", start: 38, name: "admin-panel", kind: "close" , end: 52,
+        { text: "<user-panel>", start: 61, name: "user-panel", kind: "open" , end: 73,
+        { text: "</user-panel>", start: 73, name: "user-panel", kind: "close" , end: 86,
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -406,11 +407,11 @@ describe("web-components", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<user-list>", index: 9, name: "user-list", kind: "open" },
-        { text: '<user-item id="${user.id}">', index: 53, name: "user-item", kind: "open" },
-        { text: "${user.name}", index: 80, name: "", kind: "text" },
-        { text: "</user-item>", index: 92, name: "user-item", kind: "close" },
-        { text: "</user-list>", index: 108, name: "user-list", kind: "close" },
+        { text: "<user-list>", start: 9, name: "user-list", kind: "open" , end: 20,
+        { text: '<user-item id="${user.id}">', start: 53, name: "user-item", kind: "open" },
+        { text: "${user.name}", start: 80, name: "", kind: "text" },
+        { text: "</user-item>", start: 92, name: "user-item", kind: "close" , end: 104,
+        { text: "</user-list>", start: 108, name: "user-list", kind: "close" , end: 120,
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -522,14 +523,14 @@ describe("web-components", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<x-component>", index: 9, name: "x-component", kind: "open" },
-        { text: "</x-component>", index: 22, name: "x-component", kind: "close" },
-        { text: "<my-component>", index: 45, name: "my-component", kind: "open" },
-        { text: "</my-component>", index: 59, name: "my-component", kind: "close" },
-        { text: "<component-with-dashes>", index: 83, name: "component-with-dashes", kind: "open" },
-        { text: "</component-with-dashes>", index: 106, name: "component-with-dashes", kind: "close" },
-        { text: "<a-b-c-d>", index: 139, name: "a-b-c-d", kind: "open" },
-        { text: "</a-b-c-d>", index: 148, name: "a-b-c-d", kind: "close" },
+        { text: "<x-component>", start: 9, name: "x-component", kind: "open" , end: 22,
+        { text: "</x-component>", start: 22, name: "x-component", kind: "close" , end: 36,
+        { text: "<my-component>", start: 45, name: "my-component", kind: "open" , end: 59,
+        { text: "</my-component>", start: 59, name: "my-component", kind: "close" , end: 74,
+        { text: "<component-with-dashes>", start: 83, name: "component-with-dashes", kind: "open" , end: 106,
+        { text: "</component-with-dashes>", start: 106, name: "component-with-dashes", kind: "close" , end: 130,
+        { text: "<a-b-c-d>", start: 139, name: "a-b-c-d", kind: "open" , end: 148,
+        { text: "</a-b-c-d>", start: 148, name: "a-b-c-d", kind: "close" , end: 158,
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -571,12 +572,12 @@ describe("web-components", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     expect(elements).toEqual([
-      { text: "<component-1>", index: 9, name: "component-1", kind: "open" },
-      { text: "</component-1>", index: 22, name: "component-1", kind: "close" },
-      { text: "<my-component-2>", index: 45, name: "my-component-2", kind: "open" },
-      { text: "</my-component-2>", index: 61, name: "my-component-2", kind: "close" },
-      { text: "<widget-3d>", index: 87, name: "widget-3d", kind: "open" },
-      { text: "</widget-3d>", index: 98, name: "widget-3d", kind: "close" },
+      { text: "<component-1>", start: 9, name: "component-1", kind: "open" , end: 22,
+      { text: "</component-1>", start: 22, name: "component-1", kind: "close" , end: 36,
+      { text: "<my-component-2>", start: 45, name: "my-component-2", kind: "open" , end: 61,
+      { text: "</my-component-2>", start: 61, name: "my-component-2", kind: "close" , end: 78,
+      { text: "<widget-3d>", start: 87, name: "widget-3d", kind: "open" , end: 98,
+      { text: "</widget-3d>", start: 98, name: "widget-3d", kind: "close" , end: 110,
     ])
   })
 
@@ -592,16 +593,16 @@ describe("web-components", () => {
       expect(elements).toEqual([
         {
           text: '<data-table columns=\'["name", "age", "email"]\' sortable="true" filterable theme="dark">',
-          index: 9,
+          start: 9,
           name: "data-table",
           kind: "open",
         },
         {
           text: "</data-table>",
-          index: 96,
+          start: 96,
           name: "data-table",
           kind: "close",
-        },
+        , end: 109,
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -675,11 +676,11 @@ describe("web-components", () => {
       expect(elements).toEqual([
         {
           text: '<modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">',
-          index: 9,
+          start: 9,
           name: "modal-dialog",
           kind: "open",
         },
-        { text: "</modal-dialog>", index: 117, name: "modal-dialog", kind: "close" },
+        { text: "</modal-dialog>", start: 117, name: "modal-dialog", kind: "close" , end: 132,
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
@@ -752,16 +753,16 @@ describe("web-components", () => {
     const elements = extractHtmlElements(mainHtml)
     it("elements", () =>
       expect(elements).toEqual([
-        { text: "<shadow-host>", index: 9, name: "shadow-host", kind: "open" },
-        { text: "<template>", index: 33, name: "template", kind: "open" },
-        { text: '<div class="shadow-content">', index: 56, name: "div", kind: "open" },
-        { text: '<slot name="header">', index: 99, name: "slot", kind: "open" },
-        { text: "</slot>", index: 119, name: "slot", kind: "close" },
-        { text: "<slot>", index: 141, name: "slot", kind: "open" },
-        { text: "</slot>", index: 147, name: "slot", kind: "close" },
-        { text: "</div>", index: 167, name: "div", kind: "close" },
-        { text: "</template>", index: 184, name: "template", kind: "close" },
-        { text: "</shadow-host>", index: 204, name: "shadow-host", kind: "close" },
+        { text: "<shadow-host>", start: 9, name: "shadow-host", kind: "open" , end: 22,
+        { text: "<template>", start: 33, name: "template", kind: "open" , end: 43,
+        { text: '<div class="shadow-content">', start: 56, name: "div", kind: "open" },
+        { text: '<slot name="header">', start: 99, name: "slot", kind: "open" },
+        { text: "</slot>", start: 119, name: "slot", kind: "close" , end: 126,
+        { text: "<slot>", start: 141, name: "slot", kind: "open" , end: 147,
+        { text: "</slot>", start: 147, name: "slot", kind: "close" , end: 154,
+        { text: "</div>", start: 167, name: "div", kind: "close" , end: 173,
+        { text: "</template>", start: 184, name: "template", kind: "close" , end: 195,
+        { text: "</shadow-host>", start: 204, name: "shadow-host", kind: "close" , end: 218,
       ]))
 
     const tokens = extractTokens(mainHtml, elements)
