@@ -232,26 +232,38 @@ export const findAllConditions = (expr: string): [number, TokenCondOpen][] => {
     i = q + 1
   }
 
-  // Затем ищем все вложенные условия вида: ? ... ?
+  // Затем ищем все вложенные условия вида: ? ... ? или : ... ?
   i = 0
   while (i < expr.length) {
-    const questionMark1 = expr.indexOf("?", i)
-    if (questionMark1 === -1) break
+    const questionMark = expr.indexOf("?", i)
+    const colon = expr.indexOf(":", i)
 
-    // Ищем следующий ? после первого
-    const questionMark2 = expr.indexOf("?", questionMark1 + 1)
-    if (questionMark2 === -1) break
+    if (questionMark === -1 && colon === -1) break
 
-    // Извлекаем условие между ? и ?
-    const condition = expr.slice(questionMark1 + 1, questionMark2).trim()
+    // Выбираем ближайший символ
+    const useQuestion = questionMark !== -1 && (colon === -1 || questionMark < colon)
+    const pos = useQuestion ? questionMark : colon
+
+    // Ищем следующий ? или : после текущего
+    const nextQuestion = expr.indexOf("?", pos + 1)
+    const nextColon = expr.indexOf(":", pos + 1)
+
+    if (nextQuestion === -1 && nextColon === -1) break
+
+    // Выбираем ближайший следующий символ
+    const useNextQuestion = nextQuestion !== -1 && (nextColon === -1 || nextQuestion < nextColon)
+    const nextPos = useNextQuestion ? nextQuestion : nextColon
+
+    // Извлекаем условие между текущим и следующим символом
+    const condition = expr.slice(pos + 1, nextPos).trim()
 
     // Проверяем, что это не пустое условие и не содержит html`
     if (condition && !condition.includes("html`")) {
-      results.push([questionMark1 + 1, { kind: "cond-open", expr: condition }])
+      results.push([pos + 1, { kind: "cond-open", expr: condition }])
     }
 
-    // Продолжаем поиск с позиции после первого ?
-    i = questionMark1 + 1
+    // Продолжаем поиск с позиции после текущего символа
+    i = pos + 1
   }
 
   return results

@@ -1,10 +1,50 @@
 import { describe, it, expect } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../../splitter"
-import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
 
 describe("вложенные условия", () => {
-  describe("двойное условие", () => {
+  describe("if else if", () => {
+    const mainHtml = extractMainHtmlBlock<any, { flag1: boolean; flag2: boolean }>(
+      ({ html, context }) => html`
+        ${context.flag1
+          ? html`<div class="flag1"></div>`
+          : context.flag2
+          ? html`<div class="flag2"></div>`
+          : html`<div class="flag3"></div>`}
+      `
+    )
+    const elements = extractHtmlElements(mainHtml)
+    it("elements", () =>
+      expect(elements).toEqual([
+        {
+          type: "cond",
+          text: "context.flag1",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              text: '<div class="flag1">',
+            },
+            {
+              type: "cond",
+              text: "context.flag2",
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  text: '<div class="flag2">',
+                },
+                {
+                  tag: "div",
+                  type: "el",
+                  text: '<div class="flag3">',
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+  })
+  describe("if if", () => {
     const mainHtml = extractMainHtmlBlock<any, { hasPermission: boolean; isAdmin: boolean }>(
       ({ html, context }) => html`
         <div>
@@ -79,13 +119,10 @@ describe("вложенные условия", () => {
           ],
         },
       ]))
-    // const attributes = extractAttributes(hierarchy)
-    // const data = enrichWithData(attributes)
-    // console.log(data)
     // it.skip("data", () => expect(data).toEqual([]))
   })
 
-  describe("тройное условие", () => {
+  describe("if if if", () => {
     const mainHtml = extractMainHtmlBlock<any, { hasPermission: boolean; isAdmin: boolean; isSuperAdmin: boolean }>(
       ({ html, context }) => html`
         <div>
