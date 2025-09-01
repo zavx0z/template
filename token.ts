@@ -1,12 +1,4 @@
-import type {
-  StreamToken,
-  TokenCondClose,
-  TokenCondElse,
-  TokenCondOpen,
-  TokenCondElseIf,
-  TokenMapClose,
-  TokenMapOpen,
-} from "./token.t"
+import type { StreamToken, TokenCondClose, TokenCondElse, TokenCondOpen, TokenMapClose, TokenMapOpen } from "./token.t"
 import type { ElementToken } from "./splitter"
 
 const elementPartToToken = (element: ElementToken): StreamToken => {
@@ -58,15 +50,22 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
     const tokens = new Map<number, StreamToken>()
 
     // --------- conditions ---------
-    // Ищем все условия (включая вложенные)
-    const allConditions = findAllConditions(expr)
-    allConditions.forEach(([index, token]) => tokens.set(index, token))
+    const setAllCondsOpen = (expr: string) => {
+      const tokenCondOpen = findCondOpen(expr)
+      if (tokenCondOpen) {
+        tokens.set(...tokenCondOpen)
+        const sliced = expr.slice(tokenCondOpen[0] + tokenCondOpen[1].expr.length)
+        setAllCondsOpen(sliced)
+      }
+    }
+    // Собираем всю цепочку условий
+    setAllCondsOpen(expr)
 
     const tokenCondElse = findCondElse(expr)
-    if (tokenCondElse) tokens.set(...tokenCondElse)
+    tokenCondElse && tokens.set(...tokenCondElse)
 
     const tokenCondClose = findCondClose(expr)
-    if (tokenCondClose) tokens.set(...tokenCondClose)
+    tokenCondClose && tokens.set(...tokenCondClose)
 
     // ------------- map -------------
     const tokenMapOpen = findMapOpen(expr)
@@ -124,7 +123,7 @@ export function extractTokens(mainHtml: string, elements: ElementToken[]): Strea
   return allTokens
 }
 
-const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
+export const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
   let i = 0
   while (i < expr.length) {
     const d = expr.indexOf("${", i)
@@ -171,7 +170,7 @@ const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
   }
 }
 
-const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
+export const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
   const condElseRegex = /:\s*/g // допускаем произвольные пробелы/переводы строк
   let match
   while ((match = condElseRegex.exec(expr)) !== null) {
@@ -179,7 +178,7 @@ const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
   }
 }
 
-const findAllConditions = (expr: string): [number, TokenCondOpen][] => {
+export const findAllConditions = (expr: string): [number, TokenCondOpen][] => {
   // Ищем все условия (включая вложенные)
   const results: [number, TokenCondOpen][] = []
 
@@ -258,7 +257,7 @@ const findAllConditions = (expr: string): [number, TokenCondOpen][] => {
   return results
 }
 
-const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
+export const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
   // Ищем } которая НЕ является частью деструктуризации в параметрах функции
   // Исключаем случаи типа ({ title }) => или (({ title })) =>
   const condCloseRegex = /[^\)]}(?!\s*\)\s*=>)/g
@@ -268,7 +267,7 @@ const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
   }
 }
 
-const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
+export const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
   const mapOpenRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
   let match
   while ((match = mapOpenRegex.exec(expr)) !== null) {
@@ -276,7 +275,7 @@ const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
   }
 }
 
-const findMapClose = (expr: string): [number, TokenMapClose] | undefined => {
+export const findMapClose = (expr: string): [number, TokenMapClose] | undefined => {
   const mapCloseRegex = /`?\)\}/g
   let closeMatch
   while ((closeMatch = mapCloseRegex.exec(expr)) !== null) {

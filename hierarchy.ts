@@ -120,7 +120,7 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
       return
     }
 
-    // Собираем цепочку с начала к концу для вложенных условий:
+    // Собираем цепочку с конца к началу для правильной вложенности:
     let acc: PartElement | PartMeta | PartMap | PartCondition = elseBranch
     for (let i = ctx.exprs.length - 1; i >= 0; i--) {
       const segStart = ctx.boundaries[i]!
@@ -143,21 +143,13 @@ export const makeHierarchy = (tokens: StreamToken[]): PartsHierarchy => {
 
     if (token.kind === "cond-open") {
       const tgt = currentChildren()
-      // Если у нас уже есть активное условие, создаем вложенное условие
-      if (condStack.length > 0) {
-        const parentCtx = condStack[condStack.length - 1]!
-        // Добавляем границу для текущего сегмента родительского условия
-        parentCtx.boundaries.push(parentCtx.target.length)
-        parentCtx.exprs.push(token.expr)
-      } else {
-        // Создаем новое условие
-        condStack.push({
-          target: tgt,
-          startIdx: tgt.length,
-          exprs: [token.expr],
-          boundaries: [], // Не добавляем границу сразу, добавим когда встретим первый элемент
-        })
-      }
+      // Создаем новое условие для каждого cond-open
+      condStack.push({
+        target: tgt,
+        startIdx: tgt.length,
+        exprs: [token.expr],
+        boundaries: [], // Не добавляем границу сразу, добавим когда встретим первый элемент
+      })
       continue
     }
 

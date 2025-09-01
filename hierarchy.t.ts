@@ -99,9 +99,11 @@ export type PartCondition = {
   /** Исходный текст условия */
   text: string
   /** Элемент, рендерящийся когда условие истинно */
-  true: PartHierarchy
+  // true: PartHierarchy
   /** Элемент, рендерящийся когда условие ложно */
-  false: PartHierarchy
+  // false: PartHierarchy
+  /** Дочерние элементы */
+  child: PartsHierarchy
 }
 
 // ---------------- STACK ----------------

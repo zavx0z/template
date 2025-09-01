@@ -1,6 +1,8 @@
 import type { TagKind, TagToken } from "./splitter.t"
 import type { Context, Core, State, RenderParams } from "./index.t"
-
+import type { PartCondition, PartElement, PartHierarchy, PartMap, PartMeta, PartsHierarchy } from "./hierarchy.t"
+import { findCondOpen, findCondElse, findCondClose, findMapOpen, findMapClose, findAllConditions } from "./token"
+import type { StreamToken } from "./token.t"
 // ============================================================================
 // HTML EXTRACTION
 // ============================================================================
@@ -42,8 +44,184 @@ export const extractMainHtmlBlock = <C extends Context = Context, I extends Core
   return htmlContent.replace(/!0/g, "true").replace(/!1/g, "false")
 }
 
-export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
-  const out: TagToken[] = []
+const findText = (chunk: string, start: number) => {
+  if (!chunk || /^\s+$/.test(chunk)) return
+
+  const trimmed = chunk.trim()
+  if (isPureGlue(trimmed)) return
+
+  // Сохраняем левую «видимую» часть до html`
+  const visible = cutBeforeNextHtml(chunk)
+  if (!visible || /^\s+$/.test(visible)) return
+
+  // Собираем, оставляя только полностью закрытые ${...}
+  let processed = ""
+  let i = 0
+  let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
+
+  while (i < visible.length) {
+    const ch = visible[i]
+    if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
+      const exprStart = i
+      i += 2
+      let b = 1
+      while (i < visible.length && b > 0) {
+        if (visible[i] === "{") b++
+        else if (visible[i] === "}") b--
+        i++
+      }
+      if (b === 0) {
+        // закрытая интерполяция — целиком сохраняем
+        processed += visible.slice(exprStart, i)
+        usedEndLocal = i
+        continue
+      } else {
+        // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
+        // индексы конца должны соответствовать реально использованной части
+        break
+      }
+    }
+    processed += ch
+    i++
+    usedEndLocal = i
+  }
+
+  const collapsed = processed.replace(/\s+/g, " ")
+  if (collapsed === " ") return
+
+  const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
+
+  if (final.length > 0) {
+    return { text: final, start, end: start + usedEndLocal, name: "", kind: "text" }
+  }
+}
+
+function getTokens(expr: string): StreamToken[] {
+  const tokens = new Map<number, StreamToken>()
+
+  // --------- conditions ---------
+  const conds = findAllConditions(expr)
+  for (const cond of conds) tokens.set(...cond)
+
+  const tokenCondElse = findCondElse(expr)
+  tokenCondElse && tokens.set(...tokenCondElse)
+
+  const tokenCondClose = findCondClose(expr)
+  tokenCondClose && tokens.set(...tokenCondClose)
+
+  // ------------- map -------------
+  const tokenMapOpen = findMapOpen(expr)
+  // console.log("tokenMapOpen", expr, tokenMapOpen)
+  if (tokenMapOpen) {
+    tokens.set(...tokenMapOpen)
+  }
+
+  const tokenMapClose = findMapClose(expr)
+  if (tokenMapClose) {
+    tokens.set(...tokenMapClose)
+  }
+
+  // Сортируем по позиции и возвращаем токены
+  return Array.from(tokens.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([, token]) => token)
+}
+
+class Hierarchy {
+  child: PartHierarchy[] = []
+  path: number[] = []
+  parts: string[] = []
+  get lastPart() {
+    return this.parts[this.parts.length - 1]
+  }
+  get parentPart() {
+    return this.parts[this.parts.length - 2]
+  }
+  get last(): PartHierarchy {
+    let el: PartHierarchy = this as unknown as PartHierarchy
+    for (const path of this.path) {
+      const { child } = el as PartElement | PartMeta | PartMap | PartCondition
+      el = child![path] as PartHierarchy
+    }
+    return el
+  }
+  get parent(): PartHierarchy {
+    let el: PartHierarchy = this as unknown as PartHierarchy
+    for (const path of this.path.slice(0, -1)) {
+      const { child } = el as PartElement | PartMeta | PartMap | PartCondition
+      el = child![path] as PartHierarchy
+    }
+    return el
+  }
+
+  text(value: any) {
+    const last = this.last as PartElement | PartMeta
+    !Object.hasOwn(last, "child") && (last.child = [])
+    last.child!.push({ type: "text", text: value.text })
+    return
+  }
+
+  self(value: PartElement | PartMeta) {
+    const parent = this.parent as PartElement | PartMeta
+    !Object.hasOwn(parent, "child") && (parent.child = [])
+    parent.child!.push(value)
+    return
+  }
+
+  if(value: string) {
+    const last = this.last as PartElement | PartMeta
+    !Object.hasOwn(last, "child") && (last.child = [])
+    last.child!.push({ type: "cond", text: value, child: [] })
+    this.parts.push("if")
+    this.path.push(last.child!.length - 1)
+    return
+  }
+
+  else() {
+    const last = this.last as PartElement | PartMeta
+    !Object.hasOwn(last, "child") && (last.child = [])
+    if (this.lastPart === "if") {
+      this.parts.pop()
+      this.parts.push("else")
+    }
+    return
+  }
+
+  map(value: string) {
+    const last = this.last as PartElement | PartMeta
+    !Object.hasOwn(last, "child") && (last.child = [])
+    last.child!.push({ type: "map", text: value, child: [] })
+    this.parts.push(value)
+    return
+  }
+
+  open(part: PartElement | PartMeta) {
+    const last = this.last as PartElement | PartMeta
+    !Object.hasOwn(last, "child") && (last.child = [])
+    last.child!.push(part)
+    this.path.push(last.child!.length - 1)
+    this.parts.push(part.tag)
+    return
+  }
+  close(tagName: string) {
+    if (this.parts.pop() !== tagName) {
+      throw new Error(`Expected ${tagName} but got ${this.parts[this.parts.length - 1]}`)
+    }
+    this.path.pop()
+    /** Выходим из else */
+    if (this.lastPart === "else") {
+      this.parts.pop() // удаляем else
+      this.path.pop() // выходим из элемента cond
+    }
+    return
+  }
+}
+
+export const scanHtmlTags = (input: string, offset = 0): PartsHierarchy => {
+  const cursor = new Hierarchy()
+
+  let lastIndex = 0
+
   TAG_LOOKAHEAD.lastIndex = 0
   let m: RegExpExecArray | null
 
@@ -52,6 +230,33 @@ export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
     if (shouldIgnoreAt(input, localIndex)) {
       TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
+    }
+
+    // текст между предыдущим и текущим тегом
+    const sliced = input.slice(lastIndex, localIndex).trim()
+    if (sliced) {
+      const text = findText(sliced, lastIndex)
+      text && cursor.text(text)
+
+      const tokens = getTokens(sliced)
+      for (const token of tokens) {
+        switch (token.kind) {
+          case "cond-open":
+            cursor.if(token.expr)
+            break
+          case "cond-else":
+            cursor.else()
+            break
+          case "cond-close":
+            break
+          case "map-open":
+            cursor.map(token.sig)
+            break
+          case "map-close":
+            cursor.close("map")
+            break
+        }
+      }
     }
 
     const tagStart = localIndex
@@ -134,23 +339,25 @@ export const scanHtmlTags = (input: string, offset = 0): TagToken[] => {
     }
 
     let kind: TagKind
-    if (full.startsWith("</")) kind = "close"
-    else if (full.endsWith("/>")) kind = "self"
-    else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) kind = "void"
-    else kind = "open"
-
-    out.push({
-      text: full,
-      start: offset + tagStart, // начало тега в исходной строке (включительно)
-      end: offset + tagEnd, // конец тега в исходной строке (исключительно)
-      name,
-      kind,
-    })
+    if (full.startsWith("</")) {
+      cursor.close(name)
+      kind = "close"
+    } else if (full.endsWith("/>")) {
+      cursor.self({ tag: name, type: "el", text: full })
+      kind = "self"
+    } else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) {
+      cursor.self({ tag: name, type: "el", text: full })
+      kind = "void"
+    } else {
+      cursor.open({ tag: name, type: "el", text: full })
+      kind = "open"
+    }
 
     TAG_LOOKAHEAD.lastIndex = tagEnd
+    lastIndex = tagEnd
   }
 
-  return out
+  return cursor.child
 }
 
 export type ElementKind = TagKind | "text"
@@ -191,88 +398,88 @@ const cutBeforeNextHtml = (s: string): string => {
  * - Пустые/пробельные узлы удаляются (одиночный пробел-разделитель тоже).
  * ВАЖНО: start/end считаются по исходной строке БЕЗ каких-либо нормализаций.
  */
-export const extractHtmlElements = (input: string): ElementToken[] => {
+export const extractHtmlElements = (input: string): PartsHierarchy => {
   const tags = scanHtmlTags(input)
   const out: ElementToken[] = []
   let cursor = 0
 
-  const pushText = (chunk: string, start: number) => {
-    if (!chunk || /^\s+$/.test(chunk)) return
+  // const pushText = (chunk: string, start: number) => {
+  //   if (!chunk || /^\s+$/.test(chunk)) return
 
-    const trimmed = chunk.trim()
-    if (isPureGlue(trimmed)) return
+  //   const trimmed = chunk.trim()
+  //   if (isPureGlue(trimmed)) return
 
-    // Сохраняем левую «видимую» часть до html`
-    const visible = cutBeforeNextHtml(chunk)
-    if (!visible || /^\s+$/.test(visible)) return
+  //   // Сохраняем левую «видимую» часть до html`
+  //   const visible = cutBeforeNextHtml(chunk)
+  //   if (!visible || /^\s+$/.test(visible)) return
 
-    // Собираем, оставляя только полностью закрытые ${...}
-    let processed = ""
-    let i = 0
-    let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
+  //   // Собираем, оставляя только полностью закрытые ${...}
+  //   let processed = ""
+  //   let i = 0
+  //   let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
 
-    while (i < visible.length) {
-      const ch = visible[i]
-      if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
-        const exprStart = i
-        i += 2
-        let b = 1
-        while (i < visible.length && b > 0) {
-          if (visible[i] === "{") b++
-          else if (visible[i] === "}") b--
-          i++
-        }
-        if (b === 0) {
-          // закрытая интерполяция — целиком сохраняем
-          processed += visible.slice(exprStart, i)
-          usedEndLocal = i
-          continue
-        } else {
-          // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
-          // индексы конца должны соответствовать реально использованной части
-          break
-        }
-      }
-      processed += ch
-      i++
-      usedEndLocal = i
-    }
+  //   while (i < visible.length) {
+  //     const ch = visible[i]
+  //     if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
+  //       const exprStart = i
+  //       i += 2
+  //       let b = 1
+  //       while (i < visible.length && b > 0) {
+  //         if (visible[i] === "{") b++
+  //         else if (visible[i] === "}") b--
+  //         i++
+  //       }
+  //       if (b === 0) {
+  //         // закрытая интерполяция — целиком сохраняем
+  //         processed += visible.slice(exprStart, i)
+  //         usedEndLocal = i
+  //         continue
+  //       } else {
+  //         // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
+  //         // индексы конца должны соответствовать реально использованной части
+  //         break
+  //       }
+  //     }
+  //     processed += ch
+  //     i++
+  //     usedEndLocal = i
+  //   }
 
-    const collapsed = processed.replace(/\s+/g, " ")
-    if (collapsed === " ") return
+  //   const collapsed = processed.replace(/\s+/g, " ")
+  //   if (collapsed === " ") return
 
-    const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
+  //   const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
 
-    if (final.length > 0) {
-      out.push({
-        text: final,
-        start,
-        end: start + usedEndLocal, // точный конец по исходнику (исключительно)
-        name: "",
-        kind: "text",
-      })
-    }
-  }
+  //   if (final.length > 0) {
+  //     out.push({
+  //       text: final,
+  //       start,
+  //       end: start + usedEndLocal, // точный конец по исходнику (исключительно)
+  //       name: "",
+  //       kind: "text",
+  //     })
+  //   }
+  // }
 
-  for (const tag of tags) {
-    if (tag.start > cursor) {
-      // текст между предыдущим концом и началом текущего тега
-      pushText(input.slice(cursor, tag.start), cursor)
-    }
-    // теги: нормализуем только отображаемый text, но индексы — сырые
-    out.push({
-      text: formatAttributeText(tag.text),
-      start: tag.start,
-      end: tag.end,
-      name: tag.name,
-      kind: tag.kind,
-    })
-    cursor = tag.end
-  }
+  // for (const tag of tags) {
+  //   if (tag.start > cursor) {
+  //     // текст между предыдущим концом и началом текущего тега
+  //     pushText(input.slice(cursor, tag.start), cursor)
+  //   }
+  //   // теги: нормализуем только отображаемый text, но индексы — сырые
+  //   out.push({
+  //     text: formatAttributeText(tag.text),
+  //     start: tag.start,
+  //     end: tag.end,
+  //     name: tag.name,
+  //     kind: tag.kind,
+  //   })
+  //   cursor = tag.end
+  // }
 
-  if (cursor < input.length) {
-    pushText(input.slice(cursor), cursor)
-  }
+  // if (cursor < input.length) {
+  //   pushText(input.slice(cursor), cursor)
+  // }
 
-  return out
+  return tags
 }

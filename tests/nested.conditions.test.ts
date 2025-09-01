@@ -4,6 +4,7 @@ import { makeHierarchy } from "../hierarchy"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import { extractTokens } from "../token"
+import { print } from "../fixture"
 
 describe("nested.conditions", () => {
   describe("двойное условие", () => {
@@ -18,6 +19,7 @@ describe("nested.conditions", () => {
     )
     const elements = extractHtmlElements(mainHtml)
     const tokens = extractTokens(mainHtml, elements)
+    // print(tokens)
     it("tokens", () => {
       expect(tokens).toEqual([
         { kind: "cond-open", expr: "context.flag1" },
