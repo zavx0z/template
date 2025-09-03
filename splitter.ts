@@ -2,6 +2,7 @@ import type { Context, Core, State, RenderParams } from "./index.t"
 import type { PartCondition, PartElement, PartHierarchy, PartMap, PartMeta, PartsHierarchy } from "./hierarchy.t"
 import { findCondElse, findCondClose, findMapOpen, findMapClose, findAllConditions } from "./token"
 import type { StreamToken } from "./token.t"
+import { findText } from "./text"
 // ============================================================================
 // HTML EXTRACTION
 // ============================================================================
@@ -43,58 +44,6 @@ export const extractMainHtmlBlock = <C extends Context = Context, I extends Core
   return htmlContent.replace(/!0/g, "true").replace(/!1/g, "false")
 }
 
-const findText = (chunk: string, start: number) => {
-  if (!chunk || /^\s+$/.test(chunk)) return
-
-  const trimmed = chunk.trim()
-  if (isPureGlue(trimmed)) return
-
-  // Сохраняем левую «видимую» часть до html`
-  const visible = cutBeforeNextHtml(chunk)
-  if (!visible || /^\s+$/.test(visible)) return
-
-  // Собираем, оставляя только полностью закрытые ${...}
-  let processed = ""
-  let i = 0
-  let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
-
-  while (i < visible.length) {
-    const ch = visible[i]
-    if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
-      const exprStart = i
-      i += 2
-      let b = 1
-      while (i < visible.length && b > 0) {
-        if (visible[i] === "{") b++
-        else if (visible[i] === "}") b--
-        i++
-      }
-      if (b === 0) {
-        // закрытая интерполяция — целиком сохраняем
-        processed += visible.slice(exprStart, i)
-        usedEndLocal = i
-        continue
-      } else {
-        // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
-        // индексы конца должны соответствовать реально использованной части
-        break
-      }
-    }
-    processed += ch
-    i++
-    usedEndLocal = i
-  }
-
-  const collapsed = processed.replace(/\s+/g, " ")
-  if (collapsed === " ") return
-
-  const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
-
-  if (final.length > 0) {
-    return { text: final, start, end: start + usedEndLocal, name: "", kind: "text" }
-  }
-}
-
 function getTokens(expr: string): StreamToken[] {
   const tokens = new Map<number, StreamToken>()
 
@@ -130,13 +79,10 @@ class Hierarchy {
   child: PartHierarchy[] = []
   path: number[] = []
   parts: string[] = []
-  get lastPart() {
+  get cursorPart() {
     return this.parts[this.parts.length - 1]
   }
-  get parentPart() {
-    return this.parts[this.parts.length - 2]
-  }
-  get last(): PartHierarchy {
+  get cursor(): PartHierarchy {
     let el: PartHierarchy = this as unknown as PartHierarchy
     for (const path of this.path) {
       const { child } = el as PartElement | PartMeta | PartMap | PartCondition
@@ -144,31 +90,31 @@ class Hierarchy {
     }
     return el
   }
-  get parent(): PartHierarchy {
-    let el: PartHierarchy = this as unknown as PartHierarchy
-    for (const path of this.path.slice(0, -1)) {
-      const { child } = el as PartElement | PartMeta | PartMap | PartCondition
-      el = child![path] as PartHierarchy
+  get lastPartElement(): PartHierarchy {
+    const cursor = this.cursor
+    if (Object.hasOwn(cursor, "child")) {
+      const { child } = cursor as PartElement | PartMeta | PartMap | PartCondition
+      return child![child!.length - 1] as PartHierarchy
     }
-    return el
+    return cursor
   }
 
   text(value: any) {
-    const last = this.last as PartElement | PartMeta
+    const last = this.cursor as PartElement | PartMeta
     !Object.hasOwn(last, "child") && (last.child = [])
     last.child!.push({ type: "text", text: value.text })
     return
   }
 
   self(value: PartElement | PartMeta) {
-    const last = this.last as PartElement | PartMeta
-    !Object.hasOwn(last, "child") && (last.child = [])
-    last.child!.push(value)
+    const cursor = this.cursor as PartElement | PartMeta
+    !Object.hasOwn(cursor, "child") && (cursor.child = [])
+    cursor.child!.push(value)
     return
   }
 
   if(value: string) {
-    const last = this.last as PartElement | PartMeta
+    const last = this.cursor as PartElement | PartMeta
     !Object.hasOwn(last, "child") && (last.child = [])
     last.child!.push({ type: "cond", text: value, child: [] })
     this.parts.push("if")
@@ -177,9 +123,9 @@ class Hierarchy {
   }
 
   else() {
-    const last = this.last as PartElement | PartMeta
+    const last = this.cursor as PartElement | PartMeta
     !Object.hasOwn(last, "child") && (last.child = [])
-    if (this.lastPart === "if") {
+    if (this.cursorPart === "if") {
       this.parts.pop()
       this.parts.push("else")
     }
@@ -187,7 +133,7 @@ class Hierarchy {
   }
 
   map(value: string) {
-    const last = this.last as PartElement | PartMeta
+    const last = this.cursor as PartElement | PartMeta
     !Object.hasOwn(last, "child") && (last.child = [])
     last.child!.push({ type: "map", text: value, child: [] })
     this.parts.push(value)
@@ -195,7 +141,7 @@ class Hierarchy {
   }
 
   open(part: PartElement | PartMeta) {
-    const last = this.last as PartElement | PartMeta
+    const last = this.cursor as PartElement | PartMeta
     !Object.hasOwn(last, "child") && (last.child = [])
     last.child!.push(part)
     this.path.push(last.child!.length - 1)
@@ -203,12 +149,23 @@ class Hierarchy {
     return
   }
   close(tagName: string) {
-    if (this.parts.pop() !== tagName) {
+    /** html`<div>${context.flag ? html`<br />` : html`<img src="x" />`}⬇️</div>`
+     *                                              самозакрывающийся тег
+     */
+    if (this.cursorPart === "else") {
+      // выходим из else
+      this.parts.pop()
+      this.path.pop()
+      // закрываем тег
+      this.parts.pop()
+      this.path.pop()
+      return
+    } else if (this.parts.pop() !== tagName) {
       throw new Error(`Expected ${tagName} but got ${this.parts[this.parts.length - 1]}`)
     }
     this.path.pop()
     /** Выходим из else */
-    if (this.lastPart === "else") {
+    if (this.cursorPart === "else") {
       this.parts.pop() // удаляем else
       this.path.pop() // выходим из элемента cond
     }
@@ -359,17 +316,3 @@ const formatAttributeText = (text: string): string =>
     .replace(/\s*\n\s*/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-
-// Чистый «клей» между шаблонами (целиком служебный кусок)
-const isPureGlue = (trimmed: string): boolean =>
-  !!trimmed &&
-  (trimmed === "`" ||
-    trimmed.startsWith("`") || // закрытие предыдущего html`
-    /^`}\)?\s*;?\s*$/.test(trimmed) || // `} или `}) (+ ;)
-    /^`\)\}\s*,?\s*$/.test(trimmed)) // `)} (иногда с запятой)
-
-// Обрезаем всё после первого открытия следующего html-шаблона
-const cutBeforeNextHtml = (s: string): string => {
-  const idx = s.indexOf("html`")
-  return idx >= 0 ? s.slice(0, idx) : s
-}
