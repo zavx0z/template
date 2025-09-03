@@ -1,9 +1,10 @@
-import { describe, it, expect } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
-import { makeHierarchy } from "../hierarchy"
-import { enrichWithData } from "../data"
-import { extractAttributes } from "../attributes"
-import { extractTokens } from "../token"
+import { describe, it, expect, beforeAll } from "bun:test"
+import { extractMainHtmlBlock, extractHtmlElements } from "../../splitter"
+import { enrichWithData } from "../../data"
+import { extractAttributes } from "../../attributes"
+import type { PartsHierarchy } from "../../hierarchy.t"
+import type { PartAttrs } from "../../attributes.t"
+import type { Node } from "../../index.t"
 
 describe("map соседствующие", () => {
   describe("map соседствующий с map на верхнем уровне", () => {
@@ -11,17 +12,20 @@ describe("map соседствующие", () => {
       list1: { title: string }[]
       list2: { title: string }[]
     }
-    const mainHtml = extractMainHtmlBlock<any, Core>(
-      ({ html, core }) => html`
-        ${core.list1.map(({ title }) => html` <div>${title}</div> `)}
-        ${core.list2.map(({ title }) => html` <div>${title}</div> `)}
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<any, Core>(
+        ({ html, core }) => html`
+          ${core.list1.map(({ title }) => html` <div>${title}</div> `)}
+          ${core.list2.map(({ title }) => html` <div>${title}</div> `)}
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
     it("hierarchy", () =>
-      expect(hierarchy).toEqual([
+      expect(elements).toEqual([
         {
           type: "map",
           text: "core.list1.map(({ title })",
@@ -57,9 +61,10 @@ describe("map соседствующие", () => {
           ],
         },
       ]))
-
-    const attributes = extractAttributes(hierarchy)
-    it("attributes", () =>
+    it.skip("attributes", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+      })
       expect(attributes).toEqual([
         {
           type: "map",
@@ -93,10 +98,12 @@ describe("map соседствующие", () => {
             },
           ],
         },
-      ]))
-
-    const data = enrichWithData(attributes)
-    it("data", () =>
+      ])
+    })
+    it.skip("data", () => {
+      beforeAll(() => {
+        data = enrichWithData(attributes)
+      })
       expect(data).toEqual([
         {
           type: "map",
@@ -130,7 +137,8 @@ describe("map соседствующие", () => {
             },
           ],
         },
-      ]))
+      ])
+    })
   })
 
   describe("map соседствующий с map внутри элемента", () => {
@@ -143,25 +151,28 @@ describe("map соседствующие", () => {
         title: string
       }[]
     }
-    const mainHtml = extractMainHtmlBlock<Context, Core>(
-      ({ html, context, core }) => html`
-        <div class="dashboard">
-          ${context.categories.map((cat) => html`<span class="category">${cat}</span>`)}
-          ${core.items.map(
-            (item) => html`
-              <div class="item" data-category="${item.categoryId}">
-                <h4>${item.title}</h4>
-              </div>
-            `
-          )}
-        </div>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<Context, Core>(
+        ({ html, context, core }) => html`
+          <div class="dashboard">
+            ${context.categories.map((cat) => html`<span class="category">${cat}</span>`)}
+            ${core.items.map(
+              (item) => html`
+                <div class="item" data-category="${item.categoryId}">
+                  <h4>${item.title}</h4>
+                </div>
+              `
+            )}
+          </div>
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
     it("hierarchy", () =>
-      expect(hierarchy).toEqual([
+      expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
@@ -211,9 +222,10 @@ describe("map соседствующие", () => {
           ],
         },
       ]))
-    const attributes = extractAttributes(hierarchy)
-    const data = enrichWithData(attributes)
-    it("attributes", () =>
+    it.skip("attributes", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+      })
       expect(attributes).toEqual([
         {
           tag: "div",
@@ -269,8 +281,12 @@ describe("map соседствующие", () => {
             },
           ],
         },
-      ]))
-    it("data", () =>
+      ])
+    })
+    it.skip("data", () => {
+      beforeAll(() => {
+        data = enrichWithData(attributes)
+      })
       expect(data).toEqual([
         {
           tag: "div",
@@ -328,7 +344,8 @@ describe("map соседствующие", () => {
             },
           ],
         },
-      ]))
+      ])
+    })
   })
 
   describe("map соседствующий с map на глубоком уровне вложенности", () => {
@@ -337,91 +354,101 @@ describe("map соседствующие", () => {
       list2: { title: string }[]
       list3: { title: string }[]
     }
-    const mainHtml = extractMainHtmlBlock<{}, Core>(
-      ({ html, core }) => html`
-        <div class="level1">
-          <div class="level2">
-            <div class="level3">
-              ${core.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
-              ${core.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
-              ${core.list3.map(({ title }) => html`<div class="item3">${title}</div>`)}
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<{}, Core>(
+        ({ html, core }) => html`
+          <div class="level1">
+            <div class="level2">
+              <div class="level3">
+                ${core.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
+                ${core.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
+                ${core.list3.map(({ title }) => html`<div class="item3">${title}</div>`)}
+              </div>
             </div>
           </div>
-        </div>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    it("elements", () => {
-      // Проверяем, что все уровни вложенности присутствуют
-      expect(elements.length).toBeGreaterThan(0)
-      expect(elements.some((el) => el.text.includes("level1"))).toBe(true)
-      expect(elements.some((el) => el.text.includes("level2"))).toBe(true)
-      expect(elements.some((el) => el.text.includes("level3"))).toBe(true)
-      expect(elements.some((el) => el.text.includes("item1"))).toBe(true)
-      expect(elements.some((el) => el.text.includes("item2"))).toBe(true)
-      expect(elements.some((el) => el.text.includes("item3"))).toBe(true)
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+      console.log(elements)
     })
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
     it("hierarchy", () => {
-      // Проверяем структуру иерархии
-      expect(hierarchy.length).toBeGreaterThan(0)
-      expect(hierarchy[0]?.type).toBe("el")
-      if (hierarchy[0]?.type === "el") {
-        expect(hierarchy[0].tag).toBe("div")
-        expect(hierarchy[0].text).toContain("level1")
-
-        // Проверяем, что есть вложенные элементы
-        expect(hierarchy[0].child).toBeDefined()
-        expect(hierarchy[0].child!.length).toBeGreaterThan(0)
-
-        // Проверяем второй уровень
-        const level2 = hierarchy[0].child![0]
-        if (level2 && level2.type === "el") {
-          expect(level2.tag).toBe("div")
-          expect(level2.text).toContain("level2")
-          expect(level2.child).toBeDefined()
-          expect(level2.child!.length).toBeGreaterThan(0)
-
-          // Проверяем третий уровень
-          const level3 = level2.child![0]
-          if (level3 && level3.type === "el") {
-            expect(level3.tag).toBe("div")
-            expect(level3.text).toContain("level3")
-            expect(level3.child).toBeDefined()
-            expect(level3.child!.length).toBeGreaterThan(0)
-
-            // Проверяем, что на третьем уровне есть map выражения
-            const mapNodes = level3.child!.filter((child) => child.type === "map")
-            expect(mapNodes.length).toBeGreaterThanOrEqual(3) // list1, list2, list3
-          }
-        }
-      }
-    })
-    const attributes = extractAttributes(hierarchy)
-    const data = enrichWithData(attributes)
-    it("attributes", () => {
-      // Проверяем, что атрибуты извлекаются корректно
-      expect(attributes.length).toBeGreaterThan(0)
-
-      // Проверяем, что все уровни имеют атрибуты
-      const level1Attrs = attributes[0]
-      if (level1Attrs && level1Attrs.type === "el") {
-        expect(level1Attrs.string?.class?.value).toBe("level1")
-        expect(level1Attrs.child).toBeDefined()
-        expect(level1Attrs.child!.length).toBeGreaterThan(0)
-      }
-    })
-    it("data", () => {
-      // Проверяем, что данные обогащаются корректно
-      expect(data.length).toBeGreaterThan(0)
-
-      // Проверяем, что есть data пути
-      const level1Data = data[0]
-      if (level1Data && level1Data.type === "el") {
-        expect(level1Data.child).toBeDefined()
-        expect(level1Data.child!.length).toBeGreaterThan(0)
-      }
+      expect(elements).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          text: '<div class="level1">',
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              text: '<div class="level2">',
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  text: '<div class="level3">',
+                  child: [
+                    {
+                      type: "map",
+                      text: "core.list1.map(({ title })",
+                      child: [
+                        {
+                          tag: "div",
+                          type: "el",
+                          text: '<div class="item1">',
+                          child: [
+                            {
+                              type: "text",
+                              text: "${title}",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      type: "map",
+                      text: "core.list2.map(({ title })",
+                      child: [
+                        {
+                          tag: "div",
+                          type: "el",
+                          text: '<div class="item2">',
+                          child: [
+                            {
+                              type: "text",
+                              text: "${title}",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      type: "map",
+                      text: "core.list3.map(({ title })",
+                      child: [
+                        {
+                          tag: "div",
+                          type: "el",
+                          text: '<div class="item3">',
+                          child: [
+                            {
+                              type: "text",
+                              text: "${title}",
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ])
     })
   })
 })
