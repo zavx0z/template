@@ -162,9 +162,9 @@ class Hierarchy {
   }
 
   self(value: PartElement | PartMeta) {
-    const parent = this.parent as PartElement | PartMeta
-    !Object.hasOwn(parent, "child") && (parent.child = [])
-    parent.child!.push(value)
+    const last = this.last as PartElement | PartMeta
+    !Object.hasOwn(last, "child") && (last.child = [])
+    last.child!.push(value)
     return
   }
 
@@ -217,7 +217,7 @@ class Hierarchy {
   }
 }
 
-export const scanHtmlTags = (input: string, offset = 0): PartsHierarchy => {
+export const extractHtmlElements = (input: string, offset = 0): PartsHierarchy => {
   const cursor = new Hierarchy()
 
   let lastIndex = 0
@@ -388,98 +388,80 @@ const cutBeforeNextHtml = (s: string): string => {
   const idx = s.indexOf("html`")
   return idx >= 0 ? s.slice(0, idx) : s
 }
+// const pushText = (chunk: string, start: number) => {
+//   if (!chunk || /^\s+$/.test(chunk)) return
 
-/**
- * Извлекает из HTML-строки единый плоский список узлов (теги + текст).
- * - Текстовые узлы берутся из промежутков между тегами.
- * - ${...} сохраняются, если внутри куска они полностью закрыты.
- * - Если в куске встречается начало нового html` — всё справа от него отбрасываем.
- * - Чистый «клей» (` , `} , `)} …) игнорируется.
- * - Пустые/пробельные узлы удаляются (одиночный пробел-разделитель тоже).
- * ВАЖНО: start/end считаются по исходной строке БЕЗ каких-либо нормализаций.
- */
-export const extractHtmlElements = (input: string): PartsHierarchy => {
-  const tags = scanHtmlTags(input)
-  const out: ElementToken[] = []
-  let cursor = 0
+//   const trimmed = chunk.trim()
+//   if (isPureGlue(trimmed)) return
 
-  // const pushText = (chunk: string, start: number) => {
-  //   if (!chunk || /^\s+$/.test(chunk)) return
+//   // Сохраняем левую «видимую» часть до html`
+//   const visible = cutBeforeNextHtml(chunk)
+//   if (!visible || /^\s+$/.test(visible)) return
 
-  //   const trimmed = chunk.trim()
-  //   if (isPureGlue(trimmed)) return
+//   // Собираем, оставляя только полностью закрытые ${...}
+//   let processed = ""
+//   let i = 0
+//   let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
 
-  //   // Сохраняем левую «видимую» часть до html`
-  //   const visible = cutBeforeNextHtml(chunk)
-  //   if (!visible || /^\s+$/.test(visible)) return
+//   while (i < visible.length) {
+//     const ch = visible[i]
+//     if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
+//       const exprStart = i
+//       i += 2
+//       let b = 1
+//       while (i < visible.length && b > 0) {
+//         if (visible[i] === "{") b++
+//         else if (visible[i] === "}") b--
+//         i++
+//       }
+//       if (b === 0) {
+//         // закрытая интерполяция — целиком сохраняем
+//         processed += visible.slice(exprStart, i)
+//         usedEndLocal = i
+//         continue
+//       } else {
+//         // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
+//         // индексы конца должны соответствовать реально использованной части
+//         break
+//       }
+//     }
+//     processed += ch
+//     i++
+//     usedEndLocal = i
+//   }
 
-  //   // Собираем, оставляя только полностью закрытые ${...}
-  //   let processed = ""
-  //   let i = 0
-  //   let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
+//   const collapsed = processed.replace(/\s+/g, " ")
+//   if (collapsed === " ") return
 
-  //   while (i < visible.length) {
-  //     const ch = visible[i]
-  //     if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
-  //       const exprStart = i
-  //       i += 2
-  //       let b = 1
-  //       while (i < visible.length && b > 0) {
-  //         if (visible[i] === "{") b++
-  //         else if (visible[i] === "}") b--
-  //         i++
-  //       }
-  //       if (b === 0) {
-  //         // закрытая интерполяция — целиком сохраняем
-  //         processed += visible.slice(exprStart, i)
-  //         usedEndLocal = i
-  //         continue
-  //       } else {
-  //         // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
-  //         // индексы конца должны соответствовать реально использованной части
-  //         break
-  //       }
-  //     }
-  //     processed += ch
-  //     i++
-  //     usedEndLocal = i
-  //   }
+//   const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
 
-  //   const collapsed = processed.replace(/\s+/g, " ")
-  //   if (collapsed === " ") return
+//   if (final.length > 0) {
+//     out.push({
+//       text: final,
+//       start,
+//       end: start + usedEndLocal, // точный конец по исходнику (исключительно)
+//       name: "",
+//       kind: "text",
+//     })
+//   }
+// }
 
-  //   const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
+// for (const tag of tags) {
+//   if (tag.start > cursor) {
+//     // текст между предыдущим концом и началом текущего тега
+//     pushText(input.slice(cursor, tag.start), cursor)
+//   }
+//   // теги: нормализуем только отображаемый text, но индексы — сырые
+//   out.push({
+//     text: formatAttributeText(tag.text),
+//     start: tag.start,
+//     end: tag.end,
+//     name: tag.name,
+//     kind: tag.kind,
+//   })
+//   cursor = tag.end
+// }
 
-  //   if (final.length > 0) {
-  //     out.push({
-  //       text: final,
-  //       start,
-  //       end: start + usedEndLocal, // точный конец по исходнику (исключительно)
-  //       name: "",
-  //       kind: "text",
-  //     })
-  //   }
-  // }
-
-  // for (const tag of tags) {
-  //   if (tag.start > cursor) {
-  //     // текст между предыдущим концом и началом текущего тега
-  //     pushText(input.slice(cursor, tag.start), cursor)
-  //   }
-  //   // теги: нормализуем только отображаемый text, но индексы — сырые
-  //   out.push({
-  //     text: formatAttributeText(tag.text),
-  //     start: tag.start,
-  //     end: tag.end,
-  //     name: tag.name,
-  //     kind: tag.kind,
-  //   })
-  //   cursor = tag.end
-  // }
-
-  // if (cursor < input.length) {
-  //   pushText(input.slice(cursor), cursor)
-  // }
-
-  return tags
-}
+// if (cursor < input.length) {
+//   pushText(input.slice(cursor), cursor)
+// }
