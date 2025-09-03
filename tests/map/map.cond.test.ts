@@ -710,4 +710,112 @@ describe("map с условиями", () => {
       }
     })
   })
+
+  describe("map внутри condition", () => {
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<{ show: boolean }, { items: string[] }>(
+        ({ html, core, context }) => html`
+          <div>
+            ${context.show
+              ? html` ${core.items.map((item) => html`<div class="true-${item}"></div>`)}`
+              : html` ${core.items.map((item) => html`<div class="false-${item}"></div>`)}`}
+          </div>
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
+
+    it("hierarchy", () =>
+      expect(elements).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          text: "<div>",
+          child: [
+            {
+              type: "cond",
+              text: "context.show",
+              child: [
+                {
+                  type: "map",
+                  text: "core.items.map((item)",
+                  child: [
+                    {
+                      tag: "div",
+                      type: "el",
+                      text: '<div class="true-${item}">',
+                    },
+                  ],
+                },
+                {
+                  type: "map",
+                  text: "core.items.map((item)",
+                  child: [
+                    {
+                      tag: "div",
+                      type: "el",
+                      text: '<div class="false-${item}">',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+    it.skip("data", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+        data = enrichWithData(attributes)
+      })
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "cond",
+              data: "/context/show",
+              true: {
+                type: "map",
+                data: "/core/items",
+                child: [
+                  {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: {
+                        data: "[item]",
+                        expr: "true-${[0]}",
+                      },
+                    },
+                  },
+                ],
+              },
+              false: {
+                type: "map",
+                data: "/core/items",
+                child: [
+                  {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: {
+                        data: "[item]",
+                        expr: "false-${[0]}",
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ])
+    })
+  })
 })

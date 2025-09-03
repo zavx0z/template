@@ -456,4 +456,93 @@ describe("conditions", () => {
       ])
     })
   })
+
+  describe("condition внутри map", () => {
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<any, { items: { show: boolean }[] }>(
+        ({ html, core }) => html`
+          <div>
+            ${core.items.map((item) =>
+              item.show ? html`<div class="true-branch"></div>` : html`<div class="false-branch"></div>`
+            )}
+          </div>
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
+    it("hierarchy", () =>
+      expect(elements).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          text: "<div>",
+          child: [
+            {
+              type: "map",
+              text: "core.items.map((item)",
+              child: [
+                {
+                  type: "cond",
+                  text: "item.show",
+                  child: [
+                    {
+                      tag: "div",
+                      type: "el",
+                      text: '<div class="true-branch">',
+                    },
+                    {
+                      tag: "div",
+                      type: "el",
+                      text: '<div class="false-branch">',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]))
+    it.skip("data", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+        data = enrichWithData(attributes)
+      })
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/items",
+              child: [
+                {
+                  type: "cond",
+                  data: "[item]/show",
+                  true: {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: "true-branch",
+                    },
+                  },
+                  false: {
+                    tag: "div",
+                    type: "el",
+                    string: {
+                      class: "false-branch",
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+  })
 })
