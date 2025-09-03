@@ -117,7 +117,7 @@ class Cursor {
 
   push(name: string) {
     this.parts.push(name)
-    this.path.push(this.element.child!.length - 1)
+    this.path.push((this.element as unknown as PartElement | PartMeta).child!.length - 1)
   }
 }
 
@@ -195,7 +195,7 @@ class Hierarchy {
     const curEl = this.cursor.element as PartElement | PartMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     curEl.child!.push({ type: "map", text: value, child: [] })
-    this.cursor.parts.push(value)
+    this.cursor.push("map")
     return
   }
 
@@ -237,7 +237,7 @@ class Hierarchy {
 }
 
 export const extractHtmlElements = (input: string): PartsHierarchy => {
-  const cursor = new Hierarchy()
+  const store = new Hierarchy()
 
   let lastIndex = 0
 
@@ -252,27 +252,27 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
     }
 
     // текст между предыдущим и текущим тегом
-    const sliced = input.slice(lastIndex, localIndex).trim()
-    if (sliced) {
+    const sliced = input.slice(lastIndex, localIndex)
+    if (sliced.trim()) {
       const text = findText(sliced, lastIndex)
-      text && cursor.text(text)
+      text && store.text(text)
 
       const tokens = getTokens(sliced)
       for (const token of tokens) {
         switch (token.kind) {
           case "cond-open":
-            cursor.if(token.expr)
+            store.if(token.expr)
             break
           case "cond-else":
-            cursor.else()
+            store.else()
             break
           case "cond-close":
             break
           case "map-open":
-            cursor.map(token.sig)
+            store.map(token.sig)
             break
           case "map-close":
-            cursor.close("map")
+            store.close("map")
             break
         }
       }
@@ -358,20 +358,20 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
     }
 
     if (full.startsWith("</")) {
-      cursor.close(name)
+      store.close(name)
     } else if (full.endsWith("/>")) {
-      cursor.self({ tag: name, type: "el", text: full })
+      store.self({ tag: name, type: "el", text: full })
     } else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) {
-      cursor.self({ tag: name, type: "el", text: full })
+      store.self({ tag: name, type: "el", text: full })
     } else {
-      cursor.open({ tag: name, type: "el", text: full })
+      store.open({ tag: name, type: "el", text: full })
     }
 
     TAG_LOOKAHEAD.lastIndex = tagEnd
     lastIndex = tagEnd
   }
 
-  return cursor.child
+  return store.child
 }
 
 const formatAttributeText = (text: string): string =>
