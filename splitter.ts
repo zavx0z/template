@@ -75,14 +75,27 @@ function getTokens(expr: string): StreamToken[] {
     .map(([, token]) => token)
 }
 
-class Hierarchy {
+/**
+ * Курсор по структуре элементов
+ *
+ * - не устанавливается на самозакрывающиеся теги и void элементы
+ *
+ */
+class Cursor {
+  /** Структура элементов по которым двигается курсор */
   child: PartHierarchy[] = []
-  path: number[] = []
-  parts: string[] = []
-  get cursorPart() {
-    return this.parts[this.parts.length - 1]
+
+  constructor(child: PartHierarchy[]) {
+    this.child = child
   }
-  get cursor(): PartHierarchy {
+
+  /** Путь к элементу */
+  path: number[] = []
+  /** Имена в пути элементов */
+  parts: string[] = []
+
+  /** Элемент курсора */
+  get element(): PartHierarchy {
     let el: PartHierarchy = this as unknown as PartHierarchy
     for (const path of this.path) {
       const { child } = el as PartElement | PartMeta | PartMap | PartCondition
@@ -90,86 +103,136 @@ class Hierarchy {
     }
     return el
   }
-  get lastPartElement(): PartHierarchy {
-    const cursor = this.cursor
-    if (Object.hasOwn(cursor, "child")) {
-      const { child } = cursor as PartElement | PartMeta | PartMap | PartCondition
+
+  /** Имя последнего элемента */
+  get part() {
+    return this.parts[this.parts.length - 1]
+  }
+
+  /** Удаляет последний элемент из пути и возвращает его имя */
+  back() {
+    this.path.pop()
+    return this.parts.pop()
+  }
+
+  push(name: string) {
+    this.parts.push(name)
+    this.path.push(this.element.child!.length - 1)
+  }
+}
+
+class Hierarchy {
+  child: PartHierarchy[] = []
+  cursor: Cursor
+  constructor() {
+    this.child = []
+    this.cursor = new Cursor(this.child)
+  }
+  get lastElement(): PartHierarchy {
+    const cursorElement = this.cursor.element
+    if (Object.hasOwn(cursorElement, "child")) {
+      const { child } = cursorElement as PartElement | PartMeta | PartMap | PartCondition
       return child![child!.length - 1] as PartHierarchy
     }
-    return cursor
+    return cursorElement
   }
 
+  /** Добавляет текст в child массив
+   * - не создает курсор на этот блок
+   * @param value - текст условия
+   */
   text(value: any) {
-    const last = this.cursor as PartElement | PartMeta
-    !Object.hasOwn(last, "child") && (last.child = [])
-    last.child!.push({ type: "text", text: value.text })
+    const curEl = this.cursor.element as PartElement | PartMeta
+    !Object.hasOwn(curEl, "child") && (curEl.child = [])
+    curEl.child!.push({ type: "text", text: value.text })
     return
   }
 
+  /** Добавляет элемент в child массив
+   * - не создает курсор на этот блок
+   * @param value - текст условия
+   */
   self(value: PartElement | PartMeta) {
-    const cursor = this.cursor as PartElement | PartMeta
-    !Object.hasOwn(cursor, "child") && (cursor.child = [])
-    cursor.child!.push(value)
+    const curEl = this.cursor.element as PartElement | PartMeta
+    !Object.hasOwn(curEl, "child") && (curEl.child = [])
+    curEl.child!.push(value)
     return
   }
 
+  /** Добавляет блок if в child массив
+   * - создает курсор на этот блок
+   * - cursor.path добавляется с увеличением на 1
+   * @param value - текст условия
+   */
   if(value: string) {
-    const last = this.cursor as PartElement | PartMeta
-    !Object.hasOwn(last, "child") && (last.child = [])
-    last.child!.push({ type: "cond", text: value, child: [] })
-    this.parts.push("if")
-    this.path.push(last.child!.length - 1)
+    const curEl = this.cursor.element as PartElement | PartMeta
+    !Object.hasOwn(curEl, "child") && (curEl.child = [])
+    curEl.child!.push({ type: "cond", text: value, child: [] })
+    this.cursor.push("if")
     return
   }
-
+  /** Заменяет последний элемент в именах пути
+   * для добавления блока else вторым элементом cond в child массиве
+   * - создает курсор на этот блок
+   * - cursor.path не изменяется
+   * - cursor.parts изменяется с if на else
+   */
   else() {
-    const last = this.cursor as PartElement | PartMeta
-    !Object.hasOwn(last, "child") && (last.child = [])
-    if (this.cursorPart === "if") {
-      this.parts.pop()
-      this.parts.push("else")
+    const curEl = this.cursor.element as PartElement | PartMeta
+    !Object.hasOwn(curEl, "child") && (curEl.child = [])
+    if (this.cursor.part === "if") {
+      this.cursor.parts.pop()
+      this.cursor.parts.push("else")
     }
     return
   }
 
+  /** Добавляет блок map в child массив
+   * - создает курсор на этот блок
+   * @param value - текст условия
+   */
   map(value: string) {
-    const last = this.cursor as PartElement | PartMeta
-    !Object.hasOwn(last, "child") && (last.child = [])
-    last.child!.push({ type: "map", text: value, child: [] })
-    this.parts.push(value)
+    const curEl = this.cursor.element as PartElement | PartMeta
+    !Object.hasOwn(curEl, "child") && (curEl.child = [])
+    curEl.child!.push({ type: "map", text: value, child: [] })
+    this.cursor.parts.push(value)
     return
   }
 
+  /** Добавляет элемент в child массив
+   * - создает курсор на этот блок
+   * - cursor.path добавляется с увеличением на 1
+   * - cursor.parts добавляется с именем тега
+   * @param value - текст условия
+   */
   open(part: PartElement | PartMeta) {
-    const last = this.cursor as PartElement | PartMeta
-    !Object.hasOwn(last, "child") && (last.child = [])
-    last.child!.push(part)
-    this.path.push(last.child!.length - 1)
-    this.parts.push(part.tag)
+    const curEl = this.cursor.element as PartElement | PartMeta
+    !Object.hasOwn(curEl, "child") && (curEl.child = [])
+    curEl.child!.push(part)
+    this.cursor.push(part.tag)
     return
   }
   close(tagName: string) {
     /** html`<div>${context.flag ? html`<br />` : html`<img src="x" />`}⬇️</div>`
      *                                              самозакрывающийся тег
      */
-    if (this.cursorPart === "else") {
+    if (this.cursor.part === "else") {
       // выходим из else
-      this.parts.pop()
-      this.path.pop()
+      this.cursor.back()
       // закрываем тег
-      this.parts.pop()
-      this.path.pop()
+      this.cursor.back()
       return
-    } else if (this.parts.pop() !== tagName) {
-      throw new Error(`Expected ${tagName} but got ${this.parts[this.parts.length - 1]}`)
+    } else {
+      const deleted = this.cursor.back()
+      if (deleted !== tagName) {
+        throw new Error(`Expected ${tagName} but got ${deleted}`)
+      }
+      /** Выходим из else если были в блоке else */
+      if (this.cursor.part === "else") {
+        this.cursor.back() // удаляем else и выходим из элемента cond
+      }
+      return
     }
-    this.path.pop()
-    /** Выходим из else */
-    if (this.cursorPart === "else") {
-      this.parts.pop() // удаляем else
-      this.path.pop() // выходим из элемента cond
-    }
-    return
   }
 }
 
