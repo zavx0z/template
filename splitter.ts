@@ -1,7 +1,6 @@
-import type { TagKind, TagToken } from "./splitter.t"
 import type { Context, Core, State, RenderParams } from "./index.t"
 import type { PartCondition, PartElement, PartHierarchy, PartMap, PartMeta, PartsHierarchy } from "./hierarchy.t"
-import { findCondOpen, findCondElse, findCondClose, findMapOpen, findMapClose, findAllConditions } from "./token"
+import { findCondElse, findCondClose, findMapOpen, findMapClose, findAllConditions } from "./token"
 import type { StreamToken } from "./token.t"
 // ============================================================================
 // HTML EXTRACTION
@@ -217,7 +216,7 @@ class Hierarchy {
   }
 }
 
-export const extractHtmlElements = (input: string, offset = 0): PartsHierarchy => {
+export const extractHtmlElements = (input: string): PartsHierarchy => {
   const cursor = new Hierarchy()
 
   let lastIndex = 0
@@ -338,19 +337,14 @@ export const extractHtmlElements = (input: string, offset = 0): PartsHierarchy =
       continue
     }
 
-    let kind: TagKind
     if (full.startsWith("</")) {
       cursor.close(name)
-      kind = "close"
     } else if (full.endsWith("/>")) {
       cursor.self({ tag: name, type: "el", text: full })
-      kind = "self"
     } else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) {
       cursor.self({ tag: name, type: "el", text: full })
-      kind = "void"
     } else {
       cursor.open({ tag: name, type: "el", text: full })
-      kind = "open"
     }
 
     TAG_LOOKAHEAD.lastIndex = tagEnd
@@ -358,15 +352,6 @@ export const extractHtmlElements = (input: string, offset = 0): PartsHierarchy =
   }
 
   return cursor.child
-}
-
-export type ElementKind = TagKind | "text"
-export type ElementToken = {
-  text: string
-  start: number // индекс начала по оригинальному входу (включительно)
-  end: number // индекс конца по оригинальному входу (исключительно)
-  name: string
-  kind: ElementKind
 }
 
 const formatAttributeText = (text: string): string =>
@@ -388,80 +373,3 @@ const cutBeforeNextHtml = (s: string): string => {
   const idx = s.indexOf("html`")
   return idx >= 0 ? s.slice(0, idx) : s
 }
-// const pushText = (chunk: string, start: number) => {
-//   if (!chunk || /^\s+$/.test(chunk)) return
-
-//   const trimmed = chunk.trim()
-//   if (isPureGlue(trimmed)) return
-
-//   // Сохраняем левую «видимую» часть до html`
-//   const visible = cutBeforeNextHtml(chunk)
-//   if (!visible || /^\s+$/.test(visible)) return
-
-//   // Собираем, оставляя только полностью закрытые ${...}
-//   let processed = ""
-//   let i = 0
-//   let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
-
-//   while (i < visible.length) {
-//     const ch = visible[i]
-//     if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
-//       const exprStart = i
-//       i += 2
-//       let b = 1
-//       while (i < visible.length && b > 0) {
-//         if (visible[i] === "{") b++
-//         else if (visible[i] === "}") b--
-//         i++
-//       }
-//       if (b === 0) {
-//         // закрытая интерполяция — целиком сохраняем
-//         processed += visible.slice(exprStart, i)
-//         usedEndLocal = i
-//         continue
-//       } else {
-//         // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
-//         // индексы конца должны соответствовать реально использованной части
-//         break
-//       }
-//     }
-//     processed += ch
-//     i++
-//     usedEndLocal = i
-//   }
-
-//   const collapsed = processed.replace(/\s+/g, " ")
-//   if (collapsed === " ") return
-
-//   const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
-
-//   if (final.length > 0) {
-//     out.push({
-//       text: final,
-//       start,
-//       end: start + usedEndLocal, // точный конец по исходнику (исключительно)
-//       name: "",
-//       kind: "text",
-//     })
-//   }
-// }
-
-// for (const tag of tags) {
-//   if (tag.start > cursor) {
-//     // текст между предыдущим концом и началом текущего тега
-//     pushText(input.slice(cursor, tag.start), cursor)
-//   }
-//   // теги: нормализуем только отображаемый text, но индексы — сырые
-//   out.push({
-//     text: formatAttributeText(tag.text),
-//     start: tag.start,
-//     end: tag.end,
-//     name: tag.name,
-//     kind: tag.kind,
-//   })
-//   cursor = tag.end
-// }
-
-// if (cursor < input.length) {
-//   pushText(input.slice(cursor), cursor)
-// }

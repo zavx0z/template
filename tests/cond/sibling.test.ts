@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../splitter"
-import { enrichWithData } from "../data"
-import { extractAttributes } from "../attributes"
-import type { Node } from "../index.t"
-import type { PartAttrs } from "../attributes.t"
-import type { PartsHierarchy } from "../hierarchy.t"
+import { extractMainHtmlBlock, extractHtmlElements } from "../../splitter"
+import { enrichWithData } from "../../data"
+import { extractAttributes } from "../../attributes"
+import type { Node } from "../../index.t"
+import type { PartAttrs } from "../../attributes.t"
+import type { PartsHierarchy } from "../../hierarchy.t"
 
 describe("условия соседствующие", () => {
   describe("условие соседствующее с условием на верхнем уровне", () => {
