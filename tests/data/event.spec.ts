@@ -1,7 +1,6 @@
 import { it, describe, expect } from "bun:test"
 import { enrichWithData } from "../../data"
 import type { PartAttrs } from "../../attributes.t"
-import { extractTokens } from "./token"
 
 describe("event", () => {
   it("update в функции", () => {

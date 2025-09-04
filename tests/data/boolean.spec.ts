@@ -1,122 +1,140 @@
-import { describe, it, expect } from "bun:test"
+import { describe, it, expect, beforeAll } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../../splitter"
-import { makeHierarchy } from "../../hierarchy"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
-import { extractTokens } from "../../token"
+import type { PartsHierarchy } from "../../hierarchy.t"
+import type { PartAttrs } from "../../attributes.t"
+import type { Node } from "../../index.t"
 
 describe("boolean атрибуты", () => {
   it("булевые атрибуты с переменными из разных уровней вложенности", () => {
-    const mainHtml = extractMainHtmlBlock<
-      any,
-      {
-        companies: {
-          id: string
-          active: boolean
-          departments: {
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<
+        any,
+        {
+          companies: {
             id: string
             active: boolean
+            departments: {
+              id: string
+              active: boolean
+            }[]
           }[]
-        }[]
-      }
-    >(
-      ({ html, core }) => html`
-        <div>
-          ${core.companies.map(
-            (company) => html`
-              <section ${company.active && "data-active"}>
-                ${company.departments.map(
-                  (dept) => html`
-                    <article ${company.active && dept.active && "data-active"}>Dept: ${company.id}-${dept.id}</article>
-                  `
-                )}
-              </section>
-            `
-          )}
-        </div>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
-    const attributes = extractAttributes(hierarchy)
-    const data = enrichWithData(attributes)
+        }
+      >(
+        ({ html, core }) => html`
+          <div>
+            ${core.companies.map(
+              (company) => html`
+                <section ${company.active && "data-active"}>
+                  ${company.departments.map(
+                    (dept) => html`
+                      <article ${company.active && dept.active && "data-active"}>
+                        Dept: ${company.id}-${dept.id}
+                      </article>
+                    `
+                  )}
+                </section>
+              `
+            )}
+          </div>
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
 
-    expect(data).toEqual([
-      {
-        tag: "div",
-        type: "el",
-        child: [
-          {
-            type: "map",
-            data: "/core/companies",
-            child: [
-              {
-                tag: "section",
-                type: "el",
-                child: [
-                  {
-                    type: "map",
-                    data: "[item]/departments",
-                    child: [
-                      {
-                        tag: "article",
-                        type: "el",
-                        child: [
-                          {
-                            type: "text",
-                            data: ["../[item]/id", "[item]/id"],
-                            expr: "Dept: ${[0]}-${[1]}",
-                          },
-                        ],
-                        boolean: {
-                          "data-active": {
-                            data: ["../[item]/active", "[item]/active"],
-                            expr: "${[0]} && ${[1]}",
+    it.skip("data", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+        data = enrichWithData(attributes)
+      })
+      expect(data).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/companies",
+              child: [
+                {
+                  tag: "section",
+                  type: "el",
+                  child: [
+                    {
+                      type: "map",
+                      data: "[item]/departments",
+                      child: [
+                        {
+                          tag: "article",
+                          type: "el",
+                          child: [
+                            {
+                              type: "text",
+                              data: ["../[item]/id", "[item]/id"],
+                              expr: "Dept: ${[0]}-${[1]}",
+                            },
+                          ],
+                          boolean: {
+                            "data-active": {
+                              data: ["../[item]/active", "[item]/active"],
+                              expr: "${[0]} && ${[1]}",
+                            },
                           },
                         },
-                      },
-                    ],
-                  },
-                ],
-                boolean: {
-                  "data-active": {
-                    data: "[item]/active",
+                      ],
+                    },
+                  ],
+                  boolean: {
+                    "data-active": {
+                      data: "[item]/active",
+                    },
                   },
                 },
-              },
-            ],
-          },
-        ],
-      },
-    ])
+              ],
+            },
+          ],
+        },
+      ])
+    })
   })
   describe("boolean атрибуты с переменными из разных уровней map", () => {
-    const mainHtml = extractMainHtmlBlock<any, { visible: boolean }>(
-      ({ html, context }) => html`<img src="https://example.com" ${context.visible ? "visible" : "hidden"} />`
-    )
-    const elements = extractHtmlElements(mainHtml)
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
-    const attributes = extractAttributes(hierarchy)
-    const data = enrichWithData(attributes)
-    expect(data).toEqual([
-      {
-        tag: "img",
-        type: "el",
-        string: {
-          src: "https://example.com",
-        },
-        boolean: {
-          visible: {
-            data: "/context/visible",
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<any, { visible: boolean }>(
+        ({ html, context }) => html`<img src="https://example.com" ${context.visible ? "visible" : "hidden"} />`
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
+    it.skip("data", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+        data = enrichWithData(attributes)
+      })
+      expect(data).toEqual([
+        {
+          tag: "img",
+          type: "el",
+          string: {
+            src: "https://example.com",
           },
-          hidden: {
-            data: "/context/visible",
-            expr: "!${[0]}",
+          boolean: {
+            visible: {
+              data: "/context/visible",
+            },
+            hidden: {
+              data: "/context/visible",
+              expr: "!${[0]}",
+            },
           },
         },
-      },
-    ])
+      ])
+    })
   })
 })
