@@ -1,6 +1,15 @@
-import type {ParseAttributeResult, ParseContext, ParseMapContext, ParseResult, ParseTextPart} from "./data.t"
-import type {AttrVariable, Node, NodeCondition, NodeElement, NodeMap, NodeMeta, NodeText, StyleObject,} from "./index.t"
-import type {PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs, PartText} from "./attributes.t"
+import type { ParseAttributeResult, ParseContext, ParseMapContext, ParseResult, ParseTextPart } from "./data.t"
+import type {
+  AttrVariable,
+  Node,
+  NodeCondition,
+  NodeElement,
+  NodeMap,
+  NodeMeta,
+  NodeText,
+  StyleObject,
+} from "./index.t"
+import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs, PartText } from "./attributes.t"
 
 // ============================================================================
 // REGEX PATTERNS
@@ -174,29 +183,16 @@ const processSemanticAttributes = (
   let expr = str
 
   // Защищаем строковые литералы от замены
-  const stringLiterals: string[] = []
-  let protectedExpr = expr
-    .replace(/"[^"]*"/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-    .replace(/'[^']*'/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
+  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
 
   uniqueVariables.forEach((variable: string, index: number) => {
     // Заменяем переменные на индексы во всем выражении
     const variableRegex = new RegExp(`(?<!\\w)${variable.replace(/\./g, "\\.")}(?!\\w)`, "g")
-    protectedExpr = protectedExpr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
+    expr = expr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
   })
 
   // Восстанавливаем строковые литералы
-  stringLiterals.forEach((literal, index) => {
-    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
-  })
-
-  expr = protectedExpr
+  expr = restoreStringLiterals(expr, stringLiterals)
 
   // Применяем форматирование к выражению
   expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
@@ -525,27 +521,18 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
   let expr = value
 
   // Сначала защищаем строковые литералы от замены
-  const stringLiterals: string[] = []
-  let protectedExpr = expr
-    .replace(/"[^"]*"/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-    .replace(/'[^']*'/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
+  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
 
   // Заменяем переменные в ${} на индексы
   variables.forEach((variable, index) => {
     // Сначала заменяем точные совпадения ${variable}
     const exactRegex = new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g")
-    protectedExpr = protectedExpr.replace(exactRegex, `\${${ARGUMENTS_PREFIX}[${index}]}`)
+    expr = expr.replace(exactRegex, `\${${ARGUMENTS_PREFIX}[${index}]}`)
 
     // Затем заменяем переменные внутри ${} выражений (для условных выражений)
     // Но только если это не точное совпадение
     const insideRegex = new RegExp(`\\$\\{([^}]*?)\\b${variable.replace(/\./g, "\\.")}\\b([^}]*?)\\}`, "g")
-    protectedExpr = protectedExpr.replace(insideRegex, (match, before, after) => {
+    expr = expr.replace(insideRegex, (match, before, after) => {
       // Проверяем, что это не точное совпадение
       if (before.trim() === "" && after.trim() === "") {
         return match // Не заменяем точные совпадения
@@ -555,14 +542,12 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
   })
 
   // Удаляем лишние пробелы и переносы строк в выражениях
-  protectedExpr = protectedExpr.replace(WHITESPACE_PATTERN, " ").trim()
+  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
 
   // Восстанавливаем строковые литералы
-  stringLiterals.forEach((literal, index) => {
-    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
-  })
+  expr = restoreStringLiterals(expr, stringLiterals)
 
-  return protectedExpr
+  return expr
 }
 
 /**
@@ -595,6 +580,258 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
 // ============================================================================
 
 /**
+ * Общая функция для обработки атрибутов с template literals.
+ * Устраняет дублирование кода между различными типами атрибутов.
+ */
+const processTemplateLiteralAttribute = (
+  value: string,
+  context: ParseContext
+): { data: string | string[]; expr?: string } | null => {
+  const templateResult = parseTemplateLiteral(value, context)
+  if (templateResult && templateResult.data) {
+    // Проверяем, является ли это простой переменной (только одна переменная без дополнительного текста)
+    const isSimpleVariable = templateResult.expr === "${[0]}" && !Array.isArray(templateResult.data)
+
+    return {
+      data: templateResult.data,
+      ...(templateResult.expr && !isSimpleVariable && { expr: templateResult.expr }),
+    }
+  }
+  return null
+}
+
+/**
+ * Общая функция для обработки булевых атрибутов с переменными.
+ * Устраняет дублирование кода в processBooleanAttributes.
+ */
+const processBooleanAttributeWithVariables = (
+  booleanValue: string,
+  context: ParseContext
+): { data: string | string[]; expr?: string } | null => {
+  const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+
+  if (variableMatches.length === 0) {
+    return null
+  }
+
+  // Обрабатываем все переменные в выражении
+  const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
+
+  // Создаем выражение, заменяя переменные на индексы
+  let expr = booleanValue
+  variableMatches.forEach((variable, index) => {
+    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${ARGUMENTS_PREFIX}[${index}]}`)
+  })
+
+  if (paths.length === 1) {
+    // Проверяем, есть ли отрицание или другие операции
+    const hasNegation = booleanValue.includes("!(") || booleanValue.includes("!")
+    const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(booleanValue)
+
+    // Проверяем, является ли это просто переменной без операций
+    const isSimpleVariable = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(booleanValue.trim())
+
+    if ((hasNegation || hasComplexOperations) && !isSimpleVariable) {
+      // Для отрицания убираем лишние скобки
+      let finalExpr = expr
+      if (hasNegation && expr.includes("!(") && expr.includes(")")) {
+        finalExpr = expr.replace(/^!\(/, "!").replace(/\)$/, "")
+      }
+
+      return {
+        data: paths[0] || "",
+        expr: finalExpr,
+      }
+    } else {
+      // Простая переменная без операций
+      return {
+        data: paths[0] || "",
+      }
+    }
+  } else {
+    return {
+      data: paths,
+      expr: expr,
+    }
+  }
+}
+
+/**
+ * Общая функция для обработки событийных атрибутов.
+ * Устраняет дублирование кода в processEventAttributes.
+ */
+const processSingleEventAttribute = (
+  value: string,
+  eventResult: ParseAttributeResult | null,
+  context: ParseContext
+): any => {
+  if (eventResult) {
+    // Для update выражений может быть пустой массив data, но есть upd
+    if (eventResult.upd) {
+      // Это update выражение
+      const eventObj: any = {
+        expr: eventResult.expr || "",
+        upd: eventResult.upd,
+      }
+      // Добавляем data только если оно есть
+      if (eventResult.data) {
+        eventObj.data = eventResult.data
+      }
+      return eventObj
+    } else if (eventResult.data) {
+      // Обычное событие с данными
+      if (eventResult.expr && typeof eventResult.expr === "string") {
+        // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
+        return {
+          data: eventResult.data,
+          expr: eventResult.expr,
+        }
+      } else {
+        // Если нет выражения, создаем AttrVariable (только строка)
+        return {
+          data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
+        }
+      }
+    }
+  }
+
+  // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
+  if (value && value.trim() !== "") {
+    return {
+      data: value,
+    }
+  }
+
+  // Иначе возвращаем null для игнорирования пустых событий
+  return null
+}
+
+/**
+ * Общая функция для обработки базовых атрибутов элемента.
+ * Устраняет дублирование кода между createNodeDataElement и createNodeDataMeta.
+ */
+const processBasicAttributes = (
+  node: PartAttrElement | PartAttrMeta,
+  context: ParseContext
+): Partial<NodeElement | NodeMeta> => {
+  const result: Partial<NodeElement | NodeMeta> = {}
+
+  // Обрабатываем базовые атрибуты
+  if (node.string) {
+    result.string = processStringAttributes(node.string, context)
+  }
+
+  if (node.event) {
+    const eventAttrs = processEventAttributes(node.event, context)
+    if (Object.keys(eventAttrs).length > 0) {
+      result.event = eventAttrs
+    }
+  }
+
+  if (node.array) {
+    result.array = processArrayAttributes(node.array, context)
+  }
+
+  if (node.boolean) {
+    result.boolean = processBooleanAttributes(node.boolean, context)
+  }
+
+  if (node.style) {
+    const styleResult = processStyleAttributes(node.style, context)
+    if (styleResult) {
+      result.style = styleResult
+    }
+  }
+
+  return result
+}
+
+/**
+ * Общая функция для обработки семантических атрибутов (core/context).
+ * Устраняет дублирование кода в createNodeDataMeta.
+ */
+const processSemanticAttributesForNode = (node: PartAttrMeta, context: ParseContext): Partial<NodeMeta> => {
+  const result: Partial<NodeMeta> = {}
+
+  if ("core" in node && node.core) {
+    const coreResult = processSemanticAttributes(node.core, context)
+    if (coreResult) {
+      result.core = coreResult
+    } else {
+      result.core = node.core
+    }
+  }
+
+  if ("context" in node && node.context) {
+    const contextResult = processSemanticAttributes(node.context, context)
+    if (contextResult) {
+      result.context = contextResult
+    } else {
+      result.context = node.context
+    }
+  }
+
+  return result
+}
+
+/**
+ * Общая функция для поиска конца template literal.
+ * Устраняет дублирование кода в parseAttributesImproved.
+ */
+const findTemplateLiteralEnd = (tagContent: string, startIndex: number): number => {
+  let i = startIndex
+  let braceCount = 0
+
+  // Ищем конец template literal
+  while (i < tagContent.length) {
+    if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
+      // Начинается template literal
+      i += 2
+      braceCount = 1
+      while (i < tagContent.length && braceCount > 0) {
+        if (tagContent[i] === "{") braceCount++
+        else if (tagContent[i] === "}") braceCount--
+        i++
+      }
+    } else if (/\s/.test(tagContent[i]!)) {
+      // Пробел - конец значения
+      break
+    } else {
+      i++
+    }
+  }
+
+  return i
+}
+
+/**
+ * Общая функция для поиска конца template literal внутри кавычек.
+ * Устраняет дублирование кода в parseAttributesImproved.
+ */
+const findTemplateLiteralEndInQuotes = (tagContent: string, startIndex: number, quote: string): number => {
+  let i = startIndex
+
+  // Ищем закрывающую кавычку, учитывая template literals
+  while (i < tagContent.length) {
+    if (tagContent[i] === quote) break
+    if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
+      // Пропускаем template literal
+      i += 2
+      let braceCount = 1
+      while (i < tagContent.length && braceCount > 0) {
+        if (tagContent[i] === "{") braceCount++
+        else if (tagContent[i] === "}") braceCount--
+        i++
+      }
+    } else {
+      i++
+    }
+  }
+
+  return i
+}
+
+/**
  * Обрабатывает строковые атрибуты и создает соответствующие объекты.
  */
 const processStringAttributes = (
@@ -607,18 +844,8 @@ const processStringAttributes = (
     if (attr.type === "static") {
       result[key] = attr.value
     } else if (attr.type === "dynamic" || attr.type === "mixed") {
-      const templateResult = parseTemplateLiteral(attr.value, context)
-      if (templateResult && templateResult.data) {
-        // Проверяем, является ли это простой переменной (только одна переменная без дополнительного текста)
-        const isSimpleVariable = templateResult.expr === "${[0]}" && !Array.isArray(templateResult.data)
-
-        result[key] = {
-          data: templateResult.data,
-          ...(templateResult.expr && !isSimpleVariable && { expr: templateResult.expr }),
-        }
-      } else {
-        result[key] = attr.value
-      }
+      const processed = processTemplateLiteralAttribute(attr.value, context)
+      result[key] = processed || attr.value
     }
   }
 
@@ -633,50 +860,10 @@ const processEventAttributes = (eventAttrs: Record<string, string>, context: Par
 
   for (const [key, value] of Object.entries(eventAttrs)) {
     const eventResult = parseEventExpression(value, context)
-    if (eventResult) {
-      // Для update выражений может быть пустой массив data, но есть upd
-      if (eventResult.upd) {
-        // Это update выражение
-        const eventObj: any = {
-          expr: eventResult.expr || "",
-          upd: eventResult.upd,
-        }
-        // Добавляем data только если оно есть
-        if (eventResult.data) {
-          eventObj.data = eventResult.data
-        }
-        result[key] = eventObj
-      } else if (eventResult.data) {
-        // Обычное событие с данными
-        if (eventResult.expr && typeof eventResult.expr === "string") {
-          // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
-          result[key] = {
-            data: eventResult.data,
-            expr: eventResult.expr,
-          }
-        } else {
-          // Если нет выражения, создаем AttrVariable (только строка)
-          result[key] = {
-            data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
-          }
-        }
-      } else {
-        // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
-        if (value && value.trim() !== "") {
-          result[key] = {
-            data: value,
-          }
-        }
-        // Иначе игнорируем пустые события
-      }
-    } else {
-      // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
-      if (value && value.trim() !== "") {
-        result[key] = {
-          data: value,
-        }
-      }
-      // Иначе игнорируем пустые события
+    const processed = processSingleEventAttribute(value, eventResult, context)
+
+    if (processed) {
+      result[key] = processed
     }
   }
 
@@ -703,22 +890,9 @@ const processArrayAttributes = (
         return { value: item.value }
       } else if (item.type === "dynamic" || item.type === "mixed") {
         // Для динамических и смешанных атрибутов обрабатываем значение
-        const templateResult = parseTemplateLiteral(item.value, context)
-        if (templateResult && templateResult.data) {
-          // Проверяем, нужно ли добавлять expr
-          // Если expr равен "${[0]}" (что означает простую переменную), не добавляем expr
-          const isSimpleExpr = templateResult.expr === "${[0]}" || templateResult.expr === "[0]"
-
-          if (templateResult.expr && typeof templateResult.expr === "string" && !isSimpleExpr) {
-            return {
-              data: templateResult.data,
-              expr: templateResult.expr,
-            }
-          } else {
-            return {
-              data: Array.isArray(templateResult.data) ? templateResult.data[0] || "" : templateResult.data,
-            }
-          }
+        const processed = processTemplateLiteralAttribute(item.value, context)
+        if (processed) {
+          return processed
         } else {
           // Если parseTemplateLiteral вернул null, но это dynamic тип,
           // значит это уже нормализованное значение без ${}
@@ -766,52 +940,10 @@ const processBooleanAttributes = (
     } else if (attr.type === "dynamic" || attr.type === "mixed") {
       // Для булевых атрибутов используем специальную обработку
       const booleanValue = String(attr.value)
-      const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+      const processed = processBooleanAttributeWithVariables(booleanValue, context)
 
-      if (variableMatches.length > 0) {
-        // Обрабатываем все переменные в выражении
-        const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
-
-        // Создаем выражение, заменяя переменные на индексы
-        let expr = booleanValue
-        variableMatches.forEach((variable, index) => {
-          expr = expr.replace(
-            new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"),
-            `\${${ARGUMENTS_PREFIX}[${index}]}`
-          )
-        })
-
-        if (paths.length === 1) {
-          // Проверяем, есть ли отрицание или другие операции
-          const hasNegation = booleanValue.includes("!(") || booleanValue.includes("!")
-          const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(booleanValue)
-
-          // Проверяем, является ли это просто переменной без операций
-          const isSimpleVariable = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(booleanValue.trim())
-
-          if ((hasNegation || hasComplexOperations) && !isSimpleVariable) {
-            // Для отрицания убираем лишние скобки
-            let finalExpr = expr
-            if (hasNegation && expr.includes("!(") && expr.includes(")")) {
-              finalExpr = expr.replace(/^!\(/, "!").replace(/\)$/, "")
-            }
-
-            result[key] = {
-              data: paths[0] || "",
-              expr: finalExpr,
-            }
-          } else {
-            // Простая переменная без операций
-            result[key] = {
-              data: paths[0] || "",
-            }
-          }
-        } else {
-          result[key] = {
-            data: paths,
-            expr: expr,
-          }
-        }
+      if (processed) {
+        result[key] = processed
       } else {
         result[key] = false
       }
@@ -839,106 +971,29 @@ export const parseMap = (mapText: string, context: ParseContext = { pathStack: [
   // Парсим параметры map-функции
   const { params, isDestructured } = extractMapParams(paramsText.replace(/^\(|\)$/g, ""))
 
-  // Определяем тип пути
+  // Определяем тип пути и создаем соответствующий контекст
+  let targetPath: string
+
   if (dataPath.includes(".") && context.mapParams && context.mapParams.length > 0) {
     // Относительный путь в контексте map
     const parts = dataPath.split(".")
     const relativePath = parts[parts.length - 1] || ""
-
-    const newParseMapContext: ParseMapContext = {
-      path: `[item]/${relativePath}`,
-      params: params,
-      isDestructured: isDestructured,
-      level: context.level + 1,
-    }
-
-    const newContext: ParseContext = {
-      ...context,
-      currentPath: `[item]/${relativePath}`,
-      pathStack: [...context.pathStack, `[item]/${relativePath}`],
-      mapParams: params,
-      level: context.level + 1,
-      mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
-    }
-
-    return {
-      path: `[item]/${relativePath}`,
-      context: newContext,
-      metadata: { params },
-    }
+    targetPath = `[item]/${relativePath}`
+  } else if (
+    !dataPath.includes(".") &&
+    (context.currentPath?.includes("[item]") || (context.mapParams && context.mapParams.length > 0))
+  ) {
+    // Вложенный map в контексте map
+    targetPath = `[item]/${dataPath}`
+  } else {
+    // Абсолютный путь
+    targetPath = `/${dataPath.replace(/\./g, "/")}`
   }
 
-  // Если это вложенный map в контексте (например, nested.map)
-  if (!dataPath.includes(".") && context.currentPath && context.currentPath.includes("[item]")) {
-    const newParseMapContext: ParseMapContext = {
-      path: `[item]/${dataPath}`,
-      params: params,
-      isDestructured: isDestructured,
-      level: context.level + 1,
-    }
-
-    const newContext: ParseContext = {
-      ...context,
-      currentPath: `[item]/${dataPath}`,
-      pathStack: [...context.pathStack, `[item]/${dataPath}`],
-      mapParams: params,
-      level: context.level + 1,
-      mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
-    }
-
-    return {
-      path: `[item]/${dataPath}`,
-      context: newContext,
-      metadata: { params },
-    }
-  }
-
-  // Если это вложенный map в контексте map (например, nested.map в контексте map)
-  if (!dataPath.includes(".") && context.mapParams && context.mapParams.length > 0) {
-    const newParseMapContext: ParseMapContext = {
-      path: `[item]/${dataPath}`,
-      params: params,
-      isDestructured: isDestructured,
-      level: context.level + 1,
-    }
-
-    const newContext: ParseContext = {
-      ...context,
-      currentPath: `[item]/${dataPath}`,
-      pathStack: [...context.pathStack, `[item]/${dataPath}`],
-      mapParams: params,
-      level: context.level + 1,
-      mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
-    }
-
-    return {
-      path: `[item]/${dataPath}`,
-      context: newContext,
-      metadata: { params },
-    }
-  }
-
-  // Абсолютный путь
-  const absolutePath = `/${dataPath.replace(/\./g, "/")}`
-
-  const newParseMapContext: ParseMapContext = {
-    path: absolutePath,
-    params: params,
-    isDestructured: isDestructured,
-    level: context.level + 1,
-  }
-
-  const newContext: ParseContext = {
-    ...context,
-    currentPath: absolutePath,
-    pathStack: [...context.pathStack, absolutePath],
-    mapParams: params,
-    level: context.level + 1,
-    mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
-  }
+  const newContext = createNewParseContext(targetPath, params, isDestructured, context)
 
   return {
-    path: absolutePath,
+    path: targetPath,
     context: newContext,
     metadata: { params },
   }
@@ -1207,8 +1262,6 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
 
   // Одна переменная с дополнительным текстом
   const hasStaticText = parts.some((part) => part.type === "static" && part.text.trim() !== "")
-  const hasWhitespace = parts.some((part) => part.type === "static" && /\s/.test(part.text))
-
   // Добавляем expr только если есть статический текст (не пробельные символы)
   if (hasStaticText) {
     const expr = parts
@@ -1416,30 +1469,17 @@ export const parseTemplateLiteral = (
   let expr = value
 
   // Защищаем строковые литералы от замены
-  const stringLiterals: string[] = []
-  let protectedExpr = expr
-    .replace(/"[^"]*"/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-    .replace(/'[^']*'/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
+  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
 
   variables.forEach((variable: string, index: number) => {
     // Заменяем переменные на индексы во всем выражении
     // Используем более точное регулярное выражение для замены переменных
     const variableRegex = new RegExp(`(?<!\\w)${variable.replace(/\./g, "\\.")}(?!\\w)`, "g")
-    protectedExpr = protectedExpr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
+    expr = expr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
   })
 
   // Восстанавливаем строковые литералы
-  stringLiterals.forEach((literal, index) => {
-    protectedExpr = protectedExpr.replace(`__STRING_${index}__`, literal)
-  })
-
-  expr = protectedExpr
+  expr = restoreStringLiterals(expr, stringLiterals)
 
   // Применяем форматирование к выражению
   expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
@@ -1475,26 +1515,7 @@ const parseAttributesImproved = (
     if (!name || name.length === 0) {
       // Проверяем, есть ли template literal без имени атрибута (булевые атрибуты)
       const valueStart = i
-      let braceCount = 0
-
-      // Ищем конец template literal или следующий атрибут
-      while (i < tagContent.length) {
-        if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
-          // Начинается template literal
-          i += 2
-          braceCount = 1
-          while (i < tagContent.length && braceCount > 0) {
-            if (tagContent[i] === "{") braceCount++
-            else if (tagContent[i] === "}") braceCount--
-            i++
-          }
-        } else if (/\s/.test(tagContent[i]!)) {
-          // Пробел - конец значения
-          break
-        } else {
-          i++
-        }
-      }
+      i = findTemplateLiteralEnd(tagContent, i)
 
       const value = tagContent.slice(valueStart, i)
 
@@ -1531,21 +1552,7 @@ const parseAttributesImproved = (
       const valueStart = i
 
       // Ищем закрывающую кавычку, учитывая template literals
-      while (i < tagContent.length) {
-        if (tagContent[i] === quote) break
-        if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
-          // Пропускаем template literal
-          i += 2
-          let braceCount = 1
-          while (i < tagContent.length && braceCount > 0) {
-            if (tagContent[i] === "{") braceCount++
-            else if (tagContent[i] === "}") braceCount--
-            i++
-          }
-        } else {
-          i++
-        }
-      }
+      i = findTemplateLiteralEndInQuotes(tagContent, i, quote!)
 
       const value = tagContent.slice(valueStart, i)
       if (i < tagContent.length) i++ // пропускаем закрывающую кавычку
@@ -1560,26 +1567,7 @@ const parseAttributesImproved = (
     } else {
       // Проверяем, есть ли template literal без кавычек
       const valueStart = i
-      let braceCount = 0
-
-      // Ищем конец template literal или следующий атрибут
-      while (i < tagContent.length) {
-        if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
-          // Начинается template literal
-          i += 2
-          braceCount = 1
-          while (i < tagContent.length && braceCount > 0) {
-            if (tagContent[i] === "{") braceCount++
-            else if (tagContent[i] === "}") braceCount--
-            i++
-          }
-        } else if (/\s/.test(tagContent[i]!)) {
-          // Пробел - конец значения
-          break
-        } else {
-          i++
-        }
-      }
+      i = findTemplateLiteralEnd(tagContent, i)
 
       const value = tagContent.slice(valueStart, i)
 
@@ -1715,50 +1703,13 @@ export const createNodeDataMeta = (
     }
   }
 
-  // Обрабатываем уже извлеченные атрибуты с помощью общих утилит
-  if (node.string) {
-    result.string = processStringAttributes(node.string, context)
-  }
+  // Обрабатываем базовые атрибуты
+  const processedAttrs = processBasicAttributes(node, context)
+  Object.assign(result, processedAttrs)
 
-  if (node.event) {
-    const eventAttrs = processEventAttributes(node.event, context)
-    if (Object.keys(eventAttrs).length > 0) {
-      result.event = eventAttrs
-    }
-  }
-
-  if (node.array) {
-    result.array = processArrayAttributes(node.array, context)
-  }
-
-  if (node.boolean) {
-    result.boolean = processBooleanAttributes(node.boolean, context)
-  }
-
-  if (node.style) {
-    const styleResult = processStyleAttributes(node.style, context)
-    if (styleResult) {
-      result.style = styleResult
-    }
-  }
-
-  if (node.core) {
-    const coreResult = processSemanticAttributes(node.core, context)
-    if (coreResult) {
-      result.core = coreResult
-    } else {
-      result.core = node.core
-    }
-  }
-
-  if (node.context) {
-    const contextResult = processSemanticAttributes(node.context, context)
-    if (contextResult) {
-      result.context = contextResult
-    } else {
-      result.context = node.context
-    }
-  }
+  // Обрабатываем семантические атрибуты
+  const semanticAttrs = processSemanticAttributesForNode(node, context)
+  Object.assign(result, semanticAttrs)
 
   // Добавляем дочерние элементы, если они есть
   if (node.child && node.child.length > 0) {
@@ -1797,32 +1748,9 @@ export const createNodeDataElement = (
       result.child = node.child.map((child) => createNodeDataElement(child, context))
     }
 
-    // Обрабатываем уже извлеченные атрибуты с помощью общих утилит
-    if (node.string) {
-      result.string = processStringAttributes(node.string, context)
-    }
-
-    if (node.event) {
-      const eventAttrs = processEventAttributes(node.event, context)
-      if (Object.keys(eventAttrs).length > 0) {
-        result.event = eventAttrs
-      }
-    }
-
-    if (node.array) {
-      result.array = processArrayAttributes(node.array, context)
-    }
-
-    if (node.boolean) {
-      result.boolean = processBooleanAttributes(node.boolean, context)
-    }
-
-    if (node.style) {
-      const styleResult = processStyleAttributes(node.style, context)
-      if (styleResult) {
-        result.style = styleResult
-      }
-    }
+    // Обрабатываем атрибуты с помощью общей функции
+    const processedAttrs = processBasicAttributes(node, context)
+    Object.assign(result, processedAttrs)
 
     return result
   }
@@ -1869,4 +1797,74 @@ export const createNodeDataElement = (
 
 export const enrichWithData = (hierarchy: PartAttrs, context: ParseContext = { pathStack: [], level: 0 }): Node[] => {
   return hierarchy.map((node) => createNodeDataElement(node, context))
+}
+
+// ============================================================================
+// HELPER FUNCTIONS FOR CODE REUSE
+// ============================================================================
+
+/**
+ * Создает новый map контекст для устранения дублирования кода.
+ */
+const createMapContext = (
+  path: string,
+  params: string[],
+  isDestructured: boolean,
+  context: ParseContext
+): ParseMapContext => ({
+  path,
+  params,
+  isDestructured,
+  level: context.level + 1,
+})
+
+/**
+ * Создает новый контекст парсера для map операций.
+ */
+const createNewParseContext = (
+  path: string,
+  params: string[],
+  isDestructured: boolean,
+  context: ParseContext
+): ParseContext => {
+  const newParseMapContext = createMapContext(path, params, isDestructured, context)
+
+  return {
+    ...context,
+    currentPath: path,
+    pathStack: [...context.pathStack, path],
+    mapParams: params,
+    level: context.level + 1,
+    mapContextStack: [...(context.mapContextStack || []), newParseMapContext],
+  }
+}
+
+/**
+ * Защищает строковые литералы от замены переменных.
+ * Переиспользуемая функция для устранения дублирования.
+ */
+const protectStringLiterals = (expr: string): { protectedExpr: string; stringLiterals: string[] } => {
+  const stringLiterals: string[] = []
+  const protectedExpr = expr
+    .replace(/"[^"]*"/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
+  return { protectedExpr, stringLiterals }
+}
+
+/**
+ * Восстанавливает строковые литералы после обработки.
+ */
+const restoreStringLiterals = (expr: string, stringLiterals: string[]): string => {
+  let result = expr
+  stringLiterals.forEach((literal, index) => {
+    result = result.replace(`__STRING_${index}__`, literal)
+  })
+  return result
 }
