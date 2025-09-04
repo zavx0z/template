@@ -1,27 +1,22 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "../../attributes.ts"
+import { parseAttributes } from "../../parser.ts"
 
-describe.each([
-  ["element", "<input"],
-  ["component", "<x-el"],
-  ["meta-hash", "<meta-hash"],
-  ["meta-${...}", "<meta-${core.meta}>"],
-])("accept для %s", (_, tag) => {
+describe("accept", () => {
   describe("статические значения", () => {
     it("одно", () => {
-      const attrs = parseAttributes(tag + ' accept="image/png">')
+      const attrs = parseAttributes('accept="image/png"')
       expect(attrs).toEqual({
         string: { accept: { type: "static", value: "image/png" } },
       })
     })
     it("одно без кавычек", () => {
-      const attrs = parseAttributes(tag + " accept=image/png>")
+      const attrs = parseAttributes("accept=image/png")
       expect(attrs).toEqual({
         string: { accept: { type: "static", value: "image/png" } },
       })
     })
     it("одно значение с запятой внутри", () => {
-      const attrs = parseAttributes(tag + ' accept="image/png,image/jpeg">')
+      const attrs = parseAttributes('accept="image/png,image/jpeg"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -32,7 +27,7 @@ describe.each([
       })
     })
     it("одно значение с пробелами и запятыми", () => {
-      const attrs = parseAttributes(tag + ' accept="image/png, image/jpeg">')
+      const attrs = parseAttributes('accept="image/png, image/jpeg"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -43,7 +38,7 @@ describe.each([
       })
     })
     it("несколько", () => {
-      const attrs = parseAttributes(tag + ' accept="image/png, image/jpeg, .pdf">')
+      const attrs = parseAttributes('accept="image/png, image/jpeg, .pdf"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -55,7 +50,7 @@ describe.each([
       })
     })
     it("несколько с разными типами", () => {
-      const attrs = parseAttributes(tag + ' accept="image/*, video/*, .pdf, .doc">')
+      const attrs = parseAttributes('accept="image/*, video/*, .pdf, .doc"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -68,7 +63,7 @@ describe.each([
       })
     })
     it("несколько с пробелами", () => {
-      const attrs = parseAttributes(tag + ' accept="image/png , image/jpeg , .pdf">')
+      const attrs = parseAttributes('accept="image/png , image/jpeg , .pdf"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -83,19 +78,19 @@ describe.each([
 
   describe("динамические значения", () => {
     it("одно", () => {
-      const attrs = parseAttributes(tag + ' accept="${core.mime}">')
+      const attrs = parseAttributes('accept="${core.mime}"')
       expect(attrs).toEqual({
         string: { accept: { type: "dynamic", value: "${core.mime}" } },
       })
     })
     it("одно без кавычек", () => {
-      const attrs = parseAttributes(tag + " accept=${core.mime}>")
+      const attrs = parseAttributes("accept=${core.mime}")
       expect(attrs).toEqual({
         string: { accept: { type: "dynamic", value: "${core.mime}" } },
       })
     })
     it("несколько", () => {
-      const attrs = parseAttributes(tag + ' accept="${core.mime}, ${core.mime}">')
+      const attrs = parseAttributes('accept="${core.mime}, ${core.mime}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -107,16 +102,14 @@ describe.each([
     })
 
     it("с операторами сравнения", () => {
-      const attrs = parseAttributes(tag + ' accept="${core.type === "image" ? "image/*" : "text/*"}">')
+      const attrs = parseAttributes('accept="${core.type === "image" ? "image/*" : "text/*"}"')
       expect(attrs).toEqual({
         string: { accept: { type: "dynamic", value: '${core.type === "image" ? "image/*" : "text/*"}' } },
       })
     })
 
     it("с логическими операторами", () => {
-      const attrs = parseAttributes(
-        tag + ' accept="${core.allowImages && core.allowDocs ? "image/*,.pdf" : "text/*"}">'
-      )
+      const attrs = parseAttributes('accept="${core.allowImages && core.allowDocs ? "image/*,.pdf" : "text/*"}"')
       expect(attrs).toEqual({
         string: {
           accept: { type: "dynamic", value: '${core.allowImages && core.allowDocs ? "image/*,.pdf" : "text/*"}' },
@@ -125,9 +118,7 @@ describe.each([
     })
 
     it("с оператором ИЛИ", () => {
-      const attrs = parseAttributes(
-        tag + ' accept="${core.allowImages || core.allowVideos ? "image/*,video/*" : "text/*"}">'
-      )
+      const attrs = parseAttributes('accept="${core.allowImages || core.allowVideos ? "image/*,video/*" : "text/*"}"')
       expect(attrs).toEqual({
         string: {
           accept: { type: "dynamic", value: '${core.allowImages || core.allowVideos ? "image/*,video/*" : "text/*"}' },
@@ -136,14 +127,14 @@ describe.each([
     })
 
     it("с оператором НЕ", () => {
-      const attrs = parseAttributes(tag + ' accept="${!core.restricted ? "image/*,video/*" : "text/*"}">')
+      const attrs = parseAttributes('accept="${!core.restricted ? "image/*,video/*" : "text/*"}"')
       expect(attrs).toEqual({
         string: { accept: { type: "dynamic", value: '${!core.restricted ? "image/*,video/*" : "text/*"}' } },
       })
     })
 
     it("сложное выражение с запятыми", () => {
-      const attrs = parseAttributes(tag + ' accept="${core.type === "image" ? "image/png,image/jpeg" : "text/plain"}">')
+      const attrs = parseAttributes('accept="${core.type === "image" ? "image/png,image/jpeg" : "text/plain"}"')
       expect(attrs).toEqual({
         string: {
           accept: { type: "dynamic", value: '${core.type === "image" ? "image/png,image/jpeg" : "text/plain"}' },
@@ -152,9 +143,7 @@ describe.each([
     })
 
     it("выражение с множественными условиями", () => {
-      const attrs = parseAttributes(
-        tag + ' accept="${core.allowImages && core.allowDocs ? "image/*,.pdf,.doc" : "text/*"}">'
-      )
+      const attrs = parseAttributes('accept="${core.allowImages && core.allowDocs ? "image/*,.pdf,.doc" : "text/*"}"')
       expect(attrs).toEqual({
         string: {
           accept: { type: "dynamic", value: '${core.allowImages && core.allowDocs ? "image/*,.pdf,.doc" : "text/*"}' },
@@ -163,7 +152,7 @@ describe.each([
     })
 
     it("несколько динамических значений", () => {
-      const attrs = parseAttributes(tag + ' accept="${core.imageType}, ${core.videoType}, ${core.docType}">')
+      const attrs = parseAttributes('accept="${core.imageType}, ${core.videoType}, ${core.docType}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -176,7 +165,7 @@ describe.each([
     })
 
     it("динамические значения с пробелами", () => {
-      const attrs = parseAttributes(tag + ' accept="${core.type1} , ${core.type2} , ${core.type3}">')
+      const attrs = parseAttributes('accept="${core.type1} , ${core.type2} , ${core.type3}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -191,7 +180,7 @@ describe.each([
 
   describe("смешанные значения", () => {
     it("одно", () => {
-      const attrs = parseAttributes(tag + ' accept="image/*, ${core.mime}">')
+      const attrs = parseAttributes('accept="image/*, ${core.mime}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -203,7 +192,7 @@ describe.each([
     })
 
     it("несколько", () => {
-      const attrs = parseAttributes(tag + ' accept="image/*, ${core.mime}, .pdf">')
+      const attrs = parseAttributes('accept="image/*, ${core.mime}, .pdf"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -216,7 +205,7 @@ describe.each([
     })
 
     it("с операторами сравнения в смешанном значении", () => {
-      const attrs = parseAttributes(tag + ' accept="image-${core.type === "png" ? "png" : "jpeg"}">')
+      const attrs = parseAttributes('accept="image-${core.type === "png" ? "png" : "jpeg"}"')
       expect(attrs).toEqual({
         string: {
           accept: {
@@ -228,7 +217,7 @@ describe.each([
     })
 
     it("с логическими операторами в смешанном значении", () => {
-      const attrs = parseAttributes(tag + ' accept="file-${core.allowImages && core.allowVideos ? "media" : "doc"}">')
+      const attrs = parseAttributes('accept="file-${core.allowImages && core.allowVideos ? "media" : "doc"}"')
       expect(attrs).toEqual({
         string: {
           accept: {
@@ -240,7 +229,7 @@ describe.each([
     })
 
     it("смешанное значение с запятыми", () => {
-      const attrs = parseAttributes(tag + ' accept="type-${core.format === "image" ? "png,jpeg" : "pdf,doc"}">')
+      const attrs = parseAttributes('accept="type-${core.format === "image" ? "png,jpeg" : "pdf,doc"}"')
       expect(attrs).toEqual({
         string: {
           accept: {
@@ -252,7 +241,7 @@ describe.each([
     })
 
     it("несколько смешанных значений", () => {
-      const attrs = parseAttributes(tag + ' accept="image-${core.type}, video-${core.format}, .${core.ext}">')
+      const attrs = parseAttributes('accept="image-${core.type}, video-${core.format}, .${core.ext}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -265,7 +254,7 @@ describe.each([
     })
 
     it("смешанные значения с пробелами", () => {
-      const attrs = parseAttributes(tag + ' accept="img-${core.type} , vid-${core.format} , .${core.ext}">')
+      const attrs = parseAttributes('accept="img-${core.type} , vid-${core.format} , .${core.ext}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -280,9 +269,7 @@ describe.each([
 
   describe("различные варианты", () => {
     it("с условными типами файлов", () => {
-      const attrs = parseAttributes(
-        tag + ' accept="image/*, ${core.allowPdf ? ".pdf" : ""}, ${core.allowDoc ? ".doc" : ""}">'
-      )
+      const attrs = parseAttributes('accept="image/*, ${core.allowPdf ? ".pdf" : ""}, ${core.allowDoc ? ".doc" : ""}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -295,7 +282,7 @@ describe.each([
     })
 
     it("с вложенными выражениями", () => {
-      const attrs = parseAttributes(tag + ' accept="media/${core.nested ? "nested" : "default"}">')
+      const attrs = parseAttributes('accept="media/${core.nested ? "nested" : "default"}"')
       expect(attrs).toEqual({
         string: {
           accept: {
@@ -307,7 +294,7 @@ describe.each([
     })
 
     it("с пустыми значениями", () => {
-      const attrs = parseAttributes(tag + ' accept="image/*, ${core.allowPdf ? ".pdf" : ""}">')
+      const attrs = parseAttributes('accept="image/*, ${core.allowPdf ? ".pdf" : ""}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -320,7 +307,7 @@ describe.each([
 
     it("сложное условное выражение как строка", () => {
       const attrs = parseAttributes(
-        tag + ' accept="${core.type === "image" && core.quality === "high" ? "image/png,image/jpeg" : "image/*"}">'
+        'accept="${core.type === "image" && core.quality === "high" ? "image/png,image/jpeg" : "image/*"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -334,7 +321,7 @@ describe.each([
 
     it("выражение с вложенными условиями", () => {
       const attrs = parseAttributes(
-        tag + ' accept="${core.allowImages ? (core.highQuality ? "image/png,image/jpeg" : "image/*") : "text/*"}">'
+        'accept="${core.allowImages ? (core.highQuality ? "image/png,image/jpeg" : "image/*") : "text/*"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -347,7 +334,7 @@ describe.each([
     })
 
     it("массив с тремя типами значений", () => {
-      const attrs = parseAttributes(tag + ' accept="image/*, ${core.videoType}, video-${core.format}">')
+      const attrs = parseAttributes('accept="image/*, ${core.videoType}, video-${core.format}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -360,7 +347,7 @@ describe.each([
     })
 
     it("массив с четырьмя типами значений", () => {
-      const attrs = parseAttributes(tag + ' accept="image/*, ${core.videoType}, video-${core.format}, .${core.ext}">')
+      const attrs = parseAttributes('accept="image/*, ${core.videoType}, video-${core.format}, .${core.ext}"')
       expect(attrs).toEqual({
         array: {
           accept: [
@@ -375,8 +362,7 @@ describe.each([
 
     it("массив с условными значениями", () => {
       const attrs = parseAttributes(
-        tag +
-          ' accept="image/*, ${core.allowPdf ? ".pdf" : ""}, ${core.allowDoc ? ".doc" : ""}, ${core.allowTxt ? ".txt" : ""}">'
+        'accept="image/*, ${core.allowPdf ? ".pdf" : ""}, ${core.allowDoc ? ".doc" : ""}, ${core.allowTxt ? ".txt" : ""}"'
       )
       expect(attrs).toEqual({
         array: {

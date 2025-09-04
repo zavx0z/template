@@ -1,27 +1,22 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "../../attributes.ts"
+import { parseAttributes } from "../../parser"
 
-describe.each([
-  ["iframe", "<iframe"],
-  ["component", "<x-iframe"],
-  ["meta-hash", "<meta-hash"],
-  ["meta-${...}", "<meta-${core.meta}>"],
-])("allow для %s", (_, tag) => {
+describe("allow", () => {
   describe("статические значения", () => {
     it("одно", () => {
-      const attrs = parseAttributes(tag + ' allow="camera">')
+      const attrs = parseAttributes('allow="camera"')
       expect(attrs).toEqual({
         string: { allow: { type: "static", value: "camera" } },
       })
     })
     it("одно без кавычек", () => {
-      const attrs = parseAttributes(tag + " allow=camera>")
+      const attrs = parseAttributes("allow=camera")
       expect(attrs).toEqual({
         string: { allow: { type: "static", value: "camera" } },
       })
     })
     it("одно значение с точкой с запятой внутри", () => {
-      const attrs = parseAttributes(tag + ' allow="camera;microphone">')
+      const attrs = parseAttributes('allow="camera;microphone"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -32,7 +27,7 @@ describe.each([
       })
     })
     it("одно значение с пробелами и точками с запятой", () => {
-      const attrs = parseAttributes(tag + ' allow="camera; microphone">')
+      const attrs = parseAttributes('allow="camera; microphone"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -43,7 +38,7 @@ describe.each([
       })
     })
     it("несколько", () => {
-      const attrs = parseAttributes(tag + ' allow="camera; microphone; geolocation">')
+      const attrs = parseAttributes('allow="camera; microphone; geolocation"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -55,7 +50,7 @@ describe.each([
       })
     })
     it("несколько с разными разрешениями", () => {
-      const attrs = parseAttributes(tag + ' allow="camera; microphone; geolocation; payment">')
+      const attrs = parseAttributes('allow="camera; microphone; geolocation; payment"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -68,7 +63,7 @@ describe.each([
       })
     })
     it("несколько с пробелами", () => {
-      const attrs = parseAttributes(tag + ' allow="camera ; microphone ; geolocation">')
+      const attrs = parseAttributes('allow="camera ; microphone ; geolocation"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -83,19 +78,19 @@ describe.each([
 
   describe("динамические значения", () => {
     it("одно", () => {
-      const attrs = parseAttributes(tag + ' allow="${core.permission}">')
+      const attrs = parseAttributes('allow="${core.permission}"')
       expect(attrs).toEqual({
         string: { allow: { type: "dynamic", value: "${core.permission}" } },
       })
     })
     it("одно без кавычек", () => {
-      const attrs = parseAttributes(tag + " allow=${core.permission}>")
+      const attrs = parseAttributes("allow=${core.permission}")
       expect(attrs).toEqual({
         string: { allow: { type: "dynamic", value: "${core.permission}" } },
       })
     })
     it("несколько", () => {
-      const attrs = parseAttributes(tag + ' allow="${core.permission}; ${core.permission}">')
+      const attrs = parseAttributes('allow="${core.permission}; ${core.permission}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -107,7 +102,7 @@ describe.each([
     })
 
     it("с операторами сравнения", () => {
-      const attrs = parseAttributes(tag + ' allow="${core.type === "media" ? "camera;microphone" : "geolocation"}">')
+      const attrs = parseAttributes('allow="${core.type === "media" ? "camera;microphone" : "geolocation"}"')
       expect(attrs).toEqual({
         string: {
           allow: {
@@ -120,7 +115,7 @@ describe.each([
 
     it("с логическими операторами", () => {
       const attrs = parseAttributes(
-        tag + ' allow="${core.allowCamera && core.allowMic ? "camera;microphone" : "geolocation"}">'
+        'allow="${core.allowCamera && core.allowMic ? "camera;microphone" : "geolocation"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -134,7 +129,7 @@ describe.each([
 
     it("с оператором ИЛИ", () => {
       const attrs = parseAttributes(
-        tag + ' allow="${core.allowCamera || core.allowMic ? "camera;microphone" : "geolocation"}">'
+        'allow="${core.allowCamera || core.allowMic ? "camera;microphone" : "geolocation"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -147,7 +142,7 @@ describe.each([
     })
 
     it("с оператором НЕ", () => {
-      const attrs = parseAttributes(tag + ' allow="${!core.restricted ? "camera;microphone" : "geolocation"}">')
+      const attrs = parseAttributes('allow="${!core.restricted ? "camera;microphone" : "geolocation"}"')
       expect(attrs).toEqual({
         string: {
           allow: {
@@ -159,7 +154,7 @@ describe.each([
     })
 
     it("сложное выражение с точками с запятой", () => {
-      const attrs = parseAttributes(tag + ' allow="${core.type === "media" ? "camera;microphone" : "geolocation"}">')
+      const attrs = parseAttributes('allow="${core.type === "media" ? "camera;microphone" : "geolocation"}"')
       expect(attrs).toEqual({
         string: {
           allow: {
@@ -172,7 +167,7 @@ describe.each([
 
     it("выражение с множественными условиями", () => {
       const attrs = parseAttributes(
-        tag + ' allow="${core.allowCamera && core.allowMic ? "camera;microphone;geolocation" : "geolocation"}">'
+        'allow="${core.allowCamera && core.allowMic ? "camera;microphone;geolocation" : "geolocation"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -185,7 +180,7 @@ describe.each([
     })
 
     it("несколько динамических значений", () => {
-      const attrs = parseAttributes(tag + ' allow="${core.permission1}; ${core.permission2}; ${core.permission3}">')
+      const attrs = parseAttributes('allow="${core.permission1}; ${core.permission2}; ${core.permission3}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -198,7 +193,7 @@ describe.each([
     })
 
     it("динамические значения с пробелами", () => {
-      const attrs = parseAttributes(tag + ' allow="${core.perm1} ; ${core.perm2} ; ${core.perm3}">')
+      const attrs = parseAttributes('allow="${core.perm1} ; ${core.perm2} ; ${core.perm3}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -213,7 +208,7 @@ describe.each([
 
   describe("смешанные значения", () => {
     it("одно", () => {
-      const attrs = parseAttributes(tag + ' allow="camera; ${core.permission}">')
+      const attrs = parseAttributes('allow="camera; ${core.permission}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -225,7 +220,7 @@ describe.each([
     })
 
     it("несколько", () => {
-      const attrs = parseAttributes(tag + ' allow="camera; ${core.permission}; geolocation">')
+      const attrs = parseAttributes('allow="camera; ${core.permission}; geolocation"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -238,7 +233,7 @@ describe.each([
     })
 
     it("с операторами сравнения в смешанном значении", () => {
-      const attrs = parseAttributes(tag + ' allow="permission-${core.type === "admin" ? "all" : "basic"}">')
+      const attrs = parseAttributes('allow="permission-${core.type === "admin" ? "all" : "basic"}"')
       expect(attrs).toEqual({
         string: {
           allow: {
@@ -250,16 +245,14 @@ describe.each([
     })
 
     it("с логическими операторами в смешанном значении", () => {
-      const attrs = parseAttributes(tag + ' allow="access-${core.allowCamera && core.allowMic ? "media" : "basic"}">')
+      const attrs = parseAttributes('allow="access-${core.allowCamera && core.allowMic ? "media" : "basic"}"')
       expect(attrs).toEqual({
         string: { allow: { type: "mixed", value: 'access-${core.allowCamera && core.allowMic ? "media" : "basic"}' } },
       })
     })
 
     it("смешанное значение с точками с запятой", () => {
-      const attrs = parseAttributes(
-        tag + ' allow="perm-${core.type === "media" ? "camera;microphone" : "geolocation"}">'
-      )
+      const attrs = parseAttributes('allow="perm-${core.type === "media" ? "camera;microphone" : "geolocation"}"')
       expect(attrs).toEqual({
         string: {
           allow: { type: "mixed", value: 'perm-${core.type === "media" ? "camera;microphone" : "geolocation"}' },
@@ -268,7 +261,7 @@ describe.each([
     })
 
     it("несколько смешанных значений", () => {
-      const attrs = parseAttributes(tag + ' allow="media-${core.type}; access-${core.level}; perm-${core.role}">')
+      const attrs = parseAttributes('allow="media-${core.type}; access-${core.level}; perm-${core.role}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -281,7 +274,7 @@ describe.each([
     })
 
     it("смешанные значения с пробелами", () => {
-      const attrs = parseAttributes(tag + ' allow="media-${core.type} ; access-${core.level} ; perm-${core.role}">')
+      const attrs = parseAttributes('allow="media-${core.type} ; access-${core.level} ; perm-${core.role}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -297,7 +290,7 @@ describe.each([
   describe("различные варианты", () => {
     it("с условными разрешениями", () => {
       const attrs = parseAttributes(
-        tag + ' allow="camera; ${core.allowMic ? "microphone" : ""}; ${core.allowGeo ? "geolocation" : ""}">'
+        'allow="camera; ${core.allowMic ? "microphone" : ""}; ${core.allowGeo ? "geolocation" : ""}"'
       )
       expect(attrs).toEqual({
         array: {
@@ -311,14 +304,14 @@ describe.each([
     })
 
     it("с вложенными выражениями", () => {
-      const attrs = parseAttributes(tag + ' allow="permission/${core.nested ? "nested" : "default"}">')
+      const attrs = parseAttributes('allow="permission/${core.nested ? "nested" : "default"}"')
       expect(attrs).toEqual({
         string: { allow: { type: "mixed", value: 'permission/${core.nested ? "nested" : "default"}' } },
       })
     })
 
     it("с пустыми значениями", () => {
-      const attrs = parseAttributes(tag + ' allow="camera; ${core.allowMic ? "microphone" : ""}">')
+      const attrs = parseAttributes('allow="camera; ${core.allowMic ? "microphone" : ""}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -331,7 +324,7 @@ describe.each([
 
     it("сложное условное выражение как строка", () => {
       const attrs = parseAttributes(
-        tag + ' allow="${core.type === "media" && core.secure ? "camera;microphone" : "geolocation"}">'
+        'allow="${core.type === "media" && core.secure ? "camera;microphone" : "geolocation"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -345,7 +338,7 @@ describe.each([
 
     it("выражение с вложенными условиями", () => {
       const attrs = parseAttributes(
-        tag + ' allow="${core.allowMedia ? (core.secure ? "camera;microphone" : "camera") : "geolocation"}">'
+        'allow="${core.allowMedia ? (core.secure ? "camera;microphone" : "camera") : "geolocation"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -358,7 +351,7 @@ describe.each([
     })
 
     it("массив с тремя типами значений", () => {
-      const attrs = parseAttributes(tag + ' allow="camera; ${core.mediaType}; access-${core.level}">')
+      const attrs = parseAttributes('allow="camera; ${core.mediaType}; access-${core.level}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -371,9 +364,7 @@ describe.each([
     })
 
     it("массив с четырьмя типами значений", () => {
-      const attrs = parseAttributes(
-        tag + ' allow="camera; ${core.mediaType}; access-${core.level}; perm-${core.role}">'
-      )
+      const attrs = parseAttributes('allow="camera; ${core.mediaType}; access-${core.level}; perm-${core.role}"')
       expect(attrs).toEqual({
         array: {
           allow: [
@@ -388,8 +379,7 @@ describe.each([
 
     it("массив с условными значениями", () => {
       const attrs = parseAttributes(
-        tag +
-          ' allow="camera; ${core.allowMic ? "microphone" : ""}; ${core.allowGeo ? "geolocation" : ""}; ${core.allowPay ? "payment" : ""}">'
+        'allow="camera; ${core.allowMic ? "microphone" : ""}; ${core.allowGeo ? "geolocation" : ""}; ${core.allowPay ? "payment" : ""}"'
       )
       expect(attrs).toEqual({
         array: {

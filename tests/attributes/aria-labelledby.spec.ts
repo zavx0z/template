@@ -1,25 +1,22 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "../../attributes.ts"
+import { parseAttributes } from "../../parser"
 
-describe.each([
-  ["element", "<div"],
-  ["component", "<x-el"],
-])("aria-labelledby/aria-describedby для %s", (_, tag) => {
+describe("aria-labelledby", () => {
   describe("статические значения", () => {
     it("aria-labelledby одно", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="title">')
+      const attrs = parseAttributes('aria-labelledby="title"')
       expect(attrs).toEqual({
         string: { "aria-labelledby": { type: "static", value: "title" } },
       })
     })
     it("aria-labelledby одно без кавычек", () => {
-      const attrs = parseAttributes(tag + " aria-labelledby=title>")
+      const attrs = parseAttributes("aria-labelledby=title")
       expect(attrs).toEqual({
         string: { "aria-labelledby": { type: "static", value: "title" } },
       })
     })
     it("aria-labelledby несколько", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="title subtitle">')
+      const attrs = parseAttributes('aria-labelledby="title subtitle"')
       expect(attrs).toEqual({
         array: {
           "aria-labelledby": [
@@ -30,7 +27,7 @@ describe.each([
       })
     })
     it("aria-describedby несколько", () => {
-      const attrs = parseAttributes(tag + ' aria-describedby="description note">')
+      const attrs = parseAttributes('aria-describedby="description note"')
       expect(attrs).toEqual({
         array: {
           "aria-describedby": [
@@ -44,19 +41,19 @@ describe.each([
 
   describe("динамические значения", () => {
     it("aria-labelledby одно", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="${core.id}">')
+      const attrs = parseAttributes('aria-labelledby="${core.id}"')
       expect(attrs).toEqual({
         string: { "aria-labelledby": { type: "dynamic", value: "${core.id}" } },
       })
     })
     it("aria-labelledby одно без кавычек", () => {
-      const attrs = parseAttributes(tag + " aria-labelledby=${core.id}>")
+      const attrs = parseAttributes("aria-labelledby=${core.id}")
       expect(attrs).toEqual({
         string: { "aria-labelledby": { type: "dynamic", value: "${core.id}" } },
       })
     })
     it("aria-labelledby несколько", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="${core.id} ${core.id}">')
+      const attrs = parseAttributes('aria-labelledby="${core.id} ${core.id}"')
       expect(attrs).toEqual({
         array: {
           "aria-labelledby": [
@@ -68,7 +65,7 @@ describe.each([
     })
 
     it("с операторами сравнения", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="${core.type === "admin" ? "admin-title" : "user-title"}">')
+      const attrs = parseAttributes('aria-labelledby="${core.type === "admin" ? "admin-title" : "user-title"}"')
       expect(attrs).toEqual({
         string: {
           "aria-labelledby": {
@@ -81,7 +78,7 @@ describe.each([
 
     it("с логическими операторами", () => {
       const attrs = parseAttributes(
-        tag + ' aria-labelledby="${core.hasTitle && core.hasSubtitle ? "title subtitle" : "title"}">'
+        'aria-labelledby="${core.hasTitle && core.hasSubtitle ? "title subtitle" : "title"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -95,7 +92,7 @@ describe.each([
 
     it("с оператором ИЛИ", () => {
       const attrs = parseAttributes(
-        tag + ' aria-labelledby="${core.hasTitle || core.hasSubtitle ? "title subtitle" : "default"}">'
+        'aria-labelledby="${core.hasTitle || core.hasSubtitle ? "title subtitle" : "default"}"'
       )
       expect(attrs).toEqual({
         string: {
@@ -108,7 +105,7 @@ describe.each([
     })
 
     it("с оператором НЕ", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="${!core.hidden ? "title" : ""}">')
+      const attrs = parseAttributes('aria-labelledby="${!core.hidden ? "title" : ""}"')
       expect(attrs).toEqual({
         string: {
           "aria-labelledby": { type: "dynamic", value: '${!core.hidden ? "title" : ""}' },
@@ -119,7 +116,7 @@ describe.each([
 
   describe("смешанные значения", () => {
     it("aria-describedby динамика+статик", () => {
-      const attrs = parseAttributes(tag + ' aria-describedby="${core.id} note">')
+      const attrs = parseAttributes('aria-describedby="${core.id} note"')
       expect(attrs).toEqual({
         array: {
           "aria-describedby": [
@@ -131,7 +128,7 @@ describe.each([
     })
 
     it("aria-labelledby статик+динамика", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="title ${core.subtitle}">')
+      const attrs = parseAttributes('aria-labelledby="title ${core.subtitle}"')
       expect(attrs).toEqual({
         array: {
           "aria-labelledby": [
@@ -143,7 +140,7 @@ describe.each([
     })
 
     it("с операторами сравнения в смешанном значении", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="title-${core.type === "admin" ? "admin" : "user"}">')
+      const attrs = parseAttributes('aria-labelledby="title-${core.type === "admin" ? "admin" : "user"}"')
       expect(attrs).toEqual({
         string: {
           "aria-labelledby": { type: "mixed", value: 'title-${core.type === "admin" ? "admin" : "user"}' },
@@ -152,9 +149,7 @@ describe.each([
     })
 
     it("с логическими операторами в смешанном значении", () => {
-      const attrs = parseAttributes(
-        tag + ' aria-labelledby="label-${core.hasTitle && core.hasSubtitle ? "full" : "simple"}">'
-      )
+      const attrs = parseAttributes('aria-labelledby="label-${core.hasTitle && core.hasSubtitle ? "full" : "simple"}"')
       expect(attrs).toEqual({
         string: {
           "aria-labelledby": {
@@ -169,8 +164,7 @@ describe.each([
   describe("различные варианты", () => {
     it("с условными ID", () => {
       const attrs = parseAttributes(
-        tag +
-          ' aria-labelledby="title ${core.hasSubtitle ? "subtitle" : ""} ${core.hasDescription ? "description" : ""}">'
+        'aria-labelledby="title ${core.hasSubtitle ? "subtitle" : ""} ${core.hasDescription ? "description" : ""}"'
       )
       expect(attrs).toEqual({
         array: {
@@ -184,7 +178,7 @@ describe.each([
     })
 
     it("с вложенными выражениями", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="label/${core.nested ? "nested" : "default"}">')
+      const attrs = parseAttributes('aria-labelledby="label/${core.nested ? "nested" : "default"}"')
       expect(attrs).toEqual({
         string: {
           "aria-labelledby": { type: "mixed", value: 'label/${core.nested ? "nested" : "default"}' },
@@ -193,7 +187,7 @@ describe.each([
     })
 
     it("с пустыми значениями", () => {
-      const attrs = parseAttributes(tag + ' aria-labelledby="title ${core.hasSubtitle ? "subtitle" : ""}">')
+      const attrs = parseAttributes('aria-labelledby="title ${core.hasSubtitle ? "subtitle" : ""}"')
       expect(attrs).toEqual({
         array: {
           "aria-labelledby": [

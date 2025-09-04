@@ -25,12 +25,12 @@ import type { PartsHierarchy } from "./parser.t"
  * - Схлопывает последовательности пробельных символов в один пробел
  * - Обрезает пробелы по краям
  */
-function formatExpression(expr: string): string {
+export function formatExpression(expr: string): string {
   return expr.replace(/\s+/g, " ").trim()
 }
 
 /** Найти позицию ПОСЛЕ закрывающей '}' для сбалансированного блока, начиная с индекса после '{' в последовательности `${` */
-function matchBalancedBraces(s: string, startAfterBraceIndex: number): number {
+export function matchBalancedBraces(s: string, startAfterBraceIndex: number): number {
   let depth = 1
   for (let i = startAfterBraceIndex; i < s.length; i++) {
     const ch = s[i]
@@ -44,7 +44,7 @@ function matchBalancedBraces(s: string, startAfterBraceIndex: number): number {
 }
 
 /** Найти позицию ПОСЛЕ закрывающей '}' для простых фигурных скобок {condition && 'attribute'} */
-function matchSimpleBraces(s: string, startIndex: number): number {
+export function matchSimpleBraces(s: string, startIndex: number): number {
   let depth = 1
   for (let i = startIndex + 1; i < s.length; i++) {
     const ch = s[i]
@@ -58,7 +58,7 @@ function matchSimpleBraces(s: string, startIndex: number): number {
 }
 
 /** Найти позицию ПОСЛЕ закрывающей '}' для двойных фигурных скобок ${{...}} */
-function matchDoubleBraces(s: string, startIndex: number): number {
+export function matchDoubleBraces(s: string, startIndex: number): number {
   let depth = 1
   for (let i = startIndex + 2; i < s.length; i++) {
     const ch = s[i]
@@ -72,7 +72,7 @@ function matchDoubleBraces(s: string, startIndex: number): number {
 }
 
 /** Полностью ли токен — одиночный ${...} без префикса/суффикса */
-function isFullyDynamicToken(token: string): boolean {
+export function isFullyDynamicToken(token: string): boolean {
   const v = token.trim()
   if (!(v.startsWith("${") && v.endsWith("}"))) return false
   const end = matchBalancedBraces(v, 2)
@@ -80,7 +80,7 @@ function isFullyDynamicToken(token: string): boolean {
 }
 
 /** Классифицировать значение: static / dynamic / mixed */
-function classifyValue(token: string): ValueType {
+export function classifyValue(token: string): ValueType {
   if (isFullyDynamicToken(token)) return "dynamic"
   if (token.includes("${")) return "mixed"
   return "static"
@@ -90,12 +90,12 @@ function classifyValue(token: string): ValueType {
  * Нормализует исходное значение атрибута для записи в результат.
  * - Форматирует строку целиком, сохраняя структуру ${...}
  */
-function normalizeValueForOutput(token: string): string {
+export function normalizeValueForOutput(token: string): string {
   return formatExpression(token)
 }
 
 /** Проверить, является ли значение атрибута пустым */
-function isEmptyAttributeValue(value: string | null): boolean {
+export function isEmptyAttributeValue(value: string | null): boolean {
   if (value === null) return false
   // Если значение содержит динамические выражения, не считаем его пустым
   if (value.includes("${")) return false
@@ -217,7 +217,8 @@ export const splitByComma = (raw: string) => splitTopLevel(raw, ",")
 export const splitBySemicolon = (raw: string) => splitTopLevel(raw, ";")
 
 export type SplitterFn = (raw: string) => string[]
-function getBuiltinResolved(name: string): SplitterResolved | null {
+
+export function getBuiltinResolved(name: string): SplitterResolved | null {
   const lower = name.toLowerCase()
   // aria-hidden является булевым атрибутом, а не списковым
   if (lower.startsWith("aria-") && lower !== "aria-hidden") return { fn: splitBySpace, delim: " " }
@@ -225,7 +226,7 @@ function getBuiltinResolved(name: string): SplitterResolved | null {
 }
 
 /** Прочитать "сырое" значение атрибута из строки inside, начиная с позиции cursor */
-function readAttributeRawValue(inside: string, cursor: number): { value: string; nextIndex: number } {
+export function readAttributeRawValue(inside: string, cursor: number): { value: string; nextIndex: number } {
   const len = inside.length
   while (cursor < len && /\s/.test(inside[cursor] ?? "")) cursor++
   if (cursor >= len) return { value: "", nextIndex: cursor }
