@@ -62,3 +62,8 @@ export const cutBeforeNextHtml = (s: string): string => {
   const idx = s.indexOf("html`")
   return idx >= 0 ? s.slice(0, idx) : s
 }
+export const formatAttributeText = (text: string): string =>
+  text
+    .replace(/\s*\n\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()

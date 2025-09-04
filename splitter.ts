@@ -2,7 +2,7 @@ import type { Context, Core, State, RenderParams } from "./index.t"
 import type { PartCondition, PartElement, PartHierarchy, PartMap, PartMeta, PartsHierarchy } from "./hierarchy.t"
 import { findCondElse, findCondClose, findMapOpen, findMapClose, findAllConditions } from "./token"
 import type { StreamToken } from "./token.t"
-import { findText } from "./text"
+import { findText, formatAttributeText } from "./text"
 // ============================================================================
 // HTML EXTRACTION
 // ============================================================================
@@ -255,7 +255,33 @@ class Hierarchy {
     }
   }
 }
-
+export const parseTextAndOperators = (input: string, store: Hierarchy) => {
+  // текст между предыдущим и текущим тегом
+  if (input.trim()) {
+    const tokens = getTokens(input)
+    for (const token of tokens) {
+      switch (token.kind) {
+        case "text":
+          store.text(token.text)
+          break
+        case "cond-open":
+          store.if(token.expr)
+          break
+        case "cond-else":
+          store.else()
+          break
+        case "cond-close":
+          break
+        case "map-open":
+          store.map(token.sig)
+          break
+        case "map-close":
+          store.close("map")
+          break
+      }
+    }
+  }
+}
 export const extractHtmlElements = (input: string): PartsHierarchy => {
   const store = new Hierarchy()
 
@@ -271,32 +297,7 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
       continue
     }
 
-    // текст между предыдущим и текущим тегом
-    const sliced = input.slice(lastIndex, localIndex)
-    if (sliced.trim()) {
-      const tokens = getTokens(sliced)
-      for (const token of tokens) {
-        switch (token.kind) {
-          case "text":
-            store.text(token.text)
-            break
-          case "cond-open":
-            store.if(token.expr)
-            break
-          case "cond-else":
-            store.else()
-            break
-          case "cond-close":
-            break
-          case "map-open":
-            store.map(token.sig)
-            break
-          case "map-close":
-            store.close("map")
-            break
-        }
-      }
-    }
+    parseTextAndOperators(input.slice(lastIndex, localIndex), store)
 
     const tagStart = localIndex
     let tagEnd = -1
@@ -396,11 +397,10 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
     lastIndex = tagEnd
   }
 
-  return store.child
+  if (store.child.length) return store.child
+  else {
+    // если нет тегов, то парсим текст и операторы
+    parseTextAndOperators(input.slice(lastIndex), store)
+    return store.child
+  }
 }
-
-const formatAttributeText = (text: string): string =>
-  text
-    .replace(/\s*\n\s*/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()

@@ -545,4 +545,144 @@ describe("conditions", () => {
       ])
     })
   })
+  describe("map + условия", () => {
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
+        ({ html, context }) => html`
+          <ul>
+            ${context.list.map(
+              (_, i) => html` <li>${i % 2 ? html` <em>${"A"}</em> ` : html` <strong>${"B"}</strong>`}</li> `
+            )}
+          </ul>
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
+    it("hierarchy", () => {
+      expect(elements).toEqual([
+        {
+          tag: "ul",
+          type: "el",
+          text: "<ul>",
+          child: [
+            {
+              type: "map",
+              text: "context.list.map((_, i)",
+              child: [
+                {
+                  tag: "li",
+                  type: "el",
+                  text: "<li>",
+                  child: [
+                    {
+                      type: "cond",
+                      text: "i % 2",
+                      child: [
+                        {
+                          tag: "em",
+                          type: "el",
+                          text: "<em>",
+                          child: [
+                            {
+                              type: "text",
+                              text: '${"A"}',
+                            },
+                          ],
+                        },
+                        {
+                          tag: "strong",
+                          type: "el",
+                          text: "<strong>",
+                          child: [
+                            {
+                              type: "text",
+                              text: '${"B"}',
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+    it.skip("data", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+        data = enrichWithData(attributes)
+      })
+      expect(data).toEqual([
+        {
+          tag: "ul",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/context/list",
+              child: [
+                {
+                  tag: "li",
+                  type: "el",
+                  child: [
+                    {
+                      type: "cond",
+                      data: "[index]",
+                      expr: "${[0] % 2}",
+                      true: {
+                        tag: "em",
+                        type: "el",
+                        child: [
+                          {
+                            type: "text",
+                            value: "A",
+                          },
+                        ],
+                      },
+                      false: {
+                        tag: "strong",
+                        type: "el",
+                        child: [
+                          {
+                            type: "text",
+                            value: "B",
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+  })
+
+  describe("операторы сравнения — без тегов", () => {
+    let elements: PartsHierarchy
+
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<{ a: number; b: number; c: number; d: number }>(
+        ({ html, context }) => html`${context.a < context.b && context.c > context.d ? "1" : "0"}`
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
+    it("hierarchy", () => {
+      expect(elements).toEqual([
+        {
+          type: "text",
+          text: '${context.a < context.b && context.c > context.d ? "1" : "0"}',
+        },
+      ])
+    })
+  })
 })
