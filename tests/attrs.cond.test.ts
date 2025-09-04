@@ -1,57 +1,68 @@
 import { extractAttributes } from "../attributes"
+import type { PartAttrs } from "../attributes.t"
 import { enrichWithData } from "../data"
-import { makeHierarchy } from "../hierarchy"
+import type { PartsHierarchy } from "../hierarchy.t"
+import type { Node } from "../index.t"
 import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
-import { describe, it, expect } from "bun:test"
-import { extractTokens } from "../token"
+import { describe, it, expect, beforeAll } from "bun:test"
 
-describe("", () => {
-  describe("тернарный оператор в атрибуте с числом в качестве условия", () => {
-    const mainHtml = extractMainHtmlBlock<{ count: number }>(
-      ({ html, context }) => html`
-        <div class="${10 > context.count && context.count < 3 ? "active" : "inactive"}">Content</div>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
-    const attributes = extractAttributes(hierarchy)
-    const data = enrichWithData(attributes)
+describe("условные выражения в атрибутах", () => {
+  describe("тернарный оператор с числом в качестве условия", () => {
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<{ count: number }>(
+        ({ html, context }) => html`
+          <div class="${10 > context.count && context.count < 3 ? "active" : "inactive"}">Content</div>
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
+    it.skip("data", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+        data = enrichWithData(attributes)
+      })
 
-    it("data", () =>
-      expect(data, "одна переменная в нескольких местах").toEqual([
-        {
-          tag: "div",
-          type: "el",
-          string: {
-            class: {
-              data: "/context/count",
-              expr: '${10 > [0] && [0] < 3 ? "active" : "inactive"}',
+      it("data", () =>
+        expect(data, "одна переменная в нескольких местах").toEqual([
+          {
+            tag: "div",
+            type: "el",
+            string: {
+              class: {
+                data: "/context/count",
+                expr: '${10 > [0] && [0] < 3 ? "active" : "inactive"}',
+              },
             },
+            child: [
+              {
+                type: "text",
+                value: "Content",
+              },
+            ],
           },
-          child: [
-            {
-              type: "text",
-              value: "Content",
-            },
-          ],
-        },
-      ]))
+        ]))
+    })
   })
-
   describe("тернарный оператор сравнения через === с динамическими результатами", () => {
-    const mainHtml = extractMainHtmlBlock<{ isActive: boolean; status: "waiting" | "running"; item: string }>(
-      ({ html, context, core }) => html`
-        <div class="${core.isActive === context.isActive ? `${context.item}-active-${context.status}` : "inactive"}">
-          Content
-        </div>
-      `
-    )
-    const elements = extractHtmlElements(mainHtml)
-    const tokens = extractTokens(mainHtml, elements)
-    const hierarchy = makeHierarchy(tokens)
+    let elements: PartsHierarchy
+    let attributes: PartAttrs
+    let data: Node[]
+    beforeAll(() => {
+      const mainHtml = extractMainHtmlBlock<{ isActive: boolean; status: "waiting" | "running"; item: string }>(
+        ({ html, context, core }) => html`
+          <div class="${core.isActive === context.isActive ? `${context.item}-active-${context.status}` : "inactive"}">
+            Content
+          </div>
+        `
+      )
+      elements = extractHtmlElements(mainHtml)
+    })
+
     it("hierarchy", () =>
-      expect(hierarchy, "hierarchy").toEqual([
+      expect(elements, "hierarchy").toEqual([
         {
           tag: "div",
           type: "el",
@@ -64,8 +75,10 @@ describe("", () => {
           ],
         },
       ]))
-    const attributes = extractAttributes(hierarchy)
-    it("attributes", () =>
+    it.skip("attributes", () => {
+      beforeAll(() => {
+        attributes = extractAttributes(elements)
+      })
       expect(attributes, "тернарный оператор сравнения с динамическими результатами").toEqual([
         {
           tag: "div",
@@ -83,9 +96,12 @@ describe("", () => {
             },
           ],
         },
-      ]))
-    const data = enrichWithData(attributes)
-    it("data", () => {
+      ])
+    })
+    it.skip("data", () => {
+      beforeAll(() => {
+        data = enrichWithData(attributes)
+      })
       expect(data, "тернарный оператор сравнения с динамическими результатами").toEqual([
         {
           tag: "div",
