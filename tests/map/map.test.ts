@@ -1,15 +1,12 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
-import { type PartsHierarchy } from "../../parser.t"
 import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
 import type { Node } from "../../index.t"
 import type { PartAttrs } from "../../attributes.t"
 
 describe("map", () => {
   describe("простой map", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -51,8 +48,7 @@ describe("map", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -82,8 +78,7 @@ describe("map", () => {
   })
 
   describe("простой map с несколькими детьми", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
@@ -133,8 +128,7 @@ describe("map", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -166,8 +160,7 @@ describe("map", () => {
       ])
     })
     describe("map в элементе вложенный в map", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
       beforeAll(() => {
         const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
@@ -236,8 +229,7 @@ describe("map", () => {
         ]))
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -288,8 +280,7 @@ describe("map", () => {
       })
     })
     describe("map рендерит вложенные шаблоны (последовательность name/kind)", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
       beforeAll(() => {
         const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
@@ -350,8 +341,7 @@ describe("map", () => {
         ]))
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -403,8 +393,7 @@ describe("map", () => {
       })
     })
     describe("map в условии", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
       beforeAll(() => {
         const mainHtml = extractMainHtmlBlock<{ flag: boolean }, { list: { title: string; nested: string[] }[] }>(
@@ -480,8 +469,7 @@ describe("map", () => {
         ]))
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -543,8 +531,7 @@ describe("map", () => {
     })
   })
   describe("map в text вложенный в map", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
@@ -599,8 +586,7 @@ describe("map", () => {
       ]))
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {

@@ -1,15 +1,12 @@
-import { extractAttributes } from "../attributes"
 import type { PartAttrs } from "../attributes.t"
 import { enrichWithData } from "../data"
 import type { Node } from "../index.t"
 import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
-import { type PartsHierarchy } from "../parser.t"
 import { describe, it, expect, beforeAll } from "bun:test"
 
 describe("условные выражения в атрибутах", () => {
   describe("тернарный оператор с числом в качестве условия", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<{ count: number }>(
@@ -21,8 +18,7 @@ describe("условные выражения в атрибутах", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
 
       it("data", () =>
@@ -47,8 +43,7 @@ describe("условные выражения в атрибутах", () => {
     })
   })
   describe("тернарный оператор сравнения через === с динамическими результатами", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<{ isActive: boolean; status: "waiting" | "running"; item: string }>(
@@ -60,26 +55,8 @@ describe("условные выражения в атрибутах", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () =>
-      expect(elements, "hierarchy").toEqual([
-        {
-          tag: "div",
-          type: "el",
-          text: 'class="${core.isActive === context.isActive ? `${context.item}-active-${context.status}` : "inactive"}"',
-          child: [
-            {
-              type: "text",
-              text: "Content",
-            },
-          ],
-        },
-      ]))
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes, "тернарный оператор сравнения с динамическими результатами").toEqual([
+    it("attributes", () => {
+      expect(elements, "тернарный оператор сравнения с динамическими результатами").toEqual([
         {
           tag: "div",
           type: "el",
@@ -100,7 +77,7 @@ describe("условные выражения в атрибутах", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data, "тернарный оператор сравнения с динамическими результатами").toEqual([
         {

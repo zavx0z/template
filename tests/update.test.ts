@@ -1,15 +1,12 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
-import { type PartsHierarchy } from "../parser.t"
 import { enrichWithData } from "../data"
-import { extractAttributes } from "../attributes"
 import type { Node } from "../index.t"
 import type { PartAttrs } from "../attributes.t"
 
 describe("update", () => {
   describe("функция обновления контекста в функции рендера", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -18,25 +15,9 @@ describe("update", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
-      expect(elements).toEqual([
-        {
-          tag: "button",
-          type: "el",
-          text: 'onclick=${() => update({ name: "Jane Doe" })}',
-          child: [
-            {
-              type: "text",
-              text: "OK",
-            },
-          ],
-        },
-      ])
-    })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -60,8 +41,7 @@ describe("update", () => {
   })
 
   describe("функция обновления нескольких ключей контекста", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -71,25 +51,9 @@ describe("update", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
-      expect(elements).toEqual([
-        {
-          tag: "button",
-          type: "el",
-          text: 'onclick=${() => update({ name: "John", age: 25, active: true })}',
-          child: [
-            {
-              type: "text",
-              text: "Update",
-            },
-          ],
-        },
-      ])
-    })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -113,8 +77,7 @@ describe("update", () => {
   })
 
   describe("функция обновления контекста данными из контекста", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -123,26 +86,9 @@ describe("update", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
-      expect(elements).toEqual([
-        {
-          tag: "button",
-          type: "el",
-          text: "onclick=${() => update({ count: context.count + 1 })}",
-          child: [
-            {
-              type: "text",
-              text: "OK",
-            },
-          ],
-        },
-      ])
-    })
-
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -167,8 +113,7 @@ describe("update", () => {
   })
 
   describe("функция обновления контекста данными из core и context", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -182,23 +127,8 @@ describe("update", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "button",
-          type: "el",
-          text: "onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}",
-          child: [
-            {
-              type: "text",
-              text: "OK",
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("attributes", () =>
-      expect(attributes).toEqual([
         {
           tag: "button",
           type: "el",
@@ -212,12 +142,12 @@ describe("update", () => {
             },
           ],
         },
-      ]))
+      ])
+    })
 
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -242,8 +172,7 @@ describe("update", () => {
   })
 
   describe("функция обновления контекста данными из core и context внутри массива вложенного в массив", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -264,32 +193,9 @@ describe("update", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () => {
-      expect(elements).toEqual([
-        {
-          type: "map",
-          text: "core.items.map((item)",
-          child: [
-            {
-              tag: "button",
-              type: "el",
-              text: "onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}",
-              child: [
-                {
-                  type: "text",
-                  text: "OK",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {

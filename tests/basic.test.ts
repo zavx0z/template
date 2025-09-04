@@ -1,36 +1,20 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
-import { type PartsHierarchy } from "../parser.t"
-import { extractAttributes } from "../attributes"
 import { enrichWithData } from "../data"
 import type { PartAttrs } from "../attributes.t"
 import type { Node } from "../index.t"
 
 describe("basic", () => {
   describe("простая пара тегов", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<div></div>`)
       elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () => {
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-        },
-      ])
-    })
-
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "div",
           type: "el",
@@ -40,7 +24,7 @@ describe("basic", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -52,8 +36,7 @@ describe("basic", () => {
   })
 
   describe("вложенность и соседние узлы", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -68,42 +51,8 @@ describe("basic", () => {
       elements = extractHtmlElements(mainHtml)
     })
 
-    it("hierarchy", () => {
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "ul",
-          type: "el",
-          child: [
-            {
-              tag: "li",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "a",
-                },
-              ],
-            },
-            {
-              tag: "li",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "b",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "ul",
           type: "el",
@@ -135,7 +84,7 @@ describe("basic", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -169,8 +118,7 @@ describe("basic", () => {
   })
 
   describe("void и self", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -183,40 +131,10 @@ describe("basic", () => {
           </div>
         `
       )
-
       elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () => {
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "br",
-              type: "el",
-            },
-            {
-              tag: "img",
-              type: "el",
-              text: 'src="x"',
-            },
-            {
-              tag: "input",
-              type: "el",
-              text: "disabled",
-            },
-          ],
-        },
-      ])
-    })
-
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "div",
           type: "el",
@@ -252,7 +170,7 @@ describe("basic", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {

@@ -1,26 +1,20 @@
 import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
-import { type PartsHierarchy } from "../../parser.t"
 import { describe, it, expect, beforeAll } from "bun:test"
 import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
 import type { Node } from "../../index.t"
 import type { PartAttrs } from "../../attributes.t"
 
 describe("meta-компоненты с core/context в map и condition", () => {
   describe("meta-элемент с пустыми объектами", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html` <meta-hash context=${{}} core=${{}} /> `)
       elements = extractHtmlElements(mainHtml)
     })
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes, "при обработке пустых объектов не должен устанавливаться core и context").toEqual([
+    it("attributes", () => {
+      expect(elements, "при обработке пустых объектов не должен устанавливаться core и context").toEqual([
         {
           tag: "meta-hash",
           type: "meta",
@@ -29,7 +23,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data, "core и context не должно быть в data").toEqual([
         {
@@ -41,8 +35,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
   })
   describe("meta-компоненты в map с core объектами", () => {
     type Core = { items: any[]; tag: string; type: string }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -59,14 +52,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
           </div>
         `
       )
-
       elements = extractHtmlElements(mainHtml)
     })
 
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -101,8 +92,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
   })
 
   describe("meta-компоненты в condition с core/context объектами", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -123,8 +113,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -166,8 +155,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
 
   describe("meta-компоненты в map внутри condition", () => {
     type Core = { items: any[]; tag: string; type: string }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -203,8 +191,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -255,8 +242,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
 
   describe("meta-компоненты в condition внутри map", () => {
     type Core = { items: any[]; tag: string }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -286,8 +272,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
 
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -359,8 +344,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
 
   describe("сложные meta-компоненты с вложенными core/context объектами", () => {
     type Core = { users: any[]; tag: string }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -452,7 +436,9 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     {
                       type: "meta",
                       tag: "meta-${core.tag}",
-                      text: 'core=${{ id: user.id, name: user.name, type: "admin", permissions: user.permissions, metadata: { level: "admin", access: "full", settings: user.settings } }} context=${{ status: "admin", active: user.isOnline, canEdit: true, canDelete: true, canManage: true }}',
+                      core: '{ id: user.id, name: user.name, type: "admin", permissions: user.permissions, metadata: { level: "admin", access: "full", settings: user.settings } }',
+                      context:
+                        '{ status: "admin", active: user.isOnline, canEdit: true, canDelete: true, canManage: true }',
                     },
                     {
                       type: "cond",
@@ -461,12 +447,16 @@ describe("meta-компоненты с core/context в map и condition", () => 
                         {
                           type: "meta",
                           tag: "meta-${core.tag}",
-                          text: 'core=${{ id: user.id, name: user.name, type: "moderator", permissions: user.permissions, metadata: { level: "moderator", access: "limited", settings: user.settings } }} context=${{ status: "moderator", active: user.isOnline, canEdit: true, canDelete: false, canManage: false }}',
+                          core: '{ id: user.id, name: user.name, type: "moderator", permissions: user.permissions, metadata: { level: "moderator", access: "limited", settings: user.settings } }',
+                          context:
+                            '{ status: "moderator", active: user.isOnline, canEdit: true, canDelete: false, canManage: false }',
                         },
                         {
                           type: "meta",
                           tag: "meta-${core.tag}",
-                          text: 'core=${{ id: user.id, name: user.name, type: "user", permissions: user.permissions, metadata: { level: "user", access: "basic", settings: user.settings } }} context=${{ status: "user", active: user.isOnline, canEdit: false, canDelete: false, canManage: false }}',
+                          core: '{ id: user.id, name: user.name, type: "user", permissions: user.permissions, metadata: { level: "user", access: "basic", settings: user.settings } }',
+                          context:
+                            '{ status: "user", active: user.isOnline, canEdit: false, canDelete: false, canManage: false }',
                         },
                       ],
                     },
@@ -480,8 +470,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -561,8 +550,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
 
   describe("meta-компоненты с динамическими core/context объектами", () => {
     type Core = { items: any[]; tag: string; type: string }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -604,8 +592,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {

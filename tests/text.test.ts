@@ -1,14 +1,12 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../parser"
-import { type PartsHierarchy } from "../parser.t"
 import { enrichWithData } from "../data"
-import { extractAttributes } from "../attributes"
 import type { PartAttrs } from "../attributes.t"
 import type { Node } from "../index.t"
 
 describe("text", () => {
   describe("динамический текст в map где значением является строка элемент массива", () => {
-    let elements: PartsHierarchy
+    let elements: PartAttrs
 
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
@@ -49,16 +47,9 @@ describe("text", () => {
   })
 
   describe("динамический текст с разными именами переменных элемента массива", () => {
-    let elements: PartsHierarchy
-
+    let elements: PartAttrs
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { list: { name: string; family: string }[] }>(
-        ({ html, context }) => html`
-          <div>
-            <p>static</p>
-          </div>
-        `
-      )
+      const mainHtml = extractMainHtmlBlock(({ html }) => html`<div><p>static</p></div>`)
       elements = extractHtmlElements(mainHtml)
     })
     it("hierarchy", () => {
@@ -84,8 +75,7 @@ describe("text", () => {
   })
 
   describe("смешанный текст - статический + динамический (с одной переменной)", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<{ name: string }>(
@@ -119,8 +109,7 @@ describe("text", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -144,8 +133,7 @@ describe("text", () => {
     })
   })
   describe("смешанный текст - статический + динамический (с несколькими переменными)", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -180,8 +168,7 @@ describe("text", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -205,8 +192,7 @@ describe("text", () => {
     })
   })
   describe("условие в тексте", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -240,8 +226,7 @@ describe("text", () => {
       ]))
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -265,8 +250,7 @@ describe("text", () => {
     })
   })
   describe("map в рядом с текстом, рядом с динамическим текстом из map выше уровня", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -323,8 +307,7 @@ describe("text", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -369,8 +352,7 @@ describe("text", () => {
     })
   })
   describe("динамический текст в условии", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -418,8 +400,7 @@ describe("text", () => {
       ])
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -461,8 +442,7 @@ describe("text", () => {
   })
 
   describe("статический текст в элементе на одном уровне с динамическим текстом", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -495,8 +475,7 @@ describe("text", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -524,8 +503,7 @@ describe("text", () => {
   })
 
   describe("динамический текст со статическим текстом в элементе на одном уровне", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -558,8 +536,7 @@ describe("text", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -587,8 +564,7 @@ describe("text", () => {
   })
 
   describe("динамические тексты вокруг статического текста", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -626,8 +602,7 @@ describe("text", () => {
       ])
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -660,8 +635,7 @@ describe("text", () => {
   })
 
   describe("динамический текст в map с доступом по ключу в элементе массива, на разных уровнях", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -711,8 +685,7 @@ describe("text", () => {
       ])
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -754,8 +727,7 @@ describe("text", () => {
   })
 
   describe("обрабатывает выражения в ${}", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -770,8 +742,7 @@ describe("text", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -796,8 +767,7 @@ describe("text", () => {
   })
 
   describe("обрабатывает выражения с точками в ${} к вложенным элементам ядра", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -812,8 +782,7 @@ describe("text", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {

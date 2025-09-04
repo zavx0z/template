@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
-import { type PartsHierarchy } from "../../parser.t"
 import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
 import type { PartAttrs } from "../../attributes.t"
 import type { Node } from "../../index.t"
 
@@ -12,8 +10,7 @@ describe("map соседствующие", () => {
       list1: { title: string }[]
       list2: { title: string }[]
     }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<any, Core>(
@@ -61,9 +58,9 @@ describe("map соседствующие", () => {
       ]))
     it.skip("attributes", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
+        data = enrichWithData(elements)
       })
-      expect(attributes).toEqual([
+      expect(elements).toEqual([
         {
           type: "map",
           text: "core.list1.map(({ title })",
@@ -100,7 +97,7 @@ describe("map соседствующие", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -149,8 +146,7 @@ describe("map соседствующие", () => {
         title: string
       }[]
     }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<Context, Core>(
@@ -169,61 +165,8 @@ describe("map соседствующие", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          text: 'class="dashboard"',
-          child: [
-            {
-              type: "map",
-              text: "context.categories.map((cat)",
-              child: [
-                {
-                  tag: "span",
-                  type: "el",
-                  text: 'class="category"',
-                  child: [
-                    {
-                      type: "text",
-                      text: "${cat}",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              type: "map",
-              text: "core.items.map((item)",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  text: 'class="item" data-category="${item.categoryId}"',
-                  child: [
-                    {
-                      tag: "h4",
-                      type: "el",
-                      child: [
-                        {
-                          type: "text",
-                          text: "${item.title}",
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "div",
           type: "el",
@@ -282,7 +225,7 @@ describe("map соседствующие", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -351,8 +294,7 @@ describe("map соседствующие", () => {
       list2: { title: string }[]
       list3: { title: string }[]
     }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<{}, Core>(
@@ -375,17 +317,23 @@ describe("map соседствующие", () => {
         {
           tag: "div",
           type: "el",
-          text: 'class="level1"',
+          string: {
+            class: { type: "static", value: "level1" },
+          },
           child: [
             {
               tag: "div",
               type: "el",
-              text: 'class="level2"',
+              string: {
+                class: { type: "static", value: "level2" },
+              },
               child: [
                 {
                   tag: "div",
                   type: "el",
-                  text: 'class="level3"',
+                  string: {
+                    class: { type: "static", value: "level3" },
+                  },
                   child: [
                     {
                       type: "map",
@@ -394,7 +342,9 @@ describe("map соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: 'class="item1"',
+                          string: {
+                            class: { type: "static", value: "item1" },
+                          },
                           child: [
                             {
                               type: "text",
@@ -411,7 +361,9 @@ describe("map соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: 'class="item2"',
+                          string: {
+                            class: { type: "static", value: "item2" },
+                          },
                           child: [
                             {
                               type: "text",
@@ -428,7 +380,9 @@ describe("map соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: 'class="item3"',
+                          string: {
+                            class: { type: "static", value: "item3" },
+                          },
                           child: [
                             {
                               type: "text",

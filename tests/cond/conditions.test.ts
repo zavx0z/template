@@ -1,15 +1,12 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
-import { type PartsHierarchy } from "../../parser.t"
 import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
 import type { PartAttrs } from "../../attributes.t"
 import type { Node } from "../../index.t"
 
 describe("conditions", () => {
   describe("тернарник с внутренними тегами", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -18,7 +15,7 @@ describe("conditions", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("attributes", () => {
       expect(elements).toEqual([
         {
           tag: "div",
@@ -46,8 +43,7 @@ describe("conditions", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -87,8 +83,7 @@ describe("conditions", () => {
   })
 
   describe("простой тернарный оператор с context с оберткой и соседними элементами", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -104,7 +99,7 @@ describe("conditions", () => {
       elements = extractHtmlElements(mainHtml)
     })
 
-    it("hierarchy", () => {
+    it("attributes", () => {
       expect(elements).toEqual([
         {
           tag: "div",
@@ -158,8 +153,7 @@ describe("conditions", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data, "простой тернарный оператор с context с оберткой и соседними элементами").toEqual([
         {
@@ -219,8 +213,7 @@ describe("conditions", () => {
   })
 
   describe("сравнение нескольких переменных", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -260,8 +253,7 @@ describe("conditions", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -292,8 +284,7 @@ describe("conditions", () => {
   })
 
   describe("сравнение переменных на равенство", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -332,8 +323,7 @@ describe("conditions", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -364,7 +354,7 @@ describe("conditions", () => {
   })
 
   describe("логические операторы без тегов — ничего не находится", () => {
-    let elements: PartsHierarchy
+    let elements: PartAttrs
     beforeAll(() => {
       const html = `a < b && c > d ? "1" : "0"`
       elements = extractHtmlElements(html)
@@ -381,8 +371,7 @@ describe("conditions", () => {
   })
 
   describe("условие вокруг self/void", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -409,7 +398,12 @@ describe("conditions", () => {
                 {
                   tag: "img",
                   type: "el",
-                  text: 'src="x"',
+                  string: {
+                    src: {
+                      type: "static",
+                      value: "x",
+                    },
+                  },
                 },
               ],
             },
@@ -420,8 +414,7 @@ describe("conditions", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -452,8 +445,7 @@ describe("conditions", () => {
   })
 
   describe("condition внутри map", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -485,12 +477,22 @@ describe("conditions", () => {
                     {
                       tag: "div",
                       type: "el",
-                      text: 'class="true-branch"',
+                      string: {
+                        class: {
+                          type: "static",
+                          value: "true-branch",
+                        },
+                      },
                     },
                     {
                       tag: "div",
                       type: "el",
-                      text: 'class="false-branch"',
+                      string: {
+                        class: {
+                          type: "static",
+                          value: "false-branch",
+                        },
+                      },
                     },
                   ],
                 },
@@ -501,8 +503,7 @@ describe("conditions", () => {
       ]))
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -541,8 +542,7 @@ describe("conditions", () => {
     })
   })
   describe("map + условия", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -607,8 +607,7 @@ describe("conditions", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -661,7 +660,7 @@ describe("conditions", () => {
   })
 
   describe("операторы сравнения — без тегов", () => {
-    let elements: PartsHierarchy
+    let elements: PartAttrs
 
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock<{ a: number; b: number; c: number; d: number }>(

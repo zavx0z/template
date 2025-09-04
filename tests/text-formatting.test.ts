@@ -1,15 +1,12 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../parser"
-import { type PartsHierarchy } from "../parser.t"
 import { enrichWithData } from "../data"
-import { extractAttributes } from "../attributes"
 import type { PartAttrs } from "../attributes.t"
 import type { Node } from "../index.t"
 
 describe("text-formatting", () => {
   describe("форматирует текст по стандартам HTML (схлопывание пробельных символов)", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -29,8 +26,7 @@ describe("text-formatting", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {

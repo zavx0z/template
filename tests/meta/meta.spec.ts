@@ -1,16 +1,13 @@
 import { describe, expect, it, beforeAll } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
-import { type PartsHierarchy } from "../../parser.t"
 import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
 import type { Node } from "../../index.t"
 import type { PartAttrs } from "../../attributes.t"
 
 describe("meta", () => {
   describe("теги", () => {
     describe("актор web-component", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -28,8 +25,7 @@ describe("meta", () => {
       })
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -41,8 +37,7 @@ describe("meta", () => {
     })
 
     describe("актор web-component с самозакрывающимся тегом", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -60,8 +55,7 @@ describe("meta", () => {
 
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -73,8 +67,7 @@ describe("meta", () => {
     })
 
     describe("хеш-тег из core в самозакрывающемся теге", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -92,8 +85,7 @@ describe("meta", () => {
 
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -108,8 +100,7 @@ describe("meta", () => {
     })
 
     describe("хеш-тег из core", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -130,8 +121,7 @@ describe("meta", () => {
 
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -146,8 +136,7 @@ describe("meta", () => {
     })
 
     describe("meta-тег в простом элементе", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -170,8 +159,7 @@ describe("meta", () => {
       })
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -192,8 +180,7 @@ describe("meta", () => {
     })
 
     describe("meta-тег в meta-теге", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -216,8 +203,7 @@ describe("meta", () => {
       })
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -238,8 +224,7 @@ describe("meta", () => {
     })
 
     describe("meta-тег в map", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -266,8 +251,7 @@ describe("meta", () => {
 
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -288,8 +272,7 @@ describe("meta", () => {
     })
 
     describe("meta-тег в тренарном операторе", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -319,8 +302,7 @@ describe("meta", () => {
       })
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -351,8 +333,7 @@ describe("meta", () => {
 
   describe("атрибуты", () => {
     describe("статические атрибуты", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -366,15 +347,24 @@ describe("meta", () => {
           {
             tag: "meta-hash",
             type: "meta",
-            text: 'data-type="component" class="meta-element"',
+            string: {
+              "data-type": {
+                type: "static",
+                value: "component",
+              },
+              class: {
+                type: "static",
+                value: "meta-element",
+              },
+            },
           },
         ])
       })
       it.skip("attributes", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
+          data = enrichWithData(elements)
         })
-        expect(attributes).toEqual([
+        expect(elements).toEqual([
           {
             tag: "meta-hash",
             type: "meta",
@@ -394,8 +384,7 @@ describe("meta", () => {
 
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -411,8 +400,7 @@ describe("meta", () => {
     })
 
     describe("динамические атрибуты", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -426,14 +414,22 @@ describe("meta", () => {
           {
             tag: "meta-${core.tag}",
             type: "meta",
-            text: 'data-id="${core.id}" class="meta-${core.type}"',
+            string: {
+              "data-id": {
+                type: "dynamic",
+                value: "${core.id}",
+              },
+              class: {
+                type: "mixed",
+                value: "meta-${core.type}",
+              },
+            },
           },
         ])
       })
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -457,8 +453,7 @@ describe("meta", () => {
     })
 
     describe("условные атрибуты", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -473,14 +468,24 @@ describe("meta", () => {
           {
             tag: "meta-${core.tag}",
             type: "meta",
-            text: '${core.active && "data-active"} class="${core.active ? "active" : "inactive"}"',
+            boolean: {
+              "data-active": {
+                type: "dynamic",
+                value: "core.active",
+              },
+            },
+            string: {
+              class: {
+                type: "dynamic",
+                value: '${core.active ? "active" : "inactive"}',
+              },
+            },
           },
         ])
       })
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -506,8 +511,7 @@ describe("meta", () => {
     })
 
     describe("события", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -524,14 +528,16 @@ describe("meta", () => {
           {
             tag: "meta-${core.tag}",
             type: "meta",
-            text: "onclick=${() => core.handleClick(core.id)} onchange=${(e) => core.handleChange(e, core.value)}",
+            event: {
+              onclick: "() => core.handleClick(core.id)",
+              onchange: "(e) => core.handleChange(e, core.value)",
+            },
           },
         ])
       })
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -556,8 +562,7 @@ describe("meta", () => {
     })
 
     describe("функция update", () => {
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -566,17 +571,8 @@ describe("meta", () => {
         )
         elements = extractHtmlElements(mainHtml)
       })
-      it("hierarchy", () => {
+      it("attributes", () =>
         expect(elements).toEqual([
-          {
-            tag: "meta-${core.tag}",
-            type: "meta",
-            text: "onclick=${() => update({ selected: core.id })}",
-          },
-        ])
-      })
-      it.skip("attributes", () =>
-        expect(attributes).toEqual([
           {
             tag: "meta-${core.tag}",
             type: "meta",
@@ -588,8 +584,7 @@ describe("meta", () => {
 
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {
@@ -614,8 +609,7 @@ describe("meta", () => {
       type Core = {
         items: { tag: string; id: string; active: boolean; handleClick: (id: string) => void }[]
       }
-      let elements: PartsHierarchy
-      let attributes: PartAttrs
+      let elements: PartAttrs
       let data: Node[]
 
       beforeAll(() => {
@@ -634,23 +628,8 @@ describe("meta", () => {
         )
         elements = extractHtmlElements(mainHtml)
       })
-      it("hierarchy", () => {
+      it("attributes", () => {
         expect(elements).toEqual([
-          {
-            type: "map",
-            text: "core.items.map((item)",
-            child: [
-              {
-                tag: "meta-${item.tag}",
-                type: "meta",
-                text: 'data-id="${item.id}" ${item.active && "data-active"} class="meta-${item.active ? "active" : "inactive"}" onclick=${() => item.handleClick(item.id)}',
-              },
-            ],
-          },
-        ])
-      })
-      it.skip("attributes", () => {
-        expect(attributes).toEqual([
           {
             type: "map",
             text: "core.items.map((item)",
@@ -684,8 +663,7 @@ describe("meta", () => {
       })
       it.skip("data", () => {
         beforeAll(() => {
-          attributes = extractAttributes(elements)
-          data = enrichWithData(attributes)
+          data = enrichWithData(elements)
         })
         expect(data).toEqual([
           {

@@ -1,15 +1,12 @@
 import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
-import { type PartsHierarchy } from "../../parser.t"
 import { describe, it, expect, beforeAll } from "bun:test"
 import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
 import type { PartAttrs } from "../../attributes.t"
 import type { Node } from "../../index.t"
 
 describe("core/context в атрибутах", () => {
   describe("core с динамическими значениями", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -20,8 +17,7 @@ describe("core/context в атрибутах", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -40,8 +36,7 @@ describe("core/context в атрибутах", () => {
   })
 
   describe("core со статическими значениями", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -50,11 +45,8 @@ describe("core/context в атрибутах", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
+    it("attributes", () => {
+      expect(elements).toEqual([
         {
           tag: "meta-${core.tag}",
           type: "meta",
@@ -64,7 +56,7 @@ describe("core/context в атрибутах", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -80,8 +72,7 @@ describe("core/context в атрибутах", () => {
   })
 
   describe("core/context во вложенных элементах", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+      let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -92,11 +83,8 @@ describe("core/context в атрибутах", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
+    it("attributes", () => {
+      expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
@@ -112,7 +100,7 @@ describe("core/context в атрибутах", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -137,8 +125,7 @@ describe("core/context в атрибутах", () => {
   })
 
   describe("context", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -149,8 +136,7 @@ describe("core/context в атрибутах", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -169,8 +155,7 @@ describe("core/context в атрибутах", () => {
   })
 
   describe("core/context", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -185,8 +170,7 @@ describe("core/context в атрибутах", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {

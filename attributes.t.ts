@@ -80,7 +80,7 @@ export type PartAttrCondition = {
    * - true: первый элемент массива
    * - false: второй элемент массива
    */
-  child: (PartAttrElement | PartAttrMeta | PartAttrCondition)[]
+  child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap)[]
 }
 export type PartAttrMap = {
   /** Тип узла */
@@ -88,6 +88,6 @@ export type PartAttrMap = {
   /** Исходный текст map-выражения */
   text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (PartAttrElement | PartText | PartAttrMap | PartAttrCondition | PartAttrMeta)[]
+  child: (PartAttrElement | PartText | PartAttrMap | PartAttrCondition | PartAttrMeta | PartAttrCondition)[]
 }
 export type PartAttrs = (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]

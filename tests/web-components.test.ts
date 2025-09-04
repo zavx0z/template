@@ -1,35 +1,20 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
-import { type PartsHierarchy } from "../parser.t"
 import { enrichWithData } from "../data"
-import { extractAttributes } from "../attributes"
 import type { PartAttrs } from "../attributes.t"
 import type { Node } from "../index.t"
 
 describe("web-components", () => {
   describe("базовые custom elements", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<my-element></my-element>`)
       elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () => {
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "my-element",
-          type: "el",
-        },
-      ])
-    })
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "my-element",
           type: "el",
@@ -39,7 +24,7 @@ describe("web-components", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -51,28 +36,15 @@ describe("web-components", () => {
   })
 
   describe("custom elements с атрибутами", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<user-card name="John" age="25"></user-card>`)
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "user-card",
-          type: "el",
-          text: 'name="John" age="25"',
-        },
-      ])
-    })
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "user-card",
           type: "el",
@@ -91,7 +63,7 @@ describe("web-components", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -107,26 +79,15 @@ describe("web-components", () => {
   })
 
   describe("self-closing custom elements", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
       const mainHtml = extractMainHtmlBlock(({ html }) => html`<loading-spinner />`)
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "loading-spinner",
-          type: "el",
-        },
-      ]))
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "loading-spinner",
           type: "el",
@@ -135,7 +96,7 @@ describe("web-components", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -147,8 +108,7 @@ describe("web-components", () => {
   })
 
   describe("вложенные custom elements", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -163,36 +123,8 @@ describe("web-components", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "app-header",
-          type: "el",
-          child: [
-            {
-              tag: "nav-menu",
-              type: "el",
-              child: [
-                {
-                  tag: "menu-item",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      text: "Home",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "app-header",
           type: "el",
@@ -220,7 +152,7 @@ describe("web-components", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -250,8 +182,7 @@ describe("web-components", () => {
   })
 
   describe("custom elements с template literals в атрибутах", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -260,11 +191,8 @@ describe("web-components", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
+    it("attributes", () => {
+      expect(elements).toEqual([
         {
           tag: "user-profile",
           type: "el",
@@ -284,7 +212,7 @@ describe("web-components", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -304,8 +232,7 @@ describe("web-components", () => {
   })
 
   describe("custom elements в условиях", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -315,29 +242,8 @@ describe("web-components", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          type: "cond",
-          text: "context.isAdmin",
-          child: [
-            {
-              tag: "admin-panel",
-              type: "el",
-            },
-            {
-              tag: "user-panel",
-              type: "el",
-            },
-          ],
-        },
-      ]))
-
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           type: "cond",
           text: "context.isAdmin",
@@ -356,7 +262,7 @@ describe("web-components", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -378,8 +284,7 @@ describe("web-components", () => {
   })
 
   describe("custom elements в map", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -392,37 +297,8 @@ describe("web-components", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "user-list",
-          type: "el",
-          child: [
-            {
-              type: "map",
-              text: "core.users.map((user)",
-              child: [
-                {
-                  tag: "user-item",
-                  type: "el",
-                  text: 'id="${user.id}"',
-                  child: [
-                    {
-                      type: "text",
-                      text: "${user.name}",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "user-list",
           type: "el",
@@ -455,7 +331,7 @@ describe("web-components", () => {
     })
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -490,8 +366,7 @@ describe("web-components", () => {
   })
 
   describe("custom elements с дефисами в разных позициях", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -505,21 +380,9 @@ describe("web-components", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
-        { tag: "x-component", type: "el" },
-        { tag: "my-component", type: "el" },
-        { tag: "component-with-dashes", type: "el" },
-        { tag: "a-b-c-d", type: "el" },
-      ])
-    })
-
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         { tag: "x-component", type: "el" },
@@ -530,8 +393,7 @@ describe("web-components", () => {
     })
   })
   describe("custom elements с сложными атрибутами", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -542,20 +404,8 @@ describe("web-components", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "data-table",
-          type: "el",
-          text: 'columns=\'["name", "age", "email"]\' sortable="true" filterable theme="dark"',
-        },
-      ]))
-
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "data-table",
           type: "el",
@@ -585,7 +435,7 @@ describe("web-components", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -605,8 +455,7 @@ describe("web-components", () => {
   })
 
   describe("custom elements с событиями", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -618,13 +467,34 @@ describe("web-components", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
         {
           tag: "modal-dialog",
           type: "el",
-          text: 'onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal"',
+          event: {
+            onclose: "() => core.close()",
+            onopen: "() => core.open()",
+          },
+          string: {
+            "data-modal-id": {
+              type: "static",
+              value: "user-modal",
+            },
+          },
         },
-      ]))
+      ])
+    })
+    it.skip("data", () => {
+      beforeAll(() => {
+        data = enrichWithData(elements)
+      })
+      expect(data).toEqual([
+        {
+          tag: "modal-dialog",
+          type: "el",
+        },
+      ])
+    })
   })
 })

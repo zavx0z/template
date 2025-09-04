@@ -3,6 +3,7 @@ import type { TokenMapOpen, TokenMapClose } from "./map.t"
 import type { TokenText } from "./text.t"
 
 export type StreamToken = TokenText | TokenCondOpen | TokenCondElse | TokenCondClose | TokenMapOpen | TokenMapClose
+
 export type PartHierarchy = PartElement | PartMeta | PartText | PartCondition | PartMap
 export type PartsHierarchy = PartHierarchy[]
 interface BaseElement {

@@ -1,4 +1,14 @@
-import type { AttributeEvent, AttributeArray, AttributeString, AttributeBoolean } from "./attributes.t"
+import type {
+  AttributeEvent,
+  AttributeArray,
+  AttributeString,
+  AttributeBoolean,
+  PartAttrs,
+  PartAttrElement,
+  PartAttrMeta,
+  PartAttrMap,
+  PartAttrCondition,
+} from "./attributes.t"
 import type { Context, Core, State, RenderParams } from "./index.t"
 import { findMapOpen, findMapClose } from "./map"
 import { findCondElse, findCondClose, findAllConditions } from "./cond"
@@ -94,9 +104,9 @@ function getTokens(expr: string): StreamToken[] {
  */
 class Cursor {
   /** Структура элементов по которым двигается курсор */
-  child: PartHierarchy[] = []
+  child: PartAttrs = []
 
-  constructor(child: PartHierarchy[]) {
+  constructor(child: PartAttrs) {
     this.child = child
   }
 
@@ -106,11 +116,11 @@ class Cursor {
   parts: string[] = []
 
   /** Элемент курсора */
-  get element(): PartHierarchy {
-    let el: PartHierarchy = this as unknown as PartHierarchy
+  get element(): PartAttrs {
+    let el: PartAttrs = this as unknown as PartAttrs
     for (const path of this.path) {
-      const { child } = el as PartElement | PartMeta | PartMap | PartCondition
-      el = child![path] as PartHierarchy
+      const { child } = el as unknown as PartAttrElement | PartAttrMeta | PartAttrMap | PartAttrCondition
+      el = child![path] as unknown as PartAttrs
     }
     return el
   }
@@ -128,22 +138,22 @@ class Cursor {
 
   push(name: string) {
     this.parts.push(name)
-    this.path.push((this.element as unknown as PartElement | PartMeta).child!.length - 1)
+    this.path.push((this.element as unknown as PartAttrElement | PartAttrMeta).child!.length - 1)
   }
 }
 
 class Hierarchy {
-  child: PartHierarchy[] = []
+  child: PartAttrs = []
   cursor: Cursor
   constructor() {
     this.child = []
     this.cursor = new Cursor(this.child)
   }
-  get lastElement(): PartHierarchy {
+  get lastElement(): PartAttrs {
     const cursorElement = this.cursor.element
     if (Object.hasOwn(cursorElement, "child")) {
-      const { child } = cursorElement as PartElement | PartMeta | PartMap | PartCondition
-      return child![child!.length - 1] as PartHierarchy
+      const { child } = cursorElement as unknown as PartAttrElement | PartAttrMeta | PartAttrMap | PartAttrCondition
+      return child![child!.length - 1] as unknown as PartAttrs
     }
     return cursorElement
   }
@@ -153,7 +163,7 @@ class Hierarchy {
    * @param value - текст условия
    */
   text(value: string) {
-    const curEl = this.cursor.element as PartElement | PartMeta
+    const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     curEl.child!.push({ type: "text", text: value })
     return
@@ -165,7 +175,7 @@ class Hierarchy {
    * @param value - текст условия
    */
   if(value: string) {
-    const curEl = this.cursor.element as PartElement | PartMeta
+    const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     curEl.child!.push({ type: "cond", text: value, child: [] })
     this.cursor.push("if")
@@ -178,7 +188,7 @@ class Hierarchy {
    * - cursor.parts изменяется с if на else
    */
   else() {
-    const curEl = this.cursor.element as PartElement | PartMeta
+    const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     if (this.cursor.part === "if") {
       this.cursor.parts.pop()
@@ -192,7 +202,7 @@ class Hierarchy {
    * @param value - текст условия
    */
   map(value: string) {
-    const curEl = this.cursor.element as PartElement | PartMeta
+    const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     curEl.child!.push({ type: "map", text: value, child: [] })
     this.cursor.push("map")
@@ -203,8 +213,8 @@ class Hierarchy {
    * - не создает курсор на этот блок
    * @param part - текст условия
    */
-  self(part: PartElement | PartMeta) {
-    const curEl = this.cursor.element as PartElement | PartMeta
+  self(part: PartAttrElement | PartAttrMeta) {
+    const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     curEl.child!.push(part)
     return
@@ -216,8 +226,8 @@ class Hierarchy {
    * - cursor.parts добавляется с именем тега
    * @param value - текст условия
    */
-  open(part: PartElement | PartMeta) {
-    const curEl = this.cursor.element as PartElement | PartMeta
+  open(part: PartAttrElement | PartAttrMeta) {
+    const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     curEl.child!.push(part)
     this.cursor.push(part.tag)
@@ -282,7 +292,7 @@ export const parseTextAndOperators = (input: string, store: Hierarchy) => {
     }
   }
 }
-export const extractHtmlElements = (input: string): PartsHierarchy => {
+export const extractHtmlElements = (input: string): PartAttrs => {
   const store = new Hierarchy()
 
   let lastIndex = 0
@@ -385,13 +395,13 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
       store.close(name)
     } else if (full.endsWith("/>")) {
       const text = formatAttributeText(full.replace(`<${name}`, "").replace(/\/>$/, ""))
-      store.self({ tag: name, type, ...(text ? { text } : {}) })
+      store.self({ tag: name, type, ...(text ? parseAttributes(text) : {}) })
     } else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) {
       const text = formatAttributeText(full.replace(`<${name}`, "").replace(/\/>$/, ""))
-      store.self({ tag: name, type, ...(text ? { text } : {}) })
+      store.self({ tag: name, type, ...(text ? parseAttributes(text) : {}) })
     } else {
       const text = formatAttributeText(full.replace(`<${name}`, "").replace(/>$/, ""))
-      store.open({ tag: name, type, ...(text ? { text } : {}) })
+      store.open({ tag: name, type, ...(text ? parseAttributes(text) : {}) })
     }
 
     TAG_LOOKAHEAD.lastIndex = tagEnd

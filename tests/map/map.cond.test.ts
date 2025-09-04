@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
-import { type PartsHierarchy } from "../../parser.t"
 import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
 import type { Node } from "../../index.t"
 import type { PartAttrs } from "../../attributes.t"
 
@@ -15,8 +13,7 @@ describe("map с условиями", () => {
       list1: { title: string }[]
       list2: { title: string }[]
     }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -32,74 +29,8 @@ describe("map с условиями", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          type: "map",
-          text: "core.list1.map(({ title })",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              text: 'class="item1"',
-              child: [
-                {
-                  type: "text",
-                  text: "${title}",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: "cond",
-          text: "context.flag",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              text: 'class="conditional"',
-              child: [
-                {
-                  type: "map",
-                  text: "core.list2.map(({ title })",
-                  child: [
-                    {
-                      tag: "div",
-                      type: "el",
-                      text: 'class="item2"',
-                      child: [
-                        {
-                          type: "text",
-                          text: "${title}",
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              tag: "div",
-              type: "el",
-              text: 'class="fallback"',
-              child: [
-                {
-                  type: "text",
-                  text: "No items",
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           type: "map",
           text: "core.list1.map(({ title })",
@@ -171,7 +102,7 @@ describe("map с условиями", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -252,8 +183,7 @@ describe("map с условиями", () => {
       list1: { title: string }[]
       list2: { title: string }[]
     }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -271,81 +201,8 @@ describe("map с условиями", () => {
       )
       elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () =>
+    it("attributes", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          text: 'class="container"',
-          child: [
-            {
-              type: "map",
-              text: "core.list1.map(({ title })",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  text: 'class="item1"',
-                  child: [
-                    {
-                      type: "text",
-                      text: "${title}",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              type: "cond",
-              text: "context.flag",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  text: 'class="conditional"',
-                  child: [
-                    {
-                      type: "map",
-                      text: "core.list2.map(({ title })",
-                      child: [
-                        {
-                          tag: "div",
-                          type: "el",
-                          text: 'class="item2"',
-                          child: [
-                            {
-                              type: "text",
-                              text: "${title}",
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  type: "el",
-                  text: 'class="fallback"',
-                  child: [
-                    {
-                      type: "text",
-                      text: "No items",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      expect(attributes).toEqual([
         {
           tag: "div",
           type: "el",
@@ -441,7 +298,7 @@ describe("map с условиями", () => {
 
     it.skip("data", () => {
       beforeAll(() => {
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
@@ -533,8 +390,7 @@ describe("map с условиями", () => {
       list2: { title: string }[]
       list3: { title: string }[]
     }
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -567,17 +423,32 @@ describe("map с условиями", () => {
         {
           tag: "div",
           type: "el",
-          text: 'class="level1"',
+          string: {
+            class: {
+              type: "static",
+              value: "level1",
+            },
+          },
           child: [
             {
               tag: "div",
               type: "el",
-              text: 'class="level2"',
+              string: {
+                class: {
+                  type: "static",
+                  value: "level2",
+                },
+              },
               child: [
                 {
                   tag: "div",
                   type: "el",
-                  text: 'class="level3"',
+                  string: {
+                    class: {
+                      type: "static",
+                      value: "level3",
+                    },
+                  },
                   child: [
                     {
                       type: "map",
@@ -586,7 +457,12 @@ describe("map с условиями", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: 'class="item1"',
+                          string: {
+                            class: {
+                              type: "static",
+                              value: "item1",
+                            },
+                          },
                           child: [
                             {
                               type: "text",
@@ -603,7 +479,12 @@ describe("map с условиями", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: 'class="conditional"',
+                          string: {
+                            class: {
+                              type: "static",
+                              value: "conditional",
+                            },
+                          },
                           child: [
                             {
                               type: "map",
@@ -612,7 +493,12 @@ describe("map с условиями", () => {
                                 {
                                   tag: "div",
                                   type: "el",
-                                  text: 'class="item2"',
+                                  string: {
+                                    class: {
+                                      type: "static",
+                                      value: "item2",
+                                    },
+                                  },
                                   child: [
                                     {
                                       type: "text",
@@ -629,7 +515,12 @@ describe("map с условиями", () => {
                                 {
                                   tag: "div",
                                   type: "el",
-                                  text: 'class="deep-conditional"',
+                                  string: {
+                                    class: {
+                                      type: "static",
+                                      value: "deep-conditional",
+                                    },
+                                  },
                                   child: [
                                     {
                                       type: "map",
@@ -638,7 +529,12 @@ describe("map с условиями", () => {
                                         {
                                           tag: "div",
                                           type: "el",
-                                          text: 'class="item3"',
+                                          string: {
+                                            class: {
+                                              type: "static",
+                                              value: "item3",
+                                            },
+                                          },
                                           child: [
                                             {
                                               type: "text",
@@ -653,7 +549,12 @@ describe("map с условиями", () => {
                                 {
                                   tag: "div",
                                   type: "el",
-                                  text: 'class="deep-fallback"',
+                                  string: {
+                                    class: {
+                                      type: "static",
+                                      value: "deep-fallback",
+                                    },
+                                  },
                                   child: [
                                     {
                                       type: "text",
@@ -668,7 +569,12 @@ describe("map с условиями", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: 'class="fallback"',
+                          string: {
+                            class: {
+                              type: "static",
+                              value: "fallback",
+                            },
+                          },
                           child: [
                             {
                               type: "text",
@@ -686,42 +592,10 @@ describe("map с условиями", () => {
         },
       ])
     })
-
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-      })
-      // Проверяем, что атрибуты извлекаются корректно
-      expect(attributes.length).toBeGreaterThan(0)
-
-      // Проверяем, что все уровни имеют атрибуты
-      const level1Attrs = attributes[0]
-      if (level1Attrs && level1Attrs.type === "el") {
-        expect(level1Attrs.string?.class?.value).toBe("level1")
-        expect(level1Attrs.child).toBeDefined()
-        expect(level1Attrs.child!.length).toBeGreaterThan(0)
-      }
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(attributes)
-      })
-      // Проверяем, что данные обогащаются корректно
-      expect(data.length).toBeGreaterThan(0)
-
-      // Проверяем, что есть data пути
-      const level1Data = data[0]
-      if (level1Data && level1Data.type === "el") {
-        expect(level1Data.child).toBeDefined()
-        expect(level1Data.child!.length).toBeGreaterThan(0)
-      }
-    })
   })
 
   describe("map внутри condition", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
+    let elements: PartAttrs
     let data: Node[]
 
     beforeAll(() => {
@@ -754,7 +628,12 @@ describe("map с условиями", () => {
                     {
                       tag: "div",
                       type: "el",
-                      text: 'class="true-${item}"',
+                      string: {
+                        class: {
+                          type: "mixed",
+                          value: "true-${item}",
+                        },
+                      },
                     },
                   ],
                 },
@@ -765,7 +644,12 @@ describe("map с условиями", () => {
                     {
                       tag: "div",
                       type: "el",
-                      text: 'class="false-${item}"',
+                      string: {
+                        class: {
+                          type: "mixed",
+                          value: "false-${item}",
+                        },
+                      },
                     },
                   ],
                 },
@@ -776,8 +660,7 @@ describe("map с условиями", () => {
       ]))
     it.skip("data", () => {
       beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
+        data = enrichWithData(elements)
       })
       expect(data).toEqual([
         {
