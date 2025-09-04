@@ -1,37 +1,14 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
-import { enrichWithData } from "../data"
-import type { PartAttrs } from "../attributes.t"
-import type { Node } from "../index.t"
+import { parse, type Node } from "../index"
 
 describe("атрибуты", () => {
   describe("namespace", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html }) => html`<svg:use xlink:href="#id"></svg:use>`)
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html }) => html`<svg:use xlink:href="#id"></svg:use>`)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "svg:use",
-          type: "el",
-          string: {
-            "xlink:href": {
-              type: "static",
-              value: "#id",
-            },
-          },
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "svg:use",
           type: "el",
@@ -43,17 +20,12 @@ describe("атрибуты", () => {
     })
   })
   describe("пустые значения", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html }) => html`<div class="" id="">Content</div>`)
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html }) => html`<div class="" id="">Content</div>`)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
@@ -68,42 +40,12 @@ describe("атрибуты", () => {
     })
   })
   describe("двойные/одинарные кавычки", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html }) => html`<a href="https://e.co" target="_blank">x</a>`)
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html }) => html`<a href="https://e.co" target="_blank">x</a>`)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "a",
-          type: "el",
-          string: {
-            href: {
-              type: "static",
-              value: "https://e.co",
-            },
-            target: {
-              type: "static",
-              value: "_blank",
-            },
-          },
-          child: [
-            {
-              type: "text",
-              text: "x",
-            },
-          ],
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "a",
           type: "el",
@@ -123,32 +65,12 @@ describe("атрибуты", () => {
   })
 
   describe("угловые скобки внутри значения", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html }) => html`<div title="a > b, c < d"></div>`)
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html }) => html`<div title="a > b, c < d"></div>`)
     })
-    it.skip("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          string: {
-            title: {
-              type: "static",
-              value: "a > b, c < d",
-            },
-          },
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -161,34 +83,14 @@ describe("атрибуты", () => {
   })
 
   describe("условие в атрибуте", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
+      elements = parse<{ flag: boolean }>(
         ({ html, context }) => html`<div title="${context.flag ? "a > b" : "c < d"}"></div>`
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          string: {
-            title: {
-              type: "dynamic",
-              value: '${context.flag ? "a > b" : "c < d"}',
-            },
-          },
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -204,34 +106,14 @@ describe("атрибуты", () => {
   })
 
   describe("условие в аттрибуте без кавычек", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
+      elements = parse<{ flag: boolean }>(
         ({ html, context }) => html`<div title=${context.flag ? "a > b" : "c < d"}></div>`
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          string: {
-            title: {
-              type: "dynamic",
-              value: '${context.flag ? "a > b" : "c < d"}',
-            },
-          },
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -247,34 +129,15 @@ describe("атрибуты", () => {
   })
 
   describe("условие в аттрибуте с одинарными кавычками", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
+      elements = parse<{ flag: boolean }>(
         // prettier-ignore
         ({ html, context }) => html`<div title='${context.flag ? "a > b" : "c < d"}'></div>`
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          string: {
-            title: {
-              type: "dynamic",
-              value: '${context.flag ? "a > b" : "c < d"}',
-            },
-          },
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -291,33 +154,12 @@ describe("атрибуты", () => {
 })
 
 it("булевые атрибуты", () => {
-  let elements: PartAttrs
-  let data: Node[]
+  let elements: Node[]
   beforeAll(() => {
-    const mainHtml = extractMainHtmlBlock<{ flag: boolean }>(
-      ({ html, context }) => html`<button ${context.flag && "disabled"}></button>`
-    )
-    elements = extractHtmlElements(mainHtml)
+    elements = parse<{ flag: boolean }>(({ html, context }) => html`<button ${context.flag && "disabled"}></button>`)
   })
-  it("attributes", () => {
+  it("data", () => {
     expect(elements).toEqual([
-      {
-        tag: "button",
-        type: "el",
-        boolean: {
-          disabled: {
-            type: "dynamic",
-            value: "${context.flag}",
-          },
-        },
-      },
-    ])
-  })
-  it.skip("data", () => {
-    beforeAll(() => {
-      data = enrichWithData(elements)
-    })
-    expect(data).toEqual([
       {
         tag: "button",
         type: "el",
@@ -332,59 +174,18 @@ it("булевые атрибуты", () => {
 })
 
 describe("класс в map", () => {
-  let elements: PartAttrs
-  let data: Node[]
+  let elements: Node[]
   beforeAll(() => {
-    const mainHtml = extractMainHtmlBlock<any, { items: { type: string; name: string }[] }>(
+    elements = parse<any, { items: { type: string; name: string }[] }>(
       ({ html, core }) => html`
         <ul>
           ${core.items.map((item) => html`<li class="item-${item.type}" title="${item.name}">${item.name}</li>`)}
         </ul>
       `
     )
-    elements = extractHtmlElements(mainHtml)
   })
-  it("attributes", () => {
+  it("data", () => {
     expect(elements).toEqual([
-      {
-        tag: "ul",
-        type: "el",
-        child: [
-          {
-            type: "map",
-            text: "core.items.map((item)",
-            child: [
-              {
-                tag: "li",
-                type: "el",
-                string: {
-                  class: {
-                    type: "mixed",
-                    value: "item-${item.type}",
-                  },
-                  title: {
-                    type: "dynamic",
-                    value: "${item.name}",
-                  },
-                },
-                child: [
-                  {
-                    type: "text",
-                    text: "${item.name}",
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ])
-  })
-  it.skip("data", () => {
-    beforeAll(() => {
-      data = enrichWithData(elements)
-    })
-    expect(data).toEqual([
       {
         tag: "ul",
         type: "el",
@@ -421,39 +222,14 @@ describe("класс в map", () => {
 })
 
 describe("сложные условные атрибуты class", () => {
-  let elements: PartAttrs
-  let data: Node[]
+  let elements: Node[]
   beforeAll(() => {
-    const mainHtml = extractMainHtmlBlock<{ active: boolean }>(
+    elements = parse<{ active: boolean }>(
       ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"}">Content</div>`
     )
-    elements = extractHtmlElements(mainHtml)
   })
-  it("attributes", () => {
+  it("data", () => {
     expect(elements).toEqual([
-      {
-        tag: "div",
-        type: "el",
-        string: {
-          class: {
-            type: "mixed",
-            value: 'div-${core.active ? "active" : "inactive"}',
-          },
-        },
-        child: [
-          {
-            type: "text",
-            text: "Content",
-          },
-        ],
-      },
-    ])
-  })
-  it.skip("data", () => {
-    beforeAll(() => {
-      data = enrichWithData(elements)
-    })
-    expect(data).toEqual([
       {
         tag: "div",
         type: "el",

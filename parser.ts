@@ -9,7 +9,7 @@ import type {
   PartAttrMap,
   PartAttrCondition,
 } from "./attributes.t"
-import type { Context, Core, State, RenderParams } from "./index.t"
+import type { Context, Core, State, RenderParams, Node } from "./index.t"
 import { findMapOpen, findMapClose } from "./map"
 import { findCondElse, findCondClose, findAllConditions } from "./cond"
 import { findText, formatAttributeText } from "./text"
@@ -34,6 +34,7 @@ import {
   readAttributeRawValue,
   splitBySpace,
 } from "./attributes"
+import { createNodeDataElement } from "./data"
 // Быстрый lookahead на теги (включая meta-${...})
 const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>|<\/?meta-[^>]*>|<\/?meta-\$\{[^}]*\}[^>]*>)/gi
 
@@ -292,7 +293,7 @@ export const parseTextAndOperators = (input: string, store: Hierarchy) => {
     }
   }
 }
-export const extractHtmlElements = (input: string): PartAttrs => {
+export const extractHtmlElements = (input: string): Node[] => {
   const store = new Hierarchy()
 
   let lastIndex = 0
@@ -407,12 +408,12 @@ export const extractHtmlElements = (input: string): PartAttrs => {
     TAG_LOOKAHEAD.lastIndex = tagEnd
     lastIndex = tagEnd
   }
-
-  if (store.child.length) return store.child
+  const context = { pathStack: [], level: 0 }
+  if (store.child.length) return store.child.map((node) => createNodeDataElement(node, context))
   else {
     // если нет тегов, то парсим текст и операторы
     parseTextAndOperators(input.slice(lastIndex), store)
-    return store.child
+    return store.child.map((node) => createNodeDataElement(node, context))
   }
 }
 

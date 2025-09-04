@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
-import { enrichWithData } from "../../data"
-import type { Node } from "../../index.t"
-import type { PartAttrs } from "../../attributes.t"
+import { parse, type Node } from "../../index"
 
 describe("map с условиями", () => {
   describe("map соседствующий с map в условии на верхнем уровне", () => {
@@ -13,11 +10,10 @@ describe("map с условиями", () => {
       list1: { title: string }[]
       list2: { title: string }[]
     }
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<Context, Core>(
+      elements = parse<Context, Core>(
         ({ html, context, core }) => html`
           ${core.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
           ${context.flag
@@ -27,84 +23,9 @@ describe("map с условиями", () => {
             : html`<div class="fallback">No items</div>`}
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          type: "map",
-          text: "core.list1.map(({ title })",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              string: {
-                class: { type: "static", value: "item1" },
-              },
-              child: [
-                {
-                  type: "text",
-                  text: "${title}",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: "cond",
-          text: "context.flag",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              string: {
-                class: { type: "static", value: "conditional" },
-              },
-              child: [
-                {
-                  type: "map",
-                  text: "core.list2.map(({ title })",
-                  child: [
-                    {
-                      tag: "div",
-                      type: "el",
-                      string: {
-                        class: { type: "static", value: "item2" },
-                      },
-                      child: [
-                        {
-                          type: "text",
-                          text: "${title}",
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              tag: "div",
-              type: "el",
-              string: {
-                class: { type: "static", value: "fallback" },
-              },
-              child: [
-                {
-                  type: "text",
-                  text: "No items",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           type: "map",
           data: "/core/list1",
@@ -183,11 +104,10 @@ describe("map с условиями", () => {
       list1: { title: string }[]
       list2: { title: string }[]
     }
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<Context, Core>(
+      elements = parse<Context, Core>(
         ({ html, context, core }) => html`
           <div class="container">
             ${core.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
@@ -199,108 +119,9 @@ describe("map с условиями", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          string: {
-            class: {
-              type: "static",
-              value: "container",
-            },
-          },
-          child: [
-            {
-              type: "map",
-              text: "core.list1.map(({ title })",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: {
-                      type: "static",
-                      value: "item1",
-                    },
-                  },
-                  child: [
-                    {
-                      type: "text",
-                      text: "${title}",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              type: "cond",
-              text: "context.flag",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: {
-                      type: "static",
-                      value: "conditional",
-                    },
-                  },
-                  child: [
-                    {
-                      type: "map",
-                      text: "core.list2.map(({ title })",
-                      child: [
-                        {
-                          tag: "div",
-                          type: "el",
-                          string: {
-                            class: {
-                              type: "static",
-                              value: "item2",
-                            },
-                          },
-                          child: [
-                            {
-                              type: "text",
-                              text: "${title}",
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: {
-                      type: "static",
-                      value: "fallback",
-                    },
-                  },
-                  child: [
-                    {
-                      type: "text",
-                      text: "No items",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -390,11 +211,10 @@ describe("map с условиями", () => {
       list2: { title: string }[]
       list3: { title: string }[]
     }
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<Context, Core>(
+      elements = parse<Context, Core>(
         ({ html, context, core }) => html`
           <div class="level1">
             <div class="level2">
@@ -415,191 +235,158 @@ describe("map с условиями", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
-          string: {
-            class: {
-              type: "static",
-              value: "level1",
-            },
-          },
           child: [
             {
               tag: "div",
               type: "el",
-              string: {
-                class: {
-                  type: "static",
-                  value: "level2",
-                },
-              },
               child: [
                 {
                   tag: "div",
                   type: "el",
-                  string: {
-                    class: {
-                      type: "static",
-                      value: "level3",
-                    },
-                  },
                   child: [
                     {
                       type: "map",
-                      text: "core.list1.map(({ title })",
+                      data: "/core/list1",
                       child: [
                         {
                           tag: "div",
                           type: "el",
-                          string: {
-                            class: {
-                              type: "static",
-                              value: "item1",
-                            },
-                          },
                           child: [
                             {
                               type: "text",
-                              text: "${title}",
+                              data: "[item]/title",
                             },
                           ],
+                          string: {
+                            class: "item1",
+                          },
                         },
                       ],
                     },
                     {
                       type: "cond",
-                      text: "context.flag",
+                      data: "/context/flag",
                       child: [
                         {
                           tag: "div",
                           type: "el",
-                          string: {
-                            class: {
-                              type: "static",
-                              value: "conditional",
-                            },
-                          },
                           child: [
                             {
                               type: "map",
-                              text: "core.list2.map(({ title })",
+                              data: "/core/list2",
                               child: [
                                 {
                                   tag: "div",
                                   type: "el",
-                                  string: {
-                                    class: {
-                                      type: "static",
-                                      value: "item2",
-                                    },
-                                  },
                                   child: [
                                     {
                                       type: "text",
-                                      text: "${title}",
+                                      data: "[item]/title",
                                     },
                                   ],
+                                  string: {
+                                    class: "item2",
+                                  },
                                 },
                               ],
                             },
                             {
                               type: "cond",
-                              text: "context.deepFlag",
+                              data: "/context/deepFlag",
                               child: [
                                 {
                                   tag: "div",
                                   type: "el",
-                                  string: {
-                                    class: {
-                                      type: "static",
-                                      value: "deep-conditional",
-                                    },
-                                  },
                                   child: [
                                     {
                                       type: "map",
-                                      text: "core.list3.map(({ title })",
+                                      data: "/core/list3",
                                       child: [
                                         {
                                           tag: "div",
                                           type: "el",
-                                          string: {
-                                            class: {
-                                              type: "static",
-                                              value: "item3",
-                                            },
-                                          },
                                           child: [
                                             {
                                               type: "text",
-                                              text: "${title}",
+                                              data: "[item]/title",
                                             },
                                           ],
+                                          string: {
+                                            class: "item3",
+                                          },
                                         },
                                       ],
                                     },
                                   ],
+                                  string: {
+                                    class: "deep-conditional",
+                                  },
                                 },
                                 {
                                   tag: "div",
                                   type: "el",
-                                  string: {
-                                    class: {
-                                      type: "static",
-                                      value: "deep-fallback",
-                                    },
-                                  },
                                   child: [
                                     {
                                       type: "text",
-                                      text: "No deep items",
+                                      value: "No deep items",
                                     },
                                   ],
+                                  string: {
+                                    class: "deep-fallback",
+                                  },
                                 },
                               ],
                             },
                           ],
+                          string: {
+                            class: "conditional",
+                          },
                         },
                         {
                           tag: "div",
                           type: "el",
-                          string: {
-                            class: {
-                              type: "static",
-                              value: "fallback",
-                            },
-                          },
                           child: [
                             {
                               type: "text",
-                              text: "No items",
+                              value: "No items",
                             },
                           ],
+                          string: {
+                            class: "fallback",
+                          },
                         },
                       ],
                     },
                   ],
+                  string: {
+                    class: "level3",
+                  },
                 },
               ],
+              string: {
+                class: "level2",
+              },
             },
           ],
+          string: {
+            class: "level1",
+          },
         },
       ])
     })
   })
 
   describe("map внутри condition", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ show: boolean }, { items: string[] }>(
+      elements = parse<{ show: boolean }, { items: string[] }>(
         ({ html, core, context }) => html`
           <div>
             ${context.show
@@ -608,61 +395,9 @@ describe("map с условиями", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-
-    it("hierarchy", () =>
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "cond",
-              text: "context.show",
-              child: [
-                {
-                  type: "map",
-                  text: "core.items.map((item)",
-                  child: [
-                    {
-                      tag: "div",
-                      type: "el",
-                      string: {
-                        class: {
-                          type: "mixed",
-                          value: "true-${item}",
-                        },
-                      },
-                    },
-                  ],
-                },
-                {
-                  type: "map",
-                  text: "core.items.map((item)",
-                  child: [
-                    {
-                      tag: "div",
-                      type: "el",
-                      string: {
-                        class: {
-                          type: "mixed",
-                          value: "false-${item}",
-                        },
-                      },
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",

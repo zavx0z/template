@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
-import { enrichWithData } from "../../data"
-import type { PartAttrs } from "../../attributes.t"
-import type { Node } from "../../index.t"
+import { parse, type Node } from "../../index"
 
 describe("map соседствующие", () => {
   describe("map соседствующий с map на верхнем уровне", () => {
@@ -10,96 +7,17 @@ describe("map соседствующие", () => {
       list1: { title: string }[]
       list2: { title: string }[]
     }
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, Core>(
+      elements = parse<any, Core>(
         ({ html, core }) => html`
           ${core.list1.map(({ title }) => html` <div>${title}</div> `)}
           ${core.list2.map(({ title }) => html` <div>${title}</div> `)}
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          type: "map",
-          text: "core.list1.map(({ title })",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "${title}",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: "map",
-          text: "core.list2.map(({ title })",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "${title}",
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-    it.skip("attributes", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(elements).toEqual([
-        {
-          type: "map",
-          text: "core.list1.map(({ title })",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "${title}",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: "map",
-          text: "core.list2.map(({ title })",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "${title}",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           type: "map",
           data: "/core/list1",
@@ -146,10 +64,9 @@ describe("map соседствующие", () => {
         title: string
       }[]
     }
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<Context, Core>(
+      elements = parse<Context, Core>(
         ({ html, context, core }) => html`
           <div class="dashboard">
             ${context.categories.map((cat) => html`<span class="category">${cat}</span>`)}
@@ -163,71 +80,9 @@ describe("map соседствующие", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          string: {
-            class: { type: "static", value: "dashboard" },
-          },
-          child: [
-            {
-              type: "map",
-              text: "context.categories.map((cat)",
-              child: [
-                {
-                  tag: "span",
-                  type: "el",
-                  string: {
-                    class: { type: "static", value: "category" },
-                  },
-                  child: [
-                    {
-                      type: "text",
-                      text: "${cat}",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              type: "map",
-              text: "core.items.map((item)",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: { type: "static", value: "item" },
-                    "data-category": { type: "dynamic", value: "${item.categoryId}" },
-                  },
-                  child: [
-                    {
-                      tag: "h4",
-                      type: "el",
-                      child: [
-                        {
-                          type: "text",
-                          text: "${item.title}",
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -294,10 +149,9 @@ describe("map соседствующие", () => {
       list2: { title: string }[]
       list3: { title: string }[]
     }
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{}, Core>(
+      elements = parse<{}, Core>(
         ({ html, core }) => html`
           <div class="level1">
             <div class="level2">
@@ -310,93 +164,92 @@ describe("map соседствующие", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
-          string: {
-            class: { type: "static", value: "level1" },
-          },
           child: [
             {
               tag: "div",
               type: "el",
-              string: {
-                class: { type: "static", value: "level2" },
-              },
               child: [
                 {
                   tag: "div",
                   type: "el",
-                  string: {
-                    class: { type: "static", value: "level3" },
-                  },
                   child: [
                     {
                       type: "map",
-                      text: "core.list1.map(({ title })",
+                      data: "/core/list1",
                       child: [
                         {
                           tag: "div",
                           type: "el",
-                          string: {
-                            class: { type: "static", value: "item1" },
-                          },
                           child: [
                             {
                               type: "text",
-                              text: "${title}",
+                              data: "[item]/title",
                             },
                           ],
+                          string: {
+                            class: "item1",
+                          },
                         },
                       ],
                     },
                     {
                       type: "map",
-                      text: "core.list2.map(({ title })",
+                      data: "/core/list2",
                       child: [
                         {
                           tag: "div",
                           type: "el",
-                          string: {
-                            class: { type: "static", value: "item2" },
-                          },
                           child: [
                             {
                               type: "text",
-                              text: "${title}",
+                              data: "[item]/title",
                             },
                           ],
+                          string: {
+                            class: "item2",
+                          },
                         },
                       ],
                     },
                     {
                       type: "map",
-                      text: "core.list3.map(({ title })",
+                      data: "/core/list3",
                       child: [
                         {
                           tag: "div",
                           type: "el",
-                          string: {
-                            class: { type: "static", value: "item3" },
-                          },
                           child: [
                             {
                               type: "text",
-                              text: "${title}",
+                              data: "[item]/title",
                             },
                           ],
+                          string: {
+                            class: "item3",
+                          },
                         },
                       ],
                     },
                   ],
+                  string: {
+                    class: "level3",
+                  },
                 },
               ],
+              string: {
+                class: "level2",
+              },
             },
           ],
+          string: {
+            class: "level1",
+          },
         },
       ])
     })

@@ -1,25 +1,17 @@
-import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
 import { describe, it, expect, beforeAll } from "bun:test"
-import { enrichWithData } from "../../data"
-import type { PartAttrs } from "../../attributes.t"
-import type { Node } from "../../index.t"
+import { parse, type Node } from "../../index"
 
 describe("core/context в атрибутах", () => {
   describe("core с динамическими значениями", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, core, context }) => html`<meta-${core.tag} core=${{ id: context.id, name: context.name }} />`
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: {
             data: "/core/tag",
@@ -36,29 +28,13 @@ describe("core/context в атрибутах", () => {
   })
 
   describe("core со статическими значениями", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
-        ({ html, core }) => html`<meta-${core.tag} core=${{ id: "1", name: "2" }} />`
-      )
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html, core }) => html`<meta-${core.tag} core=${{ id: "1", name: "2" }} />`)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "meta-${core.tag}",
-          type: "meta",
-          core: '{ id: "1", name: "2" }',
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: {
             data: "/core/tag",
@@ -72,37 +48,17 @@ describe("core/context в атрибутах", () => {
   })
 
   describe("core/context во вложенных элементах", () => {
-      let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, core, context }) => html`
           <div><meta-${core.tag} context=${{ id: context.id, name: context.name }} /></div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "meta-${core.tag}",
-              type: "meta",
-              context: "{ id: context.id, name: context.name }",
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -125,20 +81,15 @@ describe("core/context в атрибутах", () => {
   })
 
   describe("context", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, core, context }) => html`<meta-${core.tag} context=${{ id: context.id, name: context.name }} />`
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: {
             data: "/core/tag",
@@ -155,24 +106,19 @@ describe("core/context в атрибутах", () => {
   })
 
   describe("core/context", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, core, context }) => html`
           <meta-${core.tag}
             core=${{ id: context.id, name: context.name }}
             context=${{ id: context.id, name: context.name }} />
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: {
             data: "/core/tag",

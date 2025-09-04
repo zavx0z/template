@@ -1,5 +1,6 @@
 import type { Node } from "./index.t"
 import type { RenderParams, Context, Core, State } from "./index.t"
+import { extractHtmlElements, extractMainHtmlBlock } from "./parser"
 
 /**
  * Парсит HTML-шаблон и возвращает обогащенную иерархию с метаданными о путях к данным.
@@ -15,8 +16,10 @@ import type { RenderParams, Context, Core, State } from "./index.t"
  * @param render - Render-функция вида ({ html, context, core, state }) => html`...`
  * @returns Обогащенная иерархия с метаданными о путях к данным
  */
-export const parse = <C extends Context, I extends Core, S extends State>(
+export const parse = <C extends Context = Context, I extends Core = Core, S extends State = State>(
   render: (params: RenderParams<C, I, S>) => void
 ): Node[] => {
-  return []
+  const mainHtml = extractMainHtmlBlock(render)
+  return extractHtmlElements(mainHtml)
 }
+export type { Node }

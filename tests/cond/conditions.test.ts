@@ -1,51 +1,17 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
-import { enrichWithData } from "../../data"
-import type { PartAttrs } from "../../attributes.t"
-import type { Node } from "../../index.t"
+import { parse, type Node } from "../../index"
 
 describe("conditions", () => {
   describe("тернарник с внутренними тегами", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, context }) => html` <div>${context.cond ? html`<em>A</em>` : html`<span>b</span>`}</div> `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "cond",
-              text: "context.cond",
-              child: [
-                {
-                  tag: "em",
-                  type: "el",
-                  child: [{ type: "text", text: "A" }],
-                },
-                {
-                  tag: "span",
-                  type: "el",
-                  child: [{ type: "text", text: "b" }],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -83,11 +49,10 @@ describe("conditions", () => {
   })
 
   describe("простой тернарный оператор с context с оберткой и соседними элементами", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, context }) => html`
           <div>
             <header>Header</header>
@@ -96,66 +61,10 @@ describe("conditions", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
 
-    it("attributes", () => {
-      expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "header",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "Header",
-                },
-              ],
-            },
-            {
-              type: "cond",
-              text: "context.isActive",
-              child: [
-                {
-                  tag: "span",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      text: "Active",
-                    },
-                  ],
-                },
-                {
-                  tag: "span",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      text: "Inactive",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              tag: "footer",
-              type: "el",
-              child: [{ type: "text", text: "Footer" }],
-            },
-          ],
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data, "простой тернарный оператор с context с оберткой и соседними элементами").toEqual([
+    it("data", () => {
+      expect(elements, "простой тернарный оператор с context с оберткой и соседними элементами").toEqual([
         {
           tag: "div",
           type: "el",
@@ -213,49 +122,17 @@ describe("conditions", () => {
   })
 
   describe("сравнение нескольких переменных", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, context }) =>
           html`<div>${context.cond && context.cond2 ? html`<em>A</em>` : html`<span>b</span>`}</div>`
       )
-      elements = extractHtmlElements(mainHtml)
     })
 
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "cond",
-              text: "context.cond && context.cond2",
-              child: [
-                {
-                  tag: "em",
-                  type: "el",
-                  child: [{ type: "text", text: "A" }],
-                },
-                {
-                  tag: "span",
-                  type: "el",
-                  child: [{ type: "text", text: "b" }],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -284,48 +161,17 @@ describe("conditions", () => {
   })
 
   describe("сравнение переменных на равенство", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, context }) => html`
           <div>${context.cond === context.cond2 ? html`<em>A</em>` : html`<span>b</span>`}</div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "cond",
-              text: "context.cond === context.cond2",
-              child: [
-                {
-                  tag: "em",
-                  type: "el",
-                  child: [{ type: "text", text: "A" }],
-                },
-                {
-                  tag: "span",
-                  type: "el",
-                  child: [{ type: "text", text: "b" }],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -354,69 +200,33 @@ describe("conditions", () => {
   })
 
   describe("логические операторы без тегов — ничего не находится", () => {
-    let elements: PartAttrs
+    let elements: Node[]
     beforeAll(() => {
-      const html = `a < b && c > d ? "1" : "0"`
-      elements = extractHtmlElements(html)
+      elements = parse<{ a: number; b: number; c: number; d: number }>(
+        ({ html, context }) => html`${context.a < context.b && context.c > context.d ? "1" : "0"}`
+      )
     })
 
-    it.todo("hierarchy", () => {
+    it.todo("data", () => {
       expect(elements).toEqual([
         {
           type: "text",
-          text: 'a < b && c > d ? "1" : "0"',
+          data: ["/context/a", "/context/b", "/context/c", "/context/d"],
+          expr: '${[0] < [1] && [2] > [3] ? "1" : "0"}',
         },
       ])
     })
   })
 
   describe("условие вокруг self/void", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
-        ({ html, context }) => html`<div>${context.flag ? html`<br />` : html`<img src="x" />`}</div>`
-      )
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html, context }) => html`<div>${context.flag ? html`<br />` : html`<img src="x" />`}</div>`)
     })
 
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "cond",
-              text: "context.flag",
-              child: [
-                {
-                  tag: "br",
-                  type: "el",
-                },
-                {
-                  tag: "img",
-                  type: "el",
-                  string: {
-                    src: {
-                      type: "static",
-                      value: "x",
-                    },
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -445,11 +255,10 @@ describe("conditions", () => {
   })
 
   describe("condition внутри map", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { items: { show: boolean }[] }>(
+      elements = parse<any, { items: { show: boolean }[] }>(
         ({ html, core }) => html`
           <div>
             ${core.items.map((item) =>
@@ -458,54 +267,9 @@ describe("conditions", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "map",
-              text: "core.items.map((item)",
-              child: [
-                {
-                  type: "cond",
-                  text: "item.show",
-                  child: [
-                    {
-                      tag: "div",
-                      type: "el",
-                      string: {
-                        class: {
-                          type: "static",
-                          value: "true-branch",
-                        },
-                      },
-                    },
-                    {
-                      tag: "div",
-                      type: "el",
-                      string: {
-                        class: {
-                          type: "static",
-                          value: "false-branch",
-                        },
-                      },
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -541,12 +305,12 @@ describe("conditions", () => {
       ])
     })
   })
+
   describe("map + условия", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
+      elements = parse<{ list: string[] }>(
         ({ html, context }) => html`
           <ul>
             ${context.list.map(
@@ -555,61 +319,9 @@ describe("conditions", () => {
           </ul>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "ul",
-          type: "el",
-          child: [
-            {
-              type: "map",
-              text: "context.list.map((_, i)",
-              child: [
-                {
-                  tag: "li",
-                  type: "el",
-                  child: [
-                    {
-                      type: "cond",
-                      text: "i % 2",
-                      child: [
-                        {
-                          tag: "em",
-                          type: "el",
-                          child: [
-                            {
-                              type: "text",
-                              text: '${"A"}',
-                            },
-                          ],
-                        },
-                        {
-                          tag: "strong",
-                          type: "el",
-                          child: [
-                            {
-                              type: "text",
-                              text: '${"B"}',
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "ul",
           type: "el",
@@ -660,19 +372,19 @@ describe("conditions", () => {
   })
 
   describe("операторы сравнения — без тегов", () => {
-    let elements: PartAttrs
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ a: number; b: number; c: number; d: number }>(
+      elements = parse<{ a: number; b: number; c: number; d: number }>(
         ({ html, context }) => html`${context.a < context.b && context.c > context.d ? "1" : "0"}`
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           type: "text",
-          text: '${context.a < context.b && context.c > context.d ? "1" : "0"}',
+          data: ["/context/a", "/context/b", "/context/c", "/context/d"],
+          expr: '${[0] < [1] && [2] > [3] ? "1" : "0"}',
         },
       ])
     })

@@ -1,12 +1,11 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
-import type { PartAttrs } from "../../attributes.t"
+import { parse, type Node } from "../../index"
 
 describe("вложенные условия", () => {
   describe("if else if", () => {
-    let elements: PartAttrs
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { flag1: boolean; flag2: boolean }>(
+      elements = parse<any, { flag1: boolean; flag2: boolean }>(
         ({ html, context }) => html`
           ${context.flag1
             ? html`<div class="flag1"></div>`
@@ -15,46 +14,36 @@ describe("вложенные условия", () => {
             : html`<div class="flag3"></div>`}
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("elements", () =>
+    it("data", () =>
       expect(elements).toEqual([
         {
           type: "cond",
-          text: "context.flag1",
+          data: "/context/flag1",
           child: [
             {
               tag: "div",
               type: "el",
               string: {
-                class: {
-                  type: "static",
-                  value: "flag1",
-                },
+                class: "flag1",
               },
             },
             {
               type: "cond",
-              text: "context.flag2",
+              data: "/context/flag2",
               child: [
                 {
                   tag: "div",
                   type: "el",
                   string: {
-                    class: {
-                      type: "static",
-                      value: "flag2",
-                    },
+                    class: "flag2",
                   },
                 },
                 {
                   tag: "div",
                   type: "el",
                   string: {
-                    class: {
-                      type: "static",
-                      value: "flag3",
-                    },
+                    class: "flag3",
                   },
                 },
               ],
@@ -64,9 +53,9 @@ describe("вложенные условия", () => {
       ]))
   })
   describe("if if", () => {
-    let elements: PartAttrs
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { hasPermission: boolean; isAdmin: boolean }>(
+      elements = parse<any, { hasPermission: boolean; isAdmin: boolean }>(
         ({ html, context }) => html`
           <div>
             ${context.hasPermission
@@ -85,9 +74,8 @@ describe("вложенные условия", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("data", () =>
       expect(elements).toEqual([
         {
           tag: "div",
@@ -95,11 +83,11 @@ describe("вложенные условия", () => {
           child: [
             {
               type: "cond",
-              text: "context.hasPermission",
+              data: "/context/hasPermission",
               child: [
                 {
                   type: "cond",
-                  text: "context.isAdmin",
+                  data: "/context/isAdmin",
                   child: [
                     {
                       tag: "div",
@@ -109,12 +97,9 @@ describe("вложенные условия", () => {
                           tag: "button",
                           type: "el",
                           string: {
-                            class: {
-                              type: "static",
-                              value: "admin",
-                            },
+                            class: "admin",
                           },
-                          child: [{ type: "text", text: "Admin Action" }],
+                          child: [{ type: "text", value: "Admin Action" }],
                         },
                       ],
                     },
@@ -126,12 +111,9 @@ describe("вложенные условия", () => {
                           tag: "button",
                           type: "el",
                           string: {
-                            class: {
-                              type: "static",
-                              value: "user",
-                            },
+                            class: "user",
                           },
-                          child: [{ type: "text", text: "User Action" }],
+                          child: [{ type: "text", value: "User Action" }],
                         },
                       ],
                     },
@@ -141,25 +123,21 @@ describe("вложенные условия", () => {
                   tag: "div",
                   type: "el",
                   string: {
-                    class: {
-                      type: "static",
-                      value: "no-access",
-                    },
+                    class: "no-access",
                   },
-                  child: [{ type: "text", text: "Access Denied" }],
+                  child: [{ type: "text", value: "Access Denied" }],
                 },
               ],
             },
           ],
         },
       ]))
-    // it.skip("data", () => expect(data).toEqual([]))
   })
 
   describe("if if if", () => {
-    let elements: PartAttrs
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { hasPermission: boolean; isAdmin: boolean; isSuperAdmin: boolean }>(
+      elements = parse<any, { hasPermission: boolean; isAdmin: boolean; isSuperAdmin: boolean }>(
         ({ html, context }) => html`
           <div>
             ${context.hasPermission
@@ -172,9 +150,8 @@ describe("вложенные условия", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("elements", () =>
+    it("data", () =>
       expect(elements).toEqual([
         {
           tag: "div",
@@ -182,29 +159,26 @@ describe("вложенные условия", () => {
           child: [
             {
               type: "cond",
-              text: "context.hasPermission",
+              data: "/context/hasPermission",
               child: [
                 {
                   type: "cond",
-                  text: "context.isAdmin",
+                  data: "/context/isAdmin",
                   child: [
                     {
                       type: "cond",
-                      text: "context.isSuperAdmin",
+                      data: "/context/isSuperAdmin",
                       child: [
                         {
                           tag: "div",
                           type: "el",
                           string: {
-                            class: {
-                              type: "static",
-                              value: "super-admin",
-                            },
+                            class: "super-admin",
                           },
                           child: [
                             {
                               type: "text",
-                              text: "Super Admin Panel",
+                              value: "Super Admin Panel",
                             },
                           ],
                         },
@@ -212,15 +186,12 @@ describe("вложенные условия", () => {
                           tag: "div",
                           type: "el",
                           string: {
-                            class: {
-                              type: "static",
-                              value: "admin",
-                            },
+                            class: "admin",
                           },
                           child: [
                             {
                               type: "text",
-                              text: "Admin Panel",
+                              value: "Admin Panel",
                             },
                           ],
                         },
@@ -230,15 +201,12 @@ describe("вложенные условия", () => {
                       tag: "div",
                       type: "el",
                       string: {
-                        class: {
-                          type: "static",
-                          value: "user",
-                        },
+                        class: "user",
                       },
                       child: [
                         {
                           type: "text",
-                          text: "User Panel",
+                          value: "User Panel",
                         },
                       ],
                     },
@@ -248,15 +216,12 @@ describe("вложенные условия", () => {
                   tag: "div",
                   type: "el",
                   string: {
-                    class: {
-                      type: "static",
-                      value: "no-access",
-                    },
+                    class: "no-access",
                   },
                   child: [
                     {
                       type: "text",
-                      text: "Access Denied",
+                      value: "Access Denied",
                     },
                   ],
                 },

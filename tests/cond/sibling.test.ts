@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
-import { enrichWithData } from "../../data"
-import type { Node } from "../../index.t"
-import type { PartAttrs } from "../../attributes.t"
+import { parse, type Node } from "../../index"
 
 describe("условия соседствующие", () => {
   describe("условие соседствующее с условием на верхнем уровне", () => {
@@ -10,11 +7,10 @@ describe("условия соседствующие", () => {
       flag1: boolean
       flag2: boolean
     }
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<Context, {}>(
+      elements = parse<Context, {}>(
         ({ html, context }) => html`
           ${context.flag1
             ? html`<div class="conditional1">Content 1</div>`
@@ -24,81 +20,9 @@ describe("условия соседствующие", () => {
             : html`<div class="fallback2">No content 2</div>`}
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          type: "cond",
-          text: "context.flag1",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              string: {
-                class: { type: "static", value: "conditional1" },
-              },
-              child: [
-                {
-                  type: "text",
-                  text: "Content 1",
-                },
-              ],
-            },
-            {
-              tag: "div",
-              type: "el",
-              string: {
-                class: { type: "static", value: "fallback1" },
-              },
-              child: [
-                {
-                  type: "text",
-                  text: "No content 1",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: "cond",
-          text: "context.flag2",
-          child: [
-            {
-              tag: "div",
-              type: "el",
-              string: {
-                class: { type: "static", value: "conditional2" },
-              },
-              child: [
-                {
-                  type: "text",
-                  text: "Content 2",
-                },
-              ],
-            },
-            {
-              tag: "div",
-              type: "el",
-              string: {
-                class: { type: "static", value: "fallback2" },
-              },
-              child: [
-                {
-                  type: "text",
-                  text: "No content 2",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           type: "cond",
           data: "/context/flag1",
@@ -168,11 +92,10 @@ describe("условия соседствующие", () => {
   })
 
   describe("условие соседствующее с условием внутри элемента", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ flag1: boolean; flag2: boolean }, {}>(
+      elements = parse<{ flag1: boolean; flag2: boolean }, {}>(
         ({ html, context }) => html`
           <div class="container">
             ${context.flag1
@@ -184,90 +107,9 @@ describe("условия соседствующие", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          string: {
-            class: { type: "static", value: "container" },
-          },
-          child: [
-            {
-              type: "cond",
-              text: "context.flag1",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: { type: "static", value: "conditional1" },
-                  },
-                  child: [
-                    {
-                      type: "text",
-                      text: "Content 1",
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: { type: "static", value: "fallback1" },
-                  },
-                  child: [
-                    {
-                      type: "text",
-                      text: "No content 1",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              type: "cond",
-              text: "context.flag2",
-              child: [
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: { type: "static", value: "conditional2" },
-                  },
-                  child: [
-                    {
-                      type: "text",
-                      text: "Content 2",
-                    },
-                  ],
-                },
-                {
-                  tag: "div",
-                  type: "el",
-                  string: {
-                    class: { type: "static", value: "fallback2" },
-                  },
-                  child: [
-                    {
-                      type: "text",
-                      text: "No content 2",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -346,11 +188,10 @@ describe("условия соседствующие", () => {
   })
 
   describe("условие соседствующее с условием на глубоком уровне вложенности", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ flag1: boolean; flag2: boolean; flag3: boolean }, {}>(
+      elements = parse<{ flag1: boolean; flag2: boolean; flag3: boolean }, {}>(
         ({ html, context }) => html`
           <div class="level1">
             <div class="level2">
@@ -369,45 +210,44 @@ describe("условия соседствующие", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
           string: {
-            class: { type: "static", value: "level1" },
+            class: "level1",
           },
           child: [
             {
               tag: "div",
               type: "el",
               string: {
-                class: { type: "static", value: "level2" },
+                class: "level2",
               },
               child: [
                 {
                   tag: "div",
                   type: "el",
                   string: {
-                    class: { type: "static", value: "level3" },
+                    class: "level3",
                   },
                   child: [
                     {
                       type: "cond",
-                      text: "context.flag1",
+                      data: "/context/flag1",
                       child: [
                         {
                           tag: "div",
                           type: "el",
                           string: {
-                            class: { type: "static", value: "conditional1" },
+                            class: "conditional1",
                           },
                           child: [
                             {
                               type: "text",
-                              text: "Content 1",
+                              value: "Content 1",
                             },
                           ],
                         },
@@ -415,12 +255,12 @@ describe("условия соседствующие", () => {
                           tag: "div",
                           type: "el",
                           string: {
-                            class: { type: "static", value: "fallback1" },
+                            class: "fallback1",
                           },
                           child: [
                             {
                               type: "text",
-                              text: "No content 1",
+                              value: "No content 1",
                             },
                           ],
                         },
@@ -428,18 +268,18 @@ describe("условия соседствующие", () => {
                     },
                     {
                       type: "cond",
-                      text: "context.flag2",
+                      data: "/context/flag2",
                       child: [
                         {
                           tag: "div",
                           type: "el",
                           string: {
-                            class: { type: "static", value: "conditional2" },
+                            class: "conditional2",
                           },
                           child: [
                             {
                               type: "text",
-                              text: "Content 2",
+                              value: "Content 2",
                             },
                           ],
                         },
@@ -447,12 +287,12 @@ describe("условия соседствующие", () => {
                           tag: "div",
                           type: "el",
                           string: {
-                            class: { type: "static", value: "fallback2" },
+                            class: "fallback2",
                           },
                           child: [
                             {
                               type: "text",
-                              text: "No content 2",
+                              value: "No content 2",
                             },
                           ],
                         },
@@ -460,18 +300,18 @@ describe("условия соседствующие", () => {
                     },
                     {
                       type: "cond",
-                      text: "context.flag3",
+                      data: "/context/flag3",
                       child: [
                         {
                           tag: "div",
                           type: "el",
                           string: {
-                            class: { type: "static", value: "conditional3" },
+                            class: "conditional3",
                           },
                           child: [
                             {
                               type: "text",
-                              text: "Content 3",
+                              value: "Content 3",
                             },
                           ],
                         },
@@ -479,12 +319,12 @@ describe("условия соседствующие", () => {
                           tag: "div",
                           type: "el",
                           string: {
-                            class: { type: "static", value: "fallback3" },
+                            class: "fallback3",
                           },
                           child: [
                             {
                               type: "text",
-                              text: "No content 3",
+                              value: "No content 3",
                             },
                           ],
                         },

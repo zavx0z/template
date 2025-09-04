@@ -1,16 +1,12 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../parser"
-import { enrichWithData } from "../data"
-import type { PartAttrs } from "../attributes.t"
-import type { Node } from "../index.t"
+import { parse, type Node } from "../index"
 
 describe("text-formatting", () => {
   describe("форматирует текст по стандартам HTML (схлопывание пробельных символов)", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ name: string; title: string }, { items: { title: string }[] }>(
+      elements = parse<{ name: string; title: string }, { items: { title: string }[] }>(
         ({ html, context, core }) => html`
           <div>
             <p>Hello World</p>
@@ -21,14 +17,9 @@ describe("text-formatting", () => {
           </div>
         `
       )
-
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "div",
           type: "el",

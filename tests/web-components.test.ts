@@ -1,32 +1,16 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
-import { enrichWithData } from "../data"
-import type { PartAttrs } from "../attributes.t"
-import type { Node } from "../index.t"
+import { parse, type Node } from "../index"
 
 describe("web-components", () => {
   describe("базовые custom elements", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html }) => html`<my-element></my-element>`)
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("attributes", () => {
-      expect(elements).toEqual([
-        {
-          tag: "my-element",
-          type: "el",
-        },
-      ])
+      elements = parse(({ html }) => html`<my-element></my-element>`)
     })
 
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "my-element",
           type: "el",
@@ -36,36 +20,13 @@ describe("web-components", () => {
   })
 
   describe("custom elements с атрибутами", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html }) => html`<user-card name="John" age="25"></user-card>`)
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html }) => html`<user-card name="John" age="25"></user-card>`)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "user-card",
-          type: "el",
-          string: {
-            name: {
-              type: "static",
-              value: "John",
-            },
-            age: {
-              type: "static",
-              value: "25",
-            },
-          },
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "user-card",
           type: "el",
@@ -79,26 +40,13 @@ describe("web-components", () => {
   })
 
   describe("self-closing custom elements", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html }) => html`<loading-spinner />`)
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html }) => html`<loading-spinner />`)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "loading-spinner",
-          type: "el",
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "loading-spinner",
           type: "el",
@@ -108,11 +56,10 @@ describe("web-components", () => {
   })
 
   describe("вложенные custom elements", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html }) => html`
           <app-header>
             <nav-menu>
@@ -121,40 +68,10 @@ describe("web-components", () => {
           </app-header>
         `
       )
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("attributes", () => {
-      expect(elements).toEqual([
-        {
-          tag: "app-header",
-          type: "el",
-          child: [
-            {
-              tag: "nav-menu",
-              type: "el",
-              child: [
-                {
-                  tag: "menu-item",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      text: "Home",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
     })
 
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "app-header",
           type: "el",
@@ -182,39 +99,16 @@ describe("web-components", () => {
   })
 
   describe("custom elements с template literals в атрибутах", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ userId: string; theme: string }>(
+      elements = parse<{ userId: string; theme: string }>(
         ({ html, context }) => html`<user-profile id="${context.userId}" theme="${context.theme}"></user-profile>`
       )
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("attributes", () => {
-      expect(elements).toEqual([
-        {
-          tag: "user-profile",
-          type: "el",
-          string: {
-            id: {
-              type: "dynamic",
-              value: "${context.userId}",
-            },
-            theme: {
-              type: "dynamic",
-              value: "${context.theme}",
-            },
-          },
-        },
-      ])
     })
 
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "user-profile",
           type: "el",
@@ -232,39 +126,16 @@ describe("web-components", () => {
   })
 
   describe("custom elements в условиях", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ isAdmin: boolean }>(
+      elements = parse<{ isAdmin: boolean }>(
         ({ html, context }) =>
           html`${context.isAdmin ? html`<admin-panel></admin-panel>` : html`<user-panel></user-panel>`}`
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          type: "cond",
-          text: "context.isAdmin",
-          child: [
-            {
-              tag: "admin-panel",
-              type: "el",
-            },
-            {
-              tag: "user-panel",
-              type: "el",
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           type: "cond",
           data: "/context/isAdmin",
@@ -284,56 +155,19 @@ describe("web-components", () => {
   })
 
   describe("custom elements в map", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { users: { id: string; name: string }[] }>(
+      elements = parse<any, { users: { id: string; name: string }[] }>(
         ({ html, core }) => html`
           <user-list>
             ${core.users.map((user) => html`<user-item id="${user.id}">${user.name}</user-item>`)}
           </user-list>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "user-list",
-          type: "el",
-          child: [
-            {
-              type: "map",
-              text: "core.users.map((user)",
-              child: [
-                {
-                  tag: "user-item",
-                  type: "el",
-                  string: {
-                    id: {
-                      type: "dynamic",
-                      value: "${user.id}",
-                    },
-                  },
-                  child: [
-                    {
-                      type: "text",
-                      text: "${user.name}",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "user-list",
           type: "el",
@@ -366,11 +200,10 @@ describe("web-components", () => {
   })
 
   describe("custom elements с дефисами в разных позициях", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html }) => html`
           <x-component></x-component>
           <my-component></my-component>
@@ -378,13 +211,9 @@ describe("web-components", () => {
           <a-b-c-d></a-b-c-d>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         { tag: "x-component", type: "el" },
         { tag: "my-component", type: "el" },
         { tag: "component-with-dashes", type: "el" },
@@ -392,52 +221,20 @@ describe("web-components", () => {
       ])
     })
   })
+
   describe("custom elements с сложными атрибутами", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html }) => html`
           <data-table columns='["name", "age", "email"]' sortable="true" filterable theme="dark"></data-table>
         `
       )
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("attributes", () => {
-      expect(elements).toEqual([
-        {
-          tag: "data-table",
-          type: "el",
-          string: {
-            columns: {
-              type: "static",
-              value: '["name", "age", "email"]',
-            },
-            sortable: {
-              type: "static",
-              value: "true",
-            },
-            theme: {
-              type: "static",
-              value: "dark",
-            },
-          },
-          boolean: {
-            filterable: {
-              type: "static",
-              value: true,
-            },
-          },
-        },
-      ])
     })
 
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "data-table",
           type: "el",
@@ -455,44 +252,34 @@ describe("web-components", () => {
   })
 
   describe("custom elements с событиями", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
+      elements = parse(
         ({ html, core }) => html`
           <modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">
           </modal-dialog>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("attributes", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           tag: "modal-dialog",
           type: "el",
           event: {
-            onclose: "() => core.close()",
-            onopen: "() => core.open()",
-          },
-          string: {
-            "data-modal-id": {
-              type: "static",
-              value: "user-modal",
+            onclose: {
+              data: "/core/close",
+              expr: "() => ${[0]}()",
+            },
+            onopen: {
+              data: "/core/open",
+              expr: "() => ${[0]}()",
             },
           },
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
-        {
-          tag: "modal-dialog",
-          type: "el",
+          string: {
+            "data-modal-id": "user-modal",
+          },
         },
       ])
     })

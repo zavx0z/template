@@ -1,24 +1,20 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../parser"
-import { enrichWithData } from "../data"
-import type { PartAttrs } from "../attributes.t"
-import type { Node } from "../index.t"
+import { parse, type Node } from "../index"
 
 describe("text", () => {
   describe("динамический текст в map где значением является строка элемент массива", () => {
-    let elements: PartAttrs
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
+      elements = parse<{ list: string[] }>(
         ({ html, context }) => html`
           <ul>
             ${context.list.map((name) => html`<li>${name}</li>`)}
           </ul>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           tag: "ul",
@@ -26,7 +22,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              text: "context.list.map((name)",
+              data: "/context/list",
               child: [
                 {
                   tag: "li",
@@ -34,7 +30,7 @@ describe("text", () => {
                   child: [
                     {
                       type: "text",
-                      text: "${name}",
+                      data: "[item]",
                     },
                   ],
                 },
@@ -47,12 +43,11 @@ describe("text", () => {
   })
 
   describe("динамический текст с разными именами переменных элемента массива", () => {
-    let elements: PartAttrs
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html }) => html`<div><p>static</p></div>`)
-      elements = extractHtmlElements(mainHtml)
+      elements = parse(({ html }) => html`<div><p>static</p></div>`)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           tag: "div",
@@ -64,7 +59,7 @@ describe("text", () => {
               child: [
                 {
                   type: "text",
-                  text: "static",
+                  value: "static",
                 },
               ],
             },
@@ -75,43 +70,18 @@ describe("text", () => {
   })
 
   describe("смешанный текст - статический + динамический (с одной переменной)", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ name: string }>(
+      elements = parse<{ name: string }>(
         ({ html, context }) => html`
           <div>
             <p>Hello, ${context.name}!</p>
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "p",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "Hello, ${context.name}!",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
         {
           tag: "div",
           type: "el",
@@ -132,21 +102,19 @@ describe("text", () => {
       ])
     })
   })
-  describe("смешанный текст - статический + динамический (с несколькими переменными)", () => {
-    let elements: PartAttrs
-    let data: Node[]
 
+  describe("смешанный текст - статический + динамический (с несколькими переменными)", () => {
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ family: string; name: string }>(
+      elements = parse<{ firstName: string; lastName: string }>(
         ({ html, context }) => html`
           <div>
-            <p>Hello, ${context.family} ${context.name}!</p>
+            <p>Hello, ${context.firstName} ${context.lastName}!</p>
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           tag: "div",
@@ -158,30 +126,7 @@ describe("text", () => {
               child: [
                 {
                   type: "text",
-                  text: "Hello, ${context.family} ${context.name}!",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "p",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  data: ["/context/family", "/context/name"],
+                  data: ["/context/firstName", "/context/lastName"],
                   expr: "Hello, ${[0]} ${[1]}!",
                 },
               ],
@@ -191,56 +136,156 @@ describe("text", () => {
       ])
     })
   })
-  describe("условие в тексте", () => {
-    let elements: PartAttrs
-    let data: Node[]
 
+  describe("динамический текст в map с несколькими переменными", () => {
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ show: boolean; name: string }>(
-        ({ html, context }) => html`
+      elements = parse<any, { users: { firstName: string; lastName: string }[] }>(
+        ({ html, core }) => html`
+          <ul>
+            ${core.users.map((user) => html`<li>${user.firstName} ${user.lastName}</li>`)}
+          </ul>
+        `
+      )
+    })
+    it("data", () => {
+      expect(elements).toEqual([
+        {
+          tag: "ul",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/users",
+              child: [
+                {
+                  tag: "li",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      data: ["[item]/firstName", "[item]/lastName"],
+                      expr: "${[0]} ${[1]}",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+  })
+
+  describe("динамический текст в map с вложенными объектами", () => {
+    let elements: Node[]
+    beforeAll(() => {
+      elements = parse<any, { posts: { author: { name: string; email: string } }[] }>(
+        ({ html, core }) => html`
+          <div>${core.posts.map((post) => html`<p>Author: ${post.author.name} (${post.author.email})</p>`)}</div>
+        `
+      )
+    })
+    it("data", () => {
+      expect(elements).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/posts",
+              child: [
+                {
+                  tag: "p",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      data: ["[item]/author/name", "[item]/author/email"],
+                      expr: "Author: ${[0]} (${[1]})",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+  })
+
+  describe("динамический текст в map с условными выражениями", () => {
+    let elements: Node[]
+    beforeAll(() => {
+      elements = parse<any, { items: { name: string; isActive: boolean }[] }>(
+        ({ html, core }) => html`
+          <ul>
+            ${core.items.map((item) => html`<li>${item.isActive ? item.name : "Inactive"}</li>`)}
+          </ul>
+        `
+      )
+    })
+    it("data", () => {
+      expect(elements).toEqual([
+        {
+          tag: "ul",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/items",
+              child: [
+                {
+                  tag: "li",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      data: ["[item]/isActive", "[item]/name"],
+                      expr: '${[0] ? [1] : "Inactive"}',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+  })
+
+  describe("динамический текст в map с вычислениями", () => {
+    let elements: Node[]
+    beforeAll(() => {
+      elements = parse<any, { products: { name: string; price: number; quantity: number }[] }>(
+        ({ html, core }) => html`
           <div>
-            <p>${context.show ? "Visible" : "Hidden"}</p>
+            ${core.products.map((product) => html`<p>${product.name}: $${product.price * product.quantity}</p>`)}
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () =>
+    it("data", () => {
       expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
           child: [
             {
-              tag: "p",
-              type: "el",
+              type: "map",
+              data: "/core/products",
               child: [
                 {
-                  type: "text",
-                  text: '${context.show ? "Visible" : "Hidden"}',
-                },
-              ],
-            },
-          ],
-        },
-      ]))
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "p",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  data: "/context/show",
-                  expr: '${[0] ? "Visible" : "Hidden"}',
+                  tag: "p",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      data: ["[item]/name", "[item]/price * product/quantity"],
+                      expr: "${[0]}: $${[1]}",
+                    },
+                  ],
                 },
               ],
             },
@@ -249,49 +294,99 @@ describe("text", () => {
       ])
     })
   })
-  describe("map в рядом с текстом, рядом с динамическим текстом из map выше уровня", () => {
-    let elements: PartAttrs
-    let data: Node[]
 
+  describe("динамический текст в map с методами", () => {
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { list: { title: string; nested: string[] }[] }>(
+      elements = parse<any, { users: { name: string; email: string }[] }>(
         ({ html, core }) => html`
-          <ul>
-            ${core.list.map(({ title, nested }) => html` <li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li> `)}
-          </ul>
+          <div>${core.users.map((user) => html`<p>${user.name.toUpperCase()} - ${user.email.toLowerCase()}</p>`)}</div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
-          tag: "ul",
+          tag: "div",
           type: "el",
           child: [
             {
               type: "map",
-              text: "core.list.map(({ title, nested })",
+              data: "/core/users",
               child: [
                 {
-                  tag: "li",
+                  tag: "p",
                   type: "el",
                   child: [
                     {
                       type: "text",
-                      text: "${title} ",
+                      data: ["[item]/name", "[item]/email"],
+                      expr: "${[0]} - ${[1]}",
                     },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ])
+    })
+  })
+
+  describe("динамический текст в map с вложенными map", () => {
+    let elements: Node[]
+    beforeAll(() => {
+      elements = parse<any, { categories: { name: string; products: { name: string; price: number }[] }[] }>(
+        ({ html, core }) => html`
+          <div>
+            ${core.categories.map(
+              (category) => html`
+                <h2>${category.name}</h2>
+                <ul>
+                  ${category.products.map((product) => html`<li>${product.name} - $${product.price}</li>`)}
+                </ul>
+              `
+            )}
+          </div>
+        `
+      )
+    })
+    it("data", () => {
+      expect(elements).toEqual([
+        {
+          tag: "div",
+          type: "el",
+          child: [
+            {
+              type: "map",
+              data: "/core/categories",
+              child: [
+                {
+                  tag: "h2",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      data: "[item]/name",
+                    },
+                  ],
+                },
+                {
+                  tag: "ul",
+                  type: "el",
+                  child: [
                     {
                       type: "map",
-                      text: "nested.map((n)",
+                      data: "[item]/products",
                       child: [
                         {
-                          tag: "em",
+                          tag: "li",
                           type: "el",
                           child: [
                             {
                               type: "text",
-                              text: "${n}",
+                              data: ["[item]/name", "[item]/price"],
+                              expr: "${[0]} - $${[1]}",
                             },
                           ],
                         },
@@ -305,497 +400,59 @@ describe("text", () => {
         },
       ])
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
-        {
-          tag: "ul",
-          type: "el",
-          child: [
-            {
-              type: "map",
-              data: "/core/list",
-              child: [
-                {
-                  tag: "li",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      data: "[item]/title",
-                    },
-                    {
-                      type: "map",
-                      data: "[item]/nested",
-                      child: [
-                        {
-                          tag: "em",
-                          type: "el",
-                          child: [
-                            {
-                              type: "text",
-                              data: "[item]",
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-  })
-  describe("динамический текст в условии", () => {
-    let elements: PartAttrs
-    let data: Node[]
-
-    beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ show: boolean; name: string }>(
-        ({ html, context }) => html`
-          <div>${context.show ? html`<p>Visible: ${context.name}</p>` : html`<p>Hidden</p>`}</div>
-        `
-      )
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("hierarchy", () => {
-      expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "cond",
-              text: "context.show",
-              child: [
-                {
-                  tag: "p",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      text: "Visible: ${context.name}",
-                    },
-                  ],
-                },
-                {
-                  tag: "p",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      text: "Hidden",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-      it.skip("data", () => {
-        beforeAll(() => {
-          data = enrichWithData(elements)
-        })
-        expect(data).toEqual([
-          {
-            tag: "div",
-            type: "el",
-            child: [
-              {
-                type: "cond",
-                data: "/context/show",
-                child: [
-                  {
-                    tag: "p",
-                    type: "el",
-                    child: [
-                      {
-                        type: "text",
-                        data: "/context/name",
-                        expr: "Visible: ${[0]}",
-                      },
-                    ],
-                  },
-                  {
-                    tag: "p",
-                    type: "el",
-                    child: [
-                      {
-                        type: "text",
-                        value: "Hidden",
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ])
-      })
-    })
   })
 
-  describe("статический текст в элементе на одном уровне с динамическим текстом", () => {
-    let elements: PartAttrs
-    let data: Node[]
-
+  describe("динамический текст в map с условными элементами", () => {
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div><b>Hello, </b>${context.name}</div>`)
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("hierarchy", () => {
-      expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "b",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "Hello, ",
-                },
-              ],
-            },
-            {
-              type: "text",
-              text: "${context.name}",
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "b",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  value: "Hello, ",
-                },
-              ],
-            },
-            {
-              type: "text",
-              data: "/context/name",
-            },
-          ],
-        },
-      ])
-    })
-  })
-
-  describe("динамический текст со статическим текстом в элементе на одном уровне", () => {
-    let elements: PartAttrs
-    let data: Node[]
-
-    beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(({ html, context }) => html`<div>${context.name}<b>-hello</b></div>`)
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("hierarchy", () => {
-      expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "text",
-              text: "${context.name}",
-            },
-            {
-              tag: "b",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "-hello",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "text",
-              data: "/context/name",
-            },
-            {
-              tag: "b",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  value: "-hello",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-  })
-
-  describe("динамические тексты вокруг статического текста", () => {
-    let elements: PartAttrs
-    let data: Node[]
-
-    beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock(
-        ({ html, context }) => html`<div>${context.family} <b>-hello</b>${context.name}</div>`
-      )
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("hierarchy", () => {
-      expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              type: "text",
-              text: "${context.family} ",
-            },
-            {
-              tag: "b",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  text: "-hello",
-                },
-              ],
-            },
-            {
-              type: "text",
-              text: "${context.name}",
-            },
-          ],
-        },
-      ])
-      it.skip("data", () => {
-        beforeAll(() => {
-          data = enrichWithData(elements)
-        })
-        expect(data).toEqual([
-          {
-            tag: "div",
-            type: "el",
-            child: [
-              {
-                type: "text",
-                data: "/context/family",
-              },
-              {
-                tag: "b",
-                type: "el",
-                child: [
-                  {
-                    type: "text",
-                    value: "-hello",
-                  },
-                ],
-              },
-              {
-                type: "text",
-                data: "/context/name",
-              },
-            ],
-          },
-        ])
-      })
-    })
-  })
-
-  describe("динамический текст в map с доступом по ключу в элементе массива, на разных уровнях", () => {
-    let elements: PartAttrs
-    let data: Node[]
-
-    beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { users: { name: string; role: string }[] }>(
+      elements = parse<any, { items: { name: string; isVisible: boolean; description: string }[] }>(
         ({ html, core }) => html`
-          <ul>
-            ${core.users.map((user) => html` <li><strong>${user.name}</strong> - ${user.role}</li> `)}
-          </ul>
+          <div>
+            ${core.items.map(
+              (item) => html`
+                ${item.isVisible ? html`<p>${item.name}: ${item.description}</p>` : html`<p>Hidden item</p>`}
+              `
+            )}
+          </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it("hierarchy", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
-          tag: "ul",
+          tag: "div",
           type: "el",
           child: [
             {
               type: "map",
-              text: "core.users.map((user)",
+              data: "/core/items",
               child: [
                 {
-                  tag: "li",
-                  type: "el",
+                  type: "cond",
+                  data: "[item]/isVisible",
                   child: [
                     {
-                      tag: "strong",
+                      tag: "p",
                       type: "el",
                       child: [
                         {
                           type: "text",
-                          text: "${user.name}",
+                          data: ["[item]/name", "[item]/description"],
+                          expr: "${[0]}: ${[1]}",
                         },
                       ],
                     },
                     {
-                      type: "text",
-                      text: " - ${user.role}",
+                      tag: "p",
+                      type: "el",
+                      child: [
+                        {
+                          type: "text",
+                          value: "Hidden item",
+                        },
+                      ],
                     },
                   ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
-      it.skip("data", () => {
-        beforeAll(() => {
-          data = enrichWithData(elements)
-        })
-        expect(data).toEqual([
-          {
-            tag: "ul",
-            type: "el",
-            child: [
-              {
-                type: "map",
-                data: "/core/users",
-                child: [
-                  {
-                    tag: "li",
-                    type: "el",
-                    child: [
-                      {
-                        tag: "strong",
-                        type: "el",
-                        child: [
-                          {
-                            type: "text",
-                            data: "[item]/name",
-                          },
-                        ],
-                      },
-                      {
-                        type: "text",
-                        data: "[item]/role",
-                        expr: "- ${[0]}",
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ])
-      })
-    })
-  })
-
-  describe("обрабатывает выражения в ${}", () => {
-    let elements: PartAttrs
-    let data: Node[]
-
-    beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ list: string[] }>(
-        ({ html, context }) => html`
-          <div>
-            <p>${context.list.map((item) => item.toUpperCase())}</p>
-          </div>
-        `
-      )
-      elements = extractHtmlElements(mainHtml)
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "p",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  data: "/context/list",
-                  expr: "${[0]}.map((item) => item.toUpperCase())",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-  })
-
-  describe("обрабатывает выражения с точками в ${} к вложенным элементам ядра", () => {
-    let elements: PartAttrs
-    let data: Node[]
-
-    beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { user: { name: string } }>(
-        ({ html, core }) => html`
-          <div>
-            <p>${core.user.name}</p>
-          </div>
-        `
-      )
-      elements = extractHtmlElements(mainHtml)
-    })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "p",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  data: "/core/user/name",
                 },
               ],
             },

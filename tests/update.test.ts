@@ -1,25 +1,17 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
-import { enrichWithData } from "../data"
-import type { Node } from "../index.t"
-import type { PartAttrs } from "../attributes.t"
+import { parse, type Node } from "../index"
 
 describe("update", () => {
   describe("функция обновления контекста в функции рендера", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ name: string }>(
+      elements = parse<{ name: string }>(
         ({ html, update }) => html` <button onclick=${() => update({ name: "Jane Doe" })}>OK</button> `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "button",
           type: "el",
@@ -41,21 +33,16 @@ describe("update", () => {
   })
 
   describe("функция обновления нескольких ключей контекста", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ name: string; age: number; active: boolean }>(
+      elements = parse<{ name: string; age: number; active: boolean }>(
         ({ html, update }) =>
           html` <button onclick=${() => update({ name: "John", age: 25, active: true })}>Update</button> `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "button",
           type: "el",
@@ -77,20 +64,15 @@ describe("update", () => {
   })
 
   describe("функция обновления контекста данными из контекста", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ count: number }>(
+      elements = parse<{ count: number }>(
         ({ html, update, context }) => html` <button onclick=${() => update({ count: context.count + 1 })}>OK</button> `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "button",
           type: "el",
@@ -113,11 +95,10 @@ describe("update", () => {
   })
 
   describe("функция обновления контекста данными из core и context", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<{ count: number; iteration: number }>(
+      elements = parse<{ count: number; iteration: number }>(
         ({ html, update, core, context }) =>
           html`
             <button onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}>
@@ -125,31 +106,10 @@ describe("update", () => {
             </button>
           `
       )
-      elements = extractHtmlElements(mainHtml)
-    })
-    it("attributes", () => {
-      expect(elements).toEqual([
-        {
-          tag: "button",
-          type: "el",
-          event: {
-            onclick: "() => update({ count: core.count + context.count, iteration: context.iteration + 1 })",
-          },
-          child: [
-            {
-              type: "text",
-              text: "OK",
-            },
-          ],
-        },
-      ])
     })
 
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "button",
           type: "el",
@@ -172,11 +132,10 @@ describe("update", () => {
   })
 
   describe("функция обновления контекста данными из core и context внутри массива вложенного в массив", () => {
-    let elements: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<
+      elements = parse<
         { count: number; iteration: number },
         { items: { count: number; iteration: number }[]; count: number; iteration: number }
       >(
@@ -191,13 +150,9 @@ describe("update", () => {
             )}
           `
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        data = enrichWithData(elements)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           type: "map",
           data: "/core/items",

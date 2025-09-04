@@ -1779,7 +1779,7 @@ export const createNodeDataMeta = (
 }
 
 /**
- * Создает NodeElement из обычного PartElement.
+ * Создает NodeElement из обычного PartAttrElement.
  */
 export const createNodeDataElement = (
   node: PartAttrElement | PartAttrMeta | PartAttrMap | PartAttrCondition | PartText,

@@ -1,19 +1,12 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
-import { type PartsHierarchy } from "../../parser.t"
-import { enrichWithData } from "../../data"
-import { extractAttributes } from "../../attributes"
-import type { PartAttrs } from "../../attributes.t"
-import type { Node } from "../../index.t"
+import { parse, type Node } from "../../index"
 
 describe("boolean атрибуты", () => {
   it("булевые атрибуты с переменными из разных уровней вложенности", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
-    let data: Node[]
+    let elements: Node[]
 
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<
+      elements = parse<
         any,
         {
           companies: {
@@ -44,15 +37,10 @@ describe("boolean атрибуты", () => {
           </div>
         `
       )
-      elements = extractHtmlElements(mainHtml)
     })
 
-    it.skip("data", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
@@ -103,21 +91,14 @@ describe("boolean атрибуты", () => {
     })
   })
   describe("boolean атрибуты с переменными из разных уровней map", () => {
-    let elements: PartsHierarchy
-    let attributes: PartAttrs
-    let data: Node[]
+    let elements: Node[]
     beforeAll(() => {
-      const mainHtml = extractMainHtmlBlock<any, { visible: boolean }>(
+      elements = parse<any, { visible: boolean }>(
         ({ html, context }) => html`<img src="https://example.com" ${context.visible ? "visible" : "hidden"} />`
       )
-      elements = extractHtmlElements(mainHtml)
     })
-    it.skip("data", () => {
-      beforeAll(() => {
-        attributes = extractAttributes(elements)
-        data = enrichWithData(attributes)
-      })
-      expect(data).toEqual([
+    it("data", () => {
+      expect(elements).toEqual([
         {
           tag: "img",
           type: "el",
