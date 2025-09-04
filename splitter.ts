@@ -159,17 +159,6 @@ class Hierarchy {
     return
   }
 
-  /** Добавляет элемент в child массив
-   * - не создает курсор на этот блок
-   * @param value - текст условия
-   */
-  self(value: PartElement | PartMeta) {
-    const curEl = this.cursor.element as PartElement | PartMeta
-    !Object.hasOwn(curEl, "child") && (curEl.child = [])
-    curEl.child!.push(value)
-    return
-  }
-
   /** Добавляет блок if в child массив
    * - создает курсор на этот блок
    * - cursor.path добавляется с увеличением на 1
@@ -211,6 +200,17 @@ class Hierarchy {
   }
 
   /** Добавляет элемент в child массив
+   * - не создает курсор на этот блок
+   * @param value - текст условия
+   */
+  self(value: PartElement | PartMeta) {
+    const curEl = this.cursor.element as PartElement | PartMeta
+    !Object.hasOwn(curEl, "child") && (curEl.child = [])
+    curEl.child!.push({ type: value.type, tag: value.tag, text: formatAttributeText(value.text) })
+    return
+  }
+
+  /** Добавляет элемент в child массив
    * - создает курсор на этот блок
    * - cursor.path добавляется с увеличением на 1
    * - cursor.parts добавляется с именем тега
@@ -219,19 +219,28 @@ class Hierarchy {
   open(part: PartElement | PartMeta) {
     const curEl = this.cursor.element as PartElement | PartMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
-    curEl.child!.push(part)
+    curEl.child!.push({ type: part.type, tag: part.tag, text: formatAttributeText(part.text) })
     this.cursor.push(part.tag)
     return
+  }
+  #recursiveCloseMultipleElse() {
+    if (this.cursor.part === "else") {
+      this.cursor.back()
+      this.#recursiveCloseMultipleElse()
+    }
   }
   close(tagName: string) {
     /** html`<div>${context.flag ? html`<br />` : html`<img src="x" />`}⬇️</div>`
      *                                              самозакрывающийся тег
      */
     if (this.cursor.part === "else") {
-      // выходим из else
-      this.cursor.back()
+      // выходим из всех else
+      this.#recursiveCloseMultipleElse()
       // закрываем тег
-      this.cursor.back()
+      const deleted = this.cursor.back()
+      if (deleted !== tagName) {
+        throw new Error(`Expected ${tagName} but got ${deleted}`)
+      }
       return
     } else {
       const deleted = this.cursor.back()
@@ -348,11 +357,15 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
 
     let name = ""
     let valid = false
+    let type: "el" | "meta" = "el"
 
     const tagNameMatch = full.match(/^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s|>|\/)/i)
     if (tagNameMatch) {
       name = (tagNameMatch[1] || "").toLowerCase()
       valid = isValidTagName(tagNameMatch[1] || "")
+      if (name.startsWith("meta-")) {
+        type = "meta"
+      }
     }
 
     if (!valid) {
@@ -360,6 +373,7 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
       if (metaMatch) {
         name = metaMatch[1] || ""
         valid = true
+        type = "meta"
       }
     }
 
@@ -371,11 +385,11 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
     if (full.startsWith("</")) {
       store.close(name)
     } else if (full.endsWith("/>")) {
-      store.self({ tag: name, type: "el", text: full })
+      store.self({ tag: name, type, text: full })
     } else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) {
-      store.self({ tag: name, type: "el", text: full })
+      store.self({ tag: name, type, text: full })
     } else {
-      store.open({ tag: name, type: "el", text: full })
+      store.open({ tag: name, type, text: full })
     }
 
     TAG_LOOKAHEAD.lastIndex = tagEnd
