@@ -1,4 +1,5 @@
-export const findText = (chunk: string, start: number) => {
+export const findText = (chunk: string) => {
+  let start = 0
   if (!chunk || /^\s+$/.test(chunk)) return
 
   const trimmed = chunk.trim()
@@ -46,7 +47,7 @@ export const findText = (chunk: string, start: number) => {
   const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
 
   if (final.length > 0) {
-    return { text: final, start, end: start + usedEndLocal, name: "", kind: "text" }
+    return { text: final, start, end: start + usedEndLocal - 1, name: "", kind: "text" }
   }
 } // Чистый «клей» между шаблонами (целиком служебный кусок)
 

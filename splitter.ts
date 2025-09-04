@@ -47,25 +47,36 @@ export const extractMainHtmlBlock = <C extends Context = Context, I extends Core
 function getTokens(expr: string): StreamToken[] {
   const tokens = new Map<number, StreamToken>()
 
+  const text = findText(expr)
+  text && tokens.set(text.start, { text: text.text, kind: "text" })
+
+  const isNotInText = (index: number) => (text ? index < text.start || index > text.end : true)
   // --------- conditions ---------
   const conds = findAllConditions(expr)
-  for (const cond of conds) tokens.set(...cond)
-
+  for (const cond of conds) {
+    if (isNotInText(cond[0])) {
+      tokens.set(...cond)
+    }
+  }
   const tokenCondElse = findCondElse(expr)
-  tokenCondElse && tokens.set(...tokenCondElse)
+  if (tokenCondElse && isNotInText(tokenCondElse[0])) {
+    tokens.set(...tokenCondElse)
+  }
 
   const tokenCondClose = findCondClose(expr)
-  tokenCondClose && tokens.set(...tokenCondClose)
+  if (tokenCondClose && isNotInText(tokenCondClose[0])) {
+    tokens.set(...tokenCondClose)
+  }
 
   // ------------- map -------------
   const tokenMapOpen = findMapOpen(expr)
   // console.log("tokenMapOpen", expr, tokenMapOpen)
-  if (tokenMapOpen) {
+  if (tokenMapOpen && isNotInText(tokenMapOpen[0])) {
     tokens.set(...tokenMapOpen)
   }
 
   const tokenMapClose = findMapClose(expr)
-  if (tokenMapClose) {
+  if (tokenMapClose && isNotInText(tokenMapClose[0])) {
     tokens.set(...tokenMapClose)
   }
 
@@ -141,10 +152,10 @@ class Hierarchy {
    * - не создает курсор на этот блок
    * @param value - текст условия
    */
-  text(value: any) {
+  text(value: string) {
     const curEl = this.cursor.element as PartElement | PartMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
-    curEl.child!.push({ type: "text", text: value.text })
+    curEl.child!.push({ type: "text", text: value })
     return
   }
 
@@ -254,12 +265,12 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
     // текст между предыдущим и текущим тегом
     const sliced = input.slice(lastIndex, localIndex)
     if (sliced.trim()) {
-      const text = findText(sliced, lastIndex)
-      text && store.text(text)
-
       const tokens = getTokens(sliced)
       for (const token of tokens) {
         switch (token.kind) {
+          case "text":
+            store.text(token.text)
+            break
           case "cond-open":
             store.if(token.expr)
             break
