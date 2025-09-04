@@ -1,4 +1,4 @@
-import type { StreamToken, TokenCondClose, TokenCondElse, TokenCondOpen, TokenMapClose, TokenMapOpen } from "./token.t"
+import type { TokenCondClose, TokenCondElse, TokenCondOpen, TokenMapClose, TokenMapOpen } from "./token.t"
 
 export const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
   let i = 0
