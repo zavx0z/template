@@ -1,4 +1,4 @@
-import type { StreamToken } from "./token.t"
+import type { StreamToken } from "./splitter"
 import type { PartMap, PartCondition, PartElement, PartMeta, PartsHierarchy, PartText } from "./hierarchy.t"
 
 // Тип для работы с токенами в стеке

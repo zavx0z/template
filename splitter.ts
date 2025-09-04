@@ -1,8 +1,13 @@
 import type { Context, Core, State, RenderParams } from "./index.t"
 import type { PartCondition, PartElement, PartHierarchy, PartMap, PartMeta, PartsHierarchy } from "./hierarchy.t"
-import { findCondElse, findCondClose, findMapOpen, findMapClose, findAllConditions } from "./token"
-import type { StreamToken } from "./token.t"
+import { findMapOpen, findMapClose } from "./map"
+import { findCondElse, findCondClose, findAllConditions } from "./cond"
 import { findText, formatAttributeText } from "./text"
+import type { TokenCondOpen, TokenCondElse, TokenCondClose } from "./cond.t"
+import type { TokenMapOpen, TokenMapClose } from "./map.t"
+import type { TokenText } from "./text.t"
+type StreamToken = TokenText | TokenCondOpen | TokenCondElse | TokenCondClose | TokenMapOpen | TokenMapClose
+
 // ============================================================================
 // HTML EXTRACTION
 // ============================================================================

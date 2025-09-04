@@ -1,4 +1,4 @@
-import type { TokenCondClose, TokenCondElse, TokenCondOpen, TokenMapClose, TokenMapOpen } from "./token.t"
+import type { TokenCondClose, TokenCondElse, TokenCondOpen } from "./cond.t"
 
 export const findCondOpen = (expr: string): [number, TokenCondOpen] | undefined => {
   let i = 0
@@ -153,21 +153,5 @@ export const findCondClose = (expr: string): [number, TokenCondClose] | undefine
   let match
   while ((match = condCloseRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-close" }]
-  }
-}
-
-export const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
-  const mapOpenRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
-  let match
-  while ((match = mapOpenRegex.exec(expr)) !== null) {
-    return [match.index, { kind: "map-open", sig: match[1]! }]
-  }
-}
-
-export const findMapClose = (expr: string): [number, TokenMapClose] | undefined => {
-  const mapCloseRegex = /`?\)\}/g
-  let closeMatch
-  while ((closeMatch = mapCloseRegex.exec(expr)) !== null) {
-    return [closeMatch.index, { kind: "map-close" }]
   }
 }
