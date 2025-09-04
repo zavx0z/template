@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "../../parser"
+import { parseAttributes } from "../../attributes"
 
 describe("allow", () => {
   describe("статические значения", () => {

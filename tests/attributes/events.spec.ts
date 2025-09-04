@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "../../parser.ts"
+import { parseAttributes } from "../../attributes.ts"
 
 describe("события (events) с атрибутами on...", () => {
   describe("простые события", () => {

@@ -1,32 +1,11 @@
-import type {
-  AttributeEvent,
-  AttributeArray,
-  AttributeString,
-  AttributeBoolean,
-  PartAttrs,
-  PartAttrElement,
-  PartAttrMeta,
-  PartAttrMap,
-  PartAttrCondition,
-} from "./attributes.t"
+import type { PartAttrs, PartAttrElement, PartAttrMeta, PartAttrMap, PartAttrCondition } from "./attributes.t"
 import type { Context, Core, State, RenderParams, Node } from "./index.t"
-import { findMapOpen, findMapClose } from "./map"
-import { findCondElse, findCondClose, findAllConditions } from "./cond"
 import { findText, formatAttributeText } from "./text"
-import { VOID_TAGS } from "./element"
-import type {StreamToken} from "./parser.t"
-import {
-  classifyValue,
-  formatExpression,
-  getBuiltinResolved,
-  isEmptyAttributeValue,
-  isFullyDynamicToken,
-  matchBalancedBraces,
-  normalizeValueForOutput,
-  readAttributeRawValue,
-  splitBySpace,
-} from "./attributes"
+import type { StreamToken } from "./parser.t"
+import { parseAttributes } from "./attributes"
 import { createNodeDataElement } from "./data"
+import type { TokenMapOpen, TokenMapClose } from "./parser.t"
+import type { TokenCondElse, TokenCondOpen, TokenCondClose } from "./parser.t"
 // Быстрый lookahead на теги (включая meta-${...})
 const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>|<\/?meta-[^>]*>|<\/?meta-\$\{[^}]*\}[^>]*>)/gi
 
@@ -408,262 +387,142 @@ export const extractHtmlElements = (input: string): Node[] => {
     return store.child.map((node) => createNodeDataElement(node, context))
   }
 }
+export const VOID_TAGS = new Set([
+  "area",
+  "base",
+  "br",
+  "col",
+  "embed",
+  "hr",
+  "img",
+  "input",
+  "link",
+  "meta",
+  "param",
+  "source",
+  "track",
+  "wbr",
+])
+export const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
+  const mapOpenRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
+  let match
+  while ((match = mapOpenRegex.exec(expr)) !== null) {
+    return [match.index, { kind: "map-open", sig: match[1]! }]
+  }
+}
 
-export const parseAttributes = (
-  inside: string
-): {
-  event?: AttributeEvent
-  array?: AttributeArray
-  string?: AttributeString
-  boolean?: AttributeBoolean
-  style?: string
-  context?: string
-  core?: string
-} => {
-  const len = inside.length
+export const findMapClose = (expr: string): [number, TokenMapClose] | undefined => {
+  const mapCloseRegex = /`?\)\}/g
+  let closeMatch
+  while ((closeMatch = mapCloseRegex.exec(expr)) !== null) {
+    return [closeMatch.index, { kind: "map-close" }]
+  }
+}
+export const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
+  const condElseRegex = /:\s*/g // допускаем произвольные пробелы/переводы строк
+  let match
+  while ((match = condElseRegex.exec(expr)) !== null) {
+    return [match.index, { kind: "cond-else" }]
+  }
+}
+
+export const findAllConditions = (expr: string): [number, TokenCondOpen][] => {
+  // Ищем все условия (включая вложенные)
+  const results: [number, TokenCondOpen][] = []
+
+  // Сначала ищем первое условие (после ${ или =>)
   let i = 0
+  while (i < expr.length) {
+    const d = expr.indexOf("${", i)
+    const a = expr.indexOf("=>", i)
+    if (d === -1 && a === -1) break
 
-  const result: {
-    event?: AttributeEvent
-    array?: AttributeArray
-    string?: AttributeString
-    boolean?: AttributeBoolean
-    style?: string
-    context?: string
-    core?: string
-  } = {}
+    const useDollar = d !== -1 && (a === -1 || d < a)
+    const start = useDollar ? d : a
+    let j = start + 2
+    while (j < expr.length && /\s/.test(expr[j]!)) j++
 
-  const ensure = {
-    event: () => (result.event ??= {}),
-    array: () => (result.array ??= {}),
-    string: () => (result.string ??= {}),
-    boolean: () => (result.boolean ??= {}),
-    style: () => (result.style ??= ""),
-    context: () => (result.context ??= ""),
-    core: () => (result.core ??= ""),
+    const q = expr.indexOf("?", j)
+    if (q === -1) {
+      i = j + 1
+      continue
+    }
+
+    const between = expr.slice(j, q)
+
+    // если это ветка "=>", и до '?' попался backtick, то это тегированный шаблон:
+    // переносим курсор на сам backtick и ищем следующий кандидат (внутренний ${ ... ? ... }).
+    if (!useDollar) {
+      const bt = between.indexOf("`")
+      if (bt !== -1) {
+        i = j + bt + 1
+        continue
+      }
+    }
+
+    // если это ветка "${", и до '?' попался .map( — пропускаем внешний map-кандидат
+    // и двигаемся внутрь.
+    if (useDollar) {
+      const m = between.indexOf(".map(")
+      if (m !== -1) {
+        i = j + m + 1
+        continue
+      }
+      // защитно: если внутри выражения внезапно встретился backtick — тоже двигаемся к нему
+      const bt = between.indexOf("`")
+      if (bt !== -1) {
+        i = j + bt + 1
+        continue
+      }
+    }
+
+    results.push([j, { kind: "cond-open", expr: between.trim() }])
+    i = q + 1
   }
 
-  while (i < len) {
-    while (i < len && /\s/.test(inside[i] || "")) i++
-    if (i >= len) break
+  // Затем ищем все вложенные условия вида: ? ... ? или : ... ?
+  i = 0
+  while (i < expr.length) {
+    const questionMark = expr.indexOf("?", i)
+    const colon = expr.indexOf(":", i)
 
-    // Обработка условных булевых атрибутов ${condition && 'attribute'}
-    if (inside[i] === "$" && inside[i + 1] === "{") {
-      const braceStart = i
-      const braceEnd = matchBalancedBraces(inside, i + 2)
-      if (braceEnd === -1) break
+    if (questionMark === -1 && colon === -1) break
 
-      const braceContent = inside.slice(braceStart + 2, braceEnd - 1)
+    // Выбираем ближайший символ
+    const useQuestion = questionMark !== -1 && (colon === -1 || questionMark < colon)
+    const pos = useQuestion ? questionMark : colon
 
-      // Проверяем, является ли это условным выражением вида condition ? "attr1" : "attr2"
-      const ternaryMatch = braceContent.match(/^(.+?)\s*\?\s*["']([^"']+)["']\s*:\s*["']([^"']+)["']$/)
+    // Ищем следующий ? или : после текущего
+    const nextQuestion = expr.indexOf("?", pos + 1)
+    const nextColon = expr.indexOf(":", pos + 1)
 
-      if (ternaryMatch) {
-        const [, condition, trueAttr, falseAttr] = ternaryMatch
+    if (nextQuestion === -1 && nextColon === -1) break
 
-        if (condition && trueAttr && falseAttr) {
-          // Создаем два атрибута: один для true случая, другой для false
-          ensure.boolean()[trueAttr] = {
-            type: "dynamic",
-            value: condition.trim(),
-          }
+    // Выбираем ближайший следующий символ
+    const useNextQuestion = nextQuestion !== -1 && (nextColon === -1 || nextQuestion < nextColon)
+    const nextPos = useNextQuestion ? nextQuestion : nextColon
 
-          ensure.boolean()[falseAttr] = {
-            type: "dynamic",
-            value: `!(${condition.trim()})`,
-          }
-        }
+    // Извлекаем условие между текущим и следующим символом
+    const condition = expr.slice(pos + 1, nextPos).trim()
 
-        i = braceEnd
-        continue
-      }
-
-      // Обработка обычных условных атрибутов ${condition && 'attribute'}
-      const parts = braceContent.split("&&").map((s) => s.trim())
-
-      if (parts.length >= 2) {
-        // Последняя часть - это имя атрибута в кавычках
-        const attributeName = parts[parts.length - 1]?.replace(/['"]/g, "") // убираем кавычки
-
-        if (attributeName) {
-          // Все части кроме последней - это условие
-          const condition = parts.slice(0, -1).join(" && ")
-
-          ensure.boolean()[attributeName] = {
-            type: "dynamic",
-            value: condition || "",
-          }
-        }
-      }
-
-      i = braceEnd
-      continue
+    // Проверяем, что это не пустое условие и не содержит html`
+    if (condition && !condition.includes("html`")) {
+      results.push([pos + 1, { kind: "cond-open", expr: condition }])
     }
 
-    const nameStart = i
-    while (i < len) {
-      const ch = inside[i]
-      if (!ch || /\s/.test(ch) || ch === "=") break
-      i++
-    }
-    const name = inside.slice(nameStart, i)
-    if (!name) break
-
-    // Игнорируем атрибут "/" для самозакрывающихся тегов
-    if (name === "/") {
-      continue
-    }
-
-    // события - обрабатываем в первую очередь
-    if (name.startsWith("on")) {
-      while (i < len && /\s/.test(inside[i] || "")) i++
-
-      let value: string | null = null
-      if (inside[i] === "=") {
-        i++
-        const r = readAttributeRawValue(inside, i)
-        value = r.value
-        i = r.nextIndex
-      }
-
-      const eventValue = value ? formatExpression(value.slice(2, -1)) : ""
-      ensure.event()[name] = eventValue
-      continue
-    }
-
-    // стили - обрабатываем как объекты
-    if (name === "style") {
-      while (i < len && /\s/.test(inside[i] || "")) i++
-
-      let value: string | null = null
-      if (inside[i] === "=") {
-        i++
-        const r = readAttributeRawValue(inside, i)
-        value = r.value
-        i = r.nextIndex
-      }
-
-      if (value && value.startsWith("${{")) {
-        // Извлекаем содержимое объекта стилей и возвращаем как строку
-        const styleContent = value.slice(3, -2).trim()
-        if (styleContent) {
-          result.style = `{ ${formatExpression(styleContent)} }`
-        } else {
-          result.style = "{}"
-        }
-      }
-      continue
-    }
-
-    // context и core для meta-компонентов - обрабатываем как объекты
-    if (name === "context" || name === "core") {
-      while (i < len && /\s/.test(inside[i] || "")) i++
-
-      let value: string | null = null
-      if (inside[i] === "=") {
-        i++
-        const r = readAttributeRawValue(inside, i)
-        value = r.value
-        i = r.nextIndex
-      }
-
-      const objectValue = value
-        ? value.startsWith("${{")
-          ? value.slice(3, -2).trim()
-            ? `{ ${formatExpression(value.slice(3, -2))} }`
-            : "{}"
-          : formatExpression(value.slice(2, -1))
-        : "{}"
-
-      // Не добавляем пустые core и context атрибуты
-      if (objectValue === "{}") {
-        continue
-      }
-
-      // Для meta-компонентов context и core будут обработаны отдельно
-      if (name === "context") {
-        result.context = objectValue
-      } else {
-        result.core = objectValue
-      }
-      continue
-    }
-
-    while (i < len && /\s/.test(inside[i] || "")) i++
-
-    let value: string | null = null
-    let hasQuotes = false
-    if (inside[i] === "=") {
-      i++
-      hasQuotes = inside[i] === '"' || inside[i] === "'"
-      const r = readAttributeRawValue(inside, i)
-      value = r.value
-      i = r.nextIndex
-    } else {
-      // value остается null - это означает булевый атрибут со значением true
-    }
-
-    // списковые атрибуты (class и встроенные)
-    const isClass = name === "class"
-    const resolved = isClass ? null : getBuiltinResolved(name)
-
-    if (isClass || resolved) {
-      if (isEmptyAttributeValue(value)) {
-        continue
-      }
-
-      const tokens = isClass ? splitBySpace(value ?? "") : resolved!.fn(value ?? "")
-
-      // Если только одно значение, обрабатываем как строку
-      if (tokens.length === 1) {
-        ensure.string()[name] = {
-          type: classifyValue(value ?? ""),
-          value: normalizeValueForOutput(value ?? ""),
-        }
-        continue
-      }
-
-      const out = tokens.map((tok) => ({
-        type: classifyValue(tok),
-        value: normalizeValueForOutput(tok),
-      }))
-      // @ts-ignore
-      ensure.array()[name] = out
-      continue
-    }
-
-    if (
-      !hasQuotes &&
-      !name.startsWith("on") &&
-      (value === null ||
-        value === "true" ||
-        value === "false" ||
-        (value && isFullyDynamicToken(value) && !value.includes("?") && !value.includes(":")) ||
-        (value &&
-          isFullyDynamicToken(value) &&
-          value.includes("?") &&
-          value.includes(":") &&
-          (value.includes("true") || value.includes("false"))))
-    ) {
-      if (value && isFullyDynamicToken(value)) {
-        ensure.boolean()[name] = {
-          type: "dynamic",
-          value: normalizeValueForOutput(value).replace(/^\${/, "").replace(/}$/, ""),
-        }
-      } else {
-        ensure.boolean()[name] = { type: "static", value: value === "true" || value === null }
-      }
-      continue
-    }
-
-    // string
-    if (!isEmptyAttributeValue(value)) {
-      ensure.string()[name] = {
-        type: classifyValue(value ?? ""),
-        value: normalizeValueForOutput(value ?? ""),
-      }
-    }
+    // Продолжаем поиск с позиции после текущего символа
+    i = pos + 1
   }
 
-  return result
+  return results
+}
+
+export const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
+  // Ищем } которая НЕ является частью деструктуризации в параметрах функции
+  // Исключаем случаи типа ({ title }) => или (({ title })) =>
+  const condCloseRegex = /[^\)]}(?!\s*\)\s*=>)/g
+  let match
+  while ((match = condCloseRegex.exec(expr)) !== null) {
+    return [match.index, { kind: "cond-close" }]
+  }
 }
