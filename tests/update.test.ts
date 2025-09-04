@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../parser"
+import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
+import { type PartsHierarchy } from "../parser.t"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import type { Node } from "../index.t"
@@ -127,7 +128,7 @@ describe("update", () => {
         {
           tag: "button",
           type: "el",
-          text: 'onclick=${() => update({ count: context.count + 1 })}',
+          text: "onclick=${() => update({ count: context.count + 1 })}",
           child: [
             {
               type: "text",
@@ -186,7 +187,7 @@ describe("update", () => {
         {
           tag: "button",
           type: "el",
-          text: 'onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}',
+          text: "onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}",
           child: [
             {
               type: "text",
@@ -273,7 +274,7 @@ describe("update", () => {
             {
               tag: "button",
               type: "el",
-              text: 'onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}',
+              text: "onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}",
               child: [
                 {
                   type: "text",

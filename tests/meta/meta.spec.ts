@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../../parser"
+import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
+import { type PartsHierarchy } from "../../parser.t"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 import type { Node } from "../../index.t"

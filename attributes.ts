@@ -8,7 +8,9 @@ import type {
   PartAttrElement,
   PartAttrMeta,
 } from "./attributes.t"
-import type { PartsHierarchy } from "./parser"
+import { BUILTIN_LIST_SPLITTERS } from "./element"
+import type { SplitterResolved } from "./element.t"
+import type { PartsHierarchy } from "./parser.t"
 
 // ============================================================================
 // ATTRIBUTE PARSING
@@ -101,33 +103,8 @@ function isEmptyAttributeValue(value: string | null): boolean {
   return normalized === "" || normalized.trim() === ""
 }
 
-/**
- * Парсит поля стилей из строки вида "color: company.theme, borderColor: dept.color"
- */
-function parseStyleFields(styleContent: string): Record<string, string> {
-  const result: Record<string, string> = {}
-  const parts = styleContent.split(",")
-
-  for (const part of parts) {
-    const trimmed = part.trim()
-    if (!trimmed) continue
-
-    const colonIndex = trimmed.indexOf(":")
-    if (colonIndex === -1) continue
-
-    const propertyName = trimmed.slice(0, colonIndex).trim()
-    const propertyValue = trimmed.slice(colonIndex + 1).trim()
-
-    if (propertyName && propertyValue) {
-      result[propertyName] = propertyValue
-    }
-  }
-
-  return result
-}
-
 /** Резка по разделителю на верхнем уровне (вне кавычек и ${...}) */
-function splitTopLevel(raw: string, sep: string): string[] {
+export function splitTopLevel(raw: string, sep: string): string[] {
   const out: string[] = []
   let buf = ""
   let inSingle = false
@@ -179,7 +156,7 @@ function splitTopLevel(raw: string, sep: string): string[] {
 }
 
 /** Резка по пробелам верхнего уровня (как для class), учитывая ${} и кавычки */
-function splitBySpace(raw: string): string[] {
+export function splitBySpace(raw: string): string[] {
   const out: string[] = []
   let buf = ""
   let inSingle = false
@@ -236,40 +213,10 @@ function splitBySpace(raw: string): string[] {
   return out
 }
 
-const splitByComma = (raw: string) => splitTopLevel(raw, ",")
-const splitBySemicolon = (raw: string) => splitTopLevel(raw, ";")
+export const splitByComma = (raw: string) => splitTopLevel(raw, ",")
+export const splitBySemicolon = (raw: string) => splitTopLevel(raw, ";")
 
-type SplitterFn = (raw: string) => string[]
-type SplitterResolved = { fn: SplitterFn; delim: string }
-
-/** Преднастройка известных списковых атрибутов */
-const BUILTIN_LIST_SPLITTERS: Record<string, SplitterResolved> = {
-  class: { fn: splitBySpace, delim: " " }, // спец-кейс в записи результата (см. ниже)
-  rel: { fn: splitBySpace, delim: " " },
-  headers: { fn: splitBySpace, delim: " " },
-  itemref: { fn: splitBySpace, delim: " " },
-  ping: { fn: splitBySpace, delim: " " },
-  sandbox: { fn: splitBySpace, delim: " " },
-  sizes: { fn: splitBySpace, delim: " " },
-  "accept-charset": { fn: splitBySpace, delim: " " },
-  accept: { fn: splitByComma, delim: "," },
-  allow: { fn: splitBySemicolon, delim: ";" },
-  srcset: {
-    fn: (raw) =>
-      splitByComma(raw)
-        .map((s) => s.trim())
-        .filter(Boolean),
-    delim: ",",
-  },
-  coords: {
-    fn: (raw) =>
-      splitTopLevel(raw, ",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    delim: ",",
-  },
-}
-
+export type SplitterFn = (raw: string) => string[]
 function getBuiltinResolved(name: string): SplitterResolved | null {
   const lower = name.toLowerCase()
   // aria-hidden является булевым атрибутом, а не списковым
