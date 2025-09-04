@@ -1,5 +1,11 @@
-import type { AttributeArray, AttributeBoolean, AttributeEvent, AttributeString, ValueType } from "./attributes.t"
-import type { SplitterResolved } from "./attributes.t"
+import type {
+  AttributeArray,
+  AttributeBoolean,
+  AttributeEvent,
+  AttributeString,
+  SplitterResolved,
+  ValueType,
+} from "./attributes.t"
 
 // ============================
 // ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
@@ -290,6 +296,31 @@ function handleInterpolation(inside: string, cursor: number): { value: string; n
 }
 
 /**
+ * Читает значение атрибута и обновляет позицию курсора
+ *
+ * @param inside - Строка содержащая HTML-код
+ * @param i - Текущая позиция курсора
+ * @returns Объект с прочитанным значением и обновленной позицией курсора
+ */
+function readAttributeValue(
+  inside: string,
+  i: number
+): { value: string | null; nextIndex: number; hasQuotes: boolean } {
+  let value: string | null = null
+  let hasQuotes = false
+
+  if (inside[i] === "=") {
+    i++
+    hasQuotes = inside[i] === '"' || inside[i] === "'"
+    const r = readAttributeRawValue(inside, i)
+    value = r.value
+    i = r.nextIndex
+  }
+
+  return { value, nextIndex: i, hasQuotes }
+}
+
+/**
  * Прочитать "сырое" значение атрибута из строки inside, начиная с позиции cursor
  *
  * @param inside - Строка содержащая HTML-код
@@ -475,16 +506,10 @@ export const parseAttributes = (
     if (name.startsWith("on")) {
       while (i < len && /\s/.test(inside[i] || "")) i++
 
-      let value: string | null = null
-      if (inside[i] === "=") {
-        i++
-        const r = readAttributeRawValue(inside, i)
-        value = r.value
-        i = r.nextIndex
-      }
+      const { value, nextIndex } = readAttributeValue(inside, i)
+      i = nextIndex
 
-      const eventValue = value ? formatExpression(value.slice(2, -1)) : ""
-      ensure.event()[name] = eventValue
+      ensure.event()[name] = value ? formatExpression(value.slice(2, -1)) : ""
       continue
     }
 
@@ -492,13 +517,8 @@ export const parseAttributes = (
     if (name === "style") {
       while (i < len && /\s/.test(inside[i] || "")) i++
 
-      let value: string | null = null
-      if (inside[i] === "=") {
-        i++
-        const r = readAttributeRawValue(inside, i)
-        value = r.value
-        i = r.nextIndex
-      }
+      const { value, nextIndex } = readAttributeValue(inside, i)
+      i = nextIndex
 
       if (value && value.startsWith("${{")) {
         // Извлекаем содержимое объекта стилей и возвращаем как строку
@@ -516,13 +536,8 @@ export const parseAttributes = (
     if (name === "context" || name === "core") {
       while (i < len && /\s/.test(inside[i] || "")) i++
 
-      let value: string | null = null
-      if (inside[i] === "=") {
-        i++
-        const r = readAttributeRawValue(inside, i)
-        value = r.value
-        i = r.nextIndex
-      }
+      const { value, nextIndex } = readAttributeValue(inside, i)
+      i = nextIndex
 
       const objectValue = value
         ? value.startsWith("${{")
@@ -548,17 +563,8 @@ export const parseAttributes = (
 
     while (i < len && /\s/.test(inside[i] || "")) i++
 
-    let value: string | null = null
-    let hasQuotes = false
-    if (inside[i] === "=") {
-      i++
-      hasQuotes = inside[i] === '"' || inside[i] === "'"
-      const r = readAttributeRawValue(inside, i)
-      value = r.value
-      i = r.nextIndex
-    } else {
-      // value остается null - это означает булевый атрибут со значением true
-    }
+    const { value, nextIndex, hasQuotes } = readAttributeValue(inside, i)
+    i = nextIndex
 
     // списковые атрибуты (class и встроенные)
     const isClass = name === "class"
@@ -579,13 +585,10 @@ export const parseAttributes = (
         }
         continue
       }
-
-      const out = tokens.map((tok) => ({
+      ensure.array()[name] = tokens.map((tok) => ({
         type: classifyValue(tok),
         value: normalizeValueForOutput(tok),
       }))
-      // @ts-ignore
-      ensure.array()[name] = out
       continue
     }
 
