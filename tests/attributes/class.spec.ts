@@ -1,6 +1,5 @@
 import { describe, it, expect } from "bun:test"
 import { parseAttributes } from "../../attributes.ts"
-import { extractTokens } from "../../token"
 
 describe.each([
   ["element", "<div"],
@@ -60,7 +59,7 @@ describe.each([
             type: "dynamic",
             value: '${core.active ? "active" : "inactive"}',
           },
-        },  
+        },
       })
     })
 

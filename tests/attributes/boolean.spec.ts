@@ -1,6 +1,5 @@
 import { describe, it, expect } from "bun:test"
 import { parseAttributes } from "../../attributes.ts"
-import { extractTokens } from "./token"
 
 describe.each([
   ["element", "<div"],
@@ -213,7 +212,7 @@ describe.each([
       )
       expect(attrs).toEqual({
         boolean: {
-            disabled: { type: "dynamic", value: "context.disabled" },
+          disabled: { type: "dynamic", value: "context.disabled" },
           readonly: { type: "dynamic", value: "context.readonly" },
           required: { type: "dynamic", value: "context.required" },
         },
