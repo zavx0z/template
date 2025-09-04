@@ -106,17 +106,6 @@ interface AttributesNode {
   context?: string | ParseAttributeResult
 }
 
-/**
- * Результат парсинга атрибута.
- */
-export type AttributeParseResult = {
-  /** Путь(и) к данным (необязательное) */
-  data?: string | string[]
-  /** Унифицированное выражение (необязательное) */
-  expr?: string
-  /** Ключи для обновления (необязательное) */
-  upd?: string | string[]
-}
 export type AttrVariable = { data: string }
 export type AttrDynamic = {
   data: string | string[]

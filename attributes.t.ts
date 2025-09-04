@@ -1,4 +1,4 @@
-import type { SplitterFn } from "./attributes"
+import type {SplitterFn} from "./attributes"
 
 export type ValueType = "dynamic" | "static" | "mixed"
 
@@ -78,5 +78,6 @@ export type PartAttrMap = {
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
   child: (PartAttrElement | PartText | PartAttrMap | PartAttrMeta | PartAttrCondition)[]
 }
-export type PartAttrs = (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]export type SplitterResolved = { fn: SplitterFn; delim: string} 
+export type PartAttrs = (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]
+export type SplitterResolved = { fn: SplitterFn; delim: string }
 
