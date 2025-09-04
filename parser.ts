@@ -49,7 +49,7 @@ export const extractMainHtmlBlock = <C extends Context = Context, I extends Core
   return htmlContent.replace(/!0/g, "true").replace(/!1/g, "false")
 }
 
-export const extractHtmlElements = (input: string): Node[] => {
+export const extractHtmlElements = (input: string): PartAttrs => {
   const store = new Hierarchy()
 
   let lastIndex = 0
@@ -164,13 +164,10 @@ export const extractHtmlElements = (input: string): Node[] => {
     TAG_LOOKAHEAD.lastIndex = tagEnd
     lastIndex = tagEnd
   }
-  const context = { pathStack: [], level: 0 }
-  if (store.child.length) return store.child.map((node) => createNodeDataElement(node, context))
-  else {
-    // если нет тегов, то парсим текст и операторы
-    parseTextAndOperators(input.slice(lastIndex), store)
-    return store.child.map((node) => createNodeDataElement(node, context))
-  }
+  if (store.child.length) return store.child
+  // если нет тегов, то парсим текст и операторы
+  parseTextAndOperators(input.slice(lastIndex), store)
+  return store.child
 }
 
 export const parseTextAndOperators = (input: string, store: Hierarchy) => {

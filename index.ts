@@ -1,3 +1,4 @@
+import { createNodeDataElement } from "./data"
 import type { Node } from "./index.t"
 import type { RenderParams, Context, Core, State } from "./index.t"
 import { extractHtmlElements, extractMainHtmlBlock } from "./parser"
@@ -20,6 +21,8 @@ export const parse = <C extends Context = Context, I extends Core = Core, S exte
   render: (params: RenderParams<C, I, S>) => void
 ): Node[] => {
   const mainHtml = extractMainHtmlBlock(render)
-  return extractHtmlElements(mainHtml)
+  const hierarchy = extractHtmlElements(mainHtml)
+  const context = { pathStack: [], level: 0 }
+  return hierarchy.map((node) => createNodeDataElement(node, context))
 }
 export type { Node }
