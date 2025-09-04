@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../parser"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import type { PartAttrs } from "../attributes.t"
-import type { PartsHierarchy } from "../hierarchy.t"
 import type { Node } from "../index.t"
 
 describe("атрибуты", () => {
@@ -21,7 +20,7 @@ describe("атрибуты", () => {
         {
           tag: "svg:use",
           type: "el",
-          text: '<svg:use xlink:href="#id">',
+          text: 'xlink:href="#id"',
         },
       ]))
 
@@ -102,7 +101,7 @@ describe("атрибуты", () => {
         {
           tag: "a",
           type: "el",
-          text: '<a href="https://e.co" target="_blank">',
+          text: 'href="https://e.co" target="_blank"',
           child: [
             {
               type: "text",
@@ -177,7 +176,7 @@ describe("атрибуты", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div title="a > b, c < d">',
+          text: 'title="a > b, c < d"',
         },
       ]))
 
@@ -230,7 +229,7 @@ describe("атрибуты", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div title="${context.flag ? "a > b" : "c < d"}">',
+          text: 'title="${context.flag ? "a > b" : "c < d"}"',
         },
       ]))
 
@@ -286,7 +285,7 @@ describe("атрибуты", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div title=${context.flag ? "a > b" : "c < d"}>',
+          text: 'title=${context.flag ? "a > b" : "c < d"}',
         },
       ]))
 
@@ -344,7 +343,7 @@ describe("атрибуты", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div title=\'${context.flag ? "a > b" : "c < d"}\'>',
+          text: 'title=\'${context.flag ? "a > b" : "c < d"}\'',
         },
       ]))
 
@@ -400,7 +399,7 @@ it("булевые атрибуты", () => {
       {
         tag: "button",
         type: "el",
-        text: '<button ${context.flag && "disabled"}>',
+        text: '${context.flag && "disabled"}',
       },
     ]))
 
@@ -458,7 +457,6 @@ it("булевые атрибуты", () => {
         {
           tag: "ul",
           type: "el",
-          text: "<ul>",
           child: [
             {
               type: "map",
@@ -467,7 +465,7 @@ it("булевые атрибуты", () => {
                 {
                   tag: "li",
                   type: "el",
-                  text: '<li class="item-${item.type}" title="${item.name}">',
+                  text: 'class="item-${item.type}" title="${item.name}"',
                   child: [
                     {
                       type: "text",
@@ -574,7 +572,7 @@ it("булевые атрибуты", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div class="div-${core.active ? "active" : "inactive"}">',
+          text: 'class="div-${core.active ? "active" : "inactive"}"',
           child: [
             {
               type: "text",

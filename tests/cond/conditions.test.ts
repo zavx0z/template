@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../../parser"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
-import type { PartsHierarchy } from "../../hierarchy.t"
 import type { PartAttrs } from "../../attributes.t"
 import type { Node } from "../../index.t"
 
@@ -23,7 +22,6 @@ describe("conditions", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "cond",
@@ -32,13 +30,11 @@ describe("conditions", () => {
                 {
                   tag: "em",
                   type: "el",
-                  text: "<em>",
                   child: [{ type: "text", text: "A" }],
                 },
                 {
                   tag: "span",
                   type: "el",
-                  text: "<span>",
                   child: [{ type: "text", text: "b" }],
                 },
               ],
@@ -60,26 +56,28 @@ describe("conditions", () => {
             {
               type: "cond",
               data: "/context/cond",
-              true: {
-                tag: "em",
-                type: "el",
-                child: [
-                  {
-                    type: "text",
-                    value: "A",
-                  },
-                ],
-              },
-              false: {
-                tag: "span",
-                type: "el",
-                child: [
-                  {
-                    type: "text",
-                    value: "b",
-                  },
-                ],
-              },
+              child: [
+                {
+                  tag: "em",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      value: "A",
+                    },
+                  ],
+                },
+                {
+                  tag: "span",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      value: "b",
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
@@ -110,12 +108,10 @@ describe("conditions", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               tag: "header",
               type: "el",
-              text: "<header>",
               child: [
                 {
                   type: "text",
@@ -130,7 +126,6 @@ describe("conditions", () => {
                 {
                   tag: "span",
                   type: "el",
-                  text: "<span>",
                   child: [
                     {
                       type: "text",
@@ -141,7 +136,6 @@ describe("conditions", () => {
                 {
                   tag: "span",
                   type: "el",
-                  text: "<span>",
                   child: [
                     {
                       type: "text",
@@ -154,7 +148,6 @@ describe("conditions", () => {
             {
               tag: "footer",
               type: "el",
-              text: "<footer>",
               child: [{ type: "text", text: "Footer" }],
             },
           ],
@@ -185,26 +178,28 @@ describe("conditions", () => {
             {
               type: "cond",
               data: "/context/isActive",
-              true: {
-                tag: "span",
-                type: "el",
-                child: [
-                  {
-                    type: "text",
-                    value: "Active",
-                  },
-                ],
-              },
-              false: {
-                tag: "span",
-                type: "el",
-                child: [
-                  {
-                    type: "text",
-                    value: "Inactive",
-                  },
-                ],
-              },
+              child: [
+                {
+                  tag: "span",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      value: "Active",
+                    },
+                  ],
+                },
+                {
+                  tag: "span",
+                  type: "el",
+                  child: [
+                    {
+                      type: "text",
+                      value: "Inactive",
+                    },
+                  ],
+                },
+              ],
             },
             {
               tag: "footer",
@@ -240,7 +235,6 @@ describe("conditions", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "cond",
@@ -249,13 +243,11 @@ describe("conditions", () => {
                 {
                   tag: "em",
                   type: "el",
-                  text: "<em>",
                   child: [{ type: "text", text: "A" }],
                 },
                 {
                   tag: "span",
                   type: "el",
-                  text: "<span>",
                   child: [{ type: "text", text: "b" }],
                 },
               ],
@@ -279,16 +271,18 @@ describe("conditions", () => {
               type: "cond",
               data: ["/context/cond", "/context/cond2"],
               expr: "${[0]} && ${[1]}",
-              true: {
-                tag: "em",
-                type: "el",
-                child: [{ type: "text", value: "A" }],
-              },
-              false: {
-                tag: "span",
-                type: "el",
-                child: [{ type: "text", value: "b" }],
-              },
+              child: [
+                {
+                  tag: "em",
+                  type: "el",
+                  child: [{ type: "text", value: "A" }],
+                },
+                {
+                  tag: "span",
+                  type: "el",
+                  child: [{ type: "text", value: "b" }],
+                },
+              ],
             },
           ],
         },
@@ -314,7 +308,6 @@ describe("conditions", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "cond",
@@ -323,13 +316,11 @@ describe("conditions", () => {
                 {
                   tag: "em",
                   type: "el",
-                  text: "<em>",
                   child: [{ type: "text", text: "A" }],
                 },
                 {
                   tag: "span",
                   type: "el",
-                  text: "<span>",
                   child: [{ type: "text", text: "b" }],
                 },
               ],
@@ -352,16 +343,18 @@ describe("conditions", () => {
               type: "cond",
               data: ["/context/cond", "/context/cond2"],
               expr: "${[0]} === ${[1]}",
-              true: {
-                tag: "em",
-                type: "el",
-                child: [{ type: "text", value: "A" }],
-              },
-              false: {
-                tag: "span",
-                type: "el",
-                child: [{ type: "text", value: "b" }],
-              },
+              child: [
+                {
+                  tag: "em",
+                  type: "el",
+                  child: [{ type: "text", value: "A" }],
+                },
+                {
+                  tag: "span",
+                  type: "el",
+                  child: [{ type: "text", value: "b" }],
+                },
+              ],
             },
           ],
         },
@@ -403,7 +396,6 @@ describe("conditions", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "cond",
@@ -412,12 +404,11 @@ describe("conditions", () => {
                 {
                   tag: "br",
                   type: "el",
-                  text: "<br />",
                 },
                 {
                   tag: "img",
                   type: "el",
-                  text: '<img src="x" />',
+                  text: 'src="x"',
                 },
               ],
             },
@@ -439,17 +430,19 @@ describe("conditions", () => {
             {
               type: "cond",
               data: "/context/flag",
-              true: {
-                tag: "br",
-                type: "el",
-              },
-              false: {
-                tag: "img",
-                type: "el",
-                string: {
-                  src: "x",
+              child: [
+                {
+                  tag: "br",
+                  type: "el",
                 },
-              },
+                {
+                  tag: "img",
+                  type: "el",
+                  string: {
+                    src: "x",
+                  },
+                },
+              ],
             },
           ],
         },
@@ -479,7 +472,6 @@ describe("conditions", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "map",
@@ -492,12 +484,12 @@ describe("conditions", () => {
                     {
                       tag: "div",
                       type: "el",
-                      text: '<div class="true-branch">',
+                      text: 'class="true-branch"',
                     },
                     {
                       tag: "div",
                       type: "el",
-                      text: '<div class="false-branch">',
+                      text: 'class="false-branch"',
                     },
                   ],
                 },
@@ -523,20 +515,22 @@ describe("conditions", () => {
                 {
                   type: "cond",
                   data: "[item]/show",
-                  true: {
-                    tag: "div",
-                    type: "el",
-                    string: {
-                      class: "true-branch",
+                  child: [
+                    {
+                      tag: "div",
+                      type: "el",
+                      string: {
+                        class: "true-branch",
+                      },
                     },
-                  },
-                  false: {
-                    tag: "div",
-                    type: "el",
-                    string: {
-                      class: "false-branch",
+                    {
+                      tag: "div",
+                      type: "el",
+                      string: {
+                        class: "false-branch",
+                      },
                     },
-                  },
+                  ],
                 },
               ],
             },
@@ -567,7 +561,6 @@ describe("conditions", () => {
         {
           tag: "ul",
           type: "el",
-          text: "<ul>",
           child: [
             {
               type: "map",
@@ -576,7 +569,6 @@ describe("conditions", () => {
                 {
                   tag: "li",
                   type: "el",
-                  text: "<li>",
                   child: [
                     {
                       type: "cond",
@@ -585,7 +577,6 @@ describe("conditions", () => {
                         {
                           tag: "em",
                           type: "el",
-                          text: "<em>",
                           child: [
                             {
                               type: "text",
@@ -596,7 +587,6 @@ describe("conditions", () => {
                         {
                           tag: "strong",
                           type: "el",
-                          text: "<strong>",
                           child: [
                             {
                               type: "text",
@@ -636,26 +626,28 @@ describe("conditions", () => {
                       type: "cond",
                       data: "[index]",
                       expr: "${[0] % 2}",
-                      true: {
-                        tag: "em",
-                        type: "el",
-                        child: [
-                          {
-                            type: "text",
-                            value: "A",
-                          },
-                        ],
-                      },
-                      false: {
-                        tag: "strong",
-                        type: "el",
-                        child: [
-                          {
-                            type: "text",
-                            value: "B",
-                          },
-                        ],
-                      },
+                      child: [
+                        {
+                          tag: "em",
+                          type: "el",
+                          child: [
+                            {
+                              type: "text",
+                              value: "A",
+                            },
+                          ],
+                        },
+                        {
+                          tag: "strong",
+                          type: "el",
+                          child: [
+                            {
+                              type: "text",
+                              value: "B",
+                            },
+                          ],
+                        },
+                      ],
                     },
                   ],
                 },

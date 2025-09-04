@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../parser"
+import { extractMainHtmlBlock, extractHtmlElements, type PartsHierarchy } from "../parser"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
-import type { PartsHierarchy } from "../hierarchy.t"
 import type { PartAttrs } from "../attributes.t"
 import type { Node } from "../index.t"
 
@@ -25,7 +24,6 @@ describe("text", () => {
         {
           tag: "ul",
           type: "el",
-          text: "<ul>",
           child: [
             {
               type: "map",
@@ -34,7 +32,6 @@ describe("text", () => {
                 {
                   tag: "li",
                   type: "el",
-                  text: "<li>",
                   child: [
                     {
                       type: "text",
@@ -68,12 +65,10 @@ describe("text", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               tag: "p",
               type: "el",
-              text: "<p>",
               child: [
                 {
                   type: "text",
@@ -106,12 +101,10 @@ describe("text", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               tag: "p",
               type: "el",
-              text: "<p>",
               child: [
                 {
                   type: "text",
@@ -169,12 +162,10 @@ describe("text", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               tag: "p",
               type: "el",
-              text: "<p>",
               child: [
                 {
                   type: "text",
@@ -232,12 +223,10 @@ describe("text", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               tag: "p",
               type: "el",
-              text: "<p>",
               child: [
                 {
                   type: "text",
@@ -294,7 +283,6 @@ describe("text", () => {
         {
           tag: "ul",
           type: "el",
-          text: "<ul>",
           child: [
             {
               type: "map",
@@ -303,7 +291,6 @@ describe("text", () => {
                 {
                   tag: "li",
                   type: "el",
-                  text: "<li>",
                   child: [
                     {
                       type: "text",
@@ -316,7 +303,6 @@ describe("text", () => {
                         {
                           tag: "em",
                           type: "el",
-                          text: "<em>",
                           child: [
                             {
                               type: "text",
@@ -399,7 +385,6 @@ describe("text", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "cond",
@@ -408,7 +393,6 @@ describe("text", () => {
                 {
                   tag: "p",
                   type: "el",
-                  text: "<p>",
                   child: [
                     {
                       type: "text",
@@ -419,7 +403,6 @@ describe("text", () => {
                 {
                   tag: "p",
                   type: "el",
-                  text: "<p>",
                   child: [
                     {
                       type: "text",
@@ -445,27 +428,29 @@ describe("text", () => {
               {
                 type: "cond",
                 data: "/context/show",
-                true: {
-                  tag: "p",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      data: "/context/name",
-                      expr: "Visible: ${[0]}",
-                    },
-                  ],
-                },
-                false: {
-                  tag: "p",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      value: "Hidden",
-                    },
-                  ],
-                },
+                child: [
+                  {
+                    tag: "p",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        data: "/context/name",
+                        expr: "Visible: ${[0]}",
+                      },
+                    ],
+                  },
+                  {
+                    tag: "p",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        value: "Hidden",
+                      },
+                    ],
+                  },
+                ],
               },
             ],
           },
@@ -488,12 +473,10 @@ describe("text", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               tag: "b",
               type: "el",
-              text: "<b>",
               child: [
                 {
                   type: "text",
@@ -553,7 +536,6 @@ describe("text", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "text",
@@ -562,7 +544,6 @@ describe("text", () => {
             {
               tag: "b",
               type: "el",
-              text: "<b>",
               child: [
                 {
                   type: "text",
@@ -620,7 +601,6 @@ describe("text", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "text",
@@ -629,7 +609,6 @@ describe("text", () => {
             {
               tag: "b",
               type: "el",
-              text: "<b>",
               child: [
                 {
                   type: "text",
@@ -699,7 +678,6 @@ describe("text", () => {
         {
           tag: "ul",
           type: "el",
-          text: "<ul>",
           child: [
             {
               type: "map",
@@ -708,12 +686,10 @@ describe("text", () => {
                 {
                   tag: "li",
                   type: "el",
-                  text: "<li>",
                   child: [
                     {
                       tag: "strong",
                       type: "el",
-                      text: "<strong>",
                       child: [
                         {
                           type: "text",

@@ -1,9 +1,8 @@
 import { extractAttributes } from "../attributes"
 import type { PartAttrs } from "../attributes.t"
 import { enrichWithData } from "../data"
-import type { PartsHierarchy } from "../hierarchy.t"
 import type { Node } from "../index.t"
-import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../parser"
 import { describe, it, expect, beforeAll } from "bun:test"
 
 describe("условные выражения в атрибутах", () => {
@@ -66,7 +65,7 @@ describe("условные выражения в атрибутах", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div class="${core.isActive === context.isActive ? `${context.item}-active-${context.status}` : "inactive"}">',
+          text: 'class="${core.isActive === context.isActive ? `${context.item}-active-${context.status}` : "inactive"}"',
           child: [
             {
               type: "text",

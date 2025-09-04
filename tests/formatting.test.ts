@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../parser"
+import { extractMainHtmlBlock, extractHtmlElements, type PartsHierarchy } from "../parser"
 import { extractAttributes } from "../attributes"
 import { enrichWithData } from "../data"
 import type { PartAttrs } from "../attributes.t"
 import type { Node } from "../index.t"
-import type { PartsHierarchy } from "../hierarchy.t"
 
 describe.skip("formatting", () => {
   describe("форматирует тернарные выражения, удаляя лишние пробелы и переносы строк", () => {
@@ -121,7 +120,6 @@ describe.skip("formatting", () => {
     it("проверяет структуру данных", () => {
       const divElement = data[0] as any
       const buttonElement = divElement?.child?.[0] as any
-      console.log("Button element structure:", JSON.stringify(buttonElement, null, 2))
       expect(buttonElement).toBeDefined()
     })
 

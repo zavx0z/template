@@ -1,10 +1,9 @@
-import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../../parser"
 import { describe, it, expect, beforeAll } from "bun:test"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 import type { Node } from "../../index.t"
 import type { PartAttrs } from "../../attributes.t"
-import type { PartsHierarchy } from "../../hierarchy.t"
 
 describe("meta-компоненты с core/context в map и condition", () => {
   describe("meta-элемент с пустыми объектами", () => {
@@ -134,27 +133,29 @@ describe("meta-компоненты с core/context в map и condition", () => 
             {
               type: "cond",
               data: "/context/showMeta",
-              true: {
-                tag: {
-                  data: "/core/tag",
-                  expr: "meta-${[0]}",
+              child: [
+                {
+                  tag: {
+                    data: "/core/tag",
+                    expr: "meta-${[0]}",
+                  },
+                  type: "meta",
+                  core: {
+                    data: ["/context/id", "/context/name"],
+                    expr: "{ id: [0], name: [1] }",
+                  },
+                  context: '{ type: "primary", active: true }',
                 },
-                type: "meta",
-                core: {
-                  data: ["/context/id", "/context/name"],
-                  expr: "{ id: [0], name: [1] }",
+                {
+                  tag: {
+                    data: "/core/tag",
+                    expr: "meta-${[0]}",
+                  },
+                  type: "meta",
+                  core: '{ id: "default", name: "default" }',
+                  context: '{ type: "secondary", active: false }',
                 },
-                context: '{ type: "primary", active: true }',
-              },
-              false: {
-                tag: {
-                  data: "/core/tag",
-                  expr: "meta-${[0]}",
-                },
-                type: "meta",
-                core: '{ id: "default", name: "default" }',
-                context: '{ type: "secondary", active: false }',
-              },
+              ],
             },
           ],
         },
@@ -212,36 +213,38 @@ describe("meta-компоненты с core/context в map и condition", () => 
             {
               type: "cond",
               data: "/context/showList",
-              true: {
-                type: "map",
-                data: "/core/items",
-                child: [
-                  {
-                    tag: {
-                      data: "/core/tag",
-                      expr: "meta-${[0]}",
+              child: [
+                {
+                  type: "map",
+                  data: "/core/items",
+                  child: [
+                    {
+                      tag: {
+                        data: "/core/tag",
+                        expr: "meta-${[0]}",
+                      },
+                      type: "meta",
+                      core: {
+                        data: ["[item]/id", "[item]/name", "/core/type", "[item]/metadata"],
+                        expr: "{ id: [0], name: [1], type: [2], metadata: [3] }",
+                      },
+                      context: {
+                        data: ["[item]/status", "[item]/active", "[item]/permissions"],
+                        expr: "{ status: [0], active: [1], permissions: [2] }",
+                      },
                     },
-                    type: "meta",
-                    core: {
-                      data: ["[item]/id", "[item]/name", "/core/type", "[item]/metadata"],
-                      expr: "{ id: [0], name: [1], type: [2], metadata: [3] }",
-                    },
-                    context: {
-                      data: ["[item]/status", "[item]/active", "[item]/permissions"],
-                      expr: "{ status: [0], active: [1], permissions: [2] }",
-                    },
-                  },
-                ],
-              },
-              false: {
-                tag: {
-                  data: "/core/tag",
-                  expr: "meta-${[0]}",
+                  ],
                 },
-                type: "meta",
-                core: '{ id: "empty", name: "empty" }',
-                context: '{ type: "empty", active: false }',
-              },
+                {
+                  tag: {
+                    data: "/core/tag",
+                    expr: "meta-${[0]}",
+                  },
+                  type: "meta",
+                  core: '{ id: "empty", name: "empty" }',
+                  context: '{ type: "empty", active: false }',
+                },
+              ],
             },
           ],
         },
@@ -297,25 +300,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                 {
                   type: "cond",
                   data: "[item]/isActive",
-                  true: {
-                    tag: {
-                      data: "/core/tag",
-                      expr: "meta-${[0]}",
-                    },
-                    type: "meta",
-                    core: {
-                      data: ["[item]/id", "[item]/name"],
-                      expr: '{ id: [0], name: [1], type: "active" }',
-                    },
-                    context: {
-                      data: "[item]/permissions",
-                      expr: '{ status: "active", permissions: [0] }',
-                    },
-                  },
-                  false: {
-                    type: "cond",
-                    data: "[item]/hasError",
-                    true: {
+                  child: [
+                    {
                       tag: {
                         data: "/core/tag",
                         expr: "meta-${[0]}",
@@ -323,23 +309,44 @@ describe("meta-компоненты с core/context в map и condition", () => 
                       type: "meta",
                       core: {
                         data: ["[item]/id", "[item]/name"],
-                        expr: '{ id: [0], name: [1], type: "error" }',
+                        expr: '{ id: [0], name: [1], type: "active" }',
                       },
-                      context: '{ status: "error", message: "Item has error" }',
+                      context: {
+                        data: "[item]/permissions",
+                        expr: '{ status: "active", permissions: [0] }',
+                      },
                     },
-                    false: {
-                      tag: {
-                        data: "/core/tag",
-                        expr: "meta-${[0]}",
-                      },
-                      type: "meta",
-                      core: {
-                        data: ["[item]/id", "[item]/name"],
-                        expr: '{ id: [0], name: [1], type: "inactive" }',
-                      },
-                      context: '{ status: "inactive" }',
+                    {
+                      type: "cond",
+                      data: "[item]/hasError",
+                      child: [
+                        {
+                          tag: {
+                            data: "/core/tag",
+                            expr: "meta-${[0]}",
+                          },
+                          type: "meta",
+                          core: {
+                            data: ["[item]/id", "[item]/name"],
+                            expr: '{ id: [0], name: [1], type: "error" }',
+                          },
+                          context: '{ status: "error", message: "Item has error" }',
+                        },
+                        {
+                          tag: {
+                            data: "/core/tag",
+                            expr: "meta-${[0]}",
+                          },
+                          type: "meta",
+                          core: {
+                            data: ["[item]/id", "[item]/name"],
+                            expr: '{ id: [0], name: [1], type: "inactive" }',
+                          },
+                          context: '{ status: "inactive" }',
+                        },
+                      ],
                     },
-                  },
+                  ],
                 },
               ],
             },
@@ -432,7 +439,6 @@ describe("meta-компоненты с core/context в map и condition", () => 
         {
           type: "el",
           tag: "div",
-          text: "<div>",
           child: [
             {
               type: "map",
@@ -445,7 +451,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     {
                       type: "meta",
                       tag: "meta-${core.tag}",
-                      text: '<meta-${core.tag} core=${{ id: user.id, name: user.name, type: "admin", permissions: user.permissions, metadata: { level: "admin", access: "full", settings: user.settings } }} context=${{ status: "admin", active: user.isOnline, canEdit: true, canDelete: true, canManage: true }} />',
+                      text: 'core=${{ id: user.id, name: user.name, type: "admin", permissions: user.permissions, metadata: { level: "admin", access: "full", settings: user.settings } }} context=${{ status: "admin", active: user.isOnline, canEdit: true, canDelete: true, canManage: true }}',
                     },
                     {
                       type: "cond",
@@ -454,12 +460,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
                         {
                           type: "meta",
                           tag: "meta-${core.tag}",
-                          text: '<meta-${core.tag} core=${{ id: user.id, name: user.name, type: "moderator", permissions: user.permissions, metadata: { level: "moderator", access: "limited", settings: user.settings } }} context=${{ status: "moderator", active: user.isOnline, canEdit: true, canDelete: false, canManage: false }} />',
+                          text: 'core=${{ id: user.id, name: user.name, type: "moderator", permissions: user.permissions, metadata: { level: "moderator", access: "limited", settings: user.settings } }} context=${{ status: "moderator", active: user.isOnline, canEdit: true, canDelete: false, canManage: false }}',
                         },
                         {
                           type: "meta",
                           tag: "meta-${core.tag}",
-                          text: '<meta-${core.tag} core=${{ id: user.id, name: user.name, type: "user", permissions: user.permissions, metadata: { level: "user", access: "basic", settings: user.settings } }} context=${{ status: "user", active: user.isOnline, canEdit: false, canDelete: false, canManage: false }} />',
+                          text: 'core=${{ id: user.id, name: user.name, type: "user", permissions: user.permissions, metadata: { level: "user", access: "basic", settings: user.settings } }} context=${{ status: "user", active: user.isOnline, canEdit: false, canDelete: false, canManage: false }}',
                         },
                       ],
                     },
@@ -489,26 +495,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   type: "cond",
                   data: ["[item]/permissions/includes", "[item]/admin"],
                   expr: '${[0]}("${[1]}")',
-                  true: {
-                    tag: {
-                      data: "/core/tag",
-                      expr: "meta-${[0]}",
-                    },
-                    type: "meta",
-                    core: {
-                      data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                      expr: '{ id: [0], name: [1], type: "admin", permissions: [2], metadata: { level: "admin", access: "full", settings: [3] } }',
-                    },
-                    context: {
-                      data: "[item]/isOnline",
-                      expr: '{ status: "admin", active: [0], canEdit: true, canDelete: true, canManage: true }',
-                    },
-                  },
-                  false: {
-                    type: "cond",
-                    data: ["[item]/permissions/includes", "[item]/moderator"],
-                    expr: '${[0]}("${[1]}")',
-                    true: {
+                  child: [
+                    {
                       tag: {
                         data: "/core/tag",
                         expr: "meta-${[0]}",
@@ -516,29 +504,51 @@ describe("meta-компоненты с core/context в map и condition", () => 
                       type: "meta",
                       core: {
                         data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                        expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
+                        expr: '{ id: [0], name: [1], type: "admin", permissions: [2], metadata: { level: "admin", access: "full", settings: [3] } }',
                       },
                       context: {
                         data: "[item]/isOnline",
-                        expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
+                        expr: '{ status: "admin", active: [0], canEdit: true, canDelete: true, canManage: true }',
                       },
                     },
-                    false: {
-                      tag: {
-                        data: "/core/tag",
-                        expr: "meta-${[0]}",
-                      },
-                      type: "meta",
-                      core: {
-                        data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                        expr: '{ id: [0], name: [1], type: "user", permissions: [2], metadata: { level: "user", access: "basic", settings: [3] } }',
-                      },
-                      context: {
-                        data: "[item]/isOnline",
-                        expr: '{ status: "user", active: [0], canEdit: false, canDelete: false, canManage: false }',
-                      },
+                    {
+                      type: "cond",
+                      data: ["[item]/permissions/includes", "[item]/moderator"],
+                      expr: '${[0]}("${[1]}")',
+                      child: [
+                        {
+                          tag: {
+                            data: "/core/tag",
+                            expr: "meta-${[0]}",
+                          },
+                          type: "meta",
+                          core: {
+                            data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                            expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
+                          },
+                          context: {
+                            data: "[item]/isOnline",
+                            expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
+                          },
+                        },
+                        {
+                          tag: {
+                            data: "/core/tag",
+                            expr: "meta-${[0]}",
+                          },
+                          type: "meta",
+                          core: {
+                            data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
+                            expr: '{ id: [0], name: [1], type: "user", permissions: [2], metadata: { level: "user", access: "basic", settings: [3] } }',
+                          },
+                          context: {
+                            data: "[item]/isOnline",
+                            expr: '{ status: "user", active: [0], canEdit: false, canDelete: false, canManage: false }',
+                          },
+                        },
+                      ],
                     },
-                  },
+                  ],
                 },
               ],
             },

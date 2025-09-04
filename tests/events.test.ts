@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../parser"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import type { PartAttrs } from "../attributes.t"
 import type { Node } from "../index.t"
-import type { PartsHierarchy } from "../hierarchy.t"
 
 describe("events", () => {
   describe("onclick с выражением", () => {

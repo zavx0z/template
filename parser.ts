@@ -13,7 +13,7 @@ export type PartsHierarchy = PartHierarchy[]
 interface BaseElement {
   tag: string
   type: "el" | "meta"
-  text: string
+  text?: string
   child?: PartsHierarchy
 }
 export interface PartElement extends BaseElement {
@@ -214,12 +214,12 @@ class Hierarchy {
 
   /** Добавляет элемент в child массив
    * - не создает курсор на этот блок
-   * @param value - текст условия
+   * @param part - текст условия
    */
-  self(value: PartElement | PartMeta) {
+  self(part: PartElement | PartMeta) {
     const curEl = this.cursor.element as PartElement | PartMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
-    curEl.child!.push({ type: value.type, tag: value.tag, text: formatAttributeText(value.text) })
+    curEl.child!.push(part)
     return
   }
 
@@ -232,7 +232,7 @@ class Hierarchy {
   open(part: PartElement | PartMeta) {
     const curEl = this.cursor.element as PartElement | PartMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
-    curEl.child!.push({ type: part.type, tag: part.tag, text: formatAttributeText(part.text) })
+    curEl.child!.push(part)
     this.cursor.push(part.tag)
     return
   }
@@ -309,9 +309,7 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
       TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
     }
-
     parseTextAndOperators(input.slice(lastIndex, localIndex), store)
-
     const tagStart = localIndex
     let tagEnd = -1
     let i = localIndex + 1
@@ -399,11 +397,14 @@ export const extractHtmlElements = (input: string): PartsHierarchy => {
     if (full.startsWith("</")) {
       store.close(name)
     } else if (full.endsWith("/>")) {
-      store.self({ tag: name, type, text: full })
+      const text = formatAttributeText(full.replace(`<${name}`, "").replace(/\/>$/, ""))
+      store.self({ tag: name, type, ...(text ? { text } : {}) })
     } else if (VOID_TAGS.has(name) && !name.startsWith("meta-")) {
-      store.self({ tag: name, type, text: full })
+      const text = formatAttributeText(full.replace(`<${name}`, "").replace(/\/>$/, ""))
+      store.self({ tag: name, type, ...(text ? { text } : {}) })
     } else {
-      store.open({ tag: name, type, text: full })
+      const text = formatAttributeText(full.replace(`<${name}`, "").replace(/>$/, ""))
+      store.open({ tag: name, type, ...(text ? { text } : {}) })
     }
 
     TAG_LOOKAHEAD.lastIndex = tagEnd

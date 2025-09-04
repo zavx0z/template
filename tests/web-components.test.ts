@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../parser"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import type { PartAttrs } from "../attributes.t"
-import type { PartsHierarchy } from "../hierarchy.t"
 import type { Node } from "../index.t"
 
 describe("web-components", () => {
@@ -22,7 +21,6 @@ describe("web-components", () => {
         {
           tag: "my-element",
           type: "el",
-          text: "<my-element>",
         },
       ])
     })
@@ -65,7 +63,7 @@ describe("web-components", () => {
         {
           tag: "user-card",
           type: "el",
-          text: '<user-card name="John" age="25">',
+          text: 'name="John" age="25"',
         },
       ])
     })
@@ -121,7 +119,6 @@ describe("web-components", () => {
         {
           tag: "loading-spinner",
           type: "el",
-          text: "<loading-spinner />",
         },
       ]))
     it.skip("attributes", () => {
@@ -170,17 +167,14 @@ describe("web-components", () => {
         {
           tag: "app-header",
           type: "el",
-          text: "<app-header>",
           child: [
             {
               tag: "nav-menu",
               type: "el",
-              text: "<nav-menu>",
               child: [
                 {
                   tag: "menu-item",
                   type: "el",
-                  text: "<menu-item>",
                   child: [
                     {
                       type: "text",
@@ -329,12 +323,10 @@ describe("web-components", () => {
             {
               tag: "admin-panel",
               type: "el",
-              text: "<admin-panel>",
             },
             {
               tag: "user-panel",
               type: "el",
-              text: "<user-panel>",
             },
           ],
         },
@@ -348,14 +340,16 @@ describe("web-components", () => {
         {
           type: "cond",
           text: "context.isAdmin",
-          true: {
-            tag: "admin-panel",
-            type: "el",
-          },
-          false: {
-            tag: "user-panel",
-            type: "el",
-          },
+          child: [
+            {
+              tag: "admin-panel",
+              type: "el",
+            },
+            {
+              tag: "user-panel",
+              type: "el",
+            },
+          ],
         },
       ])
     })
@@ -367,14 +361,16 @@ describe("web-components", () => {
         {
           type: "cond",
           data: "/context/isAdmin",
-          true: {
-            tag: "admin-panel",
-            type: "el",
-          },
-          false: {
-            tag: "user-panel",
-            type: "el",
-          },
+          child: [
+            {
+              tag: "admin-panel",
+              type: "el",
+            },
+            {
+              tag: "user-panel",
+              type: "el",
+            },
+          ],
         },
       ])
     })
@@ -400,7 +396,6 @@ describe("web-components", () => {
         {
           tag: "user-list",
           type: "el",
-          text: "<user-list>",
           child: [
             {
               type: "map",
@@ -409,7 +404,7 @@ describe("web-components", () => {
                 {
                   tag: "user-item",
                   type: "el",
-                  text: '<user-item id="${user.id}">',
+                  text: 'id="${user.id}"',
                   child: [
                     {
                       type: "text",
@@ -551,7 +546,7 @@ describe("web-components", () => {
         {
           tag: "data-table",
           type: "el",
-          text: '<data-table columns=\'["name", "age", "email"]\' sortable="true" filterable theme="dark">',
+          text: 'columns=\'["name", "age", "email"]\' sortable="true" filterable theme="dark"',
         },
       ]))
 
@@ -627,7 +622,7 @@ describe("web-components", () => {
         {
           tag: "modal-dialog",
           type: "el",
-          text: '<modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">',
+          text: 'onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal"',
         },
       ]))
   })

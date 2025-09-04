@@ -1,8 +1,7 @@
 import { describe, expect, it, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../../parser"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
-import type { PartsHierarchy } from "../../hierarchy.t"
 import type { Node } from "../../index.t"
 import type { PartAttrs } from "../../attributes.t"
 
@@ -23,7 +22,6 @@ describe("meta", () => {
           {
             tag: "meta-hash",
             type: "meta",
-            text: "<meta-hash>",
           },
         ])
       })
@@ -55,7 +53,6 @@ describe("meta", () => {
           {
             tag: "meta-hash",
             type: "meta",
-            text: "<meta-hash />",
           },
         ])
       })
@@ -88,7 +85,6 @@ describe("meta", () => {
           {
             tag: "meta-${core.actors.child}",
             type: "meta",
-            text: "<meta-${core.actors.child} />",
           },
         ])
       })
@@ -127,7 +123,6 @@ describe("meta", () => {
           {
             tag: "meta-${core.actors.child}",
             type: "meta",
-            text: "<meta-${core.actors.child}>",
           },
         ])
       })
@@ -163,12 +158,10 @@ describe("meta", () => {
           {
             tag: "div",
             type: "el",
-            text: "<div>",
             child: [
               {
                 tag: "meta-${core.tag}",
                 type: "meta",
-                text: "<meta-${core.tag} />",
               },
             ],
           },
@@ -211,12 +204,10 @@ describe("meta", () => {
           {
             tag: "meta-hash",
             type: "meta",
-            text: "<meta-hash>",
             child: [
               {
                 tag: "meta-${core.tag}",
                 type: "meta",
-                text: "<meta-${core.tag} />",
               },
             ],
           },
@@ -266,7 +257,6 @@ describe("meta", () => {
               {
                 tag: "meta-${item.tag}",
                 type: "meta",
-                text: "<meta-${item.tag} />",
               },
             ],
           },
@@ -317,12 +307,10 @@ describe("meta", () => {
               {
                 tag: "meta-${core.tag}",
                 type: "meta",
-                text: "<meta-${core.tag} />",
               },
               {
                 tag: "meta-${core.tag}",
                 type: "meta",
-                text: "<meta-${core.tag} />",
               },
             ],
           },
@@ -338,20 +326,22 @@ describe("meta", () => {
             type: "cond",
             data: "/core/items/length",
             expr: "${[0] > 0}",
-            true: {
-              tag: {
-                data: "/core/tag",
-                expr: "meta-${[0]}",
+            child: [
+              {
+                tag: {
+                  data: "/core/tag",
+                  expr: "meta-${[0]}",
+                },
+                type: "meta",
               },
-              type: "meta",
-            },
-            false: {
-              tag: {
-                data: "/core/tag",
-                expr: "meta-${[0]}",
+              {
+                tag: {
+                  data: "/core/tag",
+                  expr: "meta-${[0]}",
+                },
+                type: "meta",
               },
-              type: "meta",
-            },
+            ],
           },
         ])
       })
@@ -375,7 +365,7 @@ describe("meta", () => {
           {
             tag: "meta-hash",
             type: "meta",
-            text: '<meta-hash data-type="component" class="meta-element" />',
+            text: 'data-type="component" class="meta-element"',
           },
         ])
       })
@@ -435,7 +425,7 @@ describe("meta", () => {
           {
             tag: "meta-${core.tag}",
             type: "meta",
-            text: '<meta-${core.tag} data-id="${core.id}" class="meta-${core.type}" />',
+            text: 'data-id="${core.id}" class="meta-${core.type}"',
           },
         ])
       })
@@ -482,7 +472,7 @@ describe("meta", () => {
           {
             tag: "meta-${core.tag}",
             type: "meta",
-            text: '<meta-${core.tag} ${core.active && "data-active"} class="${core.active ? "active" : "inactive"}" />',
+            text: '${core.active && "data-active"} class="${core.active ? "active" : "inactive"}"',
           },
         ])
       })
@@ -533,7 +523,7 @@ describe("meta", () => {
           {
             tag: "meta-${core.tag}",
             type: "meta",
-            text: "<meta-${core.tag} onclick=${() => core.handleClick(core.id)} onchange=${(e) => core.handleChange(e, core.value)} />",
+            text: "onclick=${() => core.handleClick(core.id)} onchange=${(e) => core.handleChange(e, core.value)}",
           },
         ])
       })
@@ -580,7 +570,7 @@ describe("meta", () => {
           {
             tag: "meta-${core.tag}",
             type: "meta",
-            text: "<meta-${core.tag} onclick=${() => update({ selected: core.id })} />",
+            text: "onclick=${() => update({ selected: core.id })}",
           },
         ])
       })
@@ -652,7 +642,7 @@ describe("meta", () => {
               {
                 tag: "meta-${item.tag}",
                 type: "meta",
-                text: '<meta-${item.tag} data-id="${item.id}" ${item.active && "data-active"} class="meta-${item.active ? "active" : "inactive"}" onclick=${() => item.handleClick(item.id)} />',
+                text: 'data-id="${item.id}" ${item.active && "data-active"} class="meta-${item.active ? "active" : "inactive"}" onclick=${() => item.handleClick(item.id)}',
               },
             ],
           },

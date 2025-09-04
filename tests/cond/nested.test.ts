@@ -22,7 +22,7 @@ describe("вложенные условия", () => {
             {
               tag: "div",
               type: "el",
-              text: '<div class="flag1">',
+              text: 'class="flag1"',
             },
             {
               type: "cond",
@@ -31,12 +31,12 @@ describe("вложенные условия", () => {
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="flag2">',
+                  text: 'class="flag2"',
                 },
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="flag3">',
+                  text: 'class="flag3"',
                 },
               ],
             },
@@ -70,7 +70,6 @@ describe("вложенные условия", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "cond",
@@ -83,12 +82,11 @@ describe("вложенные условия", () => {
                     {
                       tag: "div",
                       type: "el",
-                      text: "<div>",
                       child: [
                         {
                           tag: "button",
                           type: "el",
-                          text: '<button class="admin">',
+                          text: 'class="admin"',
                           child: [{ type: "text", text: "Admin Action" }],
                         },
                       ],
@@ -96,12 +94,11 @@ describe("вложенные условия", () => {
                     {
                       tag: "div",
                       type: "el",
-                      text: "<div>",
                       child: [
                         {
                           tag: "button",
                           type: "el",
-                          text: '<button class="user">',
+                          text: 'class="user"',
                           child: [{ type: "text", text: "User Action" }],
                         },
                       ],
@@ -111,7 +108,7 @@ describe("вложенные условия", () => {
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="no-access">',
+                  text: 'class="no-access"',
                   child: [{ type: "text", text: "Access Denied" }],
                 },
               ],
@@ -142,7 +139,6 @@ describe("вложенные условия", () => {
         {
           tag: "div",
           type: "el",
-          text: "<div>",
           child: [
             {
               type: "cond",
@@ -159,7 +155,7 @@ describe("вложенные условия", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="super-admin">',
+                          text: 'class="super-admin"',
                           child: [
                             {
                               type: "text",
@@ -170,7 +166,7 @@ describe("вложенные условия", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="admin">',
+                          text: 'class="admin"',
                           child: [
                             {
                               type: "text",
@@ -183,7 +179,7 @@ describe("вложенные условия", () => {
                     {
                       tag: "div",
                       type: "el",
-                      text: '<div class="user">',
+                      text: 'class="user"',
                       child: [
                         {
                           type: "text",
@@ -196,7 +192,7 @@ describe("вложенные условия", () => {
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="no-access">',
+                  text: 'class="no-access"',
                   child: [
                     {
                       type: "text",

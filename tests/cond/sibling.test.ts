@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
+import { extractMainHtmlBlock, extractHtmlElements, type PartsHierarchy } from "../../parser"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 import type { Node } from "../../index.t"
 import type { PartAttrs } from "../../attributes.t"
-import type { PartsHierarchy } from "../../hierarchy.t"
 
 describe("условия соседствующие", () => {
   describe("условие соседствующее с условием на верхнем уровне", () => {
@@ -39,7 +38,7 @@ describe("условия соседствующие", () => {
             {
               tag: "div",
               type: "el",
-              text: '<div class="conditional1">',
+              text: 'class="conditional1"',
               child: [
                 {
                   type: "text",
@@ -50,7 +49,7 @@ describe("условия соседствующие", () => {
             {
               tag: "div",
               type: "el",
-              text: '<div class="fallback1">',
+              text: 'class="fallback1"',
               child: [
                 {
                   type: "text",
@@ -67,7 +66,7 @@ describe("условия соседствующие", () => {
             {
               tag: "div",
               type: "el",
-              text: '<div class="conditional2">',
+              text: 'class="conditional2"',
               child: [
                 {
                   type: "text",
@@ -78,7 +77,7 @@ describe("условия соседствующие", () => {
             {
               tag: "div",
               type: "el",
-              text: '<div class="fallback2">',
+              text: 'class="fallback2"',
               child: [
                 {
                   type: "text",
@@ -98,62 +97,66 @@ describe("условия соседствующие", () => {
         {
           type: "cond",
           text: "context.flag1",
-          true: {
-            tag: "div",
-            type: "el",
-            string: {
-              class: { type: "static", value: "conditional1" },
-            },
-            child: [
-              {
-                type: "text",
-                text: "Content 1",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              string: {
+                class: { type: "static", value: "conditional1" },
               },
-            ],
-          },
-          false: {
-            tag: "div",
-            type: "el",
-            string: {
-              class: { type: "static", value: "fallback1" },
+              child: [
+                {
+                  type: "text",
+                  text: "Content 1",
+                },
+              ],
             },
-            child: [
-              {
-                type: "text",
-                text: "No content 1",
+            {
+              tag: "div",
+              type: "el",
+              string: {
+                class: { type: "static", value: "fallback1" },
               },
-            ],
-          },
+              child: [
+                {
+                  type: "text",
+                  text: "No content 1",
+                },
+              ],
+            },
+          ],
         },
         {
           type: "cond",
           text: "context.flag2",
-          true: {
-            tag: "div",
-            type: "el",
-            string: {
-              class: { type: "static", value: "conditional2" },
-            },
-            child: [
-              {
-                type: "text",
-                text: "Content 2",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              string: {
+                class: { type: "static", value: "conditional2" },
               },
-            ],
-          },
-          false: {
-            tag: "div",
-            type: "el",
-            string: {
-              class: { type: "static", value: "fallback2" },
+              child: [
+                {
+                  type: "text",
+                  text: "Content 2",
+                },
+              ],
             },
-            child: [
-              {
-                type: "text",
-                text: "No content 2",
+            {
+              tag: "div",
+              type: "el",
+              string: {
+                class: { type: "static", value: "fallback2" },
               },
-            ],
-          },
+              child: [
+                {
+                  type: "text",
+                  text: "No content 2",
+                },
+              ],
+            },
+          ],
         },
       ])
     })
@@ -165,62 +168,66 @@ describe("условия соседствующие", () => {
         {
           type: "cond",
           data: "/context/flag1",
-          true: {
-            tag: "div",
-            type: "el",
-            string: {
-              class: "conditional1",
-            },
-            child: [
-              {
-                type: "text",
-                value: "Content 1",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              string: {
+                class: "conditional1",
               },
-            ],
-          },
-          false: {
-            tag: "div",
-            type: "el",
-            string: {
-              class: "fallback1",
+              child: [
+                {
+                  type: "text",
+                  value: "Content 1",
+                },
+              ],
             },
-            child: [
-              {
-                type: "text",
-                value: "No content 1",
+            {
+              tag: "div",
+              type: "el",
+              string: {
+                class: "fallback1",
               },
-            ],
-          },
+              child: [
+                {
+                  type: "text",
+                  value: "No content 1",
+                },
+              ],
+            },
+          ],
         },
         {
           type: "cond",
           data: "/context/flag2",
-          true: {
-            tag: "div",
-            type: "el",
-            string: {
-              class: "conditional2",
-            },
-            child: [
-              {
-                type: "text",
-                value: "Content 2",
+          child: [
+            {
+              tag: "div",
+              type: "el",
+              string: {
+                class: "conditional2",
               },
-            ],
-          },
-          false: {
-            tag: "div",
-            type: "el",
-            string: {
-              class: "fallback2",
+              child: [
+                {
+                  type: "text",
+                  value: "Content 2",
+                },
+              ],
             },
-            child: [
-              {
-                type: "text",
-                value: "No content 2",
+            {
+              tag: "div",
+              type: "el",
+              string: {
+                class: "fallback2",
               },
-            ],
-          },
+              child: [
+                {
+                  type: "text",
+                  value: "No content 2",
+                },
+              ],
+            },
+          ],
         },
       ])
     })
@@ -252,7 +259,7 @@ describe("условия соседствующие", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div class="container">',
+          text: 'class="container"',
           child: [
             {
               type: "cond",
@@ -261,7 +268,7 @@ describe("условия соседствующие", () => {
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="conditional1">',
+                  text: 'class="conditional1"',
                   child: [
                     {
                       type: "text",
@@ -272,7 +279,7 @@ describe("условия соседствующие", () => {
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="fallback1">',
+                  text: 'class="fallback1"',
                   child: [
                     {
                       type: "text",
@@ -289,7 +296,7 @@ describe("условия соседствующие", () => {
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="conditional2">',
+                  text: 'class="conditional2"',
                   child: [
                     {
                       type: "text",
@@ -300,7 +307,7 @@ describe("условия соседствующие", () => {
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="fallback2">',
+                  text: 'class="fallback2"',
                   child: [
                     {
                       type: "text",
@@ -329,62 +336,66 @@ describe("условия соседствующие", () => {
             {
               type: "cond",
               text: "context.flag1",
-              true: {
-                tag: "div",
-                type: "el",
-                string: {
-                  class: { type: "static", value: "conditional1" },
-                },
-                child: [
-                  {
-                    type: "text",
-                    text: "Content 1",
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: { type: "static", value: "conditional1" },
                   },
-                ],
-              },
-              false: {
-                tag: "div",
-                type: "el",
-                string: {
-                  class: { type: "static", value: "fallback1" },
+                  child: [
+                    {
+                      type: "text",
+                      text: "Content 1",
+                    },
+                  ],
                 },
-                child: [
-                  {
-                    type: "text",
-                    text: "No content 1",
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: { type: "static", value: "fallback1" },
                   },
-                ],
-              },
+                  child: [
+                    {
+                      type: "text",
+                      text: "No content 1",
+                    },
+                  ],
+                },
+              ],
             },
             {
               type: "cond",
               text: "context.flag2",
-              true: {
-                tag: "div",
-                type: "el",
-                string: {
-                  class: { type: "static", value: "conditional2" },
-                },
-                child: [
-                  {
-                    type: "text",
-                    text: "Content 2",
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: { type: "static", value: "conditional2" },
                   },
-                ],
-              },
-              false: {
-                tag: "div",
-                type: "el",
-                string: {
-                  class: { type: "static", value: "fallback2" },
+                  child: [
+                    {
+                      type: "text",
+                      text: "Content 2",
+                    },
+                  ],
                 },
-                child: [
-                  {
-                    type: "text",
-                    text: "No content 2",
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: { type: "static", value: "fallback2" },
                   },
-                ],
-              },
+                  child: [
+                    {
+                      type: "text",
+                      text: "No content 2",
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
@@ -405,62 +416,66 @@ describe("условия соседствующие", () => {
             {
               type: "cond",
               data: "/context/flag1",
-              true: {
-                tag: "div",
-                type: "el",
-                string: {
-                  class: "conditional1",
-                },
-                child: [
-                  {
-                    type: "text",
-                    value: "Content 1",
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: "conditional1",
                   },
-                ],
-              },
-              false: {
-                tag: "div",
-                type: "el",
-                string: {
-                  class: "fallback1",
+                  child: [
+                    {
+                      type: "text",
+                      value: "Content 1",
+                    },
+                  ],
                 },
-                child: [
-                  {
-                    type: "text",
-                    value: "No content 1",
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: "fallback1",
                   },
-                ],
-              },
+                  child: [
+                    {
+                      type: "text",
+                      value: "No content 1",
+                    },
+                  ],
+                },
+              ],
             },
             {
               type: "cond",
               data: "/context/flag2",
-              true: {
-                tag: "div",
-                type: "el",
-                string: {
-                  class: "conditional2",
-                },
-                child: [
-                  {
-                    type: "text",
-                    value: "Content 2",
+              child: [
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: "conditional2",
                   },
-                ],
-              },
-              false: {
-                tag: "div",
-                type: "el",
-                string: {
-                  class: "fallback2",
+                  child: [
+                    {
+                      type: "text",
+                      value: "Content 2",
+                    },
+                  ],
                 },
-                child: [
-                  {
-                    type: "text",
-                    value: "No content 2",
+                {
+                  tag: "div",
+                  type: "el",
+                  string: {
+                    class: "fallback2",
                   },
-                ],
-              },
+                  child: [
+                    {
+                      type: "text",
+                      value: "No content 2",
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },
@@ -502,17 +517,17 @@ describe("условия соседствующие", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div class="level1">',
+          text: 'class="level1"',
           child: [
             {
               tag: "div",
               type: "el",
-              text: '<div class="level2">',
+              text: 'class="level2"',
               child: [
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="level3">',
+                  text: 'class="level3"',
                   child: [
                     {
                       type: "cond",
@@ -521,7 +536,7 @@ describe("условия соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="conditional1">',
+                          text: 'class="conditional1"',
                           child: [
                             {
                               type: "text",
@@ -532,7 +547,7 @@ describe("условия соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="fallback1">',
+                          text: 'class="fallback1"',
                           child: [
                             {
                               type: "text",
@@ -549,7 +564,7 @@ describe("условия соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="conditional2">',
+                          text: 'class="conditional2"',
                           child: [
                             {
                               type: "text",
@@ -560,7 +575,7 @@ describe("условия соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="fallback2">',
+                          text: 'class="fallback2"',
                           child: [
                             {
                               type: "text",
@@ -577,7 +592,7 @@ describe("условия соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="conditional3">',
+                          text: 'class="conditional3"',
                           child: [
                             {
                               type: "text",
@@ -588,7 +603,7 @@ describe("условия соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="fallback3">',
+                          text: 'class="fallback3"',
                           child: [
                             {
                               type: "text",

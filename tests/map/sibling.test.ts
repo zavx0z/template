@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
+import { extractMainHtmlBlock, extractHtmlElements, type PartsHierarchy } from "../../parser"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
-import type { PartsHierarchy } from "../../hierarchy.t"
 import type { PartAttrs } from "../../attributes.t"
 import type { Node } from "../../index.t"
 
@@ -33,7 +32,6 @@ describe("map соседствующие", () => {
             {
               tag: "div",
               type: "el",
-              text: "<div>",
               child: [
                 {
                   type: "text",
@@ -50,7 +48,6 @@ describe("map соседствующие", () => {
             {
               tag: "div",
               type: "el",
-              text: "<div>",
               child: [
                 {
                   type: "text",
@@ -176,7 +173,7 @@ describe("map соседствующие", () => {
         {
           tag: "div",
           type: "el",
-          text: '<div class="dashboard">',
+          text: 'class="dashboard"',
           child: [
             {
               type: "map",
@@ -185,7 +182,7 @@ describe("map соседствующие", () => {
                 {
                   tag: "span",
                   type: "el",
-                  text: '<span class="category">',
+                  text: 'class="category"',
                   child: [
                     {
                       type: "text",
@@ -202,12 +199,11 @@ describe("map соседствующие", () => {
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="item" data-category="${item.categoryId}">',
+                  text: 'class="item" data-category="${item.categoryId}"',
                   child: [
                     {
                       tag: "h4",
                       type: "el",
-                      text: "<h4>",
                       child: [
                         {
                           type: "text",
@@ -372,24 +368,23 @@ describe("map соседствующие", () => {
         `
       )
       elements = extractHtmlElements(mainHtml)
-      console.log(elements)
     })
     it("hierarchy", () => {
       expect(elements).toEqual([
         {
           tag: "div",
           type: "el",
-          text: '<div class="level1">',
+          text: 'class="level1"',
           child: [
             {
               tag: "div",
               type: "el",
-              text: '<div class="level2">',
+              text: 'class="level2"',
               child: [
                 {
                   tag: "div",
                   type: "el",
-                  text: '<div class="level3">',
+                  text: 'class="level3"',
                   child: [
                     {
                       type: "map",
@@ -398,7 +393,7 @@ describe("map соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="item1">',
+                          text: 'class="item1"',
                           child: [
                             {
                               type: "text",
@@ -415,7 +410,7 @@ describe("map соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="item2">',
+                          text: 'class="item2"',
                           child: [
                             {
                               type: "text",
@@ -432,7 +427,7 @@ describe("map соседствующие", () => {
                         {
                           tag: "div",
                           type: "el",
-                          text: '<div class="item3">',
+                          text: 'class="item3"',
                           child: [
                             {
                               type: "text",

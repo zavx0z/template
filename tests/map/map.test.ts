@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractMainHtmlBlock, extractHtmlElements } from "../../parser"
+import { extractMainHtmlBlock, extractHtmlElements, type PartsHierarchy } from "../../parser"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 import type { Node } from "../../index.t"
 import type { PartAttrs } from "../../attributes.t"
-import type { PartsHierarchy } from "../../hierarchy.t"
 
 describe("map", () => {
   describe("простой map", () => {
@@ -28,7 +27,6 @@ describe("map", () => {
         {
           tag: "ul",
           type: "el",
-          text: "<ul>",
           child: [
             {
               type: "map",
@@ -37,7 +35,6 @@ describe("map", () => {
                 {
                   tag: "li",
                   type: "el",
-                  text: "<li>",
                   child: [
                     {
                       type: "text",
@@ -108,7 +105,6 @@ describe("map", () => {
         {
           tag: "ul",
           type: "el",
-          text: "<ul>",
           child: [
             {
               type: "map",
@@ -117,7 +113,6 @@ describe("map", () => {
                 {
                   tag: "li",
                   type: "el",
-                  text: "<li>",
                   child: [
                     {
                       type: "text",
@@ -128,7 +123,6 @@ describe("map", () => {
                 {
                   tag: "br",
                   type: "el",
-                  text: "<br />",
                 },
               ],
             },
@@ -197,7 +191,6 @@ describe("map", () => {
           {
             tag: "ul",
             type: "el",
-            text: "<ul>",
             child: [
               {
                 type: "map",
@@ -206,12 +199,10 @@ describe("map", () => {
                   {
                     tag: "li",
                     type: "el",
-                    text: "<li>",
                     child: [
                       {
                         tag: "p",
                         type: "el",
-                        text: "<p>",
                         child: [
                           {
                             type: "text",
@@ -226,7 +217,6 @@ describe("map", () => {
                           {
                             tag: "em",
                             type: "el",
-                            text: "<em>",
                             child: [
                               {
                                 type: "text",
@@ -315,7 +305,6 @@ describe("map", () => {
           {
             tag: "ul",
             type: "el",
-            text: "<ul>",
             child: [
               {
                 type: "map",
@@ -324,7 +313,6 @@ describe("map", () => {
                   {
                     tag: "li",
                     type: "el",
-                    text: "<li>",
                     child: [
                       {
                         type: "cond",
@@ -333,7 +321,6 @@ describe("map", () => {
                           {
                             tag: "em",
                             type: "el",
-                            text: "<em>",
                             child: [
                               {
                                 type: "text",
@@ -344,7 +331,6 @@ describe("map", () => {
                           {
                             tag: "strong",
                             type: "el",
-                            text: "<strong>",
                             child: [
                               {
                                 type: "text",
@@ -383,26 +369,28 @@ describe("map", () => {
                         type: "cond",
                         data: "[index]",
                         expr: "${[0] % 2}",
-                        true: {
-                          tag: "em",
-                          type: "el",
-                          child: [
-                            {
-                              type: "text",
-                              value: "A",
-                            },
-                          ],
-                        },
-                        false: {
-                          tag: "strong",
-                          type: "el",
-                          child: [
-                            {
-                              type: "text",
-                              value: "B",
-                            },
-                          ],
-                        },
+                        child: [
+                          {
+                            tag: "em",
+                            type: "el",
+                            child: [
+                              {
+                                type: "text",
+                                value: "A",
+                              },
+                            ],
+                          },
+                          {
+                            tag: "strong",
+                            type: "el",
+                            child: [
+                              {
+                                type: "text",
+                                value: "B",
+                              },
+                            ],
+                          },
+                        ],
                       },
                     ],
                   },
@@ -441,7 +429,6 @@ describe("map", () => {
               {
                 tag: "ul",
                 type: "el",
-                text: "<ul>",
                 child: [
                   {
                     type: "map",
@@ -450,7 +437,6 @@ describe("map", () => {
                       {
                         tag: "li",
                         type: "el",
-                        text: "<li>",
                         child: [
                           {
                             type: "text",
@@ -463,7 +449,6 @@ describe("map", () => {
                               {
                                 tag: "em",
                                 type: "el",
-                                text: "<em>",
                                 child: [
                                   {
                                     type: "text",
@@ -482,7 +467,6 @@ describe("map", () => {
               {
                 tag: "div",
                 type: "el",
-                text: "<div>",
                 child: [
                   {
                     type: "text",
@@ -502,54 +486,56 @@ describe("map", () => {
           {
             type: "cond",
             data: "/context/flag",
-            true: {
-              tag: "ul",
-              type: "el",
-              child: [
-                {
-                  type: "map",
-                  data: "/core/list",
-                  child: [
-                    {
-                      tag: "li",
-                      type: "el",
-                      child: [
-                        {
-                          type: "text",
-                          data: "[item]/title",
-                        },
-                        {
-                          type: "map",
-                          data: "[item]/nested",
-                          child: [
-                            {
-                              tag: "em",
-                              type: "el",
-                              child: [
-                                {
-                                  type: "text",
-                                  data: "[item]",
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-            false: {
-              tag: "div",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  value: "x",
-                },
-              ],
-            },
+            child: [
+              {
+                tag: "ul",
+                type: "el",
+                child: [
+                  {
+                    type: "map",
+                    data: "/core/list",
+                    child: [
+                      {
+                        tag: "li",
+                        type: "el",
+                        child: [
+                          {
+                            type: "text",
+                            data: "[item]/title",
+                          },
+                          {
+                            type: "map",
+                            data: "[item]/nested",
+                            child: [
+                              {
+                                tag: "em",
+                                type: "el",
+                                child: [
+                                  {
+                                    type: "text",
+                                    data: "[item]",
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                tag: "div",
+                type: "el",
+                child: [
+                  {
+                    type: "text",
+                    value: "x",
+                  },
+                ],
+              },
+            ],
           },
         ])
       })
@@ -574,7 +560,6 @@ describe("map", () => {
         {
           tag: "ul",
           type: "el",
-          text: "<ul>",
           child: [
             {
               type: "map",
@@ -583,7 +568,6 @@ describe("map", () => {
                 {
                   tag: "li",
                   type: "el",
-                  text: "<li>",
                   child: [
                     {
                       type: "text",
@@ -596,7 +580,6 @@ describe("map", () => {
                         {
                           tag: "em",
                           type: "el",
-                          text: "<em>",
                           child: [
                             {
                               type: "text",

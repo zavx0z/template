@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../parser"
 import { enrichWithData } from "../data"
 import { extractAttributes } from "../attributes"
 import type { Node } from "../index.t"
-import type { PartsHierarchy } from "../hierarchy.t"
 import type { PartAttrs } from "../attributes.t"
 
 describe("update", () => {
@@ -23,7 +22,7 @@ describe("update", () => {
         {
           tag: "button",
           type: "el",
-          text: '<button onclick=${() => update({ name: "Jane Doe" })}>',
+          text: 'onclick=${() => update({ name: "Jane Doe" })}',
           child: [
             {
               type: "text",
@@ -76,7 +75,7 @@ describe("update", () => {
         {
           tag: "button",
           type: "el",
-          text: '<button onclick=${() => update({ name: "John", age: 25, active: true })}>',
+          text: 'onclick=${() => update({ name: "John", age: 25, active: true })}',
           child: [
             {
               type: "text",
@@ -128,7 +127,7 @@ describe("update", () => {
         {
           tag: "button",
           type: "el",
-          text: "<button onclick=${() => update({ count: context.count + 1 })}>",
+          text: 'onclick=${() => update({ count: context.count + 1 })}',
           child: [
             {
               type: "text",
@@ -187,7 +186,7 @@ describe("update", () => {
         {
           tag: "button",
           type: "el",
-          text: "<button onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}>",
+          text: 'onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}',
           child: [
             {
               type: "text",
@@ -274,7 +273,7 @@ describe("update", () => {
             {
               tag: "button",
               type: "el",
-              text: "<button onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}>",
+              text: 'onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}',
               child: [
                 {
                   type: "text",

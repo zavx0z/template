@@ -1,10 +1,9 @@
-import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
+import { extractHtmlElements, extractMainHtmlBlock, type PartsHierarchy } from "../../parser"
 import { describe, it, expect, beforeAll } from "bun:test"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"
 import type { PartAttrs } from "../../attributes.t"
 import type { Node } from "../../index.t"
-import type { PartsHierarchy } from "../../hierarchy.t"
 
 describe("core/context в атрибутах", () => {
   describe("core с динамическими значениями", () => {
