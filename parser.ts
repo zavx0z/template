@@ -1,33 +1,41 @@
 import type { Context, Core, State, RenderParams } from "./index.t"
-import type { PartCondition, PartElement, PartHierarchy, PartMap, PartMeta, PartsHierarchy } from "./hierarchy.t"
 import { findMapOpen, findMapClose } from "./map"
 import { findCondElse, findCondClose, findAllConditions } from "./cond"
 import { findText, formatAttributeText } from "./text"
 import type { TokenCondOpen, TokenCondElse, TokenCondClose } from "./cond.t"
 import type { TokenMapOpen, TokenMapClose } from "./map.t"
 import type { TokenText } from "./text.t"
+import { VOID_TAGS } from "./element"
 type StreamToken = TokenText | TokenCondOpen | TokenCondElse | TokenCondClose | TokenMapOpen | TokenMapClose
+export type PartHierarchy = PartElement | PartMeta | PartText | PartCondition | PartMap
+export type PartsHierarchy = PartHierarchy[]
 
-// ============================================================================
-// HTML EXTRACTION
-// ============================================================================
-
-const VOID_TAGS = new Set([
-  "area",
-  "base",
-  "br",
-  "col",
-  "embed",
-  "hr",
-  "img",
-  "input",
-  "link",
-  "meta",
-  "param",
-  "source",
-  "track",
-  "wbr",
-])
+interface BaseElement {
+  tag: string
+  type: "el" | "meta"
+  text: string
+  child?: PartsHierarchy
+}
+export interface PartElement extends BaseElement {
+  type: "el"
+}
+export interface PartMeta extends BaseElement {
+  type: "meta"
+}
+export type PartText = {
+  type: "text"
+  text: string
+}
+export type PartMap = {
+  type: "map"
+  text: string
+  child: PartsHierarchy
+}
+export type PartCondition = {
+  type: "cond"
+  text: string
+  child: PartsHierarchy
+}
 
 // Быстрый lookahead на теги (включая meta-${...})
 const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>|<\/?meta-[^>]*>|<\/?meta-\$\{[^}]*\}[^>]*>)/gi

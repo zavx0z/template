@@ -209,8 +209,10 @@ describe("data-parser", () => {
         {
           type: "cond",
           text: "context.flag",
-          true: { type: "el", tag: "div", child: [] },
-          false: { type: "el", tag: "span", child: [] },
+          child: [
+            { type: "el", tag: "div", child: [] },
+            { type: "el", tag: "span", child: [] },
+          ],
         },
       ])
       expect(enriched[0]?.type).toBe("cond")

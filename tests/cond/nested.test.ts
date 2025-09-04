@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { extractHtmlElements, extractMainHtmlBlock } from "../../splitter"
+import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
 
 describe("вложенные условия", () => {
   describe("if else if", () => {

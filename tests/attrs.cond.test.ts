@@ -3,7 +3,7 @@ import type { PartAttrs } from "../attributes.t"
 import { enrichWithData } from "../data"
 import type { PartsHierarchy } from "../hierarchy.t"
 import type { Node } from "../index.t"
-import { extractHtmlElements, extractMainHtmlBlock } from "../splitter"
+import { extractHtmlElements, extractMainHtmlBlock } from "../parser"
 import { describe, it, expect, beforeAll } from "bun:test"
 
 describe("условные выражения в атрибутах", () => {

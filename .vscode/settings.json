@@ -12,11 +12,13 @@
         ".venv": true,
         ".cursor/rules": true,
         ".cursor": true,
-        ".vscode": true
+        ".vscode": true,
+        ".idea": true
     },
     "hide-files.files": [
         ".cursor/rules",
         ".cursor",
-        ".vscode"
+        ".vscode",
+        ".idea"
     ]
 }

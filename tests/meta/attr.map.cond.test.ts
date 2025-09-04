@@ -1,4 +1,4 @@
-import { extractHtmlElements, extractMainHtmlBlock } from "../../splitter"
+import { extractHtmlElements, extractMainHtmlBlock } from "../../parser"
 import { describe, it, expect, beforeAll } from "bun:test"
 import { enrichWithData } from "../../data"
 import { extractAttributes } from "../../attributes"

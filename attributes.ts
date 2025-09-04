@@ -4,14 +4,11 @@ import type {
   AttributeArray,
   AttributeString,
   AttributeBoolean,
-  AttributeStyle,
-  AttributeCore,
-  AttributeContext,
   PartAttrs,
   PartAttrElement,
   PartAttrMeta,
 } from "./attributes.t"
-import type { PartsHierarchy } from "./hierarchy.t"
+import type { PartsHierarchy } from "./parser"
 
 // ============================================================================
 // ATTRIBUTE PARSING
@@ -1066,8 +1063,7 @@ export const extractAttributes = (hierarchy: PartsHierarchy): PartAttrs => {
     if (node.type === "cond") {
       return {
         ...node,
-        true: extractAttributes([node.true])[0],
-        false: extractAttributes([node.false])[0],
+        child: [extractAttributes([node.child[0]!])[0], extractAttributes([node.child[1]!])[0]],
       }
     }
 

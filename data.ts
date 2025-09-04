@@ -7,11 +7,9 @@ import type {
   NodeMeta,
   Node,
   AttrVariable,
-  AttrDynamic,
   StyleObject,
 } from "./index.t"
-import type { PartText } from "./hierarchy.t"
-import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs } from "./attributes.t"
+import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs, PartText } from "./attributes.t"
 
 // ============================================================================
 // REGEX PATTERNS
@@ -827,53 +825,6 @@ const processBooleanAttributes = (
       } else {
         result[key] = false
       }
-    }
-  }
-
-  return result
-}
-
-/**
- * Обрабатывает object атрибуты и создает соответствующие объекты.
- */
-const processObjectAttributes = (objectAttrs: Record<string, any>, context: ParseContext): Record<string, any> => {
-  const result: Record<string, any> = {}
-
-  for (const [key, objectValue] of Object.entries(objectAttrs)) {
-    // Для object атрибутов (стили, context, core) парсим строку и создаем объект
-    const objectValueStr = String(objectValue)
-
-    // Парсим строку объекта вида "{ backgroundColor: company.theme }"
-    const objectMatch = objectValueStr.match(/\{\s*([^}]+)\s*\}/)
-    if (objectMatch && objectMatch[1]) {
-      const objectContent = objectMatch[1]
-      const objectResult: Record<string, string> = {}
-
-      // Парсим свойства объекта
-      const propertyMatches = objectContent.match(/([a-zA-Z-]+)\s*:\s*([^,}]+)/g) || []
-      propertyMatches.forEach((propertyMatch) => {
-        const match = propertyMatch.match(/([a-zA-Z-]+)\s*:\s*(.+)/)
-        if (match && match[1] && match[2]) {
-          const propertyName = match[1]
-          const propertyValue = match[2]
-          const trimmedValue = propertyValue.trim()
-
-          // Проверяем, является ли значение переменной
-          const variableMatch = trimmedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/)
-          if (variableMatch && variableMatch[1]) {
-            const variable = variableMatch[1]
-            const dataPath = resolveDataPath(variable, context)
-            objectResult[propertyName] = dataPath
-          } else {
-            // Статическое значение
-            objectResult[propertyName] = trimmedValue
-          }
-        }
-      })
-
-      result[key] = objectResult
-    } else {
-      result[key] = { [key]: objectValueStr }
     }
   }
 
@@ -1716,8 +1667,7 @@ export const createNodeDataCondition = (
         : processedData || ""
       : processedData || [],
     ...(needsExpression && condData.metadata?.expression ? { expr: condData.metadata.expression } : {}),
-    true: createNodeDataElement(node.true, context),
-    false: createNodeDataElement(node.false, context),
+    child: [createNodeDataElement(node.child[0]!, context), createNodeDataElement(node.child[1]!, context)],
   }
 }
 

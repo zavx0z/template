@@ -1,5 +1,3 @@
-import type { PartText } from "./hierarchy.t"
-
 export type Attribute = "boolean" | "array" | "event" | "string"
 
 export type AttributeValue = {
@@ -23,6 +21,13 @@ export type AttributeStyle = Record<string, string>
 export type AttributeCore = Record<string, string | { data: string | string[]; expr: string }>
 
 export type AttributeContext = Record<string, string | { data: string | string[]; expr: string }>
+
+export type PartText = {
+  /** Тип узла */
+  type: "text"
+  /** Исходный текст */
+  text: string
+}
 
 export type PartAttrElement = {
   /** Имя HTML тега */
@@ -71,10 +76,11 @@ export type PartAttrCondition = {
   type: "cond"
   /** Исходный текст условия */
   text: string
-  /** Элемент, рендерящийся когда условие истинно */
-  true: PartAttrElement | PartAttrMeta | PartAttrCondition
-  /** Элемент, рендерящийся когда условие ложно */
-  false: PartAttrElement | PartAttrMeta | PartAttrCondition
+  /** Элементы, условия
+   * - true: первый элемент массива
+   * - false: второй элемент массива
+   */
+  child: (PartAttrElement | PartAttrMeta | PartAttrCondition)[]
 }
 export type PartAttrMap = {
   /** Тип узла */
