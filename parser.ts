@@ -14,15 +14,7 @@ import { findMapOpen, findMapClose } from "./map"
 import { findCondElse, findCondClose, findAllConditions } from "./cond"
 import { findText, formatAttributeText } from "./text"
 import { VOID_TAGS } from "./element"
-import type {
-  StreamToken,
-  PartHierarchy,
-  PartElement,
-  PartMeta,
-  PartMap,
-  PartCondition,
-  PartsHierarchy,
-} from "./parser.t"
+import type {StreamToken} from "./parser.t"
 import {
   classifyValue,
   formatExpression,

@@ -1,11 +1,3 @@
-export type Attribute = "boolean" | "array" | "event" | "string"
-
-export type AttributeValue = {
-  name: string
-  type: Attribute
-  value: string
-}
-
 export type ValueType = "dynamic" | "static" | "mixed"
 
 export type AttributeEvent = Record<string, string>
@@ -15,12 +7,6 @@ export type AttributeArray = Record<string, { value: string; type: ValueType }[]
 export type AttributeString = Record<string, { type: ValueType; value: string }>
 
 export type AttributeBoolean = Record<string, { type: "dynamic" | "static"; value: boolean | string }>
-
-export type AttributeStyle = Record<string, string>
-
-export type AttributeCore = Record<string, string | { data: string | string[]; expr: string }>
-
-export type AttributeContext = Record<string, string | { data: string | string[]; expr: string }>
 
 export type PartText = {
   /** Тип узла */
@@ -88,6 +74,6 @@ export type PartAttrMap = {
   /** Исходный текст map-выражения */
   text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (PartAttrElement | PartText | PartAttrMap | PartAttrCondition | PartAttrMeta | PartAttrCondition)[]
+  child: (PartAttrElement | PartText | PartAttrMap | PartAttrMeta | PartAttrCondition)[]
 }
 export type PartAttrs = (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]

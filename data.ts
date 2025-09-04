@@ -1,15 +1,6 @@
-import type { ParseContext, ParseResult, ParseMapContext, ParseAttributeResult, ParseTextPart } from "./data.t"
-import type {
-  NodeText,
-  NodeMap,
-  NodeCondition,
-  NodeElement,
-  NodeMeta,
-  Node,
-  AttrVariable,
-  StyleObject,
-} from "./index.t"
-import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs, PartText } from "./attributes.t"
+import type {ParseAttributeResult, ParseContext, ParseMapContext, ParseResult, ParseTextPart} from "./data.t"
+import type {AttrVariable, Node, NodeCondition, NodeElement, NodeMap, NodeMeta, NodeText, StyleObject,} from "./index.t"
+import type {PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs, PartText} from "./attributes.t"
 
 // ============================================================================
 // REGEX PATTERNS
@@ -144,8 +135,7 @@ const processStyleAttributes = (str: string, ctx: ParseContext = { pathStack: []
         }
       } else {
         // Это статическое значение - убираем лишние кавычки
-        const staticValue = value.replace(/^"|"$/g, "").replace(/^'|'$/g, "")
-        styleObj[key] = staticValue
+        styleObj[key] = value.replace(/^"|"$/g, "").replace(/^'|'$/g, "")
       }
     }
   }
