@@ -15,6 +15,7 @@
     },
     "hide-files.files": [
         ".vscode",
-        ".idea"
+        ".idea",
+        ".cursor"
     ]
 }

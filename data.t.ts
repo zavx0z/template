@@ -42,13 +42,56 @@ export type ParseResult = {
 
 /**
  * Результат парсинга атрибута.
+ * Содержит информацию о динамических атрибутах, извлеченную из template literals.
+ *
+ * @example Простой динамический атрибут
+ * ```html
+ * <div class="${user.theme}">Элемент</div>
+ * ```
+ * Результат: { data: "user.theme" }
+ *
+ * @example Сложное выражение в атрибуте
+ * ```html
+ * <div class="${user.role === 'admin' ? 'admin-panel' : 'user-panel'}">
+ *   Панель
+ * </div>
+ * ```
+ * Результат: {
+ *   data: ["user.role"],
+ *   expr: "${[0]} === 'admin' ? 'admin-panel' : 'user-panel'"
+ * }
+ *
+ * @example Атрибут с обновлением состояния
+ * ```html
+ * <input value="${form.email}" onchange="updateForm('email', this.value)" />
+ * ```
+ * Результат: {
+ *   data: "form.email",
+ *   upd: "form.email"
+ * }
+ *
+ * @example Смешанный атрибут
+ * ```html
+ * <div class="container ${user.theme} ${isActive ? 'active' : ''}">
+ *   Элемент
+ * </div>
+ * ```
+ * Результат: {
+ *   data: ["user.theme", "isActive"],
+ *   expr: "container ${[0]} ${[1] ? 'active' : ''}"
+ * }
+ *
+ * Структура:
+ * - `data` - путь(и) к данным в контексте
+ * - `expr` - выражение с индексами для сложных вычислений
+ * - `upd` - ключи для обновления состояния приложения
  */
 export type ParseAttributeResult = {
-  /** Путь(и) к данным (необязательное) */
+  /** Путь(и) к данным (например: "user.name", ["user", "theme"]) */
   data?: string | string[]
-  /** Унифицированное выражение (необязательное) */
+  /** Унифицированное выражение с индексами (например: "${[0]} === 'admin' ? 'admin' : 'user'") */
   expr?: string
-  /** Ключи для обновления (необязательное) */
+  /** Ключи для обновления состояния (например: "form.email", ["user", "settings"]) */
   upd?: string | string[]
 }
 
