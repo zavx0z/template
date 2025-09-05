@@ -116,7 +116,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     data: ["/context/id", "/context/name"],
                     expr: "{ id: [0], name: [1] }",
                   },
-                  context: '{ type: "primary", active: true }',
+                  context: { data: '{ type: "primary", active: true }' },
                 },
                 {
                   tag: {
@@ -124,8 +124,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     expr: "meta-${[0]}",
                   },
                   type: "meta",
-                  core: '{ id: "default", name: "default" }',
-                  context: '{ type: "secondary", active: false }',
+                  core: { data: '{ id: "default", name: "default" }' },
+                  context: { data: '{ type: "secondary", active: false }' },
                 },
               ],
             },
@@ -206,8 +206,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     expr: "meta-${[0]}",
                   },
                   type: "meta",
-                  core: '{ id: "empty", name: "empty" }',
-                  context: '{ type: "empty", active: false }',
+                  core: { data: '{ id: "empty", name: "empty" }' },
+                  context: { data: '{ type: "empty", active: false }' },
                 },
               ],
             },
@@ -288,7 +288,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                             data: ["[item]/id", "[item]/name"],
                             expr: '{ id: [0], name: [1], type: "error" }',
                           },
-                          context: '{ status: "error", message: "Item has error" }',
+                          context: { data: '{ status: "error", message: "Item has error" }' },
                         },
                         {
                           tag: {
@@ -300,7 +300,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                             data: ["[item]/id", "[item]/name"],
                             expr: '{ id: [0], name: [1], type: "inactive" }',
                           },
-                          context: '{ status: "inactive" }',
+                          context: { data: '{ status: "inactive" }' },
                         },
                       ],
                     },

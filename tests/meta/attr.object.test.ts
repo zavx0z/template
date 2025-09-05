@@ -41,7 +41,7 @@ describe("core/context в атрибутах", () => {
             expr: "meta-${[0]}",
           },
           type: "meta",
-          core: '{ id: "1", name: "2" }',
+          core: { data: '{ id: "1", name: "2" }' },
         },
       ])
     })

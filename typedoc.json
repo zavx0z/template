@@ -21,19 +21,20 @@
         "API"
     ],
     "sort": [
+        "kind",
         "source-order"
     ],
     "kindSortOrder": [
         "Project",
         "Module",
         "Namespace",
+        "Function",
         "Enum",
         "Class",
         "Interface",
         "TypeAlias",
         "Constructor",
         "Variable",
-        "Function",
         "Accessor"
     ],
     "navigation": {

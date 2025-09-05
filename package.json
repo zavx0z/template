@@ -1,6 +1,6 @@
 {
   "name": "@zavx0z/html-parser",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "HTML template parser for MetaFor",
   "author": "zavx0z",
   "license": "MIT",
@@ -35,6 +35,10 @@
     "docs": "typedoc",
     "docs:serve": "typedoc --watch",
     "prepublishOnly": "bun run build",
-    "publish:npm": "bun publish --access public"
+    "publish:npm": "bun publish --access public",
+    "release": "bun run script/release.ts",
+    "release:major": "bun run script/release.ts major",
+    "release:minor": "bun run script/release.ts minor",
+    "release:patch": "bun run script/release.ts patch"
   }
 }

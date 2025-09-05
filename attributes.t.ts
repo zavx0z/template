@@ -1,4 +1,5 @@
 import type { SplitterFn } from "./attributes"
+import type { ParseAttributeResult } from "./data.t"
 
 export type ValueType = "dynamic" | "static" | "mixed"
 

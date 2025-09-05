@@ -767,7 +767,7 @@ const processSemanticAttributesForNode = (node: PartAttrMeta, context: ParseCont
     if (coreResult) {
       result.core = coreResult
     } else {
-      result.core = node.core
+      result.core = { data: node.core }
     }
   }
 
@@ -776,7 +776,7 @@ const processSemanticAttributesForNode = (node: PartAttrMeta, context: ParseCont
     if (contextResult) {
       result.context = contextResult
     } else {
-      result.context = node.context
+      result.context = { data: node.context }
     }
   }
 
