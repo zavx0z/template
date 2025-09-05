@@ -74,6 +74,21 @@ export interface NodeCondition {
 }
 
 /**
+ * Узел логического оператора.
+ * Представляет логический оператор && с условным отображением.
+ */
+export interface NodeLogical {
+  /** Тип узла - всегда "log" для логических операторов */
+  type: "log"
+  /** Путь(и) к данным для условия */
+  data: string | string[]
+  /** Выражение с индексами (если условие сложное) */
+  expr?: string
+  /** Дочерние узлы, которые отображаются только если условие истинно */
+  child: Node[]
+}
+
+/**
  * Мета-узел.
  * Представляет мета-тег с динамическим именем тега.
  */
@@ -132,4 +147,4 @@ export type AttributeBoolean = Record<string, boolean | AttrVariable | AttrDynam
 
 export type StyleObject = Record<string, string | AttrVariable | AttrDynamic>
 
-export type Node = NodeMap | NodeCondition | NodeText | NodeElement | NodeMeta
+export type Node = NodeMap | NodeCondition | NodeLogical | NodeText | NodeElement | NodeMeta

@@ -1,10 +1,17 @@
-import type { PartAttrs, PartAttrElement, PartAttrMeta, PartAttrMap, PartAttrCondition } from "./attributes.t"
+import type {
+  PartAttrs,
+  PartAttrElement,
+  PartAttrMeta,
+  PartAttrMap,
+  PartAttrCondition,
+  PartAttrLogical,
+} from "./attributes.t"
 import type { Context, Core, State, RenderParams, Node } from "./index.t"
 import type { StreamToken } from "./parser.t"
 import { parseAttributes } from "./attributes"
 import { createNodeDataElement } from "./data"
 import type { TokenMapOpen, TokenMapClose } from "./parser.t"
-import type { TokenCondElse, TokenCondOpen, TokenCondClose } from "./parser.t"
+import type { TokenCondElse, TokenCondOpen, TokenCondClose, TokenLogicalOpen } from "./parser.t"
 
 // ============================================================================
 // КОНСТАНТЫ И УТИЛИТЫ
@@ -187,6 +194,9 @@ export const parseTextAndOperators = (input: string, store: Hierarchy) => {
           break
         case "cond-close":
           break
+        case "log-open":
+          store.logical(token.expr)
+          break
         case "map-open":
           store.map(token.sig)
           break
@@ -223,6 +233,14 @@ function getTokens(expr: string): StreamToken[] {
   const tokenCondClose = findCondClose(expr)
   if (tokenCondClose && isNotInText(tokenCondClose[0])) {
     tokens.set(...tokenCondClose)
+  }
+
+  // --------- logical operators ---------
+  const logicals = findLogicalOperators(expr)
+  for (const logical of logicals) {
+    if (isNotInText(logical[0])) {
+      tokens.set(...logical)
+    }
   }
 
   // ------------- map -------------
@@ -369,6 +387,52 @@ export const findCondClose = (expr: string): [number, TokenCondClose] | undefine
   while ((match = condCloseRegex.exec(expr)) !== null) {
     return [match.index, { kind: "cond-close" }]
   }
+}
+
+export const findLogicalOperators = (expr: string): [number, TokenLogicalOpen][] => {
+  const results: [number, TokenLogicalOpen][] = []
+
+  // Ищем паттерн: ${condition && html`...`}
+  // Это более специфичный поиск для логических операторов с html шаблонами
+  let i = 0
+  while (i < expr.length) {
+    const dollarIndex = expr.indexOf("${", i)
+    if (dollarIndex === -1) break
+
+    // Ищем && после переменной или выражения
+    const andIndex = expr.indexOf("&&", dollarIndex + 2)
+    if (andIndex === -1) {
+      i = dollarIndex + 2
+      continue
+    }
+
+    // Проверяем, что после && идет html` (а не тернарный оператор)
+    const htmlIndex = expr.indexOf("html`", andIndex + 2)
+    const ternaryIndex = expr.indexOf("?", andIndex + 2)
+
+    // Если есть тернарный оператор раньше html`, то это не логический оператор
+    if (ternaryIndex !== -1 && (htmlIndex === -1 || ternaryIndex < htmlIndex)) {
+      i = andIndex + 2
+      continue
+    }
+
+    if (htmlIndex === -1) {
+      i = andIndex + 2
+      continue
+    }
+
+    // Извлекаем выражение до &&
+    const condition = expr.slice(dollarIndex + 2, andIndex).trim()
+
+    // Проверяем, что это валидное условие (содержит переменную или сложное выражение)
+    if (condition && /[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*/.test(condition)) {
+      results.push([dollarIndex + 2, { kind: "log-open", expr: condition }])
+    }
+
+    i = andIndex + 2
+  }
+
+  return results
 }
 
 export const findText = (chunk: string) => {
@@ -542,6 +606,19 @@ class Hierarchy {
     return
   }
 
+  /** Добавляет блок logical в child массив
+   * - создает курсор на этот блок
+   * - cursor.path добавляется с увеличением на 1
+   * @param value - текст условия
+   */
+  logical(value: string) {
+    const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
+    !Object.hasOwn(curEl, "child") && (curEl.child = [])
+    curEl.child!.push({ type: "log", text: value, child: [] })
+    this.cursor.push("log")
+    return
+  }
+
   /** Добавляет блок map в child массив
    * - создает курсор на этот блок
    * @param value - текст условия
@@ -591,6 +668,15 @@ class Hierarchy {
     if (this.cursor.part === "else") {
       // выходим из всех else
       this.#recursiveCloseMultipleElse()
+      // закрываем тег
+      const deleted = this.cursor.back()
+      if (deleted !== tagName) {
+        throw new Error(`Expected ${tagName} but got ${deleted}`)
+      }
+      return
+    } else if (this.cursor.part === "log") {
+      // выходим из логического оператора
+      this.cursor.back()
       // закрываем тег
       const deleted = this.cursor.back()
       if (deleted !== tagName) {

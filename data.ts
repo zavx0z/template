@@ -4,12 +4,21 @@ import type {
   Node,
   NodeCondition,
   NodeElement,
+  NodeLogical,
   NodeMap,
   NodeMeta,
   NodeText,
   StyleObject,
 } from "./index.t"
-import type { PartAttrCondition, PartAttrElement, PartAttrMap, PartAttrMeta, PartAttrs, PartText } from "./attributes.t"
+import type {
+  PartAttrCondition,
+  PartAttrElement,
+  PartAttrMap,
+  PartAttrMeta,
+  PartAttrLogical,
+  PartAttrs,
+  PartText,
+} from "./attributes.t"
 
 // ============================================================================
 // REGEX PATTERNS
@@ -1650,6 +1659,37 @@ export const createNodeDataCondition = (
 }
 
 /**
+ * Создает NodeLogical из обычного PartLogical.
+ */
+export const createNodeDataLogical = (
+  node: PartAttrLogical,
+  context: ParseContext = { pathStack: [], level: 0 }
+): NodeLogical => {
+  const condData = parseCondition(node.text, context)
+  const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
+
+  // Используем пути, уже правильно разрешенные в parseCondition
+  const processedData = condData.path
+
+  // Проверяем наличие операторов/методов
+  const hasOperatorsOrMethods =
+    condData.metadata?.expression && /[%+\-*/&&||===!===!=<>().]/.test(condData.metadata.expression)
+
+  const needsExpression = !isSimpleCondition || hasOperatorsOrMethods
+
+  return {
+    type: "log",
+    data: isSimpleCondition
+      ? Array.isArray(processedData)
+        ? processedData[0] || ""
+        : processedData || ""
+      : processedData || [],
+    ...(needsExpression && condData.metadata?.expression ? { expr: condData.metadata.expression } : {}),
+    child: node.child ? node.child.map((child: any) => createNodeDataElement(child, context)) : [],
+  }
+}
+
+/**
  * Создает NodeMeta из обычного PartMeta.
  */
 export const createNodeDataMeta = (
@@ -1723,15 +1763,19 @@ export const createNodeDataMeta = (
  * Создает NodeElement из обычного PartAttrElement.
  */
 export const createNodeDataElement = (
-  node: PartAttrElement | PartAttrMeta | PartAttrMap | PartAttrCondition | PartText,
+  node: PartAttrElement | PartAttrMeta | PartAttrMap | PartAttrCondition | PartAttrLogical | PartText,
   context: ParseContext = { pathStack: [], level: 0 }
-): NodeElement | NodeText | NodeMap | NodeCondition | NodeMeta => {
+): NodeElement | NodeText | NodeMap | NodeCondition | NodeLogical | NodeMeta => {
   if (node.type === "map") {
     return createNodeDataMap(node, context)
   }
 
   if (node.type === "cond") {
     return createNodeDataCondition(node, context)
+  }
+
+  if (node.type === "log") {
+    return createNodeDataLogical(node, context)
   }
 
   if (node.type === "text") {

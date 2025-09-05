@@ -1,4 +1,4 @@
-import type {SplitterFn} from "./attributes"
+import type { SplitterFn } from "./attributes"
 
 export type ValueType = "dynamic" | "static" | "mixed"
 
@@ -33,7 +33,7 @@ export type PartAttrElement = {
   /** Стили */
   style?: string
   /** Дочерние элементы (опционально) */
-  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]
+  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartAttrLogical | PartText)[]
 }
 
 export type PartAttrMeta = {
@@ -56,7 +56,7 @@ export type PartAttrMeta = {
   /** Context объекты */
   context?: string
   /** Дочерние элементы (опционально) */
-  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]
+  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartAttrLogical | PartText)[]
 }
 
 export type PartAttrCondition = {
@@ -70,14 +70,29 @@ export type PartAttrCondition = {
    */
   child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap)[]
 }
+
+export type PartAttrLogical = {
+  /** Тип узла */
+  type: "log"
+  /** Исходный текст логического выражения */
+  text: string
+  /** Дочерние элементы, которые отображаются только если условие истинно */
+  child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartAttrLogical)[]
+}
 export type PartAttrMap = {
   /** Тип узла */
   type: "map"
   /** Исходный текст map-выражения */
   text: string
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (PartAttrElement | PartText | PartAttrMap | PartAttrMeta | PartAttrCondition)[]
+  child: (PartAttrElement | PartText | PartAttrMap | PartAttrMeta | PartAttrCondition | PartAttrLogical)[]
 }
-export type PartAttrs = (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartText)[]
+export type PartAttrs = (
+  | PartAttrElement
+  | PartAttrMeta
+  | PartAttrCondition
+  | PartAttrMap
+  | PartAttrLogical
+  | PartText
+)[]
 export type SplitterResolved = { fn: SplitterFn; delim: string }
-
