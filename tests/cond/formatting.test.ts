@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { parse, type Node } from "../index"
+import { parse, type Node } from "../../index"
 
 describe("formatting", () => {
   describe("форматирует тернарные выражения, удаляя лишние пробелы и переносы строк", () => {

@@ -10,14 +10,10 @@
         "**/node_modules": true,
         "**/__pycache__": true,
         ".venv": true,
-        ".cursor/rules": true,
-        ".cursor": true,
         ".vscode": true,
         ".idea": true
     },
     "hide-files.files": [
-        ".cursor/rules",
-        ".cursor",
         ".vscode",
         ".idea"
     ]

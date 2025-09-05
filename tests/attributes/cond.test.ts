@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { parse, type Node } from "../index"
+import { parse, type Node } from "../../index"
 
 describe("условные выражения в атрибутах", () => {
   describe("тернарный оператор с числом в качестве условия", () => {

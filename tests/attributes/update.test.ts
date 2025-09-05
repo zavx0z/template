@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { parse, type Node } from "../index"
+import { parse, type Node } from "../../index"
 
 describe("update", () => {
   describe("функция обновления контекста в функции рендера", () => {
