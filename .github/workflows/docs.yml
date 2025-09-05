@@ -2,9 +2,9 @@ name: Deploy Documentation
 
 on:
   push:
-    branches: [main]
+    branches: [doc]
   pull_request:
-    branches: [main]
+    branches: [doc]
 
 permissions:
   contents: read
