@@ -1,0 +1,48 @@
+{
+    "entryPoints": [
+        "index.t.ts"
+    ],
+    "out": "docs",
+    "name": "HTML Parser для MetaFor",
+    "includeVersion": true,
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
+    "exclude": [
+        "**/data.t.ts",
+        "**/attributes.t.ts",
+        "**/parser.t.ts"
+    ],
+    "readme": "README.md",
+    "theme": "default",
+    "categorizeByGroup": false,
+    "defaultCategory": "API",
+    "categoryOrder": [
+        "API"
+    ],
+    "sort": [
+        "source-order"
+    ],
+    "kindSortOrder": [
+        "Project",
+        "Module",
+        "Namespace",
+        "Enum",
+        "Class",
+        "Interface",
+        "TypeAlias",
+        "Constructor",
+        "Variable",
+        "Function",
+        "Accessor"
+    ],
+    "navigation": {
+        "includeCategories": true,
+        "includeGroups": false
+    },
+    "searchInComments": true,
+    "cleanOutputDir": true,
+    "githubPages": true,
+    "gitRevision": "main",
+    "gitRemote": "origin"
+}

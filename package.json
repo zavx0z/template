@@ -24,13 +24,16 @@
   "devDependencies": {
     "@types/bun": "latest",
     "diff": "^8.0.2",
-    "dts-bundle-generator": "^9.5.1"
+    "dts-bundle-generator": "^9.5.1",
+    "typedoc": "^0.28.12"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "scripts": {
     "build": "bun run script/build.ts --dev",
+    "docs": "typedoc",
+    "docs:serve": "typedoc --watch",
     "prepublishOnly": "bun run build",
     "publish:npm": "bun publish --access public"
   }
