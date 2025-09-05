@@ -46,38 +46,39 @@ export type ParseResult = {
  *
  * @example Простой динамический атрибут
  * ```html
- * <div class="${user.theme}">Элемент</div>
+ * <div class="${context.theme}">Элемент</div>
  * ```
- * Результат: { data: "user.theme" }
+ * Результат: { data: "/context/theme" }
  *
  * @example Сложное выражение в атрибуте
  * ```html
- * <div class="${user.role === 'admin' ? 'admin-panel' : 'user-panel'}">
+ * <div class="${core.role === 'admin' ? 'admin-panel' : 'user-panel'}">
  *   Панель
  * </div>
  * ```
  * Результат: {
- *   data: ["user.role"],
+ *   data: ["/core/role"],
  *   expr: "${[0]} === 'admin' ? 'admin-panel' : 'user-panel'"
  * }
  *
  * @example Атрибут с обновлением состояния
  * ```html
- * <input value="${form.email}" onchange="updateForm('email', this.value)" />
+ * <input value="${context.email}" onchange=${(e) => update({ email: e.target.value })} />
  * ```
  * Результат: {
- *   data: "form.email",
- *   upd: "form.email"
+ *   data: "/context/email",
+ *   upd: "email",
+ *   expr: "(e) => update({ email: e.target.value })"
  * }
  *
  * @example Смешанный атрибут
  * ```html
- * <div class="container ${user.theme} ${isActive ? 'active' : ''}">
+ * <div class="container ${context.theme} ${context.isActive ? 'active' : ''}">
  *   Элемент
  * </div>
  * ```
  * Результат: {
- *   data: ["user.theme", "isActive"],
+ *   data: ["/context/theme", "/context/isActive"],
  *   expr: "container ${[0]} ${[1] ? 'active' : ''}"
  * }
  *
@@ -87,7 +88,7 @@ export type ParseResult = {
  * - `upd` - ключи для обновления состояния приложения
  */
 export type ParseAttributeResult = {
-  /** Путь(и) к данным (например: "user.name", ["user", "theme"]) */
+  /** Путь(и) к данным (например: "/context/name", ["/context/theme", "/core/role"]) */
   data?: string | string[]
   /** Унифицированное выражение с индексами (например: "${[0]} === 'admin' ? 'admin' : 'user'") */
   expr?: string

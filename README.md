@@ -34,27 +34,26 @@ yarn add @zavx0z/html-parser
 ```ts
 import { parse, type Node } from "@zavx0z/html-parser"
 
-const tree: Node[] = parse(
-  ({ html, context, core }) => html`
-    <div class=${context.userStatus}>
-      <h1>Привет ${context.userName}!</h1>
+const tree: Node[] = parse(({ html, context, core }) => html`
+  <div class=${context.userStatus}>
+    <h1>Привет ${context.userName}!</h1>
 
-      ${core.items.map(
-        (g) => html`
-          <div class="card ${g.active && "active"}">
-            ${g.title ? html`<h2>${g.title}</h2>` : html`<span>Без названия</span>`}
-          </div>
-        `
-      )}
+    ${core.items.map(
+      (g) => html`
+        <div class="card ${g.active && "active"}">
+          ${g.title ? html`<h2>${g.title}</h2>` : html`<span>Без названия</span>`}
+        </div>
+      `
+    )}
 
-      <meta-list
-        onClick=${core.onClick}
-        style=${{ color: context.color, opacity: core.opacity }}
-        context=${context.userData}
-        core=${core.widgetConfig} />
-    </div>
-  `
-)
+    <meta-list
+      onClick=${core.onClick}
+      style=${{ color: context.color, opacity: core.opacity }}
+      context=${context.userData}
+      core=${core.widgetConfig} 
+    />
+  </div>
+`)
 ```
 
 ## Что возвращается

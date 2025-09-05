@@ -15,7 +15,7 @@
  *   count: 42,
  *   isVisible: false,
  *   tags: ["tag1", "tag2", "tag3"]
- * };
+ * }
  * ```
  */
 export type Context = Record<string, string | number | boolean | null | Array<string | number | boolean | null>>
@@ -45,9 +45,9 @@ export type Context = Record<string, string | number | boolean | null | Array<st
  *   },
  *   utils: {
  *     formatDate: (date: Date) => date.toLocaleDateString(),
- *     escapeHtml: (str: string) => str.replace(/</g, "&lt;")
+ *     escapeHtml: (str: string) => str.replace(/</g, "&lt")
  *   }
- * };
+ * }
  * ```
  */
 export type Core = Record<string, any>
@@ -58,7 +58,7 @@ export type Core = Record<string, any>
  *
  * @example
  * ```typescript
- * const state: State = "loading"; // "loading" | "ready" | "error"
+ * const state: State = "loading" // "loading" | "ready" | "error"
  * ```
  */
 export type State = string
@@ -74,12 +74,12 @@ export type State = string
  *     <div class="app">
  *       <h1>${context.title}</h1>
  *       <p>Состояние: ${state}</p>
- *       <button onclick="${() => update({ state: 'ready' })}">
+ *       <button onclick=${() => update({ state: 'ready' })}>
  *         Готово
  *       </button>
  *     </div>
- *   `;
- * };
+ *   `
+ * }
  * ```
  */
 export type RenderParams<C extends Context, I extends Core = Core, S extends State = State> = {
@@ -91,7 +91,22 @@ export type RenderParams<C extends Context, I extends Core = Core, S extends Sta
   context: C
   /** Текущее состояние приложения */
   state: State
-  /** Функция для обновления контекста */
+  /**
+   * Функция для обновления контекста приложения.
+   * Используется в обработчиках событий для изменения состояния.
+   *
+   * @example
+   * ```typescript
+   * // Обновление одного поля
+   * update({ count: 5 })
+   *
+   * // Обновление нескольких полей
+   * update({ name: "John", age: 25 })
+   *
+   * // В обработчике события
+   * html`<button onclick=${() => update({ active: !context.active })}>Toggle</button>`
+   * ```
+   */
   update: (context: Partial<C>) => void
 }
 
@@ -101,21 +116,19 @@ export type RenderParams<C extends Context, I extends Core = Core, S extends Sta
  *
  * @example Простой динамический атрибут
  * ```html
- * <div class=${user.theme}>Элемент</div>
+ * <div class=${context.theme}>Элемент</div>
  * ```
  *
  * Результат:
  * ```json
  * {
- *   "data": "user.theme"
+ *   "data": "/context/theme"
  * }
  * ```
  *
- * ---
- *
  * @example Сложное выражение в атрибуте
  * ```html
- * <div class=${user.role === 'admin' ? 'admin-panel' : 'user-panel'}>
+ * <div class=${core.role === 'admin' ? 'admin-panel' : 'user-panel'}>
  *   Панель
  * </div>
  * ```
@@ -123,31 +136,28 @@ export type RenderParams<C extends Context, I extends Core = Core, S extends Sta
  * Результат:
  * ```json
  * {
- *   "data": ["user.role"],
+ *   "data": ["/core/role"],
  *   "expr": "${[0]} === 'admin' ? 'admin-panel' : 'user-panel'"
  * }
  * ```
  *
- * ---
- *
  * @example Атрибут с обновлением состояния
  * ```html
- * <input value=${form.email} onchange="updateForm('email', this.value)" />
+ * <input value=${context.email} onchange=${(e) => update({ email: e.target.value })} />
  * ```
  *
  * Результат:
  * ```json
  * {
- *   "data": "form.email",
- *   "upd": "form.email"
+ *   "data": "/context/email",
+ *   "upd": "email",
+ *   "expr": "(e) => update({ email: e.target.value })"
  * }
  * ```
  *
- * ---
- *
  * @example Смешанный атрибут
  * ```html
- * <div class="container ${user.theme} ${isActive ? 'active' : ''}">
+ * <div class="container ${context.theme} ${context.isActive ? 'active' : ''}">
  *   Элемент
  * </div>
  * ```
@@ -155,7 +165,7 @@ export type RenderParams<C extends Context, I extends Core = Core, S extends Sta
  * Результат:
  * ```json
  * {
- *   "data": ["user.theme", "isActive"],
+ *   "data": ["/context/theme", "/context/isActive"],
  *   "expr": "container ${[0]} ${[1] ? 'active' : ''}"
  * }
  * ```
@@ -163,7 +173,7 @@ export type RenderParams<C extends Context, I extends Core = Core, S extends Sta
  * Структура:
  * - `data` - путь(и) к данным в контексте
  * - `expr` - выражение с индексами для сложных вычислений
- * - `upd` - ключи для обновления состояния приложения
+ * - `upd` - ключи обновления контекста
  */
 export type ParseAttributeResult = {
   /**
@@ -171,14 +181,14 @@ export type ParseAttributeResult = {
    *
    * @example Простой путь
    * ```typescript
-   * data: "user.name"
+   * data: "/context/name"
    * ```
    *
    * ---
    *
    * @example Массив путей
    * ```typescript
-   * data: ["user", "theme"]
+   * data: ["/context/theme", "/core/role"]
    * ```
    */
   data?: string | string[]
@@ -192,11 +202,11 @@ export type ParseAttributeResult = {
    */
   expr?: string
   /**
-   * Ключи для обновления состояния
+   * Ключи обновления контекста
    *
    * @example Простой ключ
    * ```typescript
-   * upd: "form.email"
+   * upd: "email"
    * ```
    *
    * ---
@@ -293,7 +303,7 @@ export interface NodeElement extends AttributesNode {
    * ```typescript
    * child: [
    *   { type: "text", value: "Привет" },
-   *   { type: "text", data: "user.name" }
+   *   { type: "text", data: "/context/user/name" }
    * ]
    * ```
    */
@@ -316,44 +326,38 @@ export interface NodeElement extends AttributesNode {
  * }
  * ```
  *
- * ---
- *
  * @example Динамический текст
  * ```html
- * <p>Привет, ${user.name}!</p>
+ * <p>Привет, ${context.name}!</p>
  * ```
  *
  * Результат:
  * ```json
  * {
  *   "type": "text",
- *   "data": "user.name",
+ *   "data": "/context/name",
  *   "expr": "Привет, ${[0]}!"
  * }
  * ```
  *
- * ---
- *
  * @example Смешанный текст
  * ```html
- * <p>Пользователь ${user.name} имеет ${user.posts.length} постов</p>
+ * <p>Пользователь ${context.name} имеет ${core.postCount} постов</p>
  * ```
  *
  * Результат:
  * ```json
  * {
  *   "type": "text",
- *   "data": ["user.name", "user.posts.length"],
+ *   "data": ["/context/name", "/core/postCount"],
  *   "expr": "Пользователь ${[0]} имеет ${[1]} постов"
  * }
  * ```
  *
- * ---
- *
  * @example Логические операции
  * ```html
- * <div>Пользователь: ${user.isActive && user.name || 'Гость'}</div>
- * <span>Статус: ${user.isAdmin ? 'Администратор' : 'Пользователь'}</span>
+ * <div>Пользователь: ${context.isActive && context.name || 'Гость'}</div>
+ * <span>Статус: ${context.isAdmin ? 'Администратор' : 'Пользователь'}</span>
  * ```
  *
  * Результат:
@@ -361,23 +365,21 @@ export interface NodeElement extends AttributesNode {
  * [
  *   {
  *     "type": "text",
- *     "data": ["user.isActive", "user.name"],
+ *     "data": ["/context/isActive", "/context/name"],
  *     "expr": "Пользователь: ${[0]} && ${[1]} || 'Гость'"
  *   },
  *   {
  *     "type": "text",
- *     "data": ["user.isAdmin"],
+ *     "data": ["/context/isAdmin"],
  *     "expr": "Статус: ${[0]} ? 'Администратор' : 'Пользователь'"
  *   }
  * ]
  * ```
  *
- * ---
- *
  * @example Тернарные операторы
  * ```html
- * <p>${user.age >= 18 ? 'Совершеннолетний' : 'Несовершеннолетний'}</p>
- * <div>${product.inStock ? `В наличии: ${product.quantity}` : 'Нет в наличии'}</div>
+ * <p>${context.age >= 18 ? 'Совершеннолетний' : 'Несовершеннолетний'}</p>
+ * <div>${context.inStock ? `В наличии: ${core.quantity}` : 'Нет в наличии'}</div>
  * ```
  *
  * Результат:
@@ -385,12 +387,12 @@ export interface NodeElement extends AttributesNode {
  * [
  *   {
  *     "type": "text",
- *     "data": ["user.age"],
+ *     "data": ["/context/age"],
  *     "expr": "${[0]} >= 18 ? 'Совершеннолетний' : 'Несовершеннолетний'"
  *   },
  *   {
  *     "type": "text",
- *     "data": ["product.inStock", "product.quantity"],
+ *     "data": ["/context/inStock", "/core/quantity"],
  *     "expr": "${[0]} ? `В наличии: ${[1]}` : 'Нет в наличии'"
  *   }
  * ]
@@ -410,12 +412,12 @@ export interface NodeText {
    *
    * @example Простой путь
    * ```typescript
-   * data: "user.name"
+   * data: "/context/name"
    * ```
    *
    * @example Массив путей
    * ```typescript
-   * data: ["user.name", "user.age"]
+   * data: ["/context/name", "/context/age"]
    * ```
    */
   data?: string | string[]
@@ -445,7 +447,7 @@ export interface NodeText {
  * @example Простая итерация
  * ```html
  * <ul>
- *   ${users.map(user => html`<li>${user.name}</li>`)}
+ *   ${core.users.map(user => html`<li>${user}</li>`)}
  * </ul>
  * ```
  *
@@ -457,7 +459,7 @@ export interface NodeText {
  *   "child": [
  *     {
  *       "type": "map",
- *       "data": "users",
+ *       "data": "/core/users",
  *       "child": [
  *         {
  *           "tag": "li",
@@ -478,7 +480,7 @@ export interface NodeText {
  * @example Итерация с деструктуризацией
  * ```html
  * <div>
- *   ${posts.map(({title, content}) => html`
+ *   ${core.posts.map(({title, content}) => html`
  *     <article>
  *       <h2>${title}</h2>
  *       <p>${content}</p>
@@ -495,7 +497,7 @@ export interface NodeText {
  *   "child": [
  *     {
  *       "type": "map",
- *       "data": "posts",
+ *       "data": "/core/posts",
  *       "child": [
  *         {
  *           "tag": "article",
@@ -532,7 +534,7 @@ export interface NodeText {
  * @example Итерация с индексом
  * ```html
  * <ul>
- *   ${items.map((item, index) => html`
+ *   ${core.items.map((item, index) => html`
  *     <li class=${index % 2 === 0 ? 'even' : 'odd'}>
  *       ${index + 1}. ${item.name}
  *     </li>
@@ -548,7 +550,7 @@ export interface NodeText {
  *   "child": [
  *     {
  *       "type": "map",
- *       "data": "items",
+ *       "data": "/core/items",
  *       "child": [
  *         {
  *           "tag": "li",
@@ -576,7 +578,7 @@ export interface NodeText {
  * @example Вложенная итерация
  * ```html
  * <div>
- *   ${categories.map(category => html`
+ *   ${core.categories.map(category => html`
  *     <section>
  *       <h1>${category.name}</h1>
  *       ${category.products.map(product => html`
@@ -595,7 +597,7 @@ export interface NodeText {
  *   "child": [
  *     {
  *       "type": "map",
- *       "data": "categories",
+ *       "data": "/core/categories",
  *       "child": [
  *         {
  *           "tag": "section",
@@ -655,12 +657,12 @@ export interface NodeMap {
    *
    * @example Простой путь
    * ```typescript
-   * data: "users"
+   * data: "/context/users"
    * ```
    *
    * @example Вложенный путь
    * ```typescript
-   * data: "categories.products"
+   * data: "/core/products"
    * ```
    */
   data: string
@@ -689,7 +691,7 @@ export interface NodeMap {
  * @example Простое условие
  * ```html
  * <div>
- *   ${user.isLoggedIn ? html`<span>Добро пожаловать, ${user.name}!</span>` : html`<a href="/login">Войти</a>`}
+ *   ${context.isLoggedIn ? html`<span>Добро пожаловать, ${context.name}!</span>` : html`<a href="/login">Войти</a>`}
  * </div>
  * ```
  *
@@ -701,7 +703,7 @@ export interface NodeMap {
  *   "child": [
  *     {
  *       "type": "cond",
- *       "data": "user.isLoggedIn",
+ *       "data": "/context/isLoggedIn",
  *       "child": [
  *         {
  *           "tag": "span",
@@ -709,7 +711,7 @@ export interface NodeMap {
  *           "child": [
  *             {
  *               "type": "text",
- *               "data": "user.name",
+ *               "data": "/context/name",
  *               "expr": "Добро пожаловать, ${[0]}!"
  *             }
  *           ]
@@ -736,7 +738,7 @@ export interface NodeMap {
  * @example Сложное условие
  * ```html
  * <div>
- *   ${user.role === 'admin' && user.permissions.includes('write') ?
+ *   ${core.role === 'admin' && core.permissions.includes('write') ?
  *     html`<button>Редактировать</button>` :
  *     html`<span>Нет прав</span>`
  *   }
@@ -783,8 +785,8 @@ export interface NodeMap {
  * @example Условие с проверкой массива
  * ```html
  * <div>
- *   ${posts.length > 0 ?
- *     html`<ul>${posts.map(post => html`<li>${post.title}</li>`)}</ul>` :
+ *   ${core.posts.length > 0 ?
+ *     html`<ul>${core.posts.map(post => html`<li>${post.title}</li>`)}</ul>` :
  *     html`<p>Постов пока нет</p>`
  *   }
  * </div>
@@ -798,7 +800,7 @@ export interface NodeMap {
  *   "child": [
  *     {
  *       "type": "cond",
- *       "data": "posts.length",
+ *       "data": "/core/posts.length",
  *       "expr": "${[0]} > 0",
  *       "child": [
  *         {
@@ -807,7 +809,7 @@ export interface NodeMap {
  *           "child": [
  *             {
  *               "type": "map",
- *               "data": "posts",
+ *               "data": "/core/posts",
  *               "child": [
  *                 {
  *                   "tag": "li",
@@ -853,14 +855,14 @@ export interface NodeCondition {
    *
    * @example Простой путь
    * ```typescript
-   * data: "user.isLoggedIn"
+   * data: "/context/isLoggedIn"
    * ```
    *
    * ---
    *
    * @example Массив путей
    * ```typescript
-   * data: ["user", "role"]
+   * data: ["/context/isAdmin", "/core/role"]
    * ```
    */
   data: string | string[]
@@ -887,7 +889,7 @@ export interface NodeCondition {
  * @example Простое логическое условие
  * ```html
  * <div>
- *   ${user.isAdmin && html`<button>Админ-панель</button>`}
+ *   ${context.isAdmin && html`<button>Админ-панель</button>`}
  * </div>
  * ```
  *
@@ -899,7 +901,7 @@ export interface NodeCondition {
  *   "child": [
  *     {
  *       "type": "log",
- *       "data": "user.isAdmin",
+ *       "data": "/context/isAdmin",
  *       "child": [
  *         {
  *           "tag": "button",
@@ -920,9 +922,9 @@ export interface NodeCondition {
  * @example Логическое условие с проверкой массива
  * ```html
  * <div>
- *   ${notifications.length > 0 && html`
+ *   ${core.notifications.length > 0 && html`
  *     <div class="notifications">
- *       ${notifications.map(n => html`<div>${n.message}</div>`)}
+ *       ${core.notifications.map(n => html`<div>${n.message}</div>`)}
  *     </div>
  *   `}
  * </div>
@@ -936,7 +938,7 @@ export interface NodeCondition {
  *   "child": [
  *     {
  *       "type": "log",
- *       "data": "notifications.length",
+ *       "data": "/core/notifications.length",
  *       "expr": "${[0]} > 0",
  *       "child": [
  *         {
@@ -948,7 +950,7 @@ export interface NodeCondition {
  *           "child": [
  *             {
  *               "type": "map",
- *               "data": "notifications",
+ *               "data": "/core/notifications",
  *               "child": [
  *                 {
  *                   "tag": "div",
@@ -973,7 +975,7 @@ export interface NodeCondition {
  * @example Сложное логическое условие
  * ```html
  * <div>
- *   ${user.role === 'admin' && user.permissions.includes('delete') && html`
+ *   ${core.role === 'admin' && core.permissions.includes('delete') && html`
  *     <button onclick="deleteItem()">Удалить</button>
  *   `}
  * </div>
@@ -1023,14 +1025,14 @@ export interface NodeLogical {
    *
    * @example Простой путь
    * ```typescript
-   * data: "user.isAdmin"
+   * data: "/context/isAdmin"
    * ```
    *
    * ---
    *
    * @example Массив путей
    * ```typescript
-   * data: ["notifications", "length"]
+   * data: ["/context/notifications", "/context/count"]
    * ```
    */
   data: string | string[]
@@ -1049,28 +1051,29 @@ export interface NodeLogical {
 
 /**
  * Мета-узел.
- * Представляет мета-тег с динамическим именем тега.
- * Используется для создания компонентов с динамическими именами тегов.
+ *
+ * Представляет meta-элемент.
+ * Поддерживает создание компонентов с динамическими именами тегов.
  *
  * @example Статический мета-тег
  * ```html
- * <my-component class="custom">
+ * <meta-component class="custom">
  *   <p>Содержимое компонента</p>
- * </my-component>
+ * </meta-component>
  * ```
  *
  * @example Динамический мета-тег
  * ```html
- * <${componentType} class="dynamic">
+ * <meta-${core.actorHash} class="dynamic">
  *   <p>Динамический компонент</p>
- * </${componentType}>
+ * </meta-${core.actorHash}>
  * ```
  *
- * @example Мета-тег с core и context
+ * @example Мета-элемент с core и context
  * ```html
- * <my-widget core="widgetConfig" context="userData">
+ * <meta-widget core=${core.widgetConfig} context=${core.userData}>
  *   <div>Виджет с конфигурацией</div>
- * </my-widget>
+ * </meta-widget>
  * ```
  *
  * Структура узла:
@@ -1087,6 +1090,10 @@ export interface NodeMeta extends AttributesNode {
   type: "meta"
   /** Дочерние элементы (опционально) */
   child?: Node[]
+  /** Core свойство для meta-компонентов (передача core объекта) */
+  core?: ParseAttributeResult
+  /** Context свойство для meta-компонентов (передача context объекта) */
+  context?: ParseAttributeResult
 }
 
 /**
@@ -1096,12 +1103,12 @@ export interface NodeMeta extends AttributesNode {
  * @example HTML элемент с различными атрибутами
  * ```html
  * <div
- *   class="container ${dynamicClass}"
+ *   class="container ${core.dynamicClass}"
  *   id="main"
- *   data-count=${items.length}
- *   style="color: ${textColor}; background: ${bgColor}"
+ *   data-count=${core.items.length}
+ *   style="color: ${core.textColor} background: ${core.bgColor}"
  *   onclick="handleClick()"
- *   hidden=${!isVisible}
+ *   hidden=${!context.isVisible}
  * >
  *   Содержимое
  * </div>
@@ -1126,10 +1133,6 @@ interface AttributesNode {
   string?: AttributeString
   /** Стили (CSS в виде строки или объекта) */
   style?: StyleObject
-  /** Core свойство для meta-компонентов (передача core объекта) */
-  core?: ParseAttributeResult
-  /** Context свойство для meta-компонентов (передача context объекта) */
-  context?: ParseAttributeResult
 }
 
 /**
@@ -1138,7 +1141,7 @@ interface AttributesNode {
  *
  * @example
  * ```html
- * <div class=${user.theme}>Тема пользователя</div>
+ * <div class=${context.theme}>Тема пользователя</div>
  * ```
  */
 export type AttrVariable = {
@@ -1147,14 +1150,14 @@ export type AttrVariable = {
    *
    * @example
    * ```typescript
-   * data: "user.theme"
+   * data: "/context/theme"
    * ```
    *
    * ---
    *
    * @example
    * ```typescript
-   * data: "settings.color"
+   * data: "/core/settings/color"
    * ```
    */
   data: string
@@ -1166,13 +1169,21 @@ export type AttrVariable = {
  *
  * @example
  * ```html
- * <div class=${user.role === 'admin' ? 'admin-panel' : 'user-panel'}>
+ * <div class=${core.role === 'admin' ? 'admin-panel' : 'user-panel'}>
  *   Панель управления
  * </div>
  * ```
  */
 export type AttrDynamic = {
-  /** Путь(и) к данным для выражения */
+  /**
+   * Путь(и) к данным для выражения
+   *
+   * @example
+   * ```typescript
+   * data: "/context/value"
+   * data: ["/context/value", "[item]/nested/variable"]
+   * ```
+   */
   data: string | string[]
   /**
    * Выражение с индексами
@@ -1191,7 +1202,7 @@ export type AttrDynamic = {
  *
  * @example
  * ```html
- * <input value=${form.email} onchange="updateForm('email', this.value)" />
+ * <input value=${context.email} onchange=${(e) => update({ email: e.target.value })} />
  * ```
  */
 type AttrUpdate = {
@@ -1221,41 +1232,35 @@ type AttrUpdate = {
  * }
  * ```
  *
- * ---
- *
  * @example Функция с параметрами
  * ```html
- * <input onchange=${(e) => core.updateValue(e)} />
+ * <input onchange=${(e) => update({ value: e.target.value })} />
  * ```
  *
  * Результат:
  * ```json
  * {
  *   "onchange": {
- *     "data": "/core/updateValue",
- *     "expr": "(e) => ${[0]}(e)"
+ *     "upd": "value",
+ *     "expr": "(e) => update({ value: e.target.value })"
  *   }
  * }
  * ```
  *
- * ---
- *
  * @example Событие в массиве
  * ```html
- * <li onclick=${() => item.onClick()}>${item.name}</li>
+ * <li onclick=${() => core.item.onClick()}>${core.item.name}</li>
  * ```
  *
  * Результат:
  * ```json
  * {
  *   "onclick": {
- *     "data": "[item]/onClick",
+ *     "data": "/core/item/onClick",
  *     "expr": "() => ${[0]}()"
  *   }
  * }
  * ```
- *
- * ---
  *
  * @example Булев атрибут события
  * ```html
@@ -1280,7 +1285,7 @@ export type AttributeEvent = Record<
  *
  * @example
  * ```html
- * <div class="container ${user.theme} ${isActive ? 'active' : ''}">
+ * <div class="container ${context.theme} ${context.isActive ? 'active' : ''}">
  *   Элемент с несколькими классами
  * </div>
  * ```
@@ -1301,8 +1306,8 @@ type AttrStaticArray = {
  *
  * @example
  * ```html
- * <img src=${image.url} alt=${image.alt} title=${image.title} />
- * <a href="/user/${user.id}">Профиль пользователя</a>
+ * <img src=${context.url} alt=${context.alt} title=${context.title} />
+ * <a href="/user/${core.user.id}">Профиль пользователя</a>
  * ```
  */
 export type AttributeString = Record<string, AttrStaticString | AttrVariable | AttrDynamic>
@@ -1318,9 +1323,9 @@ type AttrStaticString = string
  *
  * @example
  * ```html
- * <input type="checkbox" checked=${user.isSubscribed} />
- * <button disabled=${!canSubmit}>Отправить</button>
- * <div hidden=${!isVisible}>Скрытый контент</div>
+ * <input type="checkbox" ${core.user.isSubscribed && "checked"} />
+ * <button ${!context.canSubmit && "disabled"}>Отправить</button>
+ * <div ${!context.isVisible && "hidden"}>Скрытый контент</div>
  * ```
  */
 export type AttributeBoolean = Record<string, boolean | AttrVariable | AttrDynamic>
@@ -1338,14 +1343,14 @@ export type AttributeBoolean = Record<string, boolean | AttrVariable | AttrDynam
  *
  * @example Динамические стили
  * ```html
- * <div style=${{backgroundColor: theme.primary, color: theme.text}}>
+ * <div style=${{backgroundColor: core.theme.primary, color: core.theme.text}}>
  *   Элемент с темой
  * </div>
  * ```
  *
  * @example Условные стили
  * ```html
- * <div style=${{backgroundColor: isActive ? "green" : "red", color: "white"}}>
+ * <div style=${{backgroundColor: context.isActive ? "green" : "red", color: "white"}}>
  *   Условный стиль
  * </div>
  * ```
@@ -1359,16 +1364,19 @@ export type StyleObject = Record<string, string | AttrVariable | AttrDynamic>
  * @example Структура с различными типами узлов
  * ```html
  * <div class="container">
- *   <h1>${title}</h1>
- *   ${user.isLoggedIn ? html`<span>Добро пожаловать!</span>` : html`<a href="/login">Войти</a>`}
- *   ${notifications.length > 0 && html`
+ *   <h1>${context.title}</h1>
+ *   ${context.isLoggedIn ?
+ *     html`<span>Добро пожаловать!</span>` :
+ *     html`<a href="/login">Войти</a>`
+ *   }
+ *   ${core.notifications.length > 0 && html`
  *     <ul>
- *       ${notifications.map(n => html`<li>${n.message}</li>`)}
+ *       ${core.notifications.map(n => html`<li>${n.message}</li>`)}
  *     </ul>
  *   `}
- *   <my-component core="config" context="userData">
+ *   <meta-component core="config" context="userData">
  *     <p>Содержимое компонента</p>
- *   </my-component>
+ *   </meta-component>
  * </div>
  * ```
  *
@@ -1378,7 +1386,7 @@ export type StyleObject = Record<string, string | AttrVariable | AttrDynamic>
  * - NodeCondition для тернарного оператора
  * - NodeLogical для логического оператора &&
  * - NodeMap для итерации по массиву
- * - NodeMeta для my-component
+ * - NodeMeta для meta-component
  */
 export type Node = NodeMap | NodeCondition | NodeLogical | NodeText | NodeElement | NodeMeta
 
@@ -1390,91 +1398,317 @@ export type Node = NodeMap | NodeCondition | NodeLogical | NodeText | NodeElemen
  *
  * @example Простой HTML элемент
  * ```typescript
- * const nodes = parse(({ html, context, core }) => {
- *   html`<div class="container">Привет, ${context.userName}!</div>`;
- * });
- *
- * // Результат:
- * // [
- * //   {
- * //     type: "el",
- * //     tag: "div",
- * //     string: { class: "container" },
- * //     child: [
- * //       {
- * //         type: "text",
- * //         expr: "Привет, ${[0]}!",
- * //         data: ["userName"]
- * //       }
- * //     ]
- * //   }
- * // ]
+ * const nodes = parse(({ html, context }) => html`
+ *   <div class="container">Привет, ${context.userName}!</div>
+ * `)
  * ```
+ *
+ * Результат:
+ * ```json
+ * [
+ *   {
+ *     type: "el",
+ *     tag: "div",
+ *     string: { class: "container" },
+ *     child: [
+ *       {
+ *         type: "text",
+ *         data: "/context/userName",
+ *         expr: "Привет, ${[0]}!"
+ *       }
+ *     ]
+ *   }
+ * ]
+ * ```
+ *
+ * ---
  *
  * @example Условный рендеринг
  * ```typescript
- * const nodes = parse(({ html, context }) => {
- *   html`<div>
+ * const nodes = parse(({ html, context }) => html`
+ *   <div>
  *     ${context.isLoggedIn ?
  *       html`<span>Добро пожаловать, ${context.userName}!</span>` :
  *       html`<a href="/login">Войти</a>`
  *     }
- *   </div>`;
- * });
- *
- * // Результат содержит NodeCondition с двумя ветками
+ *   </div>
+ * `)
  * ```
+ *
+ * Результат:
+ * ```json
+ * [
+ *   {
+ *     tag: "div",
+ *     type: "el",
+ *     child: [
+ *       {
+ *         type: "cond",
+ *         data: "/context/isLoggedIn",
+ *         child: [
+ *           {
+ *             tag: "span",
+ *             type: "el",
+ *             child: [
+ *               {
+ *                 type: "text",
+ *                 data: "/context/userName",
+ *                 expr: "Добро пожаловать, ${[0]}!"
+ *               }
+ *             ]
+ *           },
+ *           {
+ *             tag: "a",
+ *             type: "el",
+ *             string: { href: "/login" },
+ *             child: [
+ *               {
+ *                 type: "text",
+ *                 value: "Войти"
+ *               }
+ *             ]
+ *           }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * ]
+ * ```
+ *
+ * ---
  *
  * @example Итерация по массиву
  * ```typescript
- * const nodes = parse(({ html, context }) => {
- *   html`<ul>
- *     ${context.postTitles.map(title => html`<li>${title}</li>`)}
- *   </ul>`;
- * });
- *
- * // Результат содержит NodeMap для итерации по posts
+ * const nodes = parse(({ html, context, core }) => html`
+ *   <ul>
+ *     ${core.postTitles.map(title => html`<li>${title}</li>`)}
+ *   </ul>
+ * `)
  * ```
+ *
+ * Результат:
+ * ```json
+ * [
+ *   {
+ *     tag: "ul",
+ *     type: "el",
+ *     child: [
+ *       {
+ *         type: "map",
+ *         data: "/core/postTitles",
+ *         child: [
+ *           {
+ *             tag: "li",
+ *             type: "el",
+ *             child: [
+ *               {
+ *                 type: "text",
+ *                 data: "[item]"
+ *               }
+ *             ]
+ *           }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * ]
+ * ```
+ *
+ * ---
  *
  * @example Логический оператор
  * ```typescript
- * const nodes = parse(({ html, context }) => {
- *   html`<div>
+ * const nodes = parse(({ html, context, core }) => html`
+ *   <div>
  *     ${context.hasNotifications && html`
  *       <div class="notifications">
- *         ${context.notificationMessages.map(message => html`<div>${message}</div>`)}
+ *         ${core.notificationMessages.map(message => html`<div>${message}</div>`)}
  *       </div>
  *     `}
- *   </div>`;
- * });
- *
- * // Результат содержит NodeLogical и вложенный NodeMap
+ *   </div>
+ * `)
  * ```
+ *
+ * Результат:
+ * ```json
+ * [
+ *   {
+ *     tag: "div",
+ *     type: "el",
+ *     child: [
+ *       {
+ *         type: "log",
+ *         data: "/context/hasNotifications",
+ *         child: [
+ *           {
+ *             tag: "div",
+ *             type: "el",
+ *             string: { class: "notifications" },
+ *             child: [
+ *               {
+ *                 type: "map",
+ *                 data: "/core/notificationMessages",
+ *                 child: [
+ *                   {
+ *                     tag: "div",
+ *                     type: "el",
+ *                     child: [
+ *                       {
+ *                         type: "text",
+ *                         data: "[item]"
+ *                       }
+ *                     ]
+ *                   }
+ *                 ]
+ *               }
+ *             ]
+ *           }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * ]
+ * ```
+ *
+ * ---
  *
  * @example Мета-компонент
  * ```typescript
- * const nodes = parse(({ html, context, core }) => {
- *   html`<my-component
+ * const nodes = parse(({ html, context, core }) => html`
+ *   <my-component
  *     core=${core.widgetConfig}
- *     context=${context.userData}
+ *     context=${core.userData}
  *     class="custom"
  *   >
  *     <p>Содержимое компонента</p>
- *   </my-component>`;
- * });
- *
- * // Результат содержит NodeMeta с core и context атрибутами
+ *   </my-component>
+ * `)
  * ```
+ *
+ * Результат:
+ * ```json
+ * [
+ *   {
+ *     tag: "my-component",
+ *     type: "meta",
+ *     core: {
+ *       data: "/core/widgetConfig"
+ *     },
+ *     context: {
+ *       data: "/core/userData"
+ *     },
+ *     string: { class: "custom" },
+ *     child: [
+ *       {
+ *         tag: "p",
+ *         type: "el",
+ *         child: [
+ *           {
+ *             type: "text",
+ *             value: "Содержимое компонента"
+ *           }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * ]
+ * ```
+ *
+ * ---
  *
  * @example Динамический тег
  * ```typescript
- * const nodes = parse(({ html, context }) => {
- *   html`<${context.componentType} class="dynamic">
+ * const nodes = parse(({ html, context, core }) => html`
+ *   <meta-${core.componentType} class="dynamic">
  *     <p>Динамический компонент</p>
- *   </${context.componentType}>`;
- * });
+ *   </meta-${core.componentType}>
+ * `)
+ * ```
  *
- * // Результат содержит NodeMeta с динамическим именем тега
+ * Результат:
+ * ```json
+ * [
+ *   {
+ *     tag: {
+ *       data: "/core/componentType",
+ *       expr: "meta-${[0]}"
+ *     },
+ *     type: "meta",
+ *     string: { class: "dynamic" },
+ *     child: [
+ *       {
+ *         tag: "p",
+ *         type: "el",
+ *         child: [
+ *           {
+ *             type: "text",
+ *             value: "Динамический компонент"
+ *           }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * ]
+ * ```
+ *
+ * ---
+ *
+ * @example Обработка событий с функцией update
+ * ```typescript
+ * const nodes = parse(({ html, context, update }) => html`
+ *   <div>
+ *     <button onclick=${() => update({ count: context.count + 1 })}>
+ *       Счетчик: ${context.count}
+ *     </button>
+ *     <input onchange=${(e) => update({ name: e.target.value })}
+ *            value=${context.name} />
+ *   </div>
+ * `)
+ * ```
+ *
+ * Результат:
+ * ```json
+ * [
+ *   {
+ *     tag: "div",
+ *     type: "el",
+ *     child: [
+ *       {
+ *         tag: "button",
+ *         type: "el",
+ *         event: {
+ *           onclick: {
+ *             upd: "count",
+ *             data: "/context/count",
+ *             expr: "() => update({ count: ${[0]} + 1 })"
+ *           }
+ *         },
+ *         child: [
+ *           {
+ *             type: "text",
+ *             data: "/context/count",
+ *             expr: "Счетчик: ${[0]}"
+ *           }
+ *         ]
+ *       },
+ *       {
+ *         tag: "input",
+ *         type: "el",
+ *         event: {
+ *           onchange: {
+ *             upd: "name",
+ *             expr: "(e) => update({ name: e.target.value })"
+ *           }
+ *         },
+ *         string: {
+ *           value: {
+ *             data: "/context/name"
+ *           }
+ *         }
+ *       }
+ *     ]
+ *   }
+ * ]
  * ```
  *
  * @param render - Функция рендеринга, которая принимает параметры { html, context, core, state, update }

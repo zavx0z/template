@@ -86,4 +86,4 @@
 ### Документация
 
 Документация автоматически публикуется на GitHub Pages:
-https://zavx0z.github.io/html-parser/
+<https://zavx0z.github.io/html-parser/>
