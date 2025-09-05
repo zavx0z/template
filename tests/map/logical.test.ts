@@ -9,12 +9,14 @@ describe("логические операторы в map", () => {
       elements = parse<{}, { users: Array<{ name: string; hasAvatar: boolean }> }>(
         ({ html, core }) => html`
           <div>
-            ${core.users.map((user) => html`
-              <div class="user">
-                ${user.hasAvatar && html`<img src="/avatar/${user.name}.jpg" alt="${user.name}" />`}
-                <span>${user.name}</span>
-              </div>
-            `)}
+            ${core.users.map(
+              (user) => html`
+                <div class="user">
+                  ${user.hasAvatar && html`<img src="/avatar/${user.name}.jpg" alt="${user.name}" />`}
+                  <span>${user.name}</span>
+                </div>
+              `
+            )}
           </div>
         `
       )
@@ -54,15 +56,15 @@ describe("логические операторы в map", () => {
                             },
                           },
                         },
+                      ],
+                    },
+                    {
+                      tag: "span",
+                      type: "el",
+                      child: [
                         {
-                          tag: "span",
-                          type: "el",
-                          child: [
-                            {
-                              type: "text",
-                              data: "[item]/name",
-                            },
-                          ],
+                          type: "text",
+                          data: "[item]/name",
                         },
                       ],
                     },
@@ -83,17 +85,20 @@ describe("логические операторы в map", () => {
       elements = parse<{}, { posts: Array<{ title: string; author: { name: string; isVerified: boolean } }> }>(
         ({ html, core }) => html`
           <div>
-            ${core.posts.map((post) => html`
-              <article class="post">
-                <h2>${post.title}</h2>
-                ${post.author.isVerified && html`
-                  <div class="author-verified">
-                    <span class="verified-badge">VERIFIED</span>
-                    <span>${post.author.name}</span>
-                  </div>
-                `}
-              </article>
-            `)}
+            ${core.posts.map(
+              (post) => html`
+                <article class="post">
+                  <h2>${post.title}</h2>
+                  ${post.author.isVerified &&
+                  html`
+                    <div class="author-verified">
+                      <span class="verified-badge">VERIFIED</span>
+                      <span>${post.author.name}</span>
+                    </div>
+                  `}
+                </article>
+              `
+            )}
           </div>
         `
       )
@@ -181,12 +186,14 @@ describe("логические операторы в map", () => {
       elements = parse<{}, { items: Array<{ name: string; isNew: boolean }> }>(
         ({ html, core }) => html`
           <ul>
-            ${core.items.map((item) => html`
-              <li class="item">
-                ${item.isNew && html`<span class="new-badge">NEW</span>`}
-                <span>${item.name}</span>
-              </li>
-            `)}
+            ${core.items.map(
+              (item) => html`
+                <li class="item">
+                  ${item.isNew && html`<span class="new-badge">NEW</span>`}
+                  <span>${item.name}</span>
+                </li>
+              `
+            )}
           </ul>
         `
       )
@@ -226,15 +233,15 @@ describe("логические операторы в map", () => {
                             },
                           ],
                         },
+                      ],
+                    },
+                    {
+                      tag: "span",
+                      type: "el",
+                      child: [
                         {
-                          tag: "span",
-                          type: "el",
-                          child: [
-                            {
-                              type: "text",
-                              data: "[item]/name",
-                            },
-                          ],
+                          type: "text",
+                          data: "[item]/name",
                         },
                       ],
                     },
@@ -252,21 +259,28 @@ describe("логические операторы в map", () => {
     let elements: Node[]
 
     beforeAll(() => {
-      elements = parse<{ showDetails: boolean }, { products: Array<{ name: string; price: number; inStock: boolean }> }>(
+      elements = parse<
+        { showDetails: boolean },
+        { products: Array<{ name: string; price: number; inStock: boolean }> }
+      >(
         ({ html, core, context }) => html`
           <div>
-            ${core.products.map((product) => html`
-              <div class="product">
-                <h3>${product.name}</h3>
-                <p class="price">$${product.price}</p>
-                ${product.inStock && context.showDetails && html`
-                  <div class="product-details">
-                    <span class="stock-status">In Stock</span>
-                    <button class="add-to-cart">Add to Cart</button>
-                  </div>
-                `}
-              </div>
-            `)}
+            ${core.products.map(
+              (product) => html`
+                <div class="product">
+                  <h3>${product.name}</h3>
+                  <p class="price">$${product.price}</p>
+                  ${product.inStock &&
+                  context.showDetails &&
+                  html`
+                    <div class="product-details">
+                      <span class="stock-status">In Stock</span>
+                      <button class="add-to-cart">Add to Cart</button>
+                    </div>
+                  `}
+                </div>
+              `
+            )}
           </div>
         `
       )
@@ -371,12 +385,14 @@ describe("логические операторы в map", () => {
       elements = parse<{}, { notifications: Array<{ message: string; isImportant: boolean }> }>(
         ({ html, core }) => html`
           <div>
-            ${core.notifications.map((notification) => html`
-              <div class="notification">
-                ${notification.isImportant && html`<span class="important">!</span>`}
-                <span class="message">${notification.message}</span>
-              </div>
-            `)}
+            ${core.notifications.map(
+              (notification) => html`
+                <div class="notification">
+                  ${notification.isImportant && html`<span class="important">!</span>`}
+                  <span class="message">${notification.message}</span>
+                </div>
+              `
+            )}
           </div>
         `
       )
@@ -416,18 +432,18 @@ describe("логические операторы в map", () => {
                             },
                           ],
                         },
+                      ],
+                    },
+                    {
+                      tag: "span",
+                      type: "el",
+                      string: {
+                        class: "message",
+                      },
+                      child: [
                         {
-                          tag: "span",
-                          type: "el",
-                          string: {
-                            class: "message",
-                          },
-                          child: [
-                            {
-                              type: "text",
-                              data: "[item]/message",
-                            },
-                          ],
+                          type: "text",
+                          data: "[item]/message",
                         },
                       ],
                     },
@@ -445,21 +461,25 @@ describe("логические операторы в map", () => {
     let elements: Node[]
 
     beforeAll(() => {
-      elements = parse<{}, { categories: Array<{ name: string; hasSubcategories: boolean; subcategories: Array<{ name: string }> }> }>(
+      elements = parse<
+        {},
+        { categories: Array<{ name: string; hasSubcategories: boolean; subcategories: Array<{ name: string }> }> }
+      >(
         ({ html, core }) => html`
           <div>
-            ${core.categories.map((category) => html`
-              <div class="category">
-                <h2>${category.name}</h2>
-                ${category.hasSubcategories && html`
-                  <ul class="subcategories">
-                    ${category.subcategories.map((sub) => html`
-                      <li>${sub.name}</li>
-                    `)}
-                  </ul>
-                `}
-              </div>
-            `)}
+            ${core.categories.map(
+              (category) => html`
+                <div class="category">
+                  <h2>${category.name}</h2>
+                  ${category.hasSubcategories &&
+                  html`
+                    <ul class="subcategories">
+                      ${category.subcategories.map((sub) => html` <li>${sub.name}</li> `)}
+                    </ul>
+                  `}
+                </div>
+              `
+            )}
           </div>
         `
       )

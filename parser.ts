@@ -639,6 +639,10 @@ class Hierarchy {
     const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     curEl.child!.push(part)
+    /** Выходим из логического оператора если были в блоке log */
+    if (this.cursor.part === "log") {
+      this.cursor.back() // удаляем log и выходим из логического оператора
+    }
     return
   }
 
@@ -653,6 +657,10 @@ class Hierarchy {
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     curEl.child!.push(part)
     this.cursor.push(part.tag)
+    /** Выходим из логического оператора если были в блоке log */
+    if (this.cursor.part === "log") {
+      this.cursor.back() // удаляем log и выходим из логического оператора
+    }
     return
   }
   #recursiveCloseMultipleElse() {
@@ -691,6 +699,10 @@ class Hierarchy {
       /** Выходим из else если были в блоке else */
       if (this.cursor.part === "else") {
         this.cursor.back() // удаляем else и выходим из элемента cond
+      }
+      /** Выходим из логического оператора если были в блоке log */
+      if (this.cursor.part === "log") {
+        this.cursor.back() // удаляем log и выходим из логического оператора
       }
       return
     }
