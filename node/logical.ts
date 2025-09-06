@@ -1,7 +1,7 @@
 import type { PartAttrLogical } from "./logical.t"
 import { parseCondition } from "../parser"
 import type { ParseContext } from "../parser.t"
-import { createNodeData } from "."
+import { createNode } from "."
 import type { NodeLogical, TokenLogicalOpen } from "./logical.t"
 
 /**
@@ -32,7 +32,7 @@ export const createNodeDataLogical = (
         : processedData || ""
       : processedData || [],
     ...(needsExpression && condData.metadata?.expression ? { expr: condData.metadata.expression } : {}),
-    child: node.child ? node.child.map((child: any) => createNodeData(child, context)) : [],
+    child: node.child ? node.child.map((child: any) => createNode(child, context)) : [],
   }
 }
 export const findLogicalOperators = (expr: string): [number, TokenLogicalOpen][] => {

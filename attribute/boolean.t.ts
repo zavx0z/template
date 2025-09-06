@@ -4,7 +4,7 @@ import type { ValueVariable, ValueDynamic } from "./index.t"
  * Булевые атрибуты.
  * HTML атрибуты, которые присутствуют или отсутствуют (hidden, disabled, checked).
  *
- * @group Атрибуты элементов
+ * @group Значения атрибутов
  * @example
  * ```html
  * <input type="checkbox" ${core.user.isSubscribed && "checked"} />

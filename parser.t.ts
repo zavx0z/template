@@ -1,16 +1,5 @@
-import type { TokenCondClose, TokenCondElse, TokenCondOpen } from "./node/condition.t"
-import type { TokenLogicalOpen } from "./node/logical.t"
-import type { TokenMapOpen, TokenMapClose, ParseMapContext } from "./node/map.t"
-import type { TokenText } from "./node/text.t"
+import type { ParseMapContext } from "./node/map.t"
 
-export type StreamToken =
-  | TokenText
-  | TokenCondOpen
-  | TokenCondElse
-  | TokenCondClose
-  | TokenMapOpen
-  | TokenMapClose
-  | TokenLogicalOpen
 /**
  * Контекст для парсинга данных.
  */

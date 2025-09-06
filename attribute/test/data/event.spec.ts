@@ -1,6 +1,6 @@
 import { it, describe, expect } from "bun:test"
 import { enrichWithData } from "../../../parser"
-import type { PartAttrs } from "../../../node/index.t"
+import type { PartsAttr } from "../../../node/index.t"
 
 describe("event", () => {
   it("update в функции", () => {
@@ -12,7 +12,7 @@ describe("event", () => {
           onclick: "() => update({ selected: core.id })",
         },
       },
-    ] as PartAttrs
+    ] as PartsAttr
 
     const data = enrichWithData(attributes)
     expect(data).toEqual([

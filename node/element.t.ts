@@ -1,4 +1,5 @@
-import type { AttributesNode, AttrNodeElement } from "./index.t"
+import type { AttrNodeElement } from "./index.t"
+import type { Attributes } from "../attribute/index.t"
 import type { Node } from "./index.t"
 
 /**
@@ -54,7 +55,7 @@ import type { Node } from "./index.t"
  * - `child` - массив дочерних узлов
  * - Атрибуты: `event`, `boolean`, `array`, `string`, `style`
  */
-export interface NodeElement extends AttributesNode {
+export interface NodeElement extends Attributes {
   /**
    * Имя HTML тега
    *

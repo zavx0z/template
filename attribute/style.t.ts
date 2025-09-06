@@ -4,7 +4,7 @@ import type { ValueStatic, ValueVariable, ValueDynamic } from "./index.t"
  * Объект стилей.
  * CSS стили в виде JavaScript объекта (styled-components подход).
  *
- * @group Атрибуты элементов
+ * @group Значения атрибутов
  * @example Простой объект стилей
  * ```html
  * <div style=${{backgroundColor: "red", color: "white"}}>

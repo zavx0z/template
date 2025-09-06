@@ -1,10 +1,13 @@
-import type { ParseAttributeResult, ValueDynamic, ValueVariable } from "./attribute/index.t"
-import type { PartAttrs } from "./node/index.t"
-import type { PartAttrMap } from "./node/map.t"
-import type { PartAttrCondition } from "./node/condition.t"
+import type { ValueDynamic, ValueVariable } from "./attribute/index.t"
+import type { PartsAttr, Node } from "./node/index.t"
+import type { Attributes } from "./attribute/index.t"
+import type { PartAttrMap, TokenMapClose, TokenMapOpen } from "./node/map.t"
+import type { PartAttrCondition, TokenCondClose, TokenCondElse, TokenCondOpen } from "./node/condition.t"
 import type { PartAttrMeta } from "./node/meta.t"
 import type { PartAttrElement } from "./node/element.t"
-import type { ParseContext, ParseResult, StreamToken } from "./parser.t"
+import type { ParseContext, ParseResult } from "./parser.t"
+import type { TokenText } from "./node/text.t"
+import type { TokenLogicalOpen } from "./node/logical.t"
 import { formatAttributeText, parseAttributes } from "./attribute"
 import { findAllConditions, findCondElse, findCondClose } from "./node/condition"
 import { findLogicalOperators } from "./node/logical"
@@ -15,10 +18,8 @@ import { processBooleanAttributes } from "./attribute/boolean"
 import { processEventAttributes } from "./attribute/event"
 import { processStringAttributes } from "./attribute/string"
 import { processStyleAttributes } from "./attribute/style"
-import { createNodeData } from "./node"
-import type { NodeElement } from "./node/element.t"
-import type { Node } from "./node/index.t"
-import type { NodeMeta } from "./node/meta.t"
+import { createNode } from "./node"
+import { VOID_TAGS } from "./node/element"
 
 // ============================================================================
 // КОНСТАНТЫ И УТИЛИТЫ
@@ -29,25 +30,9 @@ const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>|<\/?meta-[^>]*>|<\/?m
 const isValidTagName = (name: string) =>
   (/^[A-Za-z][A-Za-z0-9:-]*$/.test(name) && !name.includes("*")) || name.startsWith("meta-")
 
-export const VOID_TAGS = new Set([
-  "area",
-  "base",
-  "br",
-  "col",
-  "embed",
-  "hr",
-  "img",
-  "input",
-  "link",
-  "meta",
-  "param",
-  "source",
-  "track",
-  "wbr",
-])
 const shouldIgnoreAt = (input: string, i: number) => input[i + 1] === "!" || input[i + 1] === "?"
 
-export const extractHtmlElements = (input: string): PartAttrs => {
+export const extractHtmlElements = (input: string): PartsAttr => {
   const store = new Hierarchy()
 
   let lastIndex = 0
@@ -61,7 +46,7 @@ export const extractHtmlElements = (input: string): PartAttrs => {
       TAG_LOOKAHEAD.lastIndex = localIndex + 1
       continue
     }
-    parseTextAndOperators(input.slice(lastIndex, localIndex), store)
+    if (input.trim()) parseTextAndOperators(input.slice(lastIndex, localIndex), store)
     const tagStart = localIndex
     let tagEnd = -1
     let i = localIndex + 1
@@ -124,6 +109,7 @@ export const extractHtmlElements = (input: string): PartAttrs => {
     let type: "el" | "meta" = "el"
 
     const tagNameMatch = full.match(/^<\/?([A-Za-z][A-Za-z0-9:-]*)(?:\s|>|\/)/i)
+
     if (tagNameMatch) {
       name = (tagNameMatch[1] || "").toLowerCase()
       valid = isValidTagName(tagNameMatch[1] || "")
@@ -162,94 +148,74 @@ export const extractHtmlElements = (input: string): PartAttrs => {
     TAG_LOOKAHEAD.lastIndex = tagEnd
     lastIndex = tagEnd
   }
+
   if (store.child.length) return store.child
   // если нет тегов, то парсим текст и операторы
-  parseTextAndOperators(input.slice(lastIndex), store)
+  if (input.trim()) parseTextAndOperators(input.slice(lastIndex), store)
   return store.child
 }
 
 export const parseTextAndOperators = (input: string, store: Hierarchy) => {
   // текст между предыдущим и текущим тегом
-  if (input.trim()) {
-    const tokens = getTokens(input)
-    for (const token of tokens) {
-      switch (token.kind) {
-        case "text":
-          store.text(token.text)
-          break
-        case "cond-open":
-          store.if(token.expr)
-          break
-        case "cond-else":
-          store.else()
-          break
-        case "cond-close":
-          break
-        case "log-open":
-          store.logical(token.expr)
-          break
-        case "map-open":
-          store.map(token.sig)
-          break
-        case "map-close":
-          store.close("map")
-          break
-      }
-    }
-  }
-}
+  const map = new Map<
+    number,
+    TokenText | TokenCondOpen | TokenCondElse | TokenCondClose | TokenMapOpen | TokenMapClose | TokenLogicalOpen
+  >()
 
-// ============================================================================
-// ТОКЕНИЗАЦИЯ
-// ============================================================================
-function getTokens(expr: string): StreamToken[] {
-  const tokens = new Map<number, StreamToken>()
-
-  const text = findText(expr)
-  text && tokens.set(text.start, { text: text.text, kind: "text" })
+  const text = findText(input)
+  text && map.set(text.start, { text: text.text, kind: "text" })
 
   const isNotInText = (index: number) => (text ? index < text.start || index > text.end : true)
   // --------- conditions ---------
-  const conds = findAllConditions(expr)
-  for (const cond of conds) {
-    if (isNotInText(cond[0])) {
-      tokens.set(...cond)
-    }
-  }
-  const tokenCondElse = findCondElse(expr)
-  if (tokenCondElse && isNotInText(tokenCondElse[0])) {
-    tokens.set(...tokenCondElse)
-  }
+  const conds = findAllConditions(input)
+  for (const cond of conds) isNotInText(cond[0]) && map.set(...cond)
 
-  const tokenCondClose = findCondClose(expr)
-  if (tokenCondClose && isNotInText(tokenCondClose[0])) {
-    tokens.set(...tokenCondClose)
-  }
+  const tokenCondElse = findCondElse(input)
+  tokenCondElse && isNotInText(tokenCondElse[0]) && map.set(...tokenCondElse)
+
+  const tokenCondClose = findCondClose(input)
+  tokenCondClose && isNotInText(tokenCondClose[0]) && map.set(...tokenCondClose)
 
   // --------- logical operators ---------
-  const logicals = findLogicalOperators(expr)
-  for (const logical of logicals) {
-    if (isNotInText(logical[0])) {
-      tokens.set(...logical)
-    }
-  }
+  const logicals = findLogicalOperators(input)
+  for (const logical of logicals) isNotInText(logical[0]) && map.set(...logical)
 
   // ------------- map -------------
-  const tokenMapOpen = findMapOpen(expr)
-  // console.log("tokenMapOpen", expr, tokenMapOpen)
-  if (tokenMapOpen && isNotInText(tokenMapOpen[0])) {
-    tokens.set(...tokenMapOpen)
-  }
+  const tokenMapOpen = findMapOpen(input)
+  tokenMapOpen && isNotInText(tokenMapOpen[0]) && map.set(...tokenMapOpen)
 
-  const tokenMapClose = findMapClose(expr)
-  if (tokenMapClose && isNotInText(tokenMapClose[0])) {
-    tokens.set(...tokenMapClose)
-  }
+  const tokenMapClose = findMapClose(input)
+  tokenMapClose && isNotInText(tokenMapClose[0]) && map.set(...tokenMapClose)
 
-  // Сортируем по позиции и возвращаем токены
-  return Array.from(tokens.entries())
+  // Сортируем по позиции токены
+  const tokens = Array.from(map.entries())
     .sort(([a], [b]) => a - b)
     .map(([, token]) => token)
+
+  for (const token of tokens) {
+    switch (token.kind) {
+      case "text":
+        store.text(token.text)
+        break
+      case "cond-open":
+        store.if(token.expr)
+        break
+      case "cond-else":
+        store.else()
+        break
+      case "cond-close":
+        break
+      case "log-open":
+        store.logical(token.expr)
+        break
+      case "map-open":
+        store.map(token.sig)
+        break
+      case "map-close":
+        store.close("map")
+        break
+    }
+  }
 }
 
 // Обрезаем всё после первого открытия следующего html-шаблона
@@ -269,9 +235,9 @@ export const cutBeforeNextHtml = (s: string): string => {
  */
 class Cursor {
   /** Структура элементов по которым двигается курсор */
-  child: PartAttrs = []
+  child: PartsAttr = []
 
-  constructor(child: PartAttrs) {
+  constructor(child: PartsAttr) {
     this.child = child
   }
 
@@ -281,11 +247,11 @@ class Cursor {
   parts: string[] = []
 
   /** Элемент курсора */
-  get element(): PartAttrs {
-    let el: PartAttrs = this as unknown as PartAttrs
+  get element(): PartsAttr {
+    let el: PartsAttr = this as unknown as PartsAttr
     for (const path of this.path) {
       const { child } = el as unknown as PartAttrElement | PartAttrMeta | PartAttrMap | PartAttrCondition
-      el = child![path] as unknown as PartAttrs
+      el = child![path] as unknown as PartsAttr
     }
     return el
   }
@@ -308,7 +274,7 @@ class Cursor {
 }
 
 class Hierarchy {
-  child: PartAttrs = []
+  child: PartsAttr = []
   cursor: Cursor
   constructor() {
     this.child = []
@@ -806,40 +772,29 @@ export const createUnifiedExpression = (value: string, variables: string[]): str
  * parseMap("nested.map((item) => ...)", context)
  * // Возвращает: { path: "[item]/nested", context: {...}, metadata: { params: ["item"] } }
  */
-// ============================================================================
-// NODE CREATION UTILITIES
-// ============================================================================
+
 /**
  * Общая функция для обработки атрибутов с template literals.
  * Устраняет дублирование кода между различными типами атрибутов.
  */
-
 export const processTemplateLiteralAttribute = (
   value: string,
   context: ParseContext
-): { data: string | string[]; expr?: string } | null => {
+): ValueDynamic | ValueVariable | null => {
   const templateResult = parseTemplateLiteral(value, context)
-  if (templateResult && templateResult.data) {
-    // Проверяем, является ли это простой переменной (только одна переменная без дополнительного текста)
-    const isSimpleVariable = templateResult.expr === "${[0]}" && !Array.isArray(templateResult.data)
-
-    return {
-      data: templateResult.data,
-      ...(templateResult.expr && !isSimpleVariable && { expr: templateResult.expr }),
-    }
+  if (templateResult) {
+    if (templateResult.expr === "${[0]}" && !Array.isArray(templateResult.data)) return { data: templateResult.data }
+    return { data: templateResult.data, expr: templateResult.expr }
   }
   return null
 }
+
 /**
  * Общая функция для обработки базовых атрибутов элемента.
  * Устраняет дублирование кода между createNodeDataElement и createNodeDataMeta.
  */
-
-export const processBasicAttributes = (
-  node: PartAttrElement | PartAttrMeta,
-  context: ParseContext
-): Partial<NodeElement | NodeMeta> => {
-  const result: Partial<NodeElement | NodeMeta> = {}
+export const processBasicAttributes = (node: PartAttrElement | PartAttrMeta, context: ParseContext): Attributes => {
+  const result: Attributes = {}
 
   // Обрабатываем базовые атрибуты
   if (node.string) {
@@ -870,6 +825,7 @@ export const processBasicAttributes = (
 
   return result
 }
+
 /**
  * Общая функция для поиска конца template literal.
  * Устраняет дублирование кода в parseAttributesImproved.
@@ -1015,15 +971,15 @@ export const extractConditionExpression = (condText: string): string => {
 
   return expression.replace(/\s+/g, " ").trim()
 }
+
 /**
  * Общая функция для обработки template literals.
  * Используется как для text узлов, так и для атрибутов.
  */
-
 export const parseTemplateLiteral = (
   value: string,
   context: ParseContext = { pathStack: [], level: 0 }
-): ParseAttributeResult | null => {
+): ValueDynamic | null => {
   // Если значение не содержит ${}, возвращаем null (статическое значение)
   if (!value.includes("${")) {
     return null
@@ -1165,7 +1121,7 @@ export const parseTemplateLiteral = (
   let expr = value
 
   // Защищаем строковые литералы от замены
-  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
+  const { stringLiterals } = protectStringLiterals(expr)
 
   variables.forEach((variable: string, index: number) => {
     // Заменяем переменные на индексы во всем выражении
@@ -1187,8 +1143,8 @@ export const parseTemplateLiteral = (
   }
 }
 
-export const enrichWithData = (hierarchy: PartAttrs, context: ParseContext = { pathStack: [], level: 0 }): Node[] => {
-  return hierarchy.map((node) => createNodeData(node, context))
+export const enrichWithData = (hierarchy: PartsAttr, context: ParseContext = { pathStack: [], level: 0 }): Node[] => {
+  return hierarchy.map((node) => createNode(node, context))
 }
 // ============================================================================
 // HELPER FUNCTIONS FOR CODE REUSE

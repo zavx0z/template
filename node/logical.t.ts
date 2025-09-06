@@ -172,7 +172,8 @@ export interface NodeLogical {
   /** Дочерние узлы, которые отображаются только если условие истинно */
   child: Node[]
 }
-export type TokenLogicalOpen = { kind: "log-open"; expr: string }export type PartAttrLogical = {
+export type TokenLogicalOpen = { kind: "log-open"; expr: string }
+export type PartAttrLogical = {
   /** Тип узла */
   type: "log"
   /** Исходный текст логического выражения */
@@ -180,4 +181,3 @@ export type TokenLogicalOpen = { kind: "log-open"; expr: string }export type Par
   /** Дочерние элементы, которые отображаются только если условие истинно */
   child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartAttrLogical)[]
 }
-

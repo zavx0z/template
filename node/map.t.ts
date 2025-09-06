@@ -265,7 +265,8 @@ export type ParseMapContext = {
   level: number
 }
 export type TokenMapClose = { kind: "map-close" }
-export type TokenMapOpen = { kind: "map-open"; sig: string }export type PartAttrMap = {
+export type TokenMapOpen = { kind: "map-open"; sig: string }
+export type PartAttrMap = {
   /** Тип узла */
   type: "map"
   /** Исходный текст map-выражения */
@@ -273,4 +274,3 @@ export type TokenMapOpen = { kind: "map-open"; sig: string }export type PartAttr
   /** Дочерние элементы, повторяемые для каждого элемента коллекции */
   child: (PartAttrElement | PartText | PartAttrMap | PartAttrMeta | PartAttrCondition | PartAttrLogical)[]
 }
-

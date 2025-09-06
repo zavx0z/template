@@ -4,7 +4,7 @@ import type { ValueVariable, ValueDynamic, ValueUpdate } from "./index.t"
  * Событийные атрибуты.
  * Содержит обработчики событий (onclick, onchange, onsubmit и т.д.)
  *
- * @group Атрибуты элементов
+ * @group Значения атрибутов
  * @example Простая функция без параметров
  * ```html
  * <button onclick=${core.handleClick}>Кнопка</button>
@@ -48,19 +48,6 @@ import type { ValueVariable, ValueDynamic, ValueUpdate } from "./index.t"
  *   }
  * }
  * ```
- *
- * @example Булев атрибут события
- * ```html
- * <button onclick>Кнопка</button>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "onclick": true
- * }
- * ```
  */
-
 export type ValueEvent = ValueVariable | ValueDynamic | ValueUpdate
 export type RawAttrEvent = Record<string, string>

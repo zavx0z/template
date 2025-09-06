@@ -2,7 +2,7 @@ import type { PartAttrCondition } from "./condition.t"
 import { parseCondition } from "../parser"
 import type { ParseContext } from "../parser.t"
 import type { NodeCondition, TokenCondClose, TokenCondElse, TokenCondOpen } from "./condition.t"
-import { createNodeData } from "."
+import { createNode } from "."
 
 /**
  * Создает NodeCondition из PartCondition.
@@ -31,7 +31,7 @@ export const createNodeDataCondition = (
         : processedData || ""
       : processedData || [],
     ...(needsExpression && condData.metadata?.expression ? { expr: condData.metadata.expression } : {}),
-    child: [createNodeData(node.child[0]!, context), createNodeData(node.child[1]!, context)],
+    child: [createNode(node.child[0]!, context), createNode(node.child[1]!, context)],
   }
 }
 

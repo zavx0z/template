@@ -50,10 +50,7 @@ export const processEventAttributes = (
  * @returns Результат парсинга с путями к данным и унифицированным выражением
  */
 
-export const parseEventExpression = (
-  eventValue: string,
-  context: ParseContext = { pathStack: [], level: 0 }
-): ValueEvent | null => {
+export const parseEventExpression = (eventValue: string, context: ParseContext = { pathStack: [], level: 0 }): ValueEvent | null => {
   // Проверяем, является ли это условным выражением (не событием)
   // Ищем тернарный оператор ? ... : (но не стрелочную функцию =>)
   const hasConditionalOperators = CONDITIONAL_OPERATORS_PATTERN.test(eventValue) && !eventValue.includes("=>")

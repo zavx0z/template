@@ -1,6 +1,6 @@
 import type { PartAttrMap } from "./map.t"
 import type { ParseContext, ParseResult } from "../parser.t"
-import { createNodeData } from "."
+import { createNode } from "."
 import type { NodeMap, TokenMapClose, TokenMapOpen } from "./map.t"
 // Паттерны для парсинга map выражений
 const MAP_PATTERN = /(\w+(?:\.\w+)*)\.map\(([^)]*)\)/
@@ -85,7 +85,7 @@ export const createNodeDataMap = (node: PartAttrMap, context: ParseContext = { p
   return {
     type: "map",
     data: Array.isArray(mapData.path) ? mapData.path[0] || "" : mapData.path,
-    child: node.child ? node.child.map((child: any) => createNodeData(child, mapData.context || context)) : [],
+    child: node.child ? node.child.map((child: any) => createNode(child, mapData.context || context)) : [],
   }
 } // ============================================================================
 // ПОИСК ТОКЕНОВ

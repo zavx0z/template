@@ -203,7 +203,8 @@ export interface NodeCondition {
 }
 export type TokenCondClose = { kind: "cond-close" }
 export type TokenCondElse = { kind: "cond-else" }
-export type TokenCondOpen = { kind: "cond-open"; expr: string }export type PartAttrCondition = {
+export type TokenCondOpen = { kind: "cond-open"; expr: string }
+export type PartAttrCondition = {
   /** Тип узла */
   type: "cond"
   /** Исходный текст условия */
@@ -214,4 +215,3 @@ export type TokenCondOpen = { kind: "cond-open"; expr: string }export type PartA
    */
   child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap)[]
 }
-

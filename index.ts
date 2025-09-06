@@ -1,7 +1,9 @@
-import { createNodeData } from "./node"
+import { createNode } from "./node"
 import type { Node } from "./node/index.t"
-import type { RenderParams, Context, Core, State } from "./index.t"
+import type { TemplateParams, Context, Core, State } from "./index.t"
 import { extractHtmlElements } from "./parser"
+
+export type { Node }
 
 /**
  * Парсит HTML-шаблон и возвращает обогащенную иерархию с метаданными о путях к данным.
@@ -18,18 +20,15 @@ import { extractHtmlElements } from "./parser"
  * @returns Обогащенная иерархия с метаданными о путях к данным
  */
 export const parse = <C extends Context = Context, I extends Core = Core, S extends State = State>(
-  render: (params: RenderParams<C, I, S>) => void
+  render: (params: TemplateParams<C, I, S>) => void
 ): Node[] => {
   const mainHtml = extractMainHtmlBlock(render)
   const hierarchy = extractHtmlElements(mainHtml)
   const context = { pathStack: [], level: 0 }
-  return hierarchy.map((node) => createNodeData(node, context))
+  return hierarchy.map((node) => createNode(node, context))
 }
-export type { Node }
 
-const extractMainHtmlBlock = <C extends Context = Context, I extends Core = Core, S extends State = State>(
-  render: (params: RenderParams<C, I, S>) => void
-): string => {
+const extractMainHtmlBlock = (render: (params: TemplateParams<any, any, any>) => void): string => {
   const src = Function.prototype.toString.call(render)
   const firstIndex = src.indexOf("html`")
   if (firstIndex === -1) throw new Error("функция render не содержит html`")

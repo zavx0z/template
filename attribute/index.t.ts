@@ -1,19 +1,16 @@
 import type { SplitterFn } from "."
+import type { ValueArray } from "./array.t"
+import type { ValueBoolean } from "./boolean.t"
+import type { ValueEvent } from "./event.t"
+import type { ValueString } from "./string.t"
+import type { ValueStyle } from "./style.t"
 
 export type ValueType = "dynamic" | "static" | "mixed"
 
 export type SplitterResolved = { fn: SplitterFn; delim: string }
 
 /**
- * Статический элемент массива атрибутов.
- */
-export type ValueStaticArray = {
-  /** Статическое значение */
-  value: string
-}
-
-/**
- * Статическое значение.
+ * Статическое строковое значение.
  */
 export type ValueStatic = string
 
@@ -95,111 +92,15 @@ export type ValueUpdate = {
   upd: string | string[]
 }
 
-/**
- * Результат парсинга атрибута.
- * Содержит информацию о динамических атрибутах, извлеченную из template literals.
- *
- * @example Простой динамический атрибут
- * ```html
- * <div class=${context.theme}>Элемент</div>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "data": "/context/theme"
- * }
- * ```
- *
- * @example Сложное выражение в атрибуте
- * ```html
- * <div class=${core.role === 'admin' ? 'admin-panel' : 'user-panel'}>
- *   Панель
- * </div>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "data": ["/core/role"],
- *   "expr": "${[0]} === 'admin' ? 'admin-panel' : 'user-panel'"
- * }
- * ```
- *
- * @example Атрибут с обновлением состояния
- * ```html
- * <input value=${context.email} onchange=${(e) => update({ email: e.target.value })} />
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "data": "/context/email",
- *   "upd": "email",
- *   "expr": "(e) => update({ email: e.target.value })"
- * }
- * ```
- *
- * @example Смешанный атрибут
- * ```html
- * <div class="container ${context.theme} ${context.isActive ? 'active' : ''}">
- *   Элемент
- * </div>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "data": ["/context/theme", "/context/isActive"],
- *   "expr": "container ${[0]} ${[1] ? 'active' : ''}"
- * }
- * ```
- *
- * Структура:
- * - `data` - путь(и) к данным в контексте
- * - `expr` - выражение с индексами для сложных вычислений
- * - `upd` - ключи обновления контекста
- */
-export type ParseAttributeResult = {
-  /**
-   * Путь(и) к данным
-   *
-   * @example Простой путь
-   * ```typescript
-   * data: "/context/name"
-   * ```
-   *
-   * ---
-   *
-   * @example Массив путей
-   * ```typescript
-   * data: ["/context/theme", "/core/role"]
-   * ```
-   */
-  data?: string | string[]
-  /**
-   * Унифицированное выражение с индексами
-   *
-   * @example
-   * ```typescript
-   * expr: "${[0]} === 'admin' ? 'admin' : 'user'"
-   * ```
-   */
-  expr?: string
-  /**
-   * Ключи обновления контекста
-   *
-   * @example Простой ключ
-   * ```typescript
-   * upd: "email"
-   * ```
-   *
-   * ---
-   *
-   * @example Массив ключей
-   * ```typescript
-   * upd: ["user", "settings"]
-   * ```
-   */
-  upd?: string | string[]
+export interface Attributes {
+  /** События (onclick, onchange, onsubmit и т.д.) */
+  event?: Record<string, ValueEvent>
+  /** Булевые атрибуты (hidden, disabled, checked, readonly и т.д.) */
+  boolean?: Record<string, ValueBoolean>
+  /** Массивы атрибутов (class, rel, ping и т.д.) */
+  array?: Record<string, ValueArray[]>
+  /** Строковые атрибуты (id, title, alt, href и т.д.) */
+  string?: Record<string, ValueString>
+  /** Стили (CSS в виде строки или объекта) */
+  style?: Record<string, ValueStyle>
 }

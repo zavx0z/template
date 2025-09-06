@@ -1,5 +1,6 @@
 import type { ValueStatic, ValueDynamic, ValueVariable } from "../attribute/index.t"
-import type { AttributesNode, AttrNodeElement } from "./index.t"
+import type { AttrNodeElement } from "./index.t"
+import type { Attributes } from "../attribute/index.t"
 import type { Node } from "./index.t"
 
 /**
@@ -38,8 +39,8 @@ import type { Node } from "./index.t"
  * - Свойства: `core`, `context`
  */
 
-export interface NodeMeta extends AttributesNode {
-  /** Имя мета-тега (может быть статическим строкой или динамическим ParseAttributeResult) */
+export interface NodeMeta extends Attributes {
+  /** Имя мета-тега (может быть статическим или динамическим) */
   tag: ValueStatic | ValueDynamic | ValueVariable
   /** Тип узла - всегда "meta" для мета-узлов */
   type: "meta"

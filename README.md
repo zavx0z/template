@@ -34,26 +34,27 @@ yarn add @zavx0z/html-parser
 ```ts
 import { parse, type Node } from "@zavx0z/html-parser"
 
-const tree: Node[] = parse(({ html, context, core }) => html`
-  <div class=${context.userStatus}>
-    <h1>Привет ${context.userName}!</h1>
+const tree: Node[] = parse(
+  ({ html, context, core }) => html`
+    <div class=${context.userStatus}>
+      <h1>Привет ${context.userName}!</h1>
 
-    ${core.items.map(
-      (g) => html`
-        <div class="card ${g.active && "active"}">
-          ${g.title ? html`<h2>${g.title}</h2>` : html`<span>Без названия</span>`}
-        </div>
-      `
-    )}
+      ${core.items.map(
+        (g) => html`
+          <div class="card ${g.active && "active"}">
+            ${g.title ? html`<h2>${g.title}</h2>` : html`<span>Без названия</span>`}
+          </div>
+        `
+      )}
 
-    <meta-list
-      onClick=${core.onClick}
-      style=${{ color: context.color, opacity: core.opacity }}
-      context=${context.userData}
-      core=${core.widgetConfig} 
-    />
-  </div>
-`)
+      <meta-list
+        onClick=${core.onClick}
+        style=${{ color: context.color, opacity: core.opacity }}
+        context=${context.userData}
+        core=${core.widgetConfig} />
+    </div>
+  `
+)
 ```
 
 ## Что возвращается
@@ -97,6 +98,338 @@ function parse<C extends Context, I extends Core, S extends State>(
     update(context: Partial<C>): void
   }) => void
 ): Node[]
+```
+
+## Примеры
+
+### Простой HTML элемент
+
+```typescript
+const nodes = parse(({ html, context }) => html` <div class="container">Привет, ${context.userName}!</div> `)
+```
+
+Результат:
+
+```json
+[
+  {
+    "type": "el",
+    "tag": "div",
+    "string": { "class": "container" },
+    "child": [
+      {
+        "type": "text",
+        "data": "/context/userName",
+        "expr": "Привет, ${[0]}!"
+      }
+    ]
+  }
+]
+```
+
+---
+
+### Условный рендеринг
+
+```javascript
+const nodes = parse(
+  ({ html, context }) => html`
+    <div>
+      ${context.isLoggedIn
+        ? html`<span>Добро пожаловать, ${context.userName}!</span>`
+        : html`<a href="/login">Войти</a>`}
+    </div>
+  `
+)
+```
+
+Результат:
+
+```json
+[
+  {
+    "tag": "div",
+    "type": "el",
+    "child": [
+      {
+        "type": "cond",
+        "data": "/context/isLoggedIn",
+        "child": [
+          {
+            "tag": "span",
+            "type": "el",
+            "child": [
+              {
+                "type": "text",
+                "data": "/context/userName",
+                "expr": "Добро пожаловать, ${[0]}!"
+              }
+            ]
+          },
+          {
+            "tag": "a",
+            "type": "el",
+            "string": { "href": "/login" },
+            "child": [
+              {
+                "type": "text",
+                "value": "Войти"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+---
+
+### Итерация по массиву
+
+```typescript
+const nodes = parse(
+  ({ html, context, core }) => html`
+    <ul>
+      ${core.postTitles.map((title) => html`<li>${title}</li>`)}
+    </ul>
+  `
+)
+```
+
+Результат:
+
+```json
+[
+  {
+    "tag": "ul",
+    "type": "el",
+    "child": [
+      {
+        "type": "map",
+        "data": "/core/postTitles",
+        "child": [
+          {
+            "tag": "li",
+            "type": "el",
+            "child": [
+              {
+                "type": "text",
+                "data": "[item]"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+---
+
+### Логический оператор
+
+```typescript
+const nodes = parse(
+  ({ html, context, core }) => html`
+    <div>
+      ${context.hasNotifications &&
+      html`
+        <div class="notifications">${core.notificationMessages.map((message) => html`<div>${message}</div>`)}</div>
+      `}
+    </div>
+  `
+)
+```
+
+Результат:
+
+```json
+[
+  {
+    "tag": "div",
+    "type": "el",
+    "child": [
+      {
+        "type": "log",
+        "data": "/context/hasNotifications",
+        "child": [
+          {
+            "tag": "div",
+            "type": "el",
+            "string": { "class": "notifications" },
+            "child": [
+              {
+                "type": "map",
+                "data": "/core/notificationMessages",
+                "child": [
+                  {
+                    "tag": "div",
+                    "type": "el",
+                    "child": [
+                      {
+                        "type": "text",
+                        "data": "[item]"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+---
+
+### Мета-компонент
+
+```typescript
+const nodes = parse(
+  ({ html, context, core }) => html`
+    <my-component core=${core.widgetConfig} context=${core.userData} class="custom">
+      <p>Содержимое компонента</p>
+    </my-component>
+  `
+)
+```
+
+Результат:
+
+```json
+[
+  {
+    "tag": "my-component",
+    "type": "meta",
+    "core": {
+      "data": "/core/widgetConfig"
+    },
+    "context": {
+      "data": "/core/userData"
+    },
+    "string": { "class": "custom" },
+    "child": [
+      {
+        "tag": "p",
+        "type": "el",
+        "child": [
+          {
+            "type": "text",
+            "value": "Содержимое компонента"
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+---
+
+### Динамический тег
+
+```typescript
+const nodes = parse(
+  ({ html, context, core }) => html`
+  <meta-${core.componentType} class="dynamic">
+    <p>Динамический компонент</p>
+  </meta-${core.componentType}>
+`
+)
+```
+
+Результат:
+
+```json
+[
+  {
+    "tag": {
+      "data": "/core/componentType",
+      "expr": "meta-${[0]}"
+    },
+    "type": "meta",
+    "string": { "class": "dynamic" },
+    "child": [
+      {
+        "tag": "p",
+        "type": "el",
+        "child": [
+          {
+            "type": "text",
+            "value": "Динамический компонент"
+          }
+        ]
+      }
+    ]
+  }
+]
+```
+
+---
+
+### Обработка событий с функцией update
+
+```typescript
+const nodes = parse(
+  ({ html, context, update }) => html`
+    <div>
+      <button onclick=${() => update({ count: context.count + 1 })}>Счетчик: ${context.count}</button>
+      <input onchange=${(e) => update({ name: e.target.value })} value=${context.name} />
+    </div>
+  `
+)
+```
+
+Результат:
+
+```json
+[
+  {
+    "tag": "div",
+    "type": "el",
+    "child": [
+      {
+        "tag": "button",
+        "type": "el",
+        "event": {
+          "onclick": {
+            "upd": "count",
+            "data": "/context/count",
+            "expr": "() => update({ count: ${[0]} + 1 })"
+          }
+        },
+        "child": [
+          {
+            "type": "text",
+            "data": "/context/count",
+            "expr": "Счетчик: ${[0]}"
+          }
+        ]
+      },
+      {
+        "tag": "input",
+        "type": "el",
+        "event": {
+          "onchange": {
+            "upd": "name",
+            "expr": "(e) => update({ name: e.target.value })"
+          }
+        },
+        "string": {
+          "value": {
+            "data": "/context/name"
+          }
+        }
+      }
+    ]
+  }
+]
 ```
 
 ## Документация

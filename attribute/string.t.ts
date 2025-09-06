@@ -5,7 +5,7 @@ import type { ValueStatic, ValueVariable, ValueDynamic } from "./index.t"
  * Строковые атрибуты.
  * Обычные HTML атрибуты со строковыми значениями.
  *
- * @group Атрибуты элементов
+ * @group Значения атрибутов
  * @example
  * ```html
  * <img src=${context.url} alt=${context.alt} title=${context.title} />

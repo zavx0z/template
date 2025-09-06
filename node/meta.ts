@@ -1,13 +1,10 @@
 import type { PartAttrMeta } from "./meta.t"
 import { resolveDataPath, createUnifiedExpression, processBasicAttributes, processSemanticAttributes } from "../parser"
-import { createNodeData } from "."
+import { createNode } from "."
 import type { ParseContext } from "../parser.t"
 import type { NodeMeta } from "./meta.t"
 
-/**
- * Создает NodeMeta из обычного PartMeta.
- */
-
+/** Создает NodeMeta из PartMeta. */
 export const createNodeDataMeta = (
   node: PartAttrMeta,
   context: ParseContext = { pathStack: [], level: 0 }
@@ -73,7 +70,7 @@ export const createNodeDataMeta = (
 
   // Добавляем дочерние элементы, если они есть
   if (node.child && node.child.length > 0) {
-    result.child = node.child.map((child) => createNodeData(child, context))
+    result.child = node.child.map((child) => createNode(child, context))
   }
 
   return result

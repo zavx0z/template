@@ -3,9 +3,8 @@ import { parse, type Node } from "../../../index"
 
 describe("class атрибуты в data.ts", () => {
   describe("простые случаи", () => {
-    let elements: Node[]
-
     describe("class в элементе с одним статическим значением", () => {
+      let elements: Node[]
       beforeAll(() => {
         elements = parse(({ html }) => html`<div class="div-active"></div>`)
       })
@@ -51,7 +50,7 @@ describe("class атрибуты в data.ts", () => {
             tag: "div",
             type: "el",
             array: {
-              class: [{ value: "div-active" }, { value: "div-inactive" }],
+              class: ["div-active", "div-inactive"],
             },
           },
         ])
@@ -111,8 +110,9 @@ describe("class атрибуты в data.ts", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) =>
-            html`<div class="${core.active ? "active" : "inactive"} ${core.active ? "active" : "inactive"}"></div>`
+          ({ html, core }) => html`
+            <div class="${core.active ? "active" : "inactive"} ${core.active ? "active" : "inactive"}"></div>
+          `
         )
       })
 
@@ -382,7 +382,7 @@ describe("class атрибуты в data.ts", () => {
                   data: "/core/active",
                   expr: 'div-${[0] ? "active" : "inactive"}',
                 },
-                { value: "visible" },
+                "visible",
               ],
             },
           },
@@ -409,7 +409,7 @@ describe("class атрибуты в data.ts", () => {
                   data: "/core/active",
                   expr: '${[0] ? "active" : "inactive"}',
                 },
-                { value: "visible" },
+                "visible",
               ],
             },
           },
@@ -433,7 +433,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             array: {
               class: [
-                { value: "static-value" },
+                "static-value",
                 {
                   data: "/core/active",
                   expr: '${[0] ? "active" : "inactive"}',
@@ -500,7 +500,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             array: {
               class: [
-                { value: "base-class" },
+                "base-class",
                 {
                   data: "/core/active",
                   expr: '${[0] ? "active" : "inactive"}',
@@ -531,7 +531,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             array: {
               class: [
-                { value: "container" },
+                "container",
                 {
                   data: "/core/nested",
                   expr: '${[0] ? "nested" : "default"}',
@@ -559,7 +559,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             array: {
               class: [
-                { value: "visible" },
+                "visible",
                 {
                   data: "/core/hidden",
                   expr: '${[0] ? "" : "show"}',
@@ -672,7 +672,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             array: {
               class: [
-                { value: "base" },
+                "base",
                 {
                   data: ["/core/user/id", "/core/user/role"],
                   expr: "user-${[0]}-${[1]}",
@@ -720,7 +720,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             array: {
               class: [
-                { value: "base" },
+                "base",
                 {
                   data: "/core/user/id",
                   expr: "user-${[0]}",
