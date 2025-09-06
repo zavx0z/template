@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "../../attributes.ts"
+import { parseAttributes } from "../../attributes/index.ts"
 
 describe("комплексные тесты с множественными атрибутами", () => {
   describe("элемент area с shape и coords", () => {

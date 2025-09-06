@@ -5,7 +5,7 @@ import type {
   PartAttrMap,
   PartAttrCondition,
   PartAttrLogical,
-} from "./attributes.t"
+} from "./attributes/index.t"
 import type { Context, Core, State, RenderParams, Node } from "./index.t"
 import type { StreamToken } from "./parser.t"
 import { parseAttributes } from "./attributes"

@@ -86,12 +86,16 @@ describe("meta-компоненты с core/context в map и condition", () => 
         ({ html, core, context }) => html`
           <div>
             ${context.showMeta
-              ? html`<meta-${core.tag}
-                  core=${{ id: context.id, name: context.name }}
-                  context=${{ type: "primary", active: true }} />`
-              : html`<meta-${core.tag}
-                  core=${{ id: "default", name: "default" }}
-                  context=${{ type: "secondary", active: false }} />`}
+              ? html`
+                  <meta-${core.tag}
+                    core=${{ id: context.id, name: context.name }}
+                    context=${{ type: "primary", active: true }} />
+                `
+              : html`
+                  <meta-${core.tag}
+                    core=${{ id: "default", name: "default" }}
+                    context=${{ type: "secondary", active: false }} />
+                `}
           </div>
         `
       )
@@ -116,7 +120,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     data: ["/context/id", "/context/name"],
                     expr: "{ id: [0], name: [1] }",
                   },
-                  context: { data: '{ type: "primary", active: true }' },
+                  context: '{ type: "primary", active: true }',
                 },
                 {
                   tag: {
@@ -124,8 +128,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     expr: "meta-${[0]}",
                   },
                   type: "meta",
-                  core: { data: '{ id: "default", name: "default" }' },
-                  context: { data: '{ type: "secondary", active: false }' },
+                  core: '{ id: "default", name: "default" }',
+                  context: '{ type: "secondary", active: false }',
                 },
               ],
             },
@@ -162,9 +166,11 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     `
                   )}
                 `
-              : html`<meta-${core.tag}
-                  core=${{ id: "empty", name: "empty" }}
-                  context=${{ type: "empty", active: false }} />`}
+              : html`
+                  <meta-${core.tag}
+                    core=${{ id: "empty", name: "empty" }}
+                    context=${{ type: "empty", active: false }} />
+                `}
           </div>
         `
       )
@@ -206,8 +212,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     expr: "meta-${[0]}",
                   },
                   type: "meta",
-                  core: { data: '{ id: "empty", name: "empty" }' },
-                  context: { data: '{ type: "empty", active: false }' },
+                  core: '{ id: "empty", name: "empty" }',
+                  context: '{ type: "empty", active: false }',
                 },
               ],
             },
@@ -228,16 +234,36 @@ describe("meta-компоненты с core/context в map и condition", () => 
             ${core.items.map(
               (item) => html`
                 ${item.isActive
-                  ? html`<meta-${core.tag}
-                      core=${{ id: item.id, name: item.name, type: "active" }}
-                      context=${{ status: "active", permissions: item.permissions }} />`
+                  ? html`
+                      <meta-${core.tag}
+                        core=${{
+                          id: item.id,
+                          name: item.name,
+                          type: "active",
+                        }}
+                        context=${{
+                          status: "active",
+                          permissions: item.permissions,
+                        }} />
+                    `
                   : item.hasError
-                  ? html`<meta-${core.tag}
-                      core=${{ id: item.id, name: item.name, type: "error" }}
-                      context=${{ status: "error", message: "Item has error" }} />`
-                  : html`<meta-${core.tag}
-                      core=${{ id: item.id, name: item.name, type: "inactive" }}
-                      context=${{ status: "inactive" }} />`}
+                  ? html`
+                      <meta-${core.tag}
+                        core=${{
+                          id: item.id,
+                          name: item.name,
+                          type: "error",
+                        }}
+                        context=${{
+                          status: "error",
+                          message: "Item has error",
+                        }} />
+                    `
+                  : html`
+                      <meta-${core.tag}
+                        core=${{ id: item.id, name: item.name, type: "inactive" }}
+                        context=${{ status: "inactive" }} />
+                    `}
               `
             )}
           </div>
@@ -288,7 +314,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                             data: ["[item]/id", "[item]/name"],
                             expr: '{ id: [0], name: [1], type: "error" }',
                           },
-                          context: { data: '{ status: "error", message: "Item has error" }' },
+                          context: '{ status: "error", message: "Item has error" }',
                         },
                         {
                           tag: {
@@ -300,7 +326,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                             data: ["[item]/id", "[item]/name"],
                             expr: '{ id: [0], name: [1], type: "inactive" }',
                           },
-                          context: { data: '{ status: "inactive" }' },
+                          context: '{ status: "inactive" }',
                         },
                       ],
                     },

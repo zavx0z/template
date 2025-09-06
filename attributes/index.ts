@@ -1,11 +1,8 @@
-import type {
-  AttributeArray,
-  AttributeBoolean,
-  AttributeEvent,
-  AttributeString,
-  SplitterResolved,
-  ValueType,
-} from "./attributes.t"
+import type { ValueType, SplitterResolved } from "./index.t"
+import type { RawAttrArray } from "./array.t"
+import type { RawAttrBoolean } from "./boolean.t"
+import type { RawAttrEvent } from "./event.t"
+import type { RawAttrString } from "./string.t"
 
 // ============================
 // ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
@@ -400,10 +397,10 @@ export const BUILTIN_LIST_SPLITTERS: Record<string, SplitterResolved> = {
 export const parseAttributes = (
   inside: string
 ): {
-  event?: AttributeEvent
-  array?: AttributeArray
-  string?: AttributeString
-  boolean?: AttributeBoolean
+  event?: RawAttrEvent
+  array?: RawAttrArray
+  string?: RawAttrString
+  boolean?: RawAttrBoolean
   style?: string
   context?: string
   core?: string
@@ -412,10 +409,10 @@ export const parseAttributes = (
   let i = 0
 
   const result: {
-    event?: AttributeEvent
-    array?: AttributeArray
-    string?: AttributeString
-    boolean?: AttributeBoolean
+    event?: RawAttrEvent
+    array?: RawAttrArray
+    string?: RawAttrString
+    boolean?: RawAttrBoolean
     style?: string
     context?: string
     core?: string

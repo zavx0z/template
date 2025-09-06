@@ -1,6 +1,7 @@
 import type { ParseAttributeResult, ParseContext, ParseMapContext, ParseResult, ParseTextPart } from "./data.t"
 import type {
-  AttrVariable,
+  ValueVariable,
+  ValueDynamic,
   Node,
   NodeCondition,
   NodeElement,
@@ -8,7 +9,6 @@ import type {
   NodeMap,
   NodeMeta,
   NodeText,
-  StyleObject,
 } from "./index.t"
 import type {
   PartAttrCondition,
@@ -18,27 +18,32 @@ import type {
   PartAttrLogical,
   PartAttrs,
   PartText,
-} from "./attributes.t"
+} from "./attributes/index.t"
+import { processEventAttributes } from "./attributes/event"
+import { processStyleAttributes } from "./attributes/style"
+import { processStringAttributes } from "./attributes/string"
+import { processArrayAttributes } from "./attributes/array"
+import { processBooleanAttributes } from "./attributes/boolean"
 
 // ============================================================================
 // REGEX PATTERNS
 // ============================================================================
 
 // Паттерны для парсинга переменных
-const VARIABLE_WITH_DOTS_PATTERN = /([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g
+export const VARIABLE_WITH_DOTS_PATTERN = /([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g
 const VALID_VARIABLE_PATTERN = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/
 
 // Паттерны для парсинга map выражений
 const MAP_PATTERN = /(\w+(?:\.\w+)*)\.map\(([^)]*)\)/
 
 // Паттерны для парсинга событий
-const UPDATE_OBJECT_PATTERN = /update\(\s*\{([^}]+)\}\s*\)/
-const OBJECT_KEY_PATTERN = /([a-zA-Z_$][\w$]*)\s*:/g
-const CONDITIONAL_OPERATORS_PATTERN = /\?.*:/
+export const UPDATE_OBJECT_PATTERN = /update\(\s*\{([^}]+)\}\s*\)/
+export const OBJECT_KEY_PATTERN = /([a-zA-Z_$][\w$]*)\s*:/g
+export const CONDITIONAL_OPERATORS_PATTERN = /\?.*:/
 
 // Паттерны для форматирования
-const WHITESPACE_PATTERN = /\s+/g
-const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g
+export const WHITESPACE_PATTERN = /\s+/g
+export const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g
 
 /**
  * Единый префикс для индексационных плейсхолдеров внутри expr.
@@ -50,7 +55,7 @@ const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g
  * (parseEventExpression, createUnifiedExpression, parseTemplateLiteral, parseText, условия).
  * Допустимые варианты: "arguments" (классический JS) или пустая строка для специфического рантайма.
  */
-const ARGUMENTS_PREFIX = ""
+export const ARGUMENTS_PREFIX = ""
 
 // ============================================================================
 // PATH RESOLUTION UTILITIES
@@ -105,62 +110,6 @@ const buildItemPath = (prefix: string, variableParts: string[], isDestructured: 
   return hasProperty ? `${prefix}[item]/${variableParts.slice(1).join("/")}` : `${prefix}[item]`
 }
 
-// ============================================================================
-// ATTRIBUTE PROCESSING FUNCTIONS
-// ============================================================================
-
-/**
- * Обрабатывает строку стилей с плоским по-ключевому парсингом.
- *
- * Разбирает строку стилей на ключ-значение пары и разрешает пути к данным
- * для каждого значения отдельно. Подходит для style атрибутов, где нужен
- * адресный контроль по ключам.
- *
- * @param str - Строка стилей в формате "{ key: value, key2: value2 }"
- * @param ctx - Контекст парсера
- * @returns Объект с ключами стилей и разрешенными путями к данным
- */
-const processStyleAttributes = (str: string, ctx: ParseContext = { pathStack: [], level: 0 }): StyleObject | null => {
-  // Убираем фигурные скобки и пробелы
-  const cleanValue = str.replace(/^\{?\s*|\s*\}?$/g, "")
-
-  if (!cleanValue) {
-    return null
-  }
-
-  // Разбираем объект стилей
-  const styleObj: StyleObject = {}
-  const pairs = cleanValue.split(",")
-
-  for (const pair of pairs) {
-    const [key, value] = pair.split(":").map((s) => s.trim())
-    if (key && value) {
-      // Проверяем, содержит ли значение переменные (сложные выражения)
-      // Исключаем строковые литералы в кавычках
-      const cleanValue = value.replace(/"[^"]*"/g, "").replace(/'[^']*'/g, "")
-      const hasVariables = /[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*/.test(cleanValue)
-
-      if (hasVariables) {
-        // Это выражение с переменными - разрешаем пути к данным
-        const variableMatches = value.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
-        const uniqueVariables = [...new Set(variableMatches)]
-
-        if (uniqueVariables.length > 0) {
-          const paths = uniqueVariables.map((variable: string) => resolveDataPath(variable, ctx) || variable)
-          styleObj[key] = { data: paths.length === 1 ? paths[0] || "" : paths } as AttrVariable
-        } else {
-          styleObj[key] = value
-        }
-      } else {
-        // Это статическое значение - убираем лишние кавычки
-        styleObj[key] = value.replace(/^"|"$/g, "").replace(/^'|'$/g, "")
-      }
-    }
-  }
-
-  return Object.keys(styleObj).length > 0 ? styleObj : null
-}
-
 /**
  * Обрабатывает семантические атрибуты (core/context) с подходом "единый литерал + переменные".
  *
@@ -174,7 +123,7 @@ const processStyleAttributes = (str: string, ctx: ParseContext = { pathStack: []
 const processSemanticAttributes = (
   str: string,
   ctx: ParseContext = { pathStack: [], level: 0 }
-): ParseAttributeResult | null => {
+): ValueVariable | ValueDynamic | null => {
   // Извлекаем все переменные из строки объекта
   const variableMatches = str.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
 
@@ -354,156 +303,6 @@ const extractBaseVariable = (variable: string): string => {
 }
 
 /**
- * Парсит событийные выражения и извлекает пути к данным.
- *
- * Эта функция специально предназначена для обработки событий типа:
- * - () => core.onClick()
- * - (e) => core.onInput(e)
- * - () => item.handleClick(item.id)
- *
- * @param eventValue - Значение события для парсинга
- * @param context - Контекст парсера с информацией о текущем map контексте
- * @returns Результат парсинга с путями к данным и унифицированным выражением
- */
-const parseEventExpression = (
-  eventValue: string,
-  context: ParseContext = { pathStack: [], level: 0 }
-): ParseAttributeResult | null => {
-  // Проверяем, является ли это условным выражением (не событием)
-  // Ищем тернарный оператор ? ... : (но не стрелочную функцию =>)
-  const hasConditionalOperators = CONDITIONAL_OPERATORS_PATTERN.test(eventValue) && !eventValue.includes("=>")
-  if (hasConditionalOperators) {
-    return null
-  }
-
-  // Проверяем, является ли это template literal (не событием)
-  const hasTemplateLiteral = eventValue.includes("${")
-  if (hasTemplateLiteral) {
-    return null
-  }
-
-  // Проверяем, является ли это update выражением
-  if (eventValue.includes("update(")) {
-    // Ищем объект в update({ ... }) - может быть внутри стрелочной функции
-    const objectMatch = eventValue.match(UPDATE_OBJECT_PATTERN)
-    if (objectMatch) {
-      const objectContent = objectMatch[1] || ""
-
-      // Извлекаем ключи из объекта
-      const keyMatches = objectContent.match(OBJECT_KEY_PATTERN) || []
-      const keys = keyMatches.map((match) => match.replace(/\s*:$/, "").trim())
-
-      if (keys.length > 0) {
-        // Ищем переменные в значениях (например, core.name, context.count)
-        const variableMatches = objectContent.match(VARIABLE_WITH_DOTS_PATTERN) || []
-        const uniqueVariables = [...new Set(variableMatches)].filter((variable) => {
-          // Исключаем строковые литералы, короткие идентификаторы и булевые литералы
-          return (
-            variable.length > 1 &&
-            !variable.startsWith('"') &&
-            !variable.startsWith("'") &&
-            !variable.includes('"') &&
-            !variable.includes("'") &&
-            variable !== "true" &&
-            variable !== "false"
-          )
-        })
-
-        let result: ParseAttributeResult = {
-          upd: keys.length === 1 ? keys[0] || "" : keys,
-        }
-
-        // Если есть переменные, добавляем пути к данным
-        if (uniqueVariables.length > 0) {
-          const paths = uniqueVariables
-            .map((variable) => resolveDataPath(variable, context))
-            .filter((path) => path && path.length > 0) as string[]
-          if (paths.length > 0) {
-            result.data = paths.length === 1 ? paths[0]! : paths
-          }
-        }
-
-        // Обрабатываем выражение напрямую
-        let expr = eventValue
-        if (uniqueVariables.length > 0) {
-          uniqueVariables.forEach((variable, index) => {
-            expr = expr.replace(
-              new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"),
-              `\${${ARGUMENTS_PREFIX}[${index}]}`
-            )
-          })
-        }
-
-        result.expr = expr.replace(TEMPLATE_WRAPPER_PATTERN, "").replace(WHITESPACE_PATTERN, " ").trim()
-
-        return result
-      }
-    }
-  }
-
-  // Извлекаем переменные из события
-  // Ищем все переменные в формате identifier.identifier
-  const variableMatches = eventValue.match(VARIABLE_WITH_DOTS_PATTERN) || []
-
-  if (variableMatches.length === 0) {
-    return null
-  }
-
-  // Проверяем, является ли это стрелочной функцией
-  const hasArrowFunction = eventValue.includes("=>")
-
-  // Фильтруем уникальные переменные и исключаем строковые литералы
-  const uniqueVariables = [...new Set(variableMatches)].filter((variable) => {
-    // Исключаем строковые литералы и короткие идентификаторы
-    return (
-      variable.length > 1 &&
-      !variable.startsWith('"') &&
-      !variable.startsWith("'") &&
-      !variable.includes('"') &&
-      !variable.includes("'")
-    )
-  })
-
-  if (uniqueVariables.length === 0) {
-    return null
-  }
-
-  // Разрешаем пути к данным с учетом контекста
-  const paths = uniqueVariables.map((variable) => resolveDataPath(variable, context))
-
-  // Создаем унифицированное выражение
-  let expr = eventValue
-  uniqueVariables.forEach((variable, index) => {
-    // Заменяем переменные на индексы, учитывая границы слов
-    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${ARGUMENTS_PREFIX}[${index}]}`)
-  })
-
-  // Убираем ${} обертку если она есть, но только если это не template literal
-  if (!expr.includes("${")) {
-    expr = expr.replace(/^\$\{/, "").replace(/\}$/, "")
-  }
-
-  // Применяем форматирование
-  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
-
-  // Если это простая переменная без стрелочной функции, не возвращаем expr
-  if (
-    !hasArrowFunction &&
-    uniqueVariables.length === 1 &&
-    (expr === `\${${ARGUMENTS_PREFIX}[0]}` || expr === `${ARGUMENTS_PREFIX}[0]`)
-  ) {
-    return {
-      data: paths[0] || "",
-    }
-  }
-
-  return {
-    data: paths.length === 1 ? paths[0] || "" : paths,
-    expr,
-  }
-}
-
-/**
  * Создает унифицированное выражение с заменой переменных на индексы.
  *
  * Эта функция выполняет две ключевые задачи:
@@ -592,7 +391,7 @@ const createUnifiedExpression = (value: string, variables: string[]): string => 
  * Общая функция для обработки атрибутов с template literals.
  * Устраняет дублирование кода между различными типами атрибутов.
  */
-const processTemplateLiteralAttribute = (
+export const processTemplateLiteralAttribute = (
   value: string,
   context: ParseContext
 ): { data: string | string[]; expr?: string } | null => {
@@ -606,112 +405,6 @@ const processTemplateLiteralAttribute = (
       ...(templateResult.expr && !isSimpleVariable && { expr: templateResult.expr }),
     }
   }
-  return null
-}
-
-/**
- * Общая функция для обработки булевых атрибутов с переменными.
- * Устраняет дублирование кода в processBooleanAttributes.
- */
-const processBooleanAttributeWithVariables = (
-  booleanValue: string,
-  context: ParseContext
-): { data: string | string[]; expr?: string } | null => {
-  const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
-
-  if (variableMatches.length === 0) {
-    return null
-  }
-
-  // Обрабатываем все переменные в выражении
-  const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
-
-  // Создаем выражение, заменяя переменные на индексы
-  let expr = booleanValue
-  variableMatches.forEach((variable, index) => {
-    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${ARGUMENTS_PREFIX}[${index}]}`)
-  })
-
-  if (paths.length === 1) {
-    // Проверяем, есть ли отрицание или другие операции
-    const hasNegation = booleanValue.includes("!(") || booleanValue.includes("!")
-    const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(booleanValue)
-
-    // Проверяем, является ли это просто переменной без операций
-    const isSimpleVariable = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/.test(booleanValue.trim())
-
-    if ((hasNegation || hasComplexOperations) && !isSimpleVariable) {
-      // Для отрицания убираем лишние скобки
-      let finalExpr = expr
-      if (hasNegation && expr.includes("!(") && expr.includes(")")) {
-        finalExpr = expr.replace(/^!\(/, "!").replace(/\)$/, "")
-      }
-
-      return {
-        data: paths[0] || "",
-        expr: finalExpr,
-      }
-    } else {
-      // Простая переменная без операций
-      return {
-        data: paths[0] || "",
-      }
-    }
-  } else {
-    return {
-      data: paths,
-      expr: expr,
-    }
-  }
-}
-
-/**
- * Общая функция для обработки событийных атрибутов.
- * Устраняет дублирование кода в processEventAttributes.
- */
-const processSingleEventAttribute = (
-  value: string,
-  eventResult: ParseAttributeResult | null,
-  context: ParseContext
-): any => {
-  if (eventResult) {
-    // Для update выражений может быть пустой массив data, но есть upd
-    if (eventResult.upd) {
-      // Это update выражение
-      const eventObj: any = {
-        expr: eventResult.expr || "",
-        upd: eventResult.upd,
-      }
-      // Добавляем data только если оно есть
-      if (eventResult.data) {
-        eventObj.data = eventResult.data
-      }
-      return eventObj
-    } else if (eventResult.data) {
-      // Обычное событие с данными
-      if (eventResult.expr && typeof eventResult.expr === "string") {
-        // Если есть выражение, создаем AttrDynamic (может быть массив или строка)
-        return {
-          data: eventResult.data,
-          expr: eventResult.expr,
-        }
-      } else {
-        // Если нет выражения, создаем AttrVariable (только строка)
-        return {
-          data: Array.isArray(eventResult.data) ? eventResult.data[0] || "" : eventResult.data,
-        }
-      }
-    }
-  }
-
-  // Если не удалось распарсить событие и value не пустая строка, создаем объект с data
-  if (value && value.trim() !== "") {
-    return {
-      data: value,
-    }
-  }
-
-  // Иначе возвращаем null для игнорирования пустых событий
   return null
 }
 
@@ -749,34 +442,6 @@ const processBasicAttributes = (
     const styleResult = processStyleAttributes(node.style, context)
     if (styleResult) {
       result.style = styleResult
-    }
-  }
-
-  return result
-}
-
-/**
- * Общая функция для обработки семантических атрибутов (core/context).
- * Устраняет дублирование кода в createNodeDataMeta.
- */
-const processSemanticAttributesForNode = (node: PartAttrMeta, context: ParseContext): Partial<NodeMeta> => {
-  const result: Partial<NodeMeta> = {}
-
-  if ("core" in node && node.core) {
-    const coreResult = processSemanticAttributes(node.core, context)
-    if (coreResult) {
-      result.core = coreResult
-    } else {
-      result.core = { data: node.core }
-    }
-  }
-
-  if ("context" in node && node.context) {
-    const contextResult = processSemanticAttributes(node.context, context)
-    if (contextResult) {
-      result.context = contextResult
-    } else {
-      result.context = { data: node.context }
     }
   }
 
@@ -838,128 +503,6 @@ const findTemplateLiteralEndInQuotes = (tagContent: string, startIndex: number, 
   }
 
   return i
-}
-
-/**
- * Обрабатывает строковые атрибуты и создает соответствующие объекты.
- */
-const processStringAttributes = (
-  stringAttrs: Record<string, { type: string; value: string }>,
-  context: ParseContext
-): Record<string, any> => {
-  const result: Record<string, any> = {}
-
-  for (const [key, attr] of Object.entries(stringAttrs)) {
-    if (attr.type === "static") {
-      result[key] = attr.value
-    } else if (attr.type === "dynamic" || attr.type === "mixed") {
-      const processed = processTemplateLiteralAttribute(attr.value, context)
-      result[key] = processed || attr.value
-    }
-  }
-
-  return result
-}
-
-/**
- * Обрабатывает событийные атрибуты и создает соответствующие объекты.
- */
-const processEventAttributes = (eventAttrs: Record<string, string>, context: ParseContext): Record<string, any> => {
-  const result: Record<string, any> = {}
-
-  for (const [key, value] of Object.entries(eventAttrs)) {
-    const eventResult = parseEventExpression(value, context)
-    const processed = processSingleEventAttribute(value, eventResult, context)
-
-    if (processed) {
-      result[key] = processed
-    }
-  }
-
-  // Если секция событий пуста, удаляем её
-  if (Object.keys(result).length === 0) {
-    return {}
-  }
-
-  return result
-}
-
-/**
- * Обрабатывает массивные атрибуты и создает соответствующие объекты.
- */
-const processArrayAttributes = (
-  arrayAttrs: Record<string, Array<{ type: string; value: string }>>,
-  context: ParseContext
-): Record<string, any> => {
-  const result: Record<string, any> = {}
-
-  for (const [key, values] of Object.entries(arrayAttrs)) {
-    result[key] = values.map((item) => {
-      if (item.type === "static") {
-        return { value: item.value }
-      } else if (item.type === "dynamic" || item.type === "mixed") {
-        // Для динамических и смешанных атрибутов обрабатываем значение
-        const processed = processTemplateLiteralAttribute(item.value, context)
-        if (processed) {
-          return processed
-        } else {
-          // Если parseTemplateLiteral вернул null, но это dynamic тип,
-          // значит это уже нормализованное значение без ${}
-          // Нужно обработать его как динамическое выражение
-          const variableMatches = item.value.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
-          if (variableMatches.length > 0) {
-            const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
-            let expr = item.value
-            variableMatches.forEach((variable, index) => {
-              expr = expr.replace(
-                new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"),
-                `${ARGUMENTS_PREFIX}[${index}]`
-              )
-            })
-            return {
-              data: paths.length === 1 ? paths[0] || "" : paths,
-              expr: `\${${expr}}`,
-            }
-          } else {
-            return { value: item.value }
-          }
-        }
-      } else {
-        // Для неизвестных типов возвращаем как есть
-        return { value: item.value }
-      }
-    })
-  }
-
-  return result
-}
-
-/**
- * Обрабатывает булевые атрибуты и создает соответствующие объекты.
- */
-const processBooleanAttributes = (
-  booleanAttrs: Record<string, { type: string; value: string | boolean }>,
-  context: ParseContext
-): Record<string, any> => {
-  const result: Record<string, any> = {}
-
-  for (const [key, attr] of Object.entries(booleanAttrs)) {
-    if (attr.type === "static") {
-      result[key] = Boolean(attr.value)
-    } else if (attr.type === "dynamic" || attr.type === "mixed") {
-      // Для булевых атрибутов используем специальную обработку
-      const booleanValue = String(attr.value)
-      const processed = processBooleanAttributeWithVariables(booleanValue, context)
-
-      if (processed) {
-        result[key] = processed
-      } else {
-        result[key] = false
-      }
-    }
-  }
-
-  return result
 }
 
 // ============================================================================
@@ -1748,8 +1291,12 @@ export const createNodeDataMeta = (
   Object.assign(result, processedAttrs)
 
   // Обрабатываем семантические атрибуты
-  const semanticAttrs = processSemanticAttributesForNode(node, context)
-  Object.assign(result, semanticAttrs)
+  if ("core" in node && node.core) {
+    result.core = processSemanticAttributes(node.core, context) || node.core
+  }
+  if ("context" in node && node.context) {
+    result.context = processSemanticAttributes(node.context, context) || node.context
+  }
 
   // Добавляем дочерние элементы, если они есть
   if (node.child && node.child.length > 0) {

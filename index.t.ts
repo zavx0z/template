@@ -1,8 +1,15 @@
+import type { ValueArray } from "./attributes/array.t"
+import type { ValueBoolean } from "./attributes/boolean.t"
+import type { ValueEvent } from "./attributes/event.t"
+import type { ValueString } from "./attributes/string.t"
+import type { ValueStyle } from "./attributes/style.t"
+
 /**
  * Контекст приложения.
  * Содержит простые данные, доступные в шаблоне для рендеринга.
  * Поддерживает только примитивные типы и массивы примитивных типов.
  *
+ * @group Входные данные
  * @example
  * ```typescript
  * const context: Context = {
@@ -25,6 +32,7 @@ export type Context = Record<string, string | number | boolean | null | Array<st
  * Содержит сложные данные, объекты, функции и утилиты, доступные в шаблоне.
  * Может содержать любые типы данных: объекты, массивы, функции, классы.
  *
+ * @group Входные данные
  * @example
  * ```typescript
  * const core: Core = {
@@ -56,6 +64,7 @@ export type Core = Record<string, any>
  * Состояние приложения.
  * Строковое представление текущего состояния.
  *
+ * @group Входные данные
  * @example
  * ```typescript
  * const state: State = "loading" // "loading" | "ready" | "error"
@@ -67,6 +76,7 @@ export type State = string
  * Параметры для функции рендеринга.
  * Содержит все необходимые данные и функции для рендеринга шаблона.
  *
+ * @group Входные данные
  * @example
  * ```typescript
  * const renderFunction = ({ html, core, context, state, update }: RenderParams) => {
@@ -224,6 +234,7 @@ export type ParseAttributeResult = {
  * Узел HTML элемента.
  * Представляет HTML тег с атрибутами и дочерними элементами.
  *
+ * @group Nodes
  * @example
  * ```html
  * <div class="container" id="main">
@@ -313,6 +324,7 @@ export interface NodeElement extends AttributesNode {
  * Текстовый узел.
  * Представляет текст с путями к данным или статическими значениями.
  *
+ * @group Nodes
  * @example Статический текст
  * ```html
  * <p>Это статический текст</p>
@@ -444,6 +456,7 @@ export interface NodeText {
  * Узел map операции.
  * Представляет итерацию по массиву данных с дочерними элементами.
  *
+ * @group Nodes
  * @example Простая итерация
  * ```html
  * <ul>
@@ -688,6 +701,7 @@ export interface NodeMap {
  * Узел условного оператора.
  * Представляет тернарный оператор с ветками true и false.
  *
+ * @group Nodes
  * @example Простое условие
  * ```html
  * <div>
@@ -886,6 +900,7 @@ export interface NodeCondition {
  * Узел логического оператора.
  * Представляет логический оператор && с условным отображением.
  *
+ * @group Nodes
  * @example Простое логическое условие
  * ```html
  * <div>
@@ -1055,6 +1070,7 @@ export interface NodeLogical {
  * Представляет meta-элемент.
  * Поддерживает создание компонентов с динамическими именами тегов.
  *
+ * @group Nodes
  * @example Статический мета-тег
  * ```html
  * <meta-component class="custom">
@@ -1085,29 +1101,68 @@ export interface NodeLogical {
  */
 export interface NodeMeta extends AttributesNode {
   /** Имя мета-тега (может быть статическим строкой или динамическим ParseAttributeResult) */
-  tag: string | ParseAttributeResult
+  tag: ValueStatic | ValueDynamic | ValueVariable
   /** Тип узла - всегда "meta" для мета-узлов */
   type: "meta"
   /** Дочерние элементы (опционально) */
   child?: Node[]
   /** Core свойство для meta-компонентов (передача core объекта) */
-  core?: ParseAttributeResult
+  core?: ValueStatic | ValueDynamic | ValueVariable
   /** Context свойство для meta-компонентов (передача context объекта) */
-  context?: ParseAttributeResult
+  context?: ValueStatic | ValueDynamic | ValueVariable
 }
+
+/**
+ * Объединенный тип всех возможных узлов парсера.
+ * Представляет любую структуру, которая может быть получена в результате парсинга HTML-шаблона.
+ *
+ * @group Nodes
+ * @example Структура с различными типами узлов
+ * ```html
+ * <div class="container">
+ *   <h1>${context.title}</h1>
+ *   ${context.isLoggedIn ?
+ *     html`<span>Добро пожаловать!</span>` :
+ *     html`<a href="/login">Войти</a>`
+ *   }
+ *   ${core.notifications.length > 0 && html`
+ *     <ul>
+ *       ${core.notifications.map(n => html`<li>${n.message}</li>`)}
+ *     </ul>
+ *   `}
+ *   <meta-component core="config" context="userData">
+ *     <p>Содержимое компонента</p>
+ *   </meta-component>
+ * </div>
+ * ```
+ *
+ * Результат парсинга будет содержать:
+ * - NodeElement для div, h1, span, a, ul, li, p
+ * - NodeText для статического текста и динамических значений
+ * - NodeCondition для тернарного оператора
+ * - NodeLogical для логического оператора &&
+ * - NodeMap для итерации по массиву
+ * - NodeMeta для meta-component
+ */
+export type Node = NodeMap | NodeCondition | NodeLogical | NodeText | NodeElement | NodeMeta
 
 /**
  * Базовый интерфейс для узлов с атрибутами.
  * Содержит все возможные типы атрибутов для HTML элементов и мета-компонентов.
  *
+ * @group Атрибуты элементов
+ * @hidden
  * @example HTML элемент с различными атрибутами
  * ```html
  * <div
  *   class="container ${core.dynamicClass}"
  *   id="main"
  *   data-count=${core.items.length}
- *   style="color: ${core.textColor} background: ${core.bgColor}"
- *   onclick="handleClick()"
+ *   style=${{
+ *      color: core.text.color,
+ *      backgroundColor: core.background.color,
+ *   }}
+ *   onclick=${(e) => core.handler(e)}
  *   hidden=${!context.isVisible}
  * >
  *   Содержимое
@@ -1120,20 +1175,32 @@ export interface NodeMeta extends AttributesNode {
  * - `array` - массивы атрибутов (class, rel)
  * - `string` - строковые атрибуты (id, title, alt)
  * - `style` - CSS стили
- * - `core`/`context` - специальные свойства для передачи объектов в компоненты
  */
-interface AttributesNode {
+export interface AttributesNode {
   /** События (onclick, onchange, onsubmit и т.д.) */
-  event?: AttributeEvent
+  event?: Record<string, ValueEvent>
   /** Булевые атрибуты (hidden, disabled, checked, readonly и т.д.) */
-  boolean?: AttributeBoolean
+  boolean?: Record<string, ValueBoolean>
   /** Массивы атрибутов (class, rel, ping и т.д.) */
-  array?: AttributeArray
+  array?: Record<string, ValueArray[]>
   /** Строковые атрибуты (id, title, alt, href и т.д.) */
-  string?: AttributeString
+  string?: Record<string, ValueString>
   /** Стили (CSS в виде строки или объекта) */
-  style?: StyleObject
+  style?: Record<string, ValueStyle>
 }
+
+/**
+ * Статический элемент массива атрибутов.
+ */
+export type ValueStaticArray = {
+  /** Статическое значение */
+  value: string
+}
+
+/**
+ * Статическое значение.
+ */
+export type ValueStatic = string
 
 /**
  * Переменный атрибут с путем к данным.
@@ -1144,10 +1211,9 @@ interface AttributesNode {
  * <div class=${context.theme}>Тема пользователя</div>
  * ```
  */
-export type AttrVariable = {
+export type ValueVariable = {
   /**
    * Путь к данным в контексте
-   *
    * @example
    * ```typescript
    * data: "/context/theme"
@@ -1174,7 +1240,7 @@ export type AttrVariable = {
  * </div>
  * ```
  */
-export type AttrDynamic = {
+export type ValueDynamic = {
   /**
    * Путь(и) к данным для выражения
    *
@@ -1205,7 +1271,7 @@ export type AttrDynamic = {
  * <input value=${context.email} onchange=${(e) => update({ email: e.target.value })} />
  * ```
  */
-type AttrUpdate = {
+export type ValueUpdate = {
   /** Путь(и) к данным (опционально) */
   data?: string | string[]
   /** Выражение с индексами (опционально) */
@@ -1213,182 +1279,6 @@ type AttrUpdate = {
   /** Ключи для обновления в состоянии */
   upd: string | string[]
 }
-
-/**
- * Событийные атрибуты.
- * Содержит обработчики событий (onclick, onchange, onsubmit и т.д.)
- *
- * @example Простая функция без параметров
- * ```html
- * <button onclick=${core.handleClick}>Кнопка</button>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "onclick": {
- *     "data": "/core/handleClick"
- *   }
- * }
- * ```
- *
- * @example Функция с параметрами
- * ```html
- * <input onchange=${(e) => update({ value: e.target.value })} />
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "onchange": {
- *     "upd": "value",
- *     "expr": "(e) => update({ value: e.target.value })"
- *   }
- * }
- * ```
- *
- * @example Событие в массиве
- * ```html
- * <li onclick=${() => core.item.onClick()}>${core.item.name}</li>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "onclick": {
- *     "data": "/core/item/onClick",
- *     "expr": "() => ${[0]}()"
- *   }
- * }
- * ```
- *
- * @example Булев атрибут события
- * ```html
- * <button onclick>Кнопка</button>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "onclick": true
- * }
- * ```
- */
-export type AttributeEvent = Record<
-  string,
-  AttrVariable | AttrDynamic | AttrUpdate | { expr: string; upd?: string | string[] }
->
-
-/**
- * Массивы атрибутов.
- * Используется для атрибутов, которые могут содержать несколько значений (class, rel).
- *
- * @example
- * ```html
- * <div class="container ${context.theme} ${context.isActive ? 'active' : ''}">
- *   Элемент с несколькими классами
- * </div>
- * ```
- */
-export type AttributeArray = Record<string, (AttrStaticArray | AttrVariable | AttrDynamic)[]>
-
-/**
- * Статический элемент массива атрибутов.
- */
-type AttrStaticArray = {
-  /** Статическое значение */
-  value: string
-}
-
-/**
- * Строковые атрибуты.
- * Обычные HTML атрибуты со строковыми значениями.
- *
- * @example
- * ```html
- * <img src=${context.url} alt=${context.alt} title=${context.title} />
- * <a href="/user/${core.user.id}">Профиль пользователя</a>
- * ```
- */
-export type AttributeString = Record<string, AttrStaticString | AttrVariable | AttrDynamic>
-
-/**
- * Статическая строка атрибута.
- */
-type AttrStaticString = string
-
-/**
- * Булевые атрибуты.
- * HTML атрибуты, которые присутствуют или отсутствуют (hidden, disabled, checked).
- *
- * @example
- * ```html
- * <input type="checkbox" ${core.user.isSubscribed && "checked"} />
- * <button ${!context.canSubmit && "disabled"}>Отправить</button>
- * <div ${!context.isVisible && "hidden"}>Скрытый контент</div>
- * ```
- */
-export type AttributeBoolean = Record<string, boolean | AttrVariable | AttrDynamic>
-
-/**
- * Объект стилей.
- * CSS стили в виде JavaScript объекта (styled-components подход).
- *
- * @example Простой объект стилей
- * ```html
- * <div style=${{backgroundColor: "red", color: "white"}}>
- *   Стилизованный элемент
- * </div>
- * ```
- *
- * @example Динамические стили
- * ```html
- * <div style=${{backgroundColor: core.theme.primary, color: core.theme.text}}>
- *   Элемент с темой
- * </div>
- * ```
- *
- * @example Условные стили
- * ```html
- * <div style=${{backgroundColor: context.isActive ? "green" : "red", color: "white"}}>
- *   Условный стиль
- * </div>
- * ```
- */
-export type StyleObject = Record<string, string | AttrVariable | AttrDynamic>
-
-/**
- * Объединенный тип всех возможных узлов парсера.
- * Представляет любую структуру, которая может быть получена в результате парсинга HTML-шаблона.
- *
- * @example Структура с различными типами узлов
- * ```html
- * <div class="container">
- *   <h1>${context.title}</h1>
- *   ${context.isLoggedIn ?
- *     html`<span>Добро пожаловать!</span>` :
- *     html`<a href="/login">Войти</a>`
- *   }
- *   ${core.notifications.length > 0 && html`
- *     <ul>
- *       ${core.notifications.map(n => html`<li>${n.message}</li>`)}
- *     </ul>
- *   `}
- *   <meta-component core="config" context="userData">
- *     <p>Содержимое компонента</p>
- *   </meta-component>
- * </div>
- * ```
- *
- * Результат парсинга будет содержать:
- * - NodeElement для div, h1, span, a, ul, li, p
- * - NodeText для статического текста и динамических значений
- * - NodeCondition для тернарного оператора
- * - NodeLogical для логического оператора &&
- * - NodeMap для итерации по массиву
- * - NodeMeta для meta-component
- */
-export type Node = NodeMap | NodeCondition | NodeLogical | NodeText | NodeElement | NodeMeta
 
 /**
  * Парсит HTML-шаблон и возвращает обогащенную иерархию с метаданными о путях к данным.

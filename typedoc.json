@@ -39,7 +39,7 @@
     ],
     "navigation": {
         "includeCategories": true,
-        "includeGroups": false
+        "includeGroups": true
     },
     "searchInComments": true,
     "cleanOutputDir": true,

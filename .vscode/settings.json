@@ -10,14 +10,16 @@
         "**/node_modules": true,
         "**/__pycache__": true,
         ".venv": true,
-        ".vscode": true,
         ".idea": true,
-        ".cursor": true
+        ".cursor": true,
+        ".cursor/rules": true
     },
     "hide-files.files": [
-        ".vscode",
         ".idea",
         ".cursor",
         ".cursor/rules"
+    ],
+    "cSpell.words": [
+        "коммита"
     ]
 }

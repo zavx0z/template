@@ -1,15 +1,6 @@
-import type { SplitterFn } from "./attributes"
-import type { ParseAttributeResult } from "./data.t"
+import type { SplitterFn } from "."
 
 export type ValueType = "dynamic" | "static" | "mixed"
-
-export type AttributeEvent = Record<string, string>
-
-export type AttributeArray = Record<string, { value: string; type: ValueType }[]>
-
-export type AttributeString = Record<string, { type: ValueType; value: string }>
-
-export type AttributeBoolean = Record<string, { type: "dynamic" | "static"; value: boolean | string }>
 
 export type PartText = {
   /** Тип узла */
@@ -17,47 +8,37 @@ export type PartText = {
   /** Исходный текст */
   text: string
 }
-
-export type PartAttrElement = {
+interface AttrNodeElement {
   /** Имя HTML тега */
   tag: string
   /** Тип узла */
-  type: "el"
-  /** События */
-  event?: AttributeEvent
-  /** Булевые аттрибуты */
-  boolean?: AttributeBoolean
-  /** Массивы аттрибутов */
-  array?: AttributeArray
-  /** Строковые аттрибуты */
-  string?: AttributeString
-  /** Стили */
+  type: "meta" | "el"
+  /** События (onclick, onchange, onsubmit и т.д.) */
+  event?: Record<string, string>
+  /** Булевые атрибуты (hidden, disabled, checked, readonly и т.д.) */
+  boolean?: Record<string, { type: "dynamic" | "static"; value: boolean | string }>
+  /** Массивы атрибутов (class, rel, ping и т.д.) */
+  array?: Record<string, { value: string; type: ValueType }[]>
+  /** Строковые атрибуты (id, title, alt, href и т.д.) */
+  string?: Record<string, { type: ValueType; value: string }>
+  /** Стили (CSS в виде строки или объекта) */
   style?: string
   /** Дочерние элементы (опционально) */
   child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartAttrLogical | PartText)[]
 }
 
-export type PartAttrMeta = {
-  /** Имя мета-тега */
-  tag: string
+export interface PartAttrElement extends AttrNodeElement {
+  /** Тип узла */
+  type: "el"
+}
+
+export interface PartAttrMeta extends AttrNodeElement {
   /** Тип узла */
   type: "meta"
-  /** События */
-  event?: AttributeEvent
-  /** Булевые аттрибуты */
-  boolean?: AttributeBoolean
-  /** Массивы аттрибутов */
-  array?: AttributeArray
-  /** Строковые аттрибуты */
-  string?: AttributeString
-  /** Стили */
-  style?: string
   /** Core объекты */
   core?: string
   /** Context объекты */
   context?: string
-  /** Дочерние элементы (опционально) */
-  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartAttrLogical | PartText)[]
 }
 
 export type PartAttrCondition = {
