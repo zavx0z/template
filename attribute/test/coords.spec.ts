@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "../../attributes/index.ts"
+import { parseAttributes } from "../index.ts"
 
 describe.each([
   ["rect", 'shape="rect"'],

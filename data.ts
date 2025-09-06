@@ -18,12 +18,12 @@ import type {
   PartAttrLogical,
   PartAttrs,
   PartText,
-} from "./attributes/index.t"
-import { processEventAttributes } from "./attributes/event"
-import { processStyleAttributes } from "./attributes/style"
-import { processStringAttributes } from "./attributes/string"
-import { processArrayAttributes } from "./attributes/array"
-import { processBooleanAttributes } from "./attributes/boolean"
+} from "./attribute/index.t"
+import { processEventAttributes } from "./attribute/event"
+import { processStyleAttributes } from "./attribute/style"
+import { processStringAttributes } from "./attribute/string"
+import { processArrayAttributes } from "./attribute/array"
+import { processBooleanAttributes } from "./attribute/boolean"
 
 // ============================================================================
 // REGEX PATTERNS

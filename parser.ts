@@ -5,10 +5,10 @@ import type {
   PartAttrMap,
   PartAttrCondition,
   PartAttrLogical,
-} from "./attributes/index.t"
+} from "./attribute/index.t"
 import type { Context, Core, State, RenderParams, Node } from "./index.t"
 import type { StreamToken } from "./parser.t"
-import { parseAttributes } from "./attributes"
+import { parseAttributes } from "./attribute"
 import { createNodeDataElement } from "./data"
 import type { TokenMapOpen, TokenMapClose } from "./parser.t"
 import type { TokenCondElse, TokenCondOpen, TokenCondClose, TokenLogicalOpen } from "./parser.t"

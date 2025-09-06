@@ -1,8 +1,8 @@
-import type { ValueArray } from "./attributes/array.t"
-import type { ValueBoolean } from "./attributes/boolean.t"
-import type { ValueEvent } from "./attributes/event.t"
-import type { ValueString } from "./attributes/string.t"
-import type { ValueStyle } from "./attributes/style.t"
+import type { ValueArray } from "./attribute/array.t"
+import type { ValueBoolean } from "./attribute/boolean.t"
+import type { ValueEvent } from "./attribute/event.t"
+import type { ValueString } from "./attribute/string.t"
+import type { ValueStyle } from "./attribute/style.t"
 
 /**
  * Контекст приложения.

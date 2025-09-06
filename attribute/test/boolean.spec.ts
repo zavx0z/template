@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { parseAttributes } from "../../attributes"
+import { parseAttributes } from ".."
 
 describe("boolean", () => {
   describe("простые булевые атрибуты", () => {
