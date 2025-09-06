@@ -199,7 +199,7 @@ describe("conditions", () => {
     })
   })
 
-  describe("логические операторы без тегов — ничего не находится", () => {
+  describe("логические операторы без тегов", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<{ a: number; b: number; c: number; d: number }>(
@@ -207,7 +207,7 @@ describe("conditions", () => {
       )
     })
 
-    it.todo("data", () => {
+    it("data", () => {
       expect(elements).toEqual([
         {
           type: "text",

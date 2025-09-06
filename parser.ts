@@ -981,9 +981,7 @@ export const parseTemplateLiteral = (
   context: ParseContext = { pathStack: [], level: 0 }
 ): ValueDynamic | null => {
   // Если значение не содержит ${}, возвращаем null (статическое значение)
-  if (!value.includes("${")) {
-    return null
-  }
+  if (!value.includes("${")) return null
 
   // Извлекаем все переменные из выражения, включая вложенные ${...}
   const variables: string[] = []
