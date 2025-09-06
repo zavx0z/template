@@ -624,3 +624,8 @@ export const parseAttributes = (
 
   return result
 }
+export const formatAttributeText = (text: string): string =>
+  text
+    .replace(/\s*\n\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()

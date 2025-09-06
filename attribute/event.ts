@@ -7,8 +7,8 @@ import {
   UPDATE_OBJECT_PATTERN,
   VARIABLE_WITH_DOTS_PATTERN,
   WHITESPACE_PATTERN,
-} from "../data"
-import type { ParseContext } from "../data.t"
+} from "../parser"
+import type { ParseContext } from "../parser.t"
 import type { ValueEvent } from "./event.t"
 
 /**

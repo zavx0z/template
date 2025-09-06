@@ -1,5 +1,5 @@
 import type { ValueType } from "./index.t"
-import type { ValueStatic, ValueVariable, ValueDynamic } from "../index.t"
+import type { ValueStatic, ValueVariable, ValueDynamic } from "./index.t"
 
 /**
  * Строковые атрибуты.

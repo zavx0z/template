@@ -1,5 +1,5 @@
 import { processBooleanAttributeWithVariables } from "./event"
-import type { ParseContext } from "../data.t"
+import type { ParseContext } from "../parser.t"
 
 /**
  * Обрабатывает булевые атрибуты и создает соответствующие объекты.

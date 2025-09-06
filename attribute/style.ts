@@ -1,6 +1,6 @@
-import { resolveDataPath } from "../data"
-import type { ParseContext } from "../data.t"
-import type { ValueVariable } from "../index.t"
+import { resolveDataPath } from "../parser"
+import type { ParseContext } from "../parser.t"
+import type { ValueVariable } from "./index.t"
 import type { ValueStyle } from "./style.t"
 
 /**

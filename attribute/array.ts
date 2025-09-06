@@ -1,5 +1,5 @@
-import { processTemplateLiteralAttribute, resolveDataPath, ARGUMENTS_PREFIX } from "../data"
-import type { ParseContext } from "../data.t"
+import { processTemplateLiteralAttribute, resolveDataPath, ARGUMENTS_PREFIX } from "../parser"
+import type { ParseContext } from "../parser.t"
 
 /**
  * Обрабатывает массивные атрибуты и создает соответствующие объекты.

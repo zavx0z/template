@@ -1,17 +1,24 @@
-import type {
-  PartAttrs,
-  PartAttrElement,
-  PartAttrMeta,
-  PartAttrMap,
-  PartAttrCondition,
-  PartAttrLogical,
-} from "./attribute/index.t"
-import type { Context, Core, State, RenderParams, Node } from "./index.t"
-import type { StreamToken } from "./parser.t"
-import { parseAttributes } from "./attribute"
-import { createNodeDataElement } from "./data"
-import type { TokenMapOpen, TokenMapClose } from "./parser.t"
-import type { TokenCondElse, TokenCondOpen, TokenCondClose, TokenLogicalOpen } from "./parser.t"
+import type { ParseAttributeResult, ValueDynamic, ValueVariable } from "./attribute/index.t"
+import type { PartAttrs } from "./node/index.t"
+import type { PartAttrMap } from "./node/map.t"
+import type { PartAttrCondition } from "./node/condition.t"
+import type { PartAttrMeta } from "./node/meta.t"
+import type { PartAttrElement } from "./node/element.t"
+import type { ParseContext, ParseResult, StreamToken } from "./parser.t"
+import { formatAttributeText, parseAttributes } from "./attribute"
+import { findAllConditions, findCondElse, findCondClose } from "./node/condition"
+import { findLogicalOperators } from "./node/logical"
+import { findText } from "./node/text"
+import { findMapOpen, findMapClose } from "./node/map"
+import { processArrayAttributes } from "./attribute/array"
+import { processBooleanAttributes } from "./attribute/boolean"
+import { processEventAttributes } from "./attribute/event"
+import { processStringAttributes } from "./attribute/string"
+import { processStyleAttributes } from "./attribute/style"
+import { createNodeData } from "./node"
+import type { NodeElement } from "./node/element.t"
+import type { Node } from "./node/index.t"
+import type { NodeMeta } from "./node/meta.t"
 
 // ============================================================================
 // КОНСТАНТЫ И УТИЛИТЫ
@@ -21,8 +28,6 @@ const TAG_LOOKAHEAD = /(?=<\/?[A-Za-z][A-Za-z0-9:-]*[^>]*>|<\/?meta-[^>]*>|<\/?m
 
 const isValidTagName = (name: string) =>
   (/^[A-Za-z][A-Za-z0-9:-]*$/.test(name) && !name.includes("*")) || name.startsWith("meta-")
-
-const shouldIgnoreAt = (input: string, i: number) => input[i + 1] === "!" || input[i + 1] === "?"
 
 export const VOID_TAGS = new Set([
   "area",
@@ -40,21 +45,7 @@ export const VOID_TAGS = new Set([
   "track",
   "wbr",
 ])
-
-// ============================================================================
-// ОСНОВНЫЕ ФУНКЦИИ ПАРСИНГА
-// ============================================================================
-export const extractMainHtmlBlock = <C extends Context = Context, I extends Core = Core, S extends State = State>(
-  render: (params: RenderParams<C, I, S>) => void
-): string => {
-  const src = Function.prototype.toString.call(render)
-  const firstIndex = src.indexOf("html`")
-  if (firstIndex === -1) throw new Error("функция render не содержит html`")
-  const lastBacktick = src.lastIndexOf("`")
-  if (lastBacktick === -1 || lastBacktick <= firstIndex) throw new Error("render function does not contain html`")
-  const htmlContent = src.slice(firstIndex + 5, lastBacktick)
-  return htmlContent.replace(/!0/g, "true").replace(/!1/g, "false")
-}
+const shouldIgnoreAt = (input: string, i: number) => input[i + 1] === "!" || input[i + 1] === "?"
 
 export const extractHtmlElements = (input: string): PartAttrs => {
   const store = new Hierarchy()
@@ -261,255 +252,11 @@ function getTokens(expr: string): StreamToken[] {
     .map(([, token]) => token)
 }
 
-// ============================================================================
-// ПОИСК ТОКЕНОВ
-// ============================================================================
-export const findMapOpen = (expr: string): [number, TokenMapOpen] | undefined => {
-  const mapOpenRegex = /\$\{([a-zA-Z_$][a-zA-Z0-9_$]*(\.[a-zA-Z_$][a-zA-Z0-9_$]*)*\.map\([^)]*\))/g
-  let match
-  while ((match = mapOpenRegex.exec(expr)) !== null) {
-    return [match.index, { kind: "map-open", sig: match[1]! }]
-  }
-}
-
-export const findMapClose = (expr: string): [number, TokenMapClose] | undefined => {
-  const mapCloseRegex = /`?\)\}/g
-  let closeMatch
-  while ((closeMatch = mapCloseRegex.exec(expr)) !== null) {
-    return [closeMatch.index, { kind: "map-close" }]
-  }
-}
-
-export const findCondElse = (expr: string): [number, TokenCondElse] | undefined => {
-  const condElseRegex = /:\s*/g // допускаем произвольные пробелы/переводы строк
-  let match
-  while ((match = condElseRegex.exec(expr)) !== null) {
-    return [match.index, { kind: "cond-else" }]
-  }
-}
-
-export const findAllConditions = (expr: string): [number, TokenCondOpen][] => {
-  // Ищем все условия (включая вложенные)
-  const results: [number, TokenCondOpen][] = []
-
-  // Сначала ищем первое условие (после ${ или =>)
-  let i = 0
-  while (i < expr.length) {
-    const d = expr.indexOf("${", i)
-    const a = expr.indexOf("=>", i)
-    if (d === -1 && a === -1) break
-
-    const useDollar = d !== -1 && (a === -1 || d < a)
-    const start = useDollar ? d : a
-    let j = start + 2
-    while (j < expr.length && /\s/.test(expr[j]!)) j++
-
-    const q = expr.indexOf("?", j)
-    if (q === -1) {
-      i = j + 1
-      continue
-    }
-
-    const between = expr.slice(j, q)
-
-    // если это ветка "=>", и до '?' попался backtick, то это тегированный шаблон:
-    // переносим курсор на сам backtick и ищем следующий кандидат (внутренний ${ ... ? ... }).
-    if (!useDollar) {
-      const bt = between.indexOf("`")
-      if (bt !== -1) {
-        i = j + bt + 1
-        continue
-      }
-    }
-
-    // если это ветка "${", и до '?' попался .map( — пропускаем внешний map-кандидат
-    // и двигаемся внутрь.
-    if (useDollar) {
-      const m = between.indexOf(".map(")
-      if (m !== -1) {
-        i = j + m + 1
-        continue
-      }
-      // защитно: если внутри выражения внезапно встретился backtick — тоже двигаемся к нему
-      const bt = between.indexOf("`")
-      if (bt !== -1) {
-        i = j + bt + 1
-        continue
-      }
-    }
-
-    results.push([j, { kind: "cond-open", expr: between.trim() }])
-    i = q + 1
-  }
-
-  // Затем ищем все вложенные условия вида: ? ... ? или : ... ?
-  i = 0
-  while (i < expr.length) {
-    const questionMark = expr.indexOf("?", i)
-    const colon = expr.indexOf(":", i)
-
-    if (questionMark === -1 && colon === -1) break
-
-    // Выбираем ближайший символ
-    const useQuestion = questionMark !== -1 && (colon === -1 || questionMark < colon)
-    const pos = useQuestion ? questionMark : colon
-
-    // Ищем следующий ? или : после текущего
-    const nextQuestion = expr.indexOf("?", pos + 1)
-    const nextColon = expr.indexOf(":", pos + 1)
-
-    if (nextQuestion === -1 && nextColon === -1) break
-
-    // Выбираем ближайший следующий символ
-    const useNextQuestion = nextQuestion !== -1 && (nextColon === -1 || nextQuestion < nextColon)
-    const nextPos = useNextQuestion ? nextQuestion : nextColon
-
-    // Извлекаем условие между текущим и следующим символом
-    const condition = expr.slice(pos + 1, nextPos).trim()
-
-    // Проверяем, что это не пустое условие и не содержит html`
-    if (condition && !condition.includes("html`")) {
-      results.push([pos + 1, { kind: "cond-open", expr: condition }])
-    }
-
-    // Продолжаем поиск с позиции после текущего символа
-    i = pos + 1
-  }
-
-  return results
-}
-
-export const findCondClose = (expr: string): [number, TokenCondClose] | undefined => {
-  // Ищем } которая НЕ является частью деструктуризации в параметрах функции
-  // Исключаем случаи типа ({ title }) => или (({ title })) =>
-  const condCloseRegex = /[^\)]}(?!\s*\)\s*=>)/g
-  let match
-  while ((match = condCloseRegex.exec(expr)) !== null) {
-    return [match.index, { kind: "cond-close" }]
-  }
-}
-
-export const findLogicalOperators = (expr: string): [number, TokenLogicalOpen][] => {
-  const results: [number, TokenLogicalOpen][] = []
-
-  // Ищем паттерн: ${condition && html`...`}
-  // Это более специфичный поиск для логических операторов с html шаблонами
-  let i = 0
-  while (i < expr.length) {
-    const dollarIndex = expr.indexOf("${", i)
-    if (dollarIndex === -1) break
-
-    // Ищем && после переменной или выражения
-    const andIndex = expr.indexOf("&&", dollarIndex + 2)
-    if (andIndex === -1) {
-      i = dollarIndex + 2
-      continue
-    }
-
-    // Проверяем, что после && идет html` (а не тернарный оператор)
-    const htmlIndex = expr.indexOf("html`", andIndex + 2)
-    const ternaryIndex = expr.indexOf("?", andIndex + 2)
-
-    // Если есть тернарный оператор раньше html`, то это не логический оператор
-    if (ternaryIndex !== -1 && (htmlIndex === -1 || ternaryIndex < htmlIndex)) {
-      i = andIndex + 2
-      continue
-    }
-
-    if (htmlIndex === -1) {
-      i = andIndex + 2
-      continue
-    }
-
-    // Извлекаем выражение до &&
-    const condition = expr.slice(dollarIndex + 2, andIndex).trim()
-
-    // Проверяем, что это валидное условие (содержит переменную или сложное выражение)
-    if (condition && /[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*/.test(condition)) {
-      results.push([dollarIndex + 2, { kind: "log-open", expr: condition }])
-    }
-
-    i = andIndex + 2
-  }
-
-  return results
-}
-
-export const findText = (chunk: string) => {
-  let start = 0
-  if (!chunk || /^\s+$/.test(chunk)) return
-
-  const trimmed = chunk.trim()
-  if (isPureGlue(trimmed)) return
-
-  // Сохраняем левую «видимую» часть до html`
-  const visible = cutBeforeNextHtml(chunk)
-  if (!visible || /^\s+$/.test(visible)) return
-
-  // Собираем, оставляя только полностью закрытые ${...}
-  let processed = ""
-  let i = 0
-  let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
-
-  while (i < visible.length) {
-    const ch = visible[i]
-    if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
-      const exprStart = i
-      i += 2
-      let b = 1
-      while (i < visible.length && b > 0) {
-        if (visible[i] === "{") b++
-        else if (visible[i] === "}") b--
-        i++
-      }
-      if (b === 0) {
-        // закрытая интерполяция — целиком сохраняем
-        processed += visible.slice(exprStart, i)
-        usedEndLocal = i
-        continue
-      } else {
-        // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
-        // индексы конца должны соответствовать реально использованной части
-        break
-      }
-    }
-    processed += ch
-    i++
-    usedEndLocal = i
-  }
-
-  const collapsed = processed.replace(/\s+/g, " ")
-  if (collapsed === " ") return
-
-  const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
-
-  if (final.length > 0) {
-    return { text: final, start, end: start + usedEndLocal - 1, name: "", kind: "text" }
-  }
-}
-
-// ============================================================================
-// УТИЛИТЫ ДЛЯ ТЕКСТА
-// ============================================================================
-// Чистый «клей» между шаблонами (целиком служебный кусок)
-export const isPureGlue = (trimmed: string): boolean =>
-  !!trimmed &&
-  (trimmed === "`" ||
-    trimmed.startsWith("`") || // закрытие предыдущего html`
-    /^`}\)?\s*;?\s*$/.test(trimmed) || // `} или `}) (+ ;)
-    /^`\)\}\s*,?\s*$/.test(trimmed)) // `)} (иногда с запятой)
-
 // Обрезаем всё после первого открытия следующего html-шаблона
 export const cutBeforeNextHtml = (s: string): string => {
   const idx = s.indexOf("html`")
   return idx >= 0 ? s.slice(0, idx) : s
 }
-
-export const formatAttributeText = (text: string): string =>
-  text
-    .replace(/\s*\n\s*/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
 
 // ============================================================================
 // КЛАССЫ ДЛЯ УПРАВЛЕНИЯ ИЕРАРХИЕЙ
@@ -707,4 +454,770 @@ class Hierarchy {
       return
     }
   }
+}
+// ============================================================================
+// REGEX PATTERNS
+// ============================================================================
+// Паттерны для парсинга переменных
+
+export const VARIABLE_WITH_DOTS_PATTERN = /([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g
+const VALID_VARIABLE_PATTERN = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/
+// Паттерны для парсинга событий
+
+export const UPDATE_OBJECT_PATTERN = /update\(\s*\{([^}]+)\}\s*\)/
+export const OBJECT_KEY_PATTERN = /([a-zA-Z_$][\w$]*)\s*:/g
+export const CONDITIONAL_OPERATORS_PATTERN = /\?.*:/
+// Паттерны для форматирования
+
+export const WHITESPACE_PATTERN = /\s+/g
+export const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g
+/**
+ * Единый префикс для индексационных плейсхолдеров внутри expr.
+ *
+ * Формирует вид подстановок в унифицированных выражениях:
+ *   \`${${ARGUMENTS_PREFIX}[0]}\`, \`${${ARGUMENTS_PREFIX}[1]}\`, ...
+ *
+ * Изменяя значение здесь, вы централизованно влияете на весь рендер expr
+ * (parseEventExpression, createUnifiedExpression, parseTemplateLiteral, parseText, условия).
+ * Допустимые варианты: "arguments" (классический JS) или пустая строка для специфического рантайма.
+ */
+
+export const ARGUMENTS_PREFIX = ""
+// ============================================================================
+// PATH RESOLUTION UTILITIES
+// ============================================================================
+/**
+ * Ищет переменную в стеке map контекстов и возвращает соответствующий путь.
+ *
+ * Эта функция является ключевой для разрешения переменных в сложных вложенных структурах.
+ * Она анализирует стек map контекстов от самого глубокого уровня к самому внешнему,
+ * определяя правильные относительные пути для доступа к данным.
+ *
+ * @param variable - Имя переменной для поиска (может содержать точки для доступа к свойствам)
+ * @param context - Контекст парсера с информацией о стеке map контекстов
+ * @returns Относительный путь к данным или null, если переменная не найдена
+ *
+ * @example
+ * // В контексте: departments.map((dept) => teams.map((team) => members.map((member) => ...)))
+ * findVariableInMapStack("dept.name", context) // Возвращает: "../../[item]/name"
+ * findVariableInMapStack("team.id", context)   // Возвращает: "../[item]/id"
+ * findVariableInMapStack("member", context)    // Возвращает: "[item]"
+ */
+const findVariableInMapStack = (variable: string, context: ParseContext): string | null => {
+  if (!context.mapContextStack?.length) return null
+
+  const variableParts = variable.split(".")
+  const variableName = variableParts[0] || ""
+
+  // Ищем переменную от самого глубокого уровня к внешнему
+  for (let i = context.mapContextStack.length - 1; i >= 0; i--) {
+    const mapContext = context.mapContextStack[i]
+    if (!mapContext?.params.includes(variableName)) continue
+
+    const levelsUp = context.mapContextStack.length - 1 - i
+    const prefix = "../".repeat(levelsUp)
+    const paramIndex = mapContext.params.indexOf(variableName)
+
+    // Используем информацию о деструктуризации из контекста
+    return paramIndex === 0 ? buildItemPath(prefix, variableParts, mapContext.isDestructured) : `${prefix}[index]`
+  }
+
+  return null
+}
+const buildItemPath = (prefix: string, variableParts: string[], isDestructured: boolean): string => {
+  const hasProperty = variableParts.length > 1
+
+  if (isDestructured) {
+    return hasProperty ? `${prefix}[item]/${variableParts.slice(1).join("/")}` : `${prefix}[item]/${variableParts[0]}`
+  }
+
+  return hasProperty ? `${prefix}[item]/${variableParts.slice(1).join("/")}` : `${prefix}[item]`
+}
+/**
+ * Обрабатывает семантические атрибуты (core/context) с подходом "единый литерал + переменные".
+ *
+ * Извлекает все переменные из строки и создает унифицированное выражение для дальнейшего eval.
+ * Подходит для core/context атрибутов, где нужна цельная строка для выполнения.
+ *
+ * @param str - Строка объекта в формате "{ key: value, key2: value2 }"
+ * @param ctx - Контекст парсера
+ * @returns Результат с путями к данным и унифицированным выражением
+ */
+
+export const processSemanticAttributes = (
+  str: string,
+  ctx: ParseContext = { pathStack: [], level: 0 }
+): ValueVariable | ValueDynamic | null => {
+  // Извлекаем все переменные из строки объекта
+  const variableMatches = str.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+
+  if (variableMatches.length === 0) {
+    return null
+  }
+
+  // Убираем дубликаты переменных
+  const uniqueVariables = [...new Set(variableMatches)]
+
+  // Разрешаем пути к данным для каждой уникальной переменной
+  const paths = uniqueVariables.map((variable: string) => resolveDataPath(variable, ctx) || variable)
+
+  // Создаем унифицированное выражение, заменяя переменные на индексы
+  let expr = str
+
+  // Защищаем строковые литералы от замены
+  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
+
+  uniqueVariables.forEach((variable: string, index: number) => {
+    // Заменяем переменные на индексы во всем выражении
+    const variableRegex = new RegExp(`(?<!\\w)${variable.replace(/\./g, "\\.")}(?!\\w)`, "g")
+    expr = expr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
+  })
+
+  // Восстанавливаем строковые литералы
+  expr = restoreStringLiterals(expr, stringLiterals)
+
+  // Применяем форматирование к выражению
+  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
+
+  // Возвращаем результат в новом формате
+  return {
+    data: paths.length === 1 ? paths[0] || "" : paths,
+    expr: expr,
+  }
+}
+/**
+ * Поддерживает различные типы параметров map функций:
+ * - Простые параметры (один параметр)
+ * - Деструктурированные свойства (несколько параметров)
+ * - Параметры с индексами
+ * - Доступ к свойствам через точку
+ *
+ * @param variable - Имя переменной для разрешения
+ * @param context - Контекст парсера с информацией о текущем map контексте
+ * @returns Путь к данным в формате относительного или абсолютного пути
+ *
+ * @example
+ * // В контексте map с деструктуризацией: map(({ title, id }) => ...)
+ * resolveDataPath("title", context) // Возвращает: "[item]/title"
+ * resolveDataPath("id", context)    // Возвращает: "[item]/id"
+ *
+ * // В контексте map с простым параметром: map((item) => ...)
+ * resolveDataPath("item.name", context) // Возвращает: "[item]/name"
+ * resolveDataPath("item", context)      // Возвращает: "[item]"
+ */
+
+export const resolveDataPath = (variable: string, context: ParseContext): string => {
+  // Сначала пытаемся найти переменную в стеке map контекстов
+  const mapStackPath = findVariableInMapStack(variable, context)
+  if (mapStackPath !== null) {
+    return mapStackPath
+  }
+
+  // Если не найдена в стеке map, используем старую логику для обратной совместимости
+  if (context.mapParams && context.mapParams.length > 0) {
+    // В контексте map - различаем простые параметры и деструктурированные свойства
+    const variableParts = variable.split(".")
+    const mapParamVariable = variableParts[0] || ""
+
+    // Проверяем, является ли первая часть переменной параметром map
+    if (context.mapParams.includes(mapParamVariable)) {
+      const paramIndex = context.mapParams.indexOf(mapParamVariable)
+
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        if (variableParts.length > 1) {
+          // Свойство первого параметра (например, dept.id -> [item]/id)
+          const propertyPath = variableParts.slice(1).join("/")
+          return `[item]/${propertyPath}`
+        } else {
+          // Сам первый параметр (например, dept -> [item])
+          return "[item]"
+        }
+      } else {
+        // Второй и последующие параметры - индекс
+        return "[index]"
+      }
+    } else if (variableParts[0] && context.mapParams.includes(variableParts[0])) {
+      // Переменная начинается с имени параметра, но не содержит точку (например, dept в map((dept) => ...))
+      const paramIndex = context.mapParams.indexOf(variableParts[0])
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        if (variableParts.length > 1) {
+          // Свойство первого параметра (например, dept.id)
+          const propertyPath = variableParts.slice(1).join("/")
+          return `[item]/${propertyPath}`
+        } else {
+          // Сам первый параметр (например, dept)
+          return "[item]"
+        }
+      } else {
+        // Второй и последующие параметры - индекс
+        return "[index]"
+      }
+    } else if (context.mapParams.includes(variable)) {
+      // Переменная точно совпадает с параметром текущего map
+      const paramIndex = context.mapParams.indexOf(variable)
+
+      if (paramIndex === 0) {
+        // Первый параметр - элемент массива
+        // Для деструктуризации всегда возвращаем [item]/property
+        return `[item]/${variable}`
+      } else {
+        // Второй и последующие параметры - индекс
+        return "[index]"
+      }
+    } else {
+      // Переменная не найдена в текущих mapParams
+      // Если переменная начинается с core., то это абсолютный путь
+      if (variable.startsWith("core.")) {
+        return `/${variable.replace(/\./g, "/")}`
+      }
+
+      // Проверяем, есть ли вложенный map
+      if (context.currentPath && context.currentPath.includes("[item]")) {
+        // Вложенный map - переменная может быть из внешнего контекста
+        // Проверяем, есть ли в pathStack другие map контексты
+        if (context.pathStack && context.pathStack.length > 1) {
+          // Есть внешний map - вычисляем количество уровней подъема
+          // Считаем количество map контекстов в pathStack (каждый map добавляет уровень)
+          const mapLevels = context.pathStack.filter((path) => path.includes("[item]")).length
+          const levelsUp = mapLevels - 1 // текущий уровень не считаем
+
+          // Создаем префикс с нужным количеством "../"
+          const prefix = "../".repeat(levelsUp)
+
+          // Извлекаем только свойство из переменной (например, из g.id берем только id)
+          const propertyPath = variableParts.length > 1 ? variableParts.slice(1).join("/") : variable
+          return `${prefix}[item]/${propertyPath}`
+        } else {
+          // Нет внешнего map - обычный путь
+          return `[item]/${variable.replace(/\./g, "/")}`
+        }
+      } else {
+        // Обычный путь
+        return `[item]/${variable.replace(/\./g, "/")}`
+      }
+    }
+  } else if (context.currentPath && !context.currentPath.includes("[item]")) {
+    // В контексте, но не map - добавляем к текущему пути
+    return `${context.currentPath}/${variable.replace(/\./g, "/")}`
+  } else {
+    // Абсолютный путь
+    return `/${variable.replace(/\./g, "/")}`
+  }
+}
+/**
+ * Извлекает базовую переменную из сложного выражения с методами.
+ * Переиспользуемая функция для обработки выражений типа "context.list.map(...)".
+ */
+
+export const extractBaseVariable = (variable: string): string => {
+  if (variable.includes("(")) {
+    // Для выражений с методами, ищем переменную до первого вызова метода
+    // Например, для "context.list.map((item) => ...)" нужно получить "context.list"
+    const beforeMethod = variable
+      .split(/\.\w+\(/)
+      .shift()
+      ?.trim()
+    if (beforeMethod && VALID_VARIABLE_PATTERN.test(beforeMethod)) {
+      return beforeMethod
+    }
+  }
+  return variable
+}
+/**
+ * Создает унифицированное выражение с заменой переменных на индексы.
+ *
+ * Эта функция выполняет две ключевые задачи:
+ * 1. Заменяет все переменные в выражении на индексы для унификации
+ * 2. Форматирует выражение, удаляя избыточные пробелы и переносы строк
+ *
+ * Форматирование применяется с учетом строковых литералов:
+ * - Строковые литералы защищаются от форматирования
+ * - Пробелы и переносы строк удаляются только в логических частях выражения
+ * - Строковые литералы восстанавливаются без изменений
+ *
+ * @param value - Исходное выражение с переменными в формате ${variable}
+ * @param variables - Массив переменных для замены на индексы
+ * @returns Унифицированное и отформатированное выражение
+ *
+ * @example
+ * createUnifiedExpression("${user.name} is ${user.age} years old", ["user.name", "user.age"])
+ * // Возвращает: "${0} is ${1} years old"
+ *
+ * createUnifiedExpression("${active ? 'Enabled' : 'Disabled'}", ["active"])
+ * // Возвращает: "${0} ? 'Enabled' : 'Disabled'"
+ */
+
+export const createUnifiedExpression = (value: string, variables: string[]): string => {
+  let expr = value
+
+  // Сначала защищаем строковые литералы от замены
+  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
+
+  // Заменяем переменные в ${} на индексы
+  variables.forEach((variable, index) => {
+    // Сначала заменяем точные совпадения ${variable}
+    const exactRegex = new RegExp(`\\$\\{${variable.replace(/\./g, "\\.")}\\}`, "g")
+    expr = expr.replace(exactRegex, `\${${ARGUMENTS_PREFIX}[${index}]}`)
+
+    // Затем заменяем переменные внутри ${} выражений (для условных выражений)
+    // Но только если это не точное совпадение
+    const insideRegex = new RegExp(`\\$\\{([^}]*?)\\b${variable.replace(/\./g, "\\.")}\\b([^}]*?)\\}`, "g")
+    expr = expr.replace(insideRegex, (match, before, after) => {
+      // Проверяем, что это не точное совпадение
+      if (before.trim() === "" && after.trim() === "") {
+        return match // Не заменяем точные совпадения
+      }
+      return `\${${before}${ARGUMENTS_PREFIX}[${index}]${after}}`
+    })
+  })
+
+  // Удаляем лишние пробелы и переносы строк в выражениях
+  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
+
+  // Восстанавливаем строковые литералы
+  expr = restoreStringLiterals(expr, stringLiterals)
+
+  return expr
+}
+/**
+ * Парсит путь к данным из map-выражения и создает новый контекст.
+ *
+ * Эта функция анализирует map-выражения и определяет:
+ * - Путь к массиву данных
+ * - Параметры map-функции
+ * - Тип пути (абсолютный или относительный)
+ * - Новый контекст для вложенных операций
+ *
+ * Поддерживает различные сценарии:
+ * - Абсолютные пути к данным (например, core.list.map)
+ * - Относительные пути в контексте map (например, nested.map)
+ * - Вложенные map в контексте существующих map
+ *
+ * @param mapText - Текст map-выражения для парсинга
+ * @param context - Текущий контекст парсера (опционально)
+ * @returns Результат парсинга с путем, новым контекстом и метаданными
+ *
+ * @example
+ * parseMap("core.list.map(({ title }) => ...)")
+ * // Возвращает: { path: "/core/list", context: {...}, metadata: { params: ["title"] } }
+ *
+ * parseMap("nested.map((item) => ...)", context)
+ * // Возвращает: { path: "[item]/nested", context: {...}, metadata: { params: ["item"] } }
+ */
+// ============================================================================
+// NODE CREATION UTILITIES
+// ============================================================================
+/**
+ * Общая функция для обработки атрибутов с template literals.
+ * Устраняет дублирование кода между различными типами атрибутов.
+ */
+
+export const processTemplateLiteralAttribute = (
+  value: string,
+  context: ParseContext
+): { data: string | string[]; expr?: string } | null => {
+  const templateResult = parseTemplateLiteral(value, context)
+  if (templateResult && templateResult.data) {
+    // Проверяем, является ли это простой переменной (только одна переменная без дополнительного текста)
+    const isSimpleVariable = templateResult.expr === "${[0]}" && !Array.isArray(templateResult.data)
+
+    return {
+      data: templateResult.data,
+      ...(templateResult.expr && !isSimpleVariable && { expr: templateResult.expr }),
+    }
+  }
+  return null
+}
+/**
+ * Общая функция для обработки базовых атрибутов элемента.
+ * Устраняет дублирование кода между createNodeDataElement и createNodeDataMeta.
+ */
+
+export const processBasicAttributes = (
+  node: PartAttrElement | PartAttrMeta,
+  context: ParseContext
+): Partial<NodeElement | NodeMeta> => {
+  const result: Partial<NodeElement | NodeMeta> = {}
+
+  // Обрабатываем базовые атрибуты
+  if (node.string) {
+    result.string = processStringAttributes(node.string, context)
+  }
+
+  if (node.event) {
+    const eventAttrs = processEventAttributes(node.event, context)
+    if (Object.keys(eventAttrs).length > 0) {
+      result.event = eventAttrs
+    }
+  }
+
+  if (node.array) {
+    result.array = processArrayAttributes(node.array, context)
+  }
+
+  if (node.boolean) {
+    result.boolean = processBooleanAttributes(node.boolean, context)
+  }
+
+  if (node.style) {
+    const styleResult = processStyleAttributes(node.style, context)
+    if (styleResult) {
+      result.style = styleResult
+    }
+  }
+
+  return result
+}
+/**
+ * Общая функция для поиска конца template literal.
+ * Устраняет дублирование кода в parseAttributesImproved.
+ */
+const findTemplateLiteralEnd = (tagContent: string, startIndex: number): number => {
+  let i = startIndex
+  let braceCount = 0
+
+  // Ищем конец template literal
+  while (i < tagContent.length) {
+    if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
+      // Начинается template literal
+      i += 2
+      braceCount = 1
+      while (i < tagContent.length && braceCount > 0) {
+        if (tagContent[i] === "{") braceCount++
+        else if (tagContent[i] === "}") braceCount--
+        i++
+      }
+    } else if (/\s/.test(tagContent[i]!)) {
+      // Пробел - конец значения
+      break
+    } else {
+      i++
+    }
+  }
+
+  return i
+}
+/**
+ * Общая функция для поиска конца template literal внутри кавычек.
+ * Устраняет дублирование кода в parseAttributesImproved.
+ */
+const findTemplateLiteralEndInQuotes = (tagContent: string, startIndex: number, quote: string): number => {
+  let i = startIndex
+
+  // Ищем закрывающую кавычку, учитывая template literals
+  while (i < tagContent.length) {
+    if (tagContent[i] === quote) break
+    if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
+      // Пропускаем template literal
+      i += 2
+      let braceCount = 1
+      while (i < tagContent.length && braceCount > 0) {
+        if (tagContent[i] === "{") braceCount++
+        else if (tagContent[i] === "}") braceCount--
+        i++
+      }
+    } else {
+      i++
+    }
+  }
+
+  return i
+}
+/**
+ * Парсит путь к данным из условного выражения.
+ */
+
+export const parseCondition = (condText: string, context: ParseContext = { pathStack: [], level: 0 }): ParseResult => {
+  const cleanCondText = cleanConditionText(condText)
+
+  const pathMatches = cleanCondText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+  if (pathMatches.length === 0) return { path: "" }
+
+  const expression = extractConditionExpression(cleanCondText)
+  const paths =
+    pathMatches.length === 1
+      ? resolveDataPath(pathMatches[0] || "", context)
+      : pathMatches.map((variable) => resolveDataPath(variable, context))
+
+  return { path: paths, metadata: { expression } }
+}
+const cleanConditionText = (condText: string): string => {
+  let cleanText = condText.replace(/html`[^`]*`/g, "")
+
+  if (cleanText.includes("Index")) {
+    const indexMatches = cleanText.match(/([a-zA-Z_$][\w$]*\s*[=!<>]+\s*[0-9]+)/g) || []
+    return indexMatches.length > 0 ? indexMatches.join(" && ") : cleanText
+  }
+
+  return cleanText.includes("?") ? cleanText.split("?")[0]?.trim() || cleanText : cleanText
+}
+/**
+ * Извлекает выражение условия.
+ */
+export const extractConditionExpression = (condText: string): string => {
+  // Для условий с индексами, извлекаем только логическое выражение
+  if (condText.includes("Index")) {
+    // Ищем все логические выражения с индексами
+    const indexMatches = condText.match(/([a-zA-Z_$][\w$]*\s*[=!<>]+\s*[0-9]+)/g) || []
+    if (indexMatches.length > 0) {
+      // Собираем все логические выражения
+      let logicalExpression = indexMatches.join(" && ")
+
+      // Ищем переменные в логическом выражении
+      const pathMatches = logicalExpression.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+      // Заменяем переменные на индексы ${${ARGUMENTS_PREFIX}[0]}, ${${ARGUMENTS_PREFIX}[1]}, и т.д.
+      pathMatches.forEach((path, index) => {
+        logicalExpression = logicalExpression.replace(
+          new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"),
+          `\${${ARGUMENTS_PREFIX}[${index}]}`
+        )
+      })
+
+      return logicalExpression.replace(/\s+/g, " ").trim()
+    }
+  }
+
+  // Ищем все переменные в условии (но не числа)
+  const pathMatches = condText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+  // Проверяем, есть ли математические операции или другие сложные операции
+  const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(condText)
+  const hasLogicalOperators = /[&&||]/.test(condText)
+
+  // Если найдена только одна переменная и нет сложных операций, возвращаем простое выражение
+  if (pathMatches.length === 1 && !hasComplexOperations && !hasLogicalOperators) {
+    return `\${${ARGUMENTS_PREFIX}[0]}`
+  }
+
+  // Если найдена только одна переменная, но есть простые математические операции (например, i % 2)
+  if (pathMatches.length === 1 && hasComplexOperations && !hasLogicalOperators) {
+    // Заменяем переменную на индекс и оборачиваем в ${}
+    let expression = condText
+    expression = expression.replace(
+      new RegExp(`\\b${pathMatches[0].replace(/\./g, "\\.")}\\b`, "g"),
+      `${ARGUMENTS_PREFIX}[0]`
+    )
+    return `\${${expression}}`
+  }
+
+  // Заменяем переменные на индексы ${${ARGUMENTS_PREFIX}[0]}, ${${ARGUMENTS_PREFIX}[1]}, и т.д.
+  let expression = condText
+  pathMatches.forEach((path, index) => {
+    expression = expression.replace(
+      new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"),
+      `\${${ARGUMENTS_PREFIX}[${index}]}`
+    )
+  })
+
+  return expression.replace(/\s+/g, " ").trim()
+}
+/**
+ * Общая функция для обработки template literals.
+ * Используется как для text узлов, так и для атрибутов.
+ */
+
+export const parseTemplateLiteral = (
+  value: string,
+  context: ParseContext = { pathStack: [], level: 0 }
+): ParseAttributeResult | null => {
+  // Если значение не содержит ${}, возвращаем null (статическое значение)
+  if (!value.includes("${")) {
+    return null
+  }
+
+  // Извлекаем все переменные из выражения, включая вложенные ${...}
+  const variables: string[] = []
+
+  // Функция для извлечения переменных из строки с учетом вложенных ${...}
+  const extractVariables = (str: string) => {
+    // Защищаем строковые литералы
+    const stringLiterals: string[] = []
+    let protectedStr = str
+      .replace(/"[^"]*"/g, (match) => {
+        stringLiterals.push(match)
+        return `__STRING_${stringLiterals.length - 1}__`
+      })
+      .replace(/'[^']*'/g, (match) => {
+        stringLiterals.push(match)
+        return `__STRING_${stringLiterals.length - 1}__`
+      })
+
+    // Рекурсивно извлекаем переменные из всех ${...} выражений
+    const extractFromTemplate = (content: string) => {
+      // Находим переменные в текущем содержимом
+      const variableMatches = content.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+      variableMatches.forEach((variable) => {
+        if (
+          variable.length > 1 &&
+          !variable.startsWith("__STRING_") &&
+          !variable.startsWith("STRING") &&
+          variable !== "true" &&
+          variable !== "false" &&
+          variable !== "null" &&
+          variable !== "undefined" &&
+          !variables.includes(variable)
+        ) {
+          variables.push(variable)
+        }
+      })
+
+      // Рекурсивно обрабатываем вложенные ${...}
+      const nestedMatches = content.match(/\$\{([^}]+)\}/g) || []
+      nestedMatches.forEach((nestedMatch) => {
+        const nestedContent = nestedMatch.slice(2, -1)
+        extractFromTemplate(nestedContent)
+      })
+    }
+
+    // Если строка содержит ${...}, извлекаем переменные из всего содержимого
+    if (protectedStr.includes("${")) {
+      // Находим все ${...} выражения
+      const templateMatches = protectedStr.match(/\$\{([^}]+)\}/g) || []
+
+      templateMatches.forEach((match) => {
+        // Извлекаем содержимое ${...}
+        const content = match.slice(2, -1) // убираем ${ и }
+        extractFromTemplate(content)
+      })
+    }
+  }
+
+  // Извлекаем переменные из всего выражения
+  extractVariables(value)
+
+  // Всегда извлекаем переменные из всего выражения, независимо от наличия ${...}
+  // Защищаем строковые литералы
+  const additionalStringLiterals: string[] = []
+  let protectedValue = value
+    .replace(/"[^"]*"/g, (match) => {
+      additionalStringLiterals.push(match)
+      return `__STRING_${additionalStringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      additionalStringLiterals.push(match)
+      return `__STRING_${additionalStringLiterals.length - 1}__`
+    })
+    // Защищаем строки внутри template literals (например, "active" в `${context.item}-active-${context.status}`)
+    .replace(/\$\{([^}]*)\}/g, (match, content) => {
+      const protectedContent = content.replace(/([a-zA-Z_$][\w$]*)/g, (word: string) => {
+        // Если это не переменная с точками, считаем строкой
+        if (!word.includes(".") && word !== "true" && word !== "false" && word !== "null" && word !== "undefined") {
+          additionalStringLiterals.push(word)
+          return `__STRING_${additionalStringLiterals.length - 1}__`
+        }
+        return word
+      })
+      return `\${${protectedContent}}`
+    })
+
+  // Извлекаем переменные только из ${} выражений или если они содержат точки
+  const allMatches = protectedValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+
+  allMatches.forEach((variable) => {
+    // Переменная должна содержать точки (например, context.flag) или быть внутри ${} выражения
+    const hasDots = variable.includes(".")
+
+    // Проверяем, находится ли переменная внутри ${} выражения
+    // Переменная может быть только внутри ${}, а не в статическом тексте
+    const isInsideTemplateLiteral =
+      value.includes(`\${${variable}}`) ||
+      value.includes(`\${${variable} `) ||
+      value.includes(` ${variable}}`) ||
+      // Более точная проверка для variable. - должна быть отдельным паттерном
+      new RegExp(`\${${variable.replace(/\./g, "\\.")}\\.`).test(value)
+
+    // Проверяем, является ли это простой переменной в выражении (например, i в i % 2)
+    // Переменная должна быть внутри ${} выражения, а не просто в строке
+    const isSimpleVariableInExpression = !hasDots && value.includes(`\${${variable} `) && /[+\-*/%<>=!&|]/.test(value)
+
+    // Переменная должна быть ТОЛЬКО внутри ${} выражения
+    const isPartOfTemplateExpression = isInsideTemplateLiteral || isSimpleVariableInExpression
+
+    if (
+      variable.length > 1 &&
+      !variable.startsWith("__STRING_") &&
+      variable !== "true" &&
+      variable !== "false" &&
+      variable !== "null" &&
+      variable !== "undefined" &&
+      variable !== "active" &&
+      variable !== "inactive" &&
+      (hasDots || isPartOfTemplateExpression) &&
+      !variables.includes(variable)
+    ) {
+      variables.push(variable)
+    }
+  })
+
+  if (variables.length === 0) {
+    return null
+  }
+
+  // Разрешаем пути к данным для каждой переменной
+  const paths = variables.map((variable: string) => resolveDataPath(variable, context))
+
+  // Создаем унифицированное выражение, заменяя переменные на индексы
+  let expr = value
+
+  // Защищаем строковые литералы от замены
+  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
+
+  variables.forEach((variable: string, index: number) => {
+    // Заменяем переменные на индексы во всем выражении
+    // Используем более точное регулярное выражение для замены переменных
+    const variableRegex = new RegExp(`(?<!\\w)${variable.replace(/\./g, "\\.")}(?!\\w)`, "g")
+    expr = expr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
+  })
+
+  // Восстанавливаем строковые литералы
+  expr = restoreStringLiterals(expr, stringLiterals)
+
+  // Применяем форматирование к выражению
+  expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
+
+  // Возвращаем результат в новом формате
+  return {
+    data: paths.length === 1 ? paths[0] || "" : paths,
+    expr: expr,
+  }
+}
+
+export const enrichWithData = (hierarchy: PartAttrs, context: ParseContext = { pathStack: [], level: 0 }): Node[] => {
+  return hierarchy.map((node) => createNodeData(node, context))
+}
+// ============================================================================
+// HELPER FUNCTIONS FOR CODE REUSE
+// ============================================================================
+/**
+ * Защищает строковые литералы от замены переменных.
+ * Переиспользуемая функция для устранения дублирования.
+ */
+const protectStringLiterals = (expr: string): { protectedExpr: string; stringLiterals: string[] } => {
+  const stringLiterals: string[] = []
+  const protectedExpr = expr
+    .replace(/"[^"]*"/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
+  return { protectedExpr, stringLiterals }
+}
+/**
+ * Восстанавливает строковые литералы после обработки.
+ */
+const restoreStringLiterals = (expr: string, stringLiterals: string[]): string => {
+  let result = expr
+  stringLiterals.forEach((literal, index) => {
+    result = result.replace(`__STRING_${index}__`, literal)
+  })
+  return result
 }

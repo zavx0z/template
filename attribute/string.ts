@@ -1,5 +1,5 @@
-import { processTemplateLiteralAttribute } from "../data"
-import type { ParseContext } from "../data.t"
+import { processTemplateLiteralAttribute } from "../parser"
+import type { ParseContext } from "../parser.t"
 
 /**
  * Обрабатывает строковые атрибуты и создает соответствующие объекты.

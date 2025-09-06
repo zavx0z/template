@@ -1,4 +1,4 @@
-import type { ValueVariable, ValueDynamic, ValueUpdate } from "../index.t"
+import type { ValueVariable, ValueDynamic, ValueUpdate } from "./index.t"
 
 /**
  * Событийные атрибуты.

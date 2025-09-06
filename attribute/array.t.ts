@@ -1,5 +1,5 @@
 import type { ValueType } from "./index.t"
-import type { ValueStaticArray, ValueVariable, ValueDynamic } from "../index.t"
+import type { ValueStaticArray, ValueVariable, ValueDynamic } from "./index.t"
 
 /**
  * Массивы атрибутов.

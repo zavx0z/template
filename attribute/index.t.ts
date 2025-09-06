@@ -2,79 +2,204 @@ import type { SplitterFn } from "."
 
 export type ValueType = "dynamic" | "static" | "mixed"
 
-export type PartText = {
-  /** Тип узла */
-  type: "text"
-  /** Исходный текст */
-  text: string
-}
-interface AttrNodeElement {
-  /** Имя HTML тега */
-  tag: string
-  /** Тип узла */
-  type: "meta" | "el"
-  /** События (onclick, onchange, onsubmit и т.д.) */
-  event?: Record<string, string>
-  /** Булевые атрибуты (hidden, disabled, checked, readonly и т.д.) */
-  boolean?: Record<string, { type: "dynamic" | "static"; value: boolean | string }>
-  /** Массивы атрибутов (class, rel, ping и т.д.) */
-  array?: Record<string, { value: string; type: ValueType }[]>
-  /** Строковые атрибуты (id, title, alt, href и т.д.) */
-  string?: Record<string, { type: ValueType; value: string }>
-  /** Стили (CSS в виде строки или объекта) */
-  style?: string
-  /** Дочерние элементы (опционально) */
-  child?: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartAttrLogical | PartText)[]
-}
-
-export interface PartAttrElement extends AttrNodeElement {
-  /** Тип узла */
-  type: "el"
-}
-
-export interface PartAttrMeta extends AttrNodeElement {
-  /** Тип узла */
-  type: "meta"
-  /** Core объекты */
-  core?: string
-  /** Context объекты */
-  context?: string
-}
-
-export type PartAttrCondition = {
-  /** Тип узла */
-  type: "cond"
-  /** Исходный текст условия */
-  text: string
-  /** Элементы, условия
-   * - true: первый элемент массива
-   * - false: второй элемент массива
-   */
-  child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap)[]
-}
-
-export type PartAttrLogical = {
-  /** Тип узла */
-  type: "log"
-  /** Исходный текст логического выражения */
-  text: string
-  /** Дочерние элементы, которые отображаются только если условие истинно */
-  child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap | PartAttrLogical)[]
-}
-export type PartAttrMap = {
-  /** Тип узла */
-  type: "map"
-  /** Исходный текст map-выражения */
-  text: string
-  /** Дочерние элементы, повторяемые для каждого элемента коллекции */
-  child: (PartAttrElement | PartText | PartAttrMap | PartAttrMeta | PartAttrCondition | PartAttrLogical)[]
-}
-export type PartAttrs = (
-  | PartAttrElement
-  | PartAttrMeta
-  | PartAttrCondition
-  | PartAttrMap
-  | PartAttrLogical
-  | PartText
-)[]
 export type SplitterResolved = { fn: SplitterFn; delim: string }
+
+/**
+ * Статический элемент массива атрибутов.
+ */
+export type ValueStaticArray = {
+  /** Статическое значение */
+  value: string
+}
+
+/**
+ * Статическое значение.
+ */
+export type ValueStatic = string
+
+/**
+ * Переменный атрибут с путем к данным.
+ * Используется для простых динамических атрибутов.
+ *
+ * @example
+ * ```html
+ * <div class=${context.theme}>Тема пользователя</div>
+ * ```
+ */
+export type ValueVariable = {
+  /**
+   * Путь к данным в контексте
+   * @example
+   * ```typescript
+   * data: "/context/theme"
+   * ```
+   *
+   * ---
+   *
+   * @example
+   * ```typescript
+   * data: "/core/settings/color"
+   * ```
+   */
+  data: string
+}
+
+/**
+ * Динамический атрибут с выражением.
+ * Используется для сложных вычислений в атрибутах.
+ *
+ * @example
+ * ```html
+ * <div class=${core.role === 'admin' ? 'admin-panel' : 'user-panel'}>
+ *   Панель управления
+ * </div>
+ * ```
+ */
+export type ValueDynamic = {
+  /**
+   * Путь(и) к данным для выражения
+   *
+   * @example
+   * ```typescript
+   * data: "/context/value"
+   * data: ["/context/value", "[item]/nested/variable"]
+   * ```
+   */
+  data: string | string[]
+  /**
+   * Выражение с индексами
+   *
+   * @example
+   * ```typescript
+   * expr: "${[0]} === 'admin' ? 'admin' : 'user'"
+   * ```
+   */
+  expr: string
+}
+
+/**
+ * Атрибут с обновлением состояния.
+ * Используется для атрибутов, которые могут изменять состояние приложения.
+ *
+ * @example
+ * ```html
+ * <input value=${context.email} onchange=${(e) => update({ email: e.target.value })} />
+ * ```
+ */
+export type ValueUpdate = {
+  /** Путь(и) к данным (опционально) */
+  data?: string | string[]
+  /** Выражение с индексами (опционально) */
+  expr?: string
+  /** Ключи для обновления в состоянии */
+  upd: string | string[]
+}
+
+/**
+ * Результат парсинга атрибута.
+ * Содержит информацию о динамических атрибутах, извлеченную из template literals.
+ *
+ * @example Простой динамический атрибут
+ * ```html
+ * <div class=${context.theme}>Элемент</div>
+ * ```
+ *
+ * Результат:
+ * ```json
+ * {
+ *   "data": "/context/theme"
+ * }
+ * ```
+ *
+ * @example Сложное выражение в атрибуте
+ * ```html
+ * <div class=${core.role === 'admin' ? 'admin-panel' : 'user-panel'}>
+ *   Панель
+ * </div>
+ * ```
+ *
+ * Результат:
+ * ```json
+ * {
+ *   "data": ["/core/role"],
+ *   "expr": "${[0]} === 'admin' ? 'admin-panel' : 'user-panel'"
+ * }
+ * ```
+ *
+ * @example Атрибут с обновлением состояния
+ * ```html
+ * <input value=${context.email} onchange=${(e) => update({ email: e.target.value })} />
+ * ```
+ *
+ * Результат:
+ * ```json
+ * {
+ *   "data": "/context/email",
+ *   "upd": "email",
+ *   "expr": "(e) => update({ email: e.target.value })"
+ * }
+ * ```
+ *
+ * @example Смешанный атрибут
+ * ```html
+ * <div class="container ${context.theme} ${context.isActive ? 'active' : ''}">
+ *   Элемент
+ * </div>
+ * ```
+ *
+ * Результат:
+ * ```json
+ * {
+ *   "data": ["/context/theme", "/context/isActive"],
+ *   "expr": "container ${[0]} ${[1] ? 'active' : ''}"
+ * }
+ * ```
+ *
+ * Структура:
+ * - `data` - путь(и) к данным в контексте
+ * - `expr` - выражение с индексами для сложных вычислений
+ * - `upd` - ключи обновления контекста
+ */
+export type ParseAttributeResult = {
+  /**
+   * Путь(и) к данным
+   *
+   * @example Простой путь
+   * ```typescript
+   * data: "/context/name"
+   * ```
+   *
+   * ---
+   *
+   * @example Массив путей
+   * ```typescript
+   * data: ["/context/theme", "/core/role"]
+   * ```
+   */
+  data?: string | string[]
+  /**
+   * Унифицированное выражение с индексами
+   *
+   * @example
+   * ```typescript
+   * expr: "${[0]} === 'admin' ? 'admin' : 'user'"
+   * ```
+   */
+  expr?: string
+  /**
+   * Ключи обновления контекста
+   *
+   * @example Простой ключ
+   * ```typescript
+   * upd: "email"
+   * ```
+   *
+   * ---
+   *
+   * @example Массив ключей
+   * ```typescript
+   * upd: ["user", "settings"]
+   * ```
+   */
+  upd?: string | string[]
+}

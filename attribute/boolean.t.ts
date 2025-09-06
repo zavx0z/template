@@ -1,4 +1,4 @@
-import type { ValueVariable, ValueDynamic } from "../index.t"
+import type { ValueVariable, ValueDynamic } from "./index.t"
 
 /**
  * Булевые атрибуты.
