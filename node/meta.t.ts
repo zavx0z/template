@@ -1,4 +1,4 @@
-import type { ValueStatic, ValueDynamic, ValueVariable } from "../attribute/index.t"
+import type { ValueStatic, ValueDynamic, ValueVariable } from "../parser.t"
 import type { AttrNodeElement } from "./index.t"
 import type { Attributes } from "../attribute/index.t"
 import type { Node } from "./index.t"

@@ -44,7 +44,6 @@ import type { PartAttrElement } from "./element.t"
  * - NodeMap для итерации по массиву
  * - NodeMeta для meta-component
  */
-
 export type Node = NodeMap | NodeCondition | NodeLogical | NodeText | NodeElement | NodeMeta
 
 export interface AttrNodeElement {

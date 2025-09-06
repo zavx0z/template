@@ -1,5 +1,6 @@
-import type { ValueStatic, ValueType } from "./index.t"
-import type { ValueVariable, ValueDynamic } from "./index.t"
+import type { ValueType } from "./index.t"
+import type { ValueStatic } from "../parser.t"
+import type { ValueVariable, ValueDynamic } from "../parser.t"
 
 /**
  * Массивы атрибутов.

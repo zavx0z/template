@@ -8,11 +8,7 @@
     "excludePrivate": true,
     "excludeProtected": true,
     "excludeExternals": true,
-    "exclude": [
-        "**/data.t.ts",
-        "**/attributes.t.ts",
-        "**/parser.t.ts"
-    ],
+    "exclude": [],
     "readme": "README.md",
     "theme": "default",
     "categorizeByGroup": false,

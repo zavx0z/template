@@ -1,4 +1,4 @@
-import type { ValueVariable, ValueDynamic, ValueUpdate } from "./index.t"
+import type { ValueVariable, ValueDynamic } from "../parser.t"
 
 /**
  * Событийные атрибуты.
@@ -49,5 +49,54 @@ import type { ValueVariable, ValueDynamic, ValueUpdate } from "./index.t"
  * }
  * ```
  */
-export type ValueEvent = ValueVariable | ValueDynamic | ValueUpdate
+export type ValueEvent =
+  | {
+      /** Обновляемые ключи контекста в функции Update */
+      upd?: string | string[]
+      /**
+       * Путь(и) к данным для выражения
+       *
+       * @example
+       * ```typescript
+       * data: "/context/value"
+       * data: ["/context/value", "[item]/nested/variable"]
+       * ```
+       */
+      data: string | string[]
+      /**
+       * Выражение с индексами
+       *
+       * @example
+       * ```typescript
+       * expr: "${[0]} === 'admin' ? 'admin' : 'user'"
+       * ```
+       */
+      expr: string
+    }
+  | {
+      /** Обновляемые ключи контекста в функции Update */
+      upd?: string | string[]
+      /**
+       * Выражение с индексами
+       *
+       * @example
+       * ```typescript
+       * expr: "${[0]} === 'admin' ? 'admin' : 'user'"
+       * ```
+       */
+      expr: string
+    }
+  | {
+      /**
+       * Путь(и) к данным для выражения
+       *
+       * @example
+       * ```typescript
+       * data: "/context/value"
+       * data: ["/context/value", "[item]/nested/variable"]
+       * ```
+       */
+      data: string | string[]
+    }
+
 export type RawAttrEvent = Record<string, string>

@@ -4,20 +4,18 @@ import { parse, type Node } from "../../../index"
 describe("object атрибуты (стили) с переменными из разных уровней map", () => {
   describe("стили с переменными из разных уровней вложенности", () => {
     let elements: Node[]
+    type Core = {
+      companies: {
+        id: string
+        theme: string
+        departments: {
+          id: string
+          color: string
+        }[]
+      }[]
+    }
     beforeAll(() => {
-      elements = parse<
-        any,
-        {
-          companies: {
-            id: string
-            theme: string
-            departments: {
-              id: string
-              color: string
-            }[]
-          }[]
-        }
-      >(
+      elements = parse<any, Core>(
         ({ html, core }) => html`
           <div>
             ${core.companies.map(
@@ -25,7 +23,11 @@ describe("object атрибуты (стили) с переменными из р
                 <section style="${{ backgroundColor: company.theme }}">
                   ${company.departments.map(
                     (dept) => html`
-                      <article style="${{ color: company.theme, borderColor: dept.color }}">
+                      <article
+                        style="${{
+                          color: company.theme,
+                          borderColor: dept.color,
+                        }}">
                         Dept: ${company.id}-${dept.id}
                       </article>
                     `
@@ -66,15 +68,21 @@ describe("object атрибуты (стили) с переменными из р
                             },
                           ],
                           style: {
-                            color: { data: "../[item]/theme" },
-                            borderColor: { data: "[item]/color" },
+                            color: {
+                              data: "../[item]/theme",
+                            },
+                            borderColor: {
+                              data: "[item]/color",
+                            },
                           },
                         },
                       ],
                     },
                   ],
                   style: {
-                    backgroundColor: { data: "[item]/theme" },
+                    backgroundColor: {
+                      data: "[item]/theme",
+                    },
                   },
                 },
               ],
@@ -138,7 +146,9 @@ describe("object атрибуты (стили) с переменными из р
                   ],
                   style: {
                     color: "red",
-                    backgroundColor: { data: "[item]/theme" },
+                    backgroundColor: {
+                      data: "[item]/theme",
+                    },
                     border: "1px solid black",
                     fontSize: "14px",
                   },

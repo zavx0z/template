@@ -50,7 +50,10 @@ export const processEventAttributes = (
  * @returns Результат парсинга с путями к данным и унифицированным выражением
  */
 
-export const parseEventExpression = (eventValue: string, context: ParseContext = { pathStack: [], level: 0 }): ValueEvent | null => {
+export const parseEventExpression = (
+  eventValue: string,
+  context: ParseContext = { pathStack: [], level: 0 }
+): ValueEvent | null => {
   // Проверяем, является ли это условным выражением (не событием)
   // Ищем тернарный оператор ? ... : (но не стрелочную функцию =>)
   const hasConditionalOperators = CONDITIONAL_OPERATORS_PATTERN.test(eventValue) && !eventValue.includes("=>")
@@ -91,7 +94,7 @@ export const parseEventExpression = (eventValue: string, context: ParseContext =
           )
         })
 
-        let result: ValueEvent = {
+        let result: any = {
           upd: keys.length === 1 ? keys[0] || "" : keys,
         }
 
@@ -118,7 +121,7 @@ export const parseEventExpression = (eventValue: string, context: ParseContext =
 
         result.expr = expr.replace(TEMPLATE_WRAPPER_PATTERN, "").replace(WHITESPACE_PATTERN, " ").trim()
 
-        return result
+        return result as ValueEvent
       }
     }
   }
@@ -174,15 +177,10 @@ export const parseEventExpression = (eventValue: string, context: ParseContext =
     uniqueVariables.length === 1 &&
     (expr === `\${${ARGUMENTS_PREFIX}[0]}` || expr === `${ARGUMENTS_PREFIX}[0]`)
   ) {
-    return {
-      data: paths[0] || "",
-    }
+    return { data: paths[0] || "" }
   }
 
-  return {
-    data: paths.length === 1 ? paths[0] || "" : paths,
-    expr,
-  }
+  return { data: paths.length === 1 ? paths[0] || "" : paths, expr }
 }
 
 /**

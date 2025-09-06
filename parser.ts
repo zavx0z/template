@@ -1,4 +1,4 @@
-import type { ValueDynamic, ValueVariable } from "./attribute/index.t"
+import type { ValueDynamic, ValueVariable } from "./parser.t"
 import type { PartsAttr, Node } from "./node/index.t"
 import type { Attributes } from "./attribute/index.t"
 import type { PartAttrMap, TokenMapClose, TokenMapOpen } from "./node/map.t"

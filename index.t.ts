@@ -12,6 +12,7 @@ export type { ValueBoolean } from "./attribute/boolean.t"
 export type { ValueString } from "./attribute/string.t"
 export type { ValueEvent } from "./attribute/event.t"
 export type { ValueStyle } from "./attribute/style.t"
+export type { ValueStatic, ValueVariable, ValueDynamic } from "./parser.t"
 
 /**
  * Контекст приложения.
