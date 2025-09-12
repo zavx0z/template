@@ -2,6 +2,23 @@ import { describe, it, expect } from "bun:test"
 import { parse } from "./index"
 
 describe("parse", () => {
+  it("параметры", () => {
+    // #region params
+    const result = parse<{ attempt: number }, { ice: { url: string }[] }>(
+      ({ html, context, update, core, state }) => html`
+        <h1>Config</h1>
+        <ul>
+          ${core.ice.map((server) => html`<li>Url: ${server.url}</li>`)}
+        </ul>
+        <h1>State</h1>
+        <p>${state}</p>
+        ${state === "offline" &&
+        html` <button onclick=${() => update({ attempt: context.attempt + 1 })}>Connect</button>`}
+      `
+    )
+    // #endregion params
+    expect(result).toHaveLength(1)
+  })
   it("парсит простой HTML с переменными", () => {
     const result = parse(
       ({ html, context }) => html`
