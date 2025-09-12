@@ -1,8 +1,8 @@
-# @zavx0z/html-parser
+# @zavx0z/template
 
 > HTML template parser для **MetaFor**. Извлекает структуру, пути к данным и выражения из tagged template literals **без их выполнения**.
 
-`@zavx0z/html-parser` читает **исходник** вашей render‑функции (через `toString`), забирает блок `html`\`...\` и **статически** парсит его. Результат — нормализованное дерево с:
+`@zavx0z/template` читает **исходник** вашей render‑функции (через `toString`), забирает блок `html`\`...\` и **статически** парсит его. Результат — нормализованное дерево с:
 
 - **Элементами и текстовыми узлами** (включая Web Components)
 - **Интерполяциями** `${...}` в тексте и атрибутах
@@ -18,13 +18,7 @@
 ## Установка
 
 ```bash
-bun i @zavx0z/html-parser
-# или
-npm i @zavx0z/html-parser
-# или
-pnpm add @zavx0z/html-parser
-# или
-yarn add @zavx0z/html-parser
+bun i @zavx0z/template
 ```
 
 > Требуется: `typescript@^5`. ESM пакет.
@@ -32,7 +26,7 @@ yarn add @zavx0z/html-parser
 ## Быстрый старт
 
 ```ts
-import { parse, type Node } from "@zavx0z/html-parser"
+import { parse, type Node } from "@zavx0z/template"
 
 const tree: Node[] = parse(
   ({ html, context, core }) => html`
@@ -434,7 +428,7 @@ const nodes = parse(
 
 ## Документация
 
-Полная документация с примерами доступна на [GitHub Pages](https://zavx0z.github.io/html-parser/).
+Полная документация с примерами доступна на [GitHub Pages](https://zavx0z.github.io/template/).
 
 ## Заметки
 

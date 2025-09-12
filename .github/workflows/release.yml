@@ -60,11 +60,11 @@ jobs:
           body: |
             ## Changes in this Release
 
-            See the [documentation](https://zavx0z.github.io/html-parser/) for usage examples.
+            See the [documentation](https://zavx0z.github.io/template/) for usage examples.
 
             ### Installation
             ```bash
-            bun add @zavx0z/html-parser
+            bun add @zavx0z/template
             ```
           files: |
             documentation.zip

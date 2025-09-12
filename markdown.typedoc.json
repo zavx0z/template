@@ -10,7 +10,7 @@
   "categoryOrder": ["Context", "Types", "Factories", "*"],
   "defaultCategory": "Other",
   "readme": "README.md",
-  "name": "@zavx0z/html-parser",
+  "name": "@zavx0z/template",
   "theme": "default",
   "lightHighlightTheme": "github-light",
   "darkHighlightTheme": "github-dark",
@@ -25,7 +25,7 @@
   "plugin": ["typedoc-plugin-markdown"],
   "hideGenerator": false,
   "sidebarLinks": {
-    "github": "https://github.com/zavx0z/html-parser",
-    "npm": "https://www.npmjs.com/package/@zavx0z/html-parser"
+    "github": "https://github.com/zavx0z/template",
+    "npm": "https://www.npmjs.com/package/@zavx0z/template"
   }
 }
