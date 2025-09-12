@@ -3,7 +3,7 @@
         "index.t.ts"
     ],
     "out": "docs",
-    "name": "HTML Parser для MetaFor",
+    "name": "Шаблонизатор для MetaFor",
     "includeVersion": true,
     "excludePrivate": true,
     "excludeProtected": true,

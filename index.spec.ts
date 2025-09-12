@@ -3,8 +3,9 @@ import { parse } from "./index"
 
 describe("parse", () => {
   it("параметры", () => {
+    type state = "offline" | "online"
     // #region params
-    const result = parse<{ attempt: number }, { ice: { url: string }[] }>(
+    const result = parse<{ attempt: number }, { ice: { url: string }[] }, state>(
       ({ html, context, update, core, state }) => html`
         <h1>Config</h1>
         <ul>

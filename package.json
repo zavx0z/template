@@ -13,7 +13,7 @@
     "url": "https://github.com/zavx0z/template.git"
   },
   "bugs": {
-    "url": "https://github.com/zavx0z/context/issues"
+    "url": "https://github.com/zavx0z/template/issues"
   },
   "main": "dist/index.js",
   "module": "dist/index.js",
