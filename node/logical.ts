@@ -13,7 +13,7 @@ export const createNodeDataLogical = (
   context: ParseContext = { pathStack: [], level: 0 }
 ): NodeLogical => {
   const condData = parseCondition(node.text, context)
-  const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length === 1
+  const isSimpleCondition = !Array.isArray(condData.path) || condData.path.length <= 1
 
   // Используем пути, уже правильно разрешенные в parseCondition
   const processedData = condData.path
@@ -26,11 +26,7 @@ export const createNodeDataLogical = (
 
   return {
     type: "log",
-    data: isSimpleCondition
-      ? Array.isArray(processedData)
-        ? processedData[0] || ""
-        : processedData || ""
-      : processedData || [],
+    data: processedData || (isSimpleCondition ? "" : []),
     ...(needsExpression && condData.metadata?.expression ? { expr: condData.metadata.expression } : {}),
     child: node.child ? node.child.map((child: any) => createNode(child, context)) : [],
   }
@@ -67,15 +63,18 @@ export const findLogicalOperators = (expr: string): [number, TokenLogicalOpen][]
       continue
     }
 
-    // Извлекаем выражение до &&
-    const condition = expr.slice(dollarIndex + 2, andIndex).trim()
+    // Извлекаем полное выражение до html` (включая все &&)
+    const fullCondition = expr.slice(dollarIndex + 2, htmlIndex).trim()
+
+    // Убираем последний && если он есть
+    const condition = fullCondition.replace(/\s*&&\s*$/, "").trim()
 
     // Проверяем, что это валидное условие (содержит переменную или сложное выражение)
     if (condition && /[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*/.test(condition)) {
       results.push([dollarIndex + 2, { kind: "log-open", expr: condition }])
     }
 
-    i = andIndex + 2
+    i = htmlIndex + 5 // Переходим к концу html`
   }
 
   return results

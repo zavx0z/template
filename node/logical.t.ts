@@ -95,44 +95,10 @@ import type { PartAttrMeta } from "./meta.t"
  * }
  * ```
  *
- * @example Сложное логическое условие
- * ```html
- * <div>
- *   ${core.role === 'admin' && core.permissions.includes('delete') && html`
- *     <button onclick="deleteItem()">Удалить</button>
- *   `}
- * </div>
- * ```
+ * ### Сложное логическое условие
  *
- * Результат:
- * ```json
- * {
- *   "tag": "div",
- *   "type": "el",
- *   "child": [
- *     {
- *       "type": "log",
- *       "data": ["user.role", "user.permissions"],
- *       "expr": "${[0]} === 'admin' && ${[1]}.includes('delete')",
- *       "child": [
- *         {
- *           "tag": "button",
- *           "type": "el",
- *           "string": {
- *             "onclick": "deleteItem()"
- *           },
- *           "child": [
- *             {
- *               "type": "text",
- *               "value": "Удалить"
- *             }
- *           ]
- *         }
- *       ]
- *     }
- *   ]
- * }
- * ```
+ * {@includeCode ./logical.spec.ts#parse}
+ * {@includeCode ./logical.spec.ts#expect}
  *
  * Структура узла:
  * - `type` - всегда "log" для логических операторов

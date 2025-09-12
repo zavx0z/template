@@ -329,7 +329,8 @@ describe("логические операторы в map", () => {
                     },
                     {
                       type: "log",
-                      data: "[item]/inStock",
+                      data: ["[item]/inStock", "[item]/context/showDetails"],
+                      expr: "${[0]} && ${[1]}",
                       child: [
                         {
                           tag: "div",
