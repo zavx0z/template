@@ -15,8 +15,10 @@ export type { ValueStyle } from "./attribute/style.t"
 export type { ValueStatic, ValueVariable, ValueDynamic } from "./parser.t"
 
 /**
- * Контекст приложения.
- * Содержит простые данные, доступные в шаблоне для рендеринга.
+ * Контекст.
+ *
+ * {@link https://zavx0z.github.io/context/types/Values | Контекстные значения}
+ * содержат простые данные, доступные в шаблоне для рендеринга.
  * Поддерживает только примитивные типы и массивы примитивных типов.
  *
  * @group Шаблонизатор
@@ -81,17 +83,23 @@ export type State = string
  * Параметры для функции шаблонизатора.
  * Содержит все необходимые данные и функции для шаблонизации.
  * {@includeCode ./index.spec.ts#params}
- * 
+ *
  * @group Шаблонизатор
  */
 export type Params<C extends Context, I extends Core = Core, S extends State = State> = {
   /** Функция для создания HTML из template literals */
   html: (strings: TemplateStringsArray, ...values: any[]) => string
-  /** Core объект с системными данными */
+  /**
+   * @inheritdoc Core
+   */
   core: I
-  /** {@link https://zavx0z.github.io/context/types/Values | Контекстные значение} */
+  /**
+   * @inheritdoc Context
+   */
   context: C
-  /** Текущее состояние приложения */
+  /**
+   * @inheritdoc State
+   */
   state: S
   /**
    * Функция для обновления контекста {@link https://zavx0z.github.io/context/types/Update | Update}.
