@@ -1,6 +1,6 @@
 import { createNode } from "./node"
 import type { Node } from "./node/index.t"
-import type { TemplateParams, Context, Core, State } from "./index.t"
+import type { Params, Context, Core, State } from "./index.t"
 import { extractHtmlElements } from "./parser"
 
 export type { Node }
@@ -20,7 +20,7 @@ export type { Node }
  * @returns Обогащенная иерархия с метаданными о путях к данным
  */
 export const parse = <C extends Context = Context, I extends Core = Core, S extends State = State>(
-  render: (params: TemplateParams<C, I, S>) => void
+  render: (params: Params<C, I, S>) => void
 ): Node[] => {
   const mainHtml = extractMainHtmlBlock(render)
   const hierarchy = extractHtmlElements(mainHtml)
@@ -28,7 +28,7 @@ export const parse = <C extends Context = Context, I extends Core = Core, S exte
   return hierarchy.map((node) => createNode(node, context))
 }
 
-const extractMainHtmlBlock = (render: (params: TemplateParams<any, any, any>) => void): string => {
+const extractMainHtmlBlock = (render: (params: Params<any, any, any>) => void): string => {
   const src = Function.prototype.toString.call(render)
   const firstIndex = src.indexOf("html`")
   if (firstIndex === -1) throw new Error("функция render не содержит html`")

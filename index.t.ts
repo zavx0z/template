@@ -95,17 +95,17 @@ export type State = string
  * `
  * ```
  */
-export type TemplateParams<C extends Context, I extends Core = Core, S extends State = State> = {
+export type Params<C extends Context, I extends Core = Core, S extends State = State> = {
   /** Функция для создания HTML из template literals */
   html: (strings: TemplateStringsArray, ...values: any[]) => string
   /** Core объект с системными данными */
   core: I
-  /** Контекст приложения с данными */
+  /** {@link https://zavx0z.github.io/context/types/Values | Контекстные значение} */
   context: C
   /** Текущее состояние приложения */
   state: S
   /**
-   * Функция для обновления контекста приложения.
+   * Функция для обновления контекста {@link https://zavx0z.github.io/context/types/Update | Update}.
    * Используется в обработчиках событий для изменения состояния.
    *
    * @example
@@ -130,5 +130,5 @@ export type TemplateParams<C extends Context, I extends Core = Core, S extends S
  * @returns Массив узлов с полной структурой и метаданными о путях к данным
  */
 export declare function parse<C extends Context = Context, I extends Core = Core, S extends State = State>(
-  template: (params: TemplateParams<C, I, S>) => void
+  template: (params: Params<C, I, S>) => void
 ): Node[]

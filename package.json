@@ -1,17 +1,19 @@
 {
   "name": "@zavx0z/html-parser",
-  "version": "2.3.2",
-  "description": "HTML template parser for MetaFor",
+  "version": "2.3.3",
+  "description": "HTML шаблонизатор для MetaFor",
   "author": "zavx0z",
   "license": "MIT",
   "keywords": [
-    "html",
-    "parser",
     "metafor"
   ],
+  "docs": "https://zavx0z.github.io/html-parser",
   "repository": {
     "type": "git",
     "url": "https://github.com/zavx0z/html-parser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zavx0z/context/issues"
   },
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -19,13 +21,16 @@
   "type": "module",
   "private": false,
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "devDependencies": {
-    "@types/bun": "latest",
     "diff": "^8.0.2",
+    "@types/bun": "^1.2.21",
     "dts-bundle-generator": "^9.5.1",
-    "typedoc": "^0.28.12"
+    "typedoc": "^0.28.12",
+    "concat-md": "^0.5.1",
+    "typedoc-plugin-markdown": "^4.8.1"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -33,7 +38,7 @@
   "scripts": {
     "build": "bun run script/build.ts --dev",
     "docs": "typedoc",
-    "docs:serve": "typedoc --watch",
+    "rules": "typedoc --options markdown.typedoc.json && concat-md --decrease-title-levels docs-markdown > rules.md",
     "prepublishOnly": "bun run build",
     "publish:npm": "bun publish --access public"
   }
