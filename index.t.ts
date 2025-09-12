@@ -80,20 +80,9 @@ export type State = string
 /**
  * Параметры для функции шаблонизатора.
  * Содержит все необходимые данные и функции для шаблонизации.
- *
+ * {@includeCode ./index.spec.ts#params}
+ * 
  * @group Шаблонизатор
- * @example
- * ```typescript
- * const template = ({ html, core, context, state, update }: TemplateParams<C, I, S>) => html`
- *   <div class="app">
- *     <h1>${context.title}</h1>
- *     <p>Состояние: ${state}</p>
- *     <button onclick=${() => update({ state: 'ready' })}>
- *       Готово
- *     </button>
- *   </div>
- * `
- * ```
  */
 export type Params<C extends Context, I extends Core = Core, S extends State = State> = {
   /** Функция для создания HTML из template literals */
