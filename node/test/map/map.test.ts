@@ -184,7 +184,7 @@ describe("map", () => {
                       {
                         type: "cond",
                         data: "[index]",
-                        expr: "${[0] % 2}",
+                        expr: "_[0] % 2",
                         child: [
                           {
                             tag: "em",

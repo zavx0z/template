@@ -114,7 +114,7 @@ export const parseEventExpression = (
           uniqueVariables.forEach((variable, index) => {
             expr = expr.replace(
               new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"),
-              `\${${ARGUMENTS_PREFIX}[${index}]}`
+              `${ARGUMENTS_PREFIX}[${index}]`
             )
           })
         }
@@ -160,7 +160,7 @@ export const parseEventExpression = (
   let expr = eventValue
   uniqueVariables.forEach((variable, index) => {
     // Заменяем переменные на индексы, учитывая границы слов
-    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${ARGUMENTS_PREFIX}[${index}]}`)
+    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `${ARGUMENTS_PREFIX}[${index}]`)
   })
 
   // Убираем ${} обертку если она есть, но только если это не template literal
@@ -172,11 +172,7 @@ export const parseEventExpression = (
   expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
 
   // Если это простая переменная без стрелочной функции, не возвращаем expr
-  if (
-    !hasArrowFunction &&
-    uniqueVariables.length === 1 &&
-    (expr === `\${${ARGUMENTS_PREFIX}[0]}` || expr === `${ARGUMENTS_PREFIX}[0]`)
-  ) {
+  if (!hasArrowFunction && uniqueVariables.length === 1 && expr === `${ARGUMENTS_PREFIX}[0]`) {
     return { data: paths[0] || "" }
   }
 
@@ -250,7 +246,7 @@ export const processBooleanAttributeWithVariables = (
   // Создаем выражение, заменяя переменные на индексы
   let expr = booleanValue
   variableMatches.forEach((variable, index) => {
-    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `\${${ARGUMENTS_PREFIX}[${index}]}`)
+    expr = expr.replace(new RegExp(`\\b${variable.replace(/\./g, "\\.")}\\b`, "g"), `${ARGUMENTS_PREFIX}[${index}]`)
   })
 
   if (paths.length === 1) {

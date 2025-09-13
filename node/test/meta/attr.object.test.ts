@@ -15,12 +15,12 @@ describe("core/context в атрибутах", () => {
         {
           tag: {
             data: "/core/tag",
-            expr: "meta-${[0]}",
+            expr: "meta-${_[0]}",
           },
           type: "meta",
           core: {
             data: ["/context/id", "/context/name"],
-            expr: "{ id: [0], name: [1] }",
+            expr: "{ id: _[0], name: _[1] }",
           },
         },
       ])
@@ -38,7 +38,7 @@ describe("core/context в атрибутах", () => {
         {
           tag: {
             data: "/core/tag",
-            expr: "meta-${[0]}",
+            expr: "meta-${_[0]}",
           },
           type: "meta",
           core: '{ id: "1", name: "2" }',
@@ -66,12 +66,12 @@ describe("core/context в атрибутах", () => {
             {
               tag: {
                 data: "/core/tag",
-                expr: "meta-${[0]}",
+                expr: "meta-${_[0]}",
               },
               type: "meta",
               context: {
                 data: ["/context/id", "/context/name"],
-                expr: "{ id: [0], name: [1] }",
+                expr: "{ id: _[0], name: _[1] }",
               },
             },
           ],
@@ -93,12 +93,12 @@ describe("core/context в атрибутах", () => {
         {
           tag: {
             data: "/core/tag",
-            expr: "meta-${[0]}",
+            expr: "meta-${_[0]}",
           },
           type: "meta",
           context: {
             data: ["/context/id", "/context/name"],
-            expr: "{ id: [0], name: [1] }",
+            expr: "{ id: _[0], name: _[1] }",
           },
         },
       ])
@@ -122,16 +122,16 @@ describe("core/context в атрибутах", () => {
         {
           tag: {
             data: "/core/tag",
-            expr: "meta-${[0]}",
+            expr: "meta-${_[0]}",
           },
           type: "meta",
           core: {
             data: ["/context/id", "/context/name"],
-            expr: "{ id: [0], name: [1] }",
+            expr: "{ id: _[0], name: _[1] }",
           },
           context: {
             data: ["/context/id", "/context/name"],
-            expr: "{ id: [0], name: [1] }",
+            expr: "{ id: _[0], name: _[1] }",
           },
         },
       ])

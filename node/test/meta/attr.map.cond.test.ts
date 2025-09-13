@@ -58,16 +58,16 @@ describe("meta-компоненты с core/context в map и condition", () => 
                 {
                   tag: {
                     data: "/core/tag",
-                    expr: "meta-${[0]}",
+                    expr: "meta-${_[0]}",
                   },
                   type: "meta",
                   core: {
                     data: ["[item]/id", "[item]/name", "/core/type"],
-                    expr: "{ id: [0], name: [1], type: [2] }",
+                    expr: "{ id: _[0], name: _[1], type: _[2] }",
                   },
                   context: {
                     data: ["[item]/status", "[item]/active"],
-                    expr: "{ status: [0], active: [1] }",
+                    expr: "{ status: _[0], active: _[1] }",
                   },
                 },
               ],
@@ -113,19 +113,19 @@ describe("meta-компоненты с core/context в map и condition", () => 
                 {
                   tag: {
                     data: "/core/tag",
-                    expr: "meta-${[0]}",
+                    expr: "meta-${_[0]}",
                   },
                   type: "meta",
                   core: {
                     data: ["/context/id", "/context/name"],
-                    expr: "{ id: [0], name: [1] }",
+                    expr: "{ id: _[0], name: _[1] }",
                   },
                   context: '{ type: "primary", active: true }',
                 },
                 {
                   tag: {
                     data: "/core/tag",
-                    expr: "meta-${[0]}",
+                    expr: "meta-${_[0]}",
                   },
                   type: "meta",
                   core: '{ id: "default", name: "default" }',
@@ -192,16 +192,16 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     {
                       tag: {
                         data: "/core/tag",
-                        expr: "meta-${[0]}",
+                        expr: "meta-${_[0]}",
                       },
                       type: "meta",
                       core: {
                         data: ["[item]/id", "[item]/name", "/core/type", "[item]/metadata"],
-                        expr: "{ id: [0], name: [1], type: [2], metadata: [3] }",
+                        expr: "{ id: _[0], name: _[1], type: _[2], metadata: _[3] }",
                       },
                       context: {
                         data: ["[item]/status", "[item]/active", "[item]/permissions"],
-                        expr: "{ status: [0], active: [1], permissions: [2] }",
+                        expr: "{ status: _[0], active: _[1], permissions: _[2] }",
                       },
                     },
                   ],
@@ -209,7 +209,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                 {
                   tag: {
                     data: "/core/tag",
-                    expr: "meta-${[0]}",
+                    expr: "meta-${_[0]}",
                   },
                   type: "meta",
                   core: '{ id: "empty", name: "empty" }',
@@ -288,16 +288,16 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     {
                       tag: {
                         data: "/core/tag",
-                        expr: "meta-${[0]}",
+                        expr: "meta-${_[0]}",
                       },
                       type: "meta",
                       core: {
                         data: ["[item]/id", "[item]/name"],
-                        expr: '{ id: [0], name: [1], type: "active" }',
+                        expr: '{ id: _[0], name: _[1], type: "active" }',
                       },
                       context: {
                         data: "[item]/permissions",
-                        expr: '{ status: "active", permissions: [0] }',
+                        expr: '{ status: "active", permissions: _[0] }',
                       },
                     },
                     {
@@ -307,24 +307,24 @@ describe("meta-компоненты с core/context в map и condition", () => 
                         {
                           tag: {
                             data: "/core/tag",
-                            expr: "meta-${[0]}",
+                            expr: "meta-${_[0]}",
                           },
                           type: "meta",
                           core: {
                             data: ["[item]/id", "[item]/name"],
-                            expr: '{ id: [0], name: [1], type: "error" }',
+                            expr: '{ id: _[0], name: _[1], type: "error" }',
                           },
                           context: '{ status: "error", message: "Item has error" }',
                         },
                         {
                           tag: {
                             data: "/core/tag",
-                            expr: "meta-${[0]}",
+                            expr: "meta-${_[0]}",
                           },
                           type: "meta",
                           core: {
                             data: ["[item]/id", "[item]/name"],
-                            expr: '{ id: [0], name: [1], type: "inactive" }',
+                            expr: '{ id: _[0], name: _[1], type: "inactive" }',
                           },
                           context: '{ status: "inactive" }',
                         },
@@ -428,57 +428,57 @@ describe("meta-компоненты с core/context в map и condition", () => 
               child: [
                 {
                   type: "cond",
-                  data: ["[item]/permissions/includes", "[item]/admin"],
-                  expr: '${[0]}("${[1]}")',
+                  data: "[item]/permissions/includes",
+                  expr: '_[0]("admin")',
                   child: [
                     {
                       tag: {
                         data: "/core/tag",
-                        expr: "meta-${[0]}",
+                        expr: "meta-${_[0]}",
                       },
                       type: "meta",
                       core: {
                         data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                        expr: '{ id: [0], name: [1], type: "admin", permissions: [2], metadata: { level: "admin", access: "full", settings: [3] } }',
+                        expr: '{ id: _[0], name: _[1], type: "admin", permissions: _[2], metadata: { level: "admin", access: "full", settings: _[3] } }',
                       },
                       context: {
                         data: "[item]/isOnline",
-                        expr: '{ status: "admin", active: [0], canEdit: true, canDelete: true, canManage: true }',
+                        expr: '{ status: "admin", active: _[0], canEdit: true, canDelete: true, canManage: true }',
                       },
                     },
                     {
                       type: "cond",
-                      data: ["[item]/permissions/includes", "[item]/moderator"],
-                      expr: '${[0]}("${[1]}")',
+                      data: "[item]/permissions/includes",
+                      expr: '_[0]("moderator")',
                       child: [
                         {
                           tag: {
                             data: "/core/tag",
-                            expr: "meta-${[0]}",
+                            expr: "meta-${_[0]}",
                           },
                           type: "meta",
                           core: {
                             data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                            expr: '{ id: [0], name: [1], type: "moderator", permissions: [2], metadata: { level: "moderator", access: "limited", settings: [3] } }',
+                            expr: '{ id: _[0], name: _[1], type: "moderator", permissions: _[2], metadata: { level: "moderator", access: "limited", settings: _[3] } }',
                           },
                           context: {
                             data: "[item]/isOnline",
-                            expr: '{ status: "moderator", active: [0], canEdit: true, canDelete: false, canManage: false }',
+                            expr: '{ status: "moderator", active: _[0], canEdit: true, canDelete: false, canManage: false }',
                           },
                         },
                         {
                           tag: {
                             data: "/core/tag",
-                            expr: "meta-${[0]}",
+                            expr: "meta-${_[0]}",
                           },
                           type: "meta",
                           core: {
                             data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
-                            expr: '{ id: [0], name: [1], type: "user", permissions: [2], metadata: { level: "user", access: "basic", settings: [3] } }',
+                            expr: '{ id: _[0], name: _[1], type: "user", permissions: _[2], metadata: { level: "user", access: "basic", settings: _[3] } }',
                           },
                           context: {
                             data: "[item]/isOnline",
-                            expr: '{ status: "user", active: [0], canEdit: false, canDelete: false, canManage: false }',
+                            expr: '{ status: "user", active: _[0], canEdit: false, canDelete: false, canManage: false }',
                           },
                         },
                       ],
@@ -546,7 +546,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                 {
                   tag: {
                     data: "/core/tag",
-                    expr: "meta-${[0]}",
+                    expr: "meta-${_[0]}",
                   },
                   type: "meta",
                   context: {
@@ -557,7 +557,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                       "[item]/created",
                       "[item]/updated",
                     ],
-                    expr: '{ status: [0] ? "active" : "inactive", active: [0], canEdit: [1]("edit"), canDelete: [1]("delete"), dynamic: { lastModified: [2], created: [3], updated: [4] || [2] } }',
+                    expr: '{ status: _[0] ? "active" : "inactive", active: _[0], canEdit: _[1]("edit"), canDelete: _[1]("delete"), dynamic: { lastModified: _[2], created: _[3], updated: _[4] || _[2] } }',
                   },
                   core: {
                     data: [
@@ -569,7 +569,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                       "[item]/priority",
                       "[item]/tags",
                     ],
-                    expr: '{ id: [0], name: [1], type: [2], dynamic: [3] ? "active" : "inactive", computed: `${[0]}-${[1]}`, metadata: { status: [4], priority: [5] || "normal", tags: [6] || [] } }',
+                    expr: '{ id: _[0], name: _[1], type: _[2], dynamic: _[3] ? "active" : "inactive", computed: `${_[0]}-${_[1]}`, metadata: { status: _[4], priority: _[5] || "normal", tags: _[6] || [] } }',
                   },
                 },
               ],

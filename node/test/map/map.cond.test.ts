@@ -416,7 +416,7 @@ describe("map с условиями", () => {
                       string: {
                         class: {
                           data: "[item]",
-                          expr: "true-${[0]}",
+                          expr: "true-${_[0]}",
                         },
                       },
                     },
@@ -432,7 +432,7 @@ describe("map с условиями", () => {
                       string: {
                         class: {
                           data: "[item]",
-                          expr: "false-${[0]}",
+                          expr: "false-${_[0]}",
                         },
                       },
                     },

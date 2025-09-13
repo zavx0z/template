@@ -97,11 +97,11 @@ describe("атрибуты", () => {
           string: {
             title: {
               data: "/context/flag",
-              expr: '${[0] ? "a > b" : "c < d"}',
+              expr: '${_[0] ? "a > b" : "c < d"}',
             },
           },
         },
-      ])
+      ])  
     })
   })
 
@@ -120,7 +120,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               data: "/context/flag",
-              expr: '${[0] ? "a > b" : "c < d"}',
+              expr: '${_[0] ? "a > b" : "c < d"}',
             },
           },
         },
@@ -144,7 +144,7 @@ describe("атрибуты", () => {
           string: {
             title: {
               data: "/context/flag",
-              expr: '${[0] ? "a > b" : "c < d"}',
+              expr: '${_[0] ? "a > b" : "c < d"}',
             },
           },
         },
@@ -200,7 +200,7 @@ describe("класс в map", () => {
                 string: {
                   class: {
                     data: "[item]/type",
-                    expr: "item-${[0]}",
+                    expr: "item-${_[0]}",
                   },
                   title: {
                     data: "[item]/name",
@@ -236,7 +236,7 @@ describe("сложные условные атрибуты class", () => {
         string: {
           class: {
             data: "/core/active",
-            expr: 'div-${[0] ? "active" : "inactive"}',
+            expr: 'div-${_[0] ? "active" : "inactive"}',
           },
         },
         child: [

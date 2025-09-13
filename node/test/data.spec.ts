@@ -74,19 +74,19 @@ describe("data-parser", () => {
     it("парсит простое условие", () => {
       const result = parseCondition("context.flag")
       expect(result.path).toBe("/context/flag")
-      expect(result.metadata?.expression).toBe("${[0]}")
+      expect(result.metadata?.expression).toBe("_[0]")
     })
 
     it("парсит сложное условие", () => {
       const result = parseCondition("context.cond && context.cond2")
       expect(result.path).toEqual(["/context/cond", "/context/cond2"])
-      expect(result.metadata?.expression).toBe("${[0]} && ${[1]}")
+      expect(result.metadata?.expression).toBe("_[0] && _[1]")
     })
 
     it("парсит условие с операторами", () => {
       const result = parseCondition("context.flag === context.cond2")
       expect(result.path).toEqual(["/context/flag", "/context/cond2"])
-      expect(result.metadata?.expression).toBe("${[0]} === ${[1]}")
+      expect(result.metadata?.expression).toBe("_[0] === _[1]")
     })
   })
 
@@ -101,7 +101,7 @@ describe("data-parser", () => {
     it("парсит текст с одной переменной", () => {
       const result = parseText("Hello, ${name}!")
       expect(result.data).toBe("/name")
-      expect(result.expr).toBe("Hello, ${[0]}!")
+      expect(result.expr).toBe("Hello, ${_[0]}!")
       expect(result.value).toBeUndefined()
     })
 
@@ -109,14 +109,14 @@ describe("data-parser", () => {
       const context = { currentPath: "/context/list", pathStack: ["/context/list"], level: 1, mapParams: ["name"] }
       const result = parseText("Hello, ${name}!", context)
       expect(result.data).toBe("[item]")
-      expect(result.expr).toBe("Hello, ${[0]}!")
+      expect(result.expr).toBe("Hello, ${_[0]}!")
       expect(result.value).toBeUndefined()
     })
 
     it("парсит текст с несколькими переменными", () => {
       const result = parseText("${title} - ${description}")
       expect(result.data).toEqual(["/title", "/description"])
-      expect(result.expr).toBe("${[0]} - ${[1]}")
+      expect(result.expr).toBe("${_[0]} - ${_[1]}")
       expect(result.value).toBeUndefined()
     })
   })

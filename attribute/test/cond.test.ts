@@ -19,7 +19,7 @@ describe("условные выражения в атрибутах", () => {
           string: {
             class: {
               data: "/context/count",
-              expr: '${10 > [0] && [0] < 3 ? "active" : "inactive"}',
+              expr: '${10 > _[0] && _[0] < 3 ? "active" : "inactive"}',
             },
           },
           child: [
@@ -51,7 +51,7 @@ describe("условные выражения в атрибутах", () => {
           string: {
             class: {
               data: ["/core/isActive", "/context/isActive", "/context/item", "/context/status"],
-              expr: '${[0] === [1] ? `${[2]}-active-${[3]}` : "inactive"}',
+              expr: '${_[0] === _[1] ? `${_[2]}-active-${_[3]}` : "inactive"}',
             },
           },
           child: [

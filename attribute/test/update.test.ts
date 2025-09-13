@@ -80,7 +80,7 @@ describe("update", () => {
             onclick: {
               upd: "count",
               data: "/context/count",
-              expr: "() => update({ count: ${[0]} + 1 })",
+              expr: "() => update({ count: _[0] + 1 })",
             },
           },
           child: [
@@ -117,7 +117,7 @@ describe("update", () => {
             onclick: {
               upd: ["count", "iteration"],
               data: ["/core/count", "/context/count", "/context/iteration"],
-              expr: "() => update({ count: ${[0]} + ${[1]}, iteration: ${[2]} + 1 })",
+              expr: "() => update({ count: _[0] + _[1], iteration: _[2] + 1 })",
             },
           },
           child: [
@@ -164,7 +164,7 @@ describe("update", () => {
                 onclick: {
                   upd: ["count", "iteration"],
                   data: ["/core/count", "[item]/count", "[item]/iteration"],
-                  expr: "() => update({ count: ${[0]} + ${[1]}, iteration: ${[2]} + 1 })",
+                  expr: "() => update({ count: _[0] + _[1], iteration: _[2] + 1 })",
                 },
               },
               child: [

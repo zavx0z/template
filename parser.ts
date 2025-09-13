@@ -448,7 +448,7 @@ export const TEMPLATE_WRAPPER_PATTERN = /^\$\{|\}$/g
  * Допустимые варианты: "arguments" (классический JS) или пустая строка для специфического рантайма.
  */
 
-export const ARGUMENTS_PREFIX = ""
+export const ARGUMENTS_PREFIX = "_"
 // ============================================================================
 // PATH RESOLUTION UTILITIES
 // ============================================================================
@@ -719,7 +719,7 @@ export const createUnifiedExpression = (value: string, variables: string[]): str
   let expr = value
 
   // Сначала защищаем строковые литералы от замены
-  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
+  const { stringLiterals } = protectStringLiterals(expr)
 
   // Заменяем переменные в ${} на индексы
   variables.forEach((variable, index) => {
@@ -783,7 +783,8 @@ export const processTemplateLiteralAttribute = (
 ): ValueDynamic | ValueVariable | null => {
   const templateResult = parseTemplateLiteral(value, context)
   if (templateResult) {
-    if (templateResult.expr === "${[0]}" && !Array.isArray(templateResult.data)) return { data: templateResult.data }
+    if (templateResult.expr === `\${${ARGUMENTS_PREFIX}[0]}` && !Array.isArray(templateResult.data))
+      return { data: templateResult.data }
     return { data: templateResult.data, expr: templateResult.expr }
   }
   return null
@@ -826,73 +827,28 @@ export const processBasicAttributes = (node: PartAttrElement | PartAttrMeta, con
   return result
 }
 
-/**
- * Общая функция для поиска конца template literal.
- * Устраняет дублирование кода в parseAttributesImproved.
- */
-const findTemplateLiteralEnd = (tagContent: string, startIndex: number): number => {
-  let i = startIndex
-  let braceCount = 0
-
-  // Ищем конец template literal
-  while (i < tagContent.length) {
-    if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
-      // Начинается template literal
-      i += 2
-      braceCount = 1
-      while (i < tagContent.length && braceCount > 0) {
-        if (tagContent[i] === "{") braceCount++
-        else if (tagContent[i] === "}") braceCount--
-        i++
-      }
-    } else if (/\s/.test(tagContent[i]!)) {
-      // Пробел - конец значения
-      break
-    } else {
-      i++
-    }
-  }
-
-  return i
-}
-/**
- * Общая функция для поиска конца template literal внутри кавычек.
- * Устраняет дублирование кода в parseAttributesImproved.
- */
-const findTemplateLiteralEndInQuotes = (tagContent: string, startIndex: number, quote: string): number => {
-  let i = startIndex
-
-  // Ищем закрывающую кавычку, учитывая template literals
-  while (i < tagContent.length) {
-    if (tagContent[i] === quote) break
-    if (tagContent[i] === "$" && i + 1 < tagContent.length && tagContent[i + 1] === "{") {
-      // Пропускаем template literal
-      i += 2
-      let braceCount = 1
-      while (i < tagContent.length && braceCount > 0) {
-        if (tagContent[i] === "{") braceCount++
-        else if (tagContent[i] === "}") braceCount--
-        i++
-      }
-    } else {
-      i++
-    }
-  }
-
-  return i
-}
-/**
- * Парсит путь к данным из условного выражения.
- */
-
+/** Парсит путь к данным из условного выражения. */
 export const parseCondition = (condText: string, context: ParseContext = { pathStack: [], level: 0 }): ParseResult => {
   const cleanCondText = cleanConditionText(condText)
 
-  const pathMatches = cleanCondText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+  // Защищаем строковые литералы от обработки
+  const stringLiterals: string[] = []
+  let protectedText = cleanCondText
+    .replace(/"[^"]*"/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (match) => {
+      stringLiterals.push(match)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
+  const allMatches = protectedText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+  const pathMatches = allMatches.filter((match) => !match.startsWith("__STRING_"))
 
   if (pathMatches.length === 0) return { path: "" }
 
-  const expression = extractConditionExpression(cleanCondText)
+  const expression = extractConditionExpression(cleanCondText, pathMatches)
   const paths =
     pathMatches.length === 1
       ? resolveDataPath(pathMatches[0] || "", context)
@@ -913,7 +869,7 @@ const cleanConditionText = (condText: string): string => {
 /**
  * Извлекает выражение условия.
  */
-export const extractConditionExpression = (condText: string): string => {
+export const extractConditionExpression = (condText: string, pathMatches?: string[]): string => {
   // Для условий с индексами, извлекаем только логическое выражение
   if (condText.includes("Index")) {
     // Ищем все логические выражения с индексами
@@ -925,11 +881,11 @@ export const extractConditionExpression = (condText: string): string => {
       // Ищем переменные в логическом выражении
       const pathMatches = logicalExpression.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
-      // Заменяем переменные на индексы ${${ARGUMENTS_PREFIX}[0]}, ${${ARGUMENTS_PREFIX}[1]}, и т.д.
+      // Заменяем переменные на индексы ${ARGUMENTS_PREFIX}[0]}, ${ARGUMENTS_PREFIX}[1]}, и т.д.
       pathMatches.forEach((path, index) => {
         logicalExpression = logicalExpression.replace(
           new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"),
-          `\${${ARGUMENTS_PREFIX}[${index}]}`
+          `${ARGUMENTS_PREFIX}[${index}]`
         )
       })
 
@@ -938,34 +894,38 @@ export const extractConditionExpression = (condText: string): string => {
   }
 
   // Ищем все переменные в условии (но не числа)
-  const pathMatches = condText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+  const variables = pathMatches || condText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
   // Проверяем, есть ли математические операции или другие сложные операции
   const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(condText)
   const hasLogicalOperators = /[&&||]/.test(condText)
 
   // Если найдена только одна переменная и нет сложных операций, возвращаем простое выражение
-  if (pathMatches.length === 1 && !hasComplexOperations && !hasLogicalOperators) {
-    return `\${${ARGUMENTS_PREFIX}[0]}`
+  if (variables.length === 1 && !hasComplexOperations && !hasLogicalOperators) {
+    return `${ARGUMENTS_PREFIX}[0]`
   }
 
   // Если найдена только одна переменная, но есть простые математические операции (например, i % 2)
-  if (pathMatches.length === 1 && hasComplexOperations && !hasLogicalOperators) {
+  if (variables.length === 1 && hasComplexOperations && !hasLogicalOperators) {
     // Заменяем переменную на индекс и оборачиваем в ${}
     let expression = condText
     expression = expression.replace(
-      new RegExp(`\\b${pathMatches[0].replace(/\./g, "\\.")}\\b`, "g"),
+      new RegExp(`\\b${variables[0]!.replace(/\./g, "\\.")}\\b`, "g"),
       `${ARGUMENTS_PREFIX}[0]`
     )
-    return `\${${expression}}`
+    return expression
   }
 
   // Заменяем переменные на индексы ${${ARGUMENTS_PREFIX}[0]}, ${${ARGUMENTS_PREFIX}[1]}, и т.д.
+  // Сортируем переменные по длине (сначала более длинные), чтобы избежать частичной замены
+  const sortedVariables = [...variables].sort((a, b) => b.length - a.length)
+
   let expression = condText
-  pathMatches.forEach((path, index) => {
+  sortedVariables.forEach((path) => {
+    const index = variables.indexOf(path)
     expression = expression.replace(
       new RegExp(`\\b${path.replace(/\./g, "\\.")}\\b`, "g"),
-      `\${${ARGUMENTS_PREFIX}[${index}]}`
+      `${ARGUMENTS_PREFIX}[${index}]`
     )
   })
 
@@ -1002,7 +962,7 @@ export const parseTemplateLiteral = (
 
     // Рекурсивно извлекаем переменные из всех ${...} выражений
     const extractFromTemplate = (content: string) => {
-      // Находим переменные в текущем содержимом
+      // Находим переменные в текущем содержимом, исключая защищенные строковые литералы
       const variableMatches = content.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
       variableMatches.forEach((variable) => {
@@ -1034,7 +994,7 @@ export const parseTemplateLiteral = (
       const templateMatches = protectedStr.match(/\$\{([^}]+)\}/g) || []
 
       templateMatches.forEach((match) => {
-        // Извлекаем содержимое ${...}
+        // Извлекаем содержимое ${...} из защищенной строки
         const content = match.slice(2, -1) // убираем ${ и }
         extractFromTemplate(content)
       })
@@ -1066,7 +1026,7 @@ export const parseTemplateLiteral = (
         }
         return word
       })
-      return `\${${protectedContent}}`
+      return protectedContent
     })
 
   // Извлекаем переменные только из ${} выражений или если они содержат точки

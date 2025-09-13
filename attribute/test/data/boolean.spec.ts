@@ -111,7 +111,7 @@ describe("boolean атрибуты", () => {
             },
             hidden: {
               data: "/context/visible",
-              expr: "!${[0]}",
+              expr: "!_[0]",
             },
           },
         },

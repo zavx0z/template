@@ -97,7 +97,7 @@ describe("text", () => {
                     {
                       type: "text",
                       data: ["[item]/firstName", "[item]/lastName"],
-                      expr: "${[0]} ${[1]}",
+                      expr: "${_[0]} ${_[1]}",
                     },
                   ],
                 },
@@ -135,7 +135,7 @@ describe("text", () => {
                     {
                       type: "text",
                       data: ["[item]/author/name", "[item]/author/email"],
-                      expr: "Author: ${[0]} (${[1]})",
+                      expr: "Author: ${_[0]} (${_[1]})",
                     },
                   ],
                 },
@@ -175,7 +175,7 @@ describe("text", () => {
                     {
                       type: "text",
                       data: ["[item]/isActive", "[item]/name"],
-                      expr: '${[0] ? [1] : "Inactive"}',
+                      expr: '${_[0] ? _[1] : "Inactive"}',
                     },
                   ],
                 },
@@ -215,7 +215,7 @@ describe("text", () => {
                     {
                       type: "text",
                       data: ["[item]/name", "[item]/price * product/quantity"],
-                      expr: "${[0]}: $${[1]}",
+                      expr: "${_[0]}: $${_[1]}",
                     },
                   ],
                 },
@@ -253,7 +253,7 @@ describe("text", () => {
                     {
                       type: "text",
                       data: ["[item]/name", "[item]/email"],
-                      expr: "${[0]} - ${[1]}",
+                      expr: "${_[0]} - ${_[1]}",
                     },
                   ],
                 },
@@ -318,7 +318,7 @@ describe("text", () => {
                             {
                               type: "text",
                               data: ["[item]/name", "[item]/price"],
-                              expr: "${[0]} - $${[1]}",
+                              expr: "${_[0]} - $${_[1]}",
                             },
                           ],
                         },
@@ -370,7 +370,7 @@ describe("text", () => {
                         {
                           type: "text",
                           data: ["[item]/name", "[item]/description"],
-                          expr: "${[0]}: ${[1]}",
+                          expr: "${_[0]}: ${_[1]}",
                         },
                       ],
                     },

@@ -41,7 +41,7 @@ describe("text-formatting", () => {
                 {
                   type: "text",
                   data: ["/context/name", "/context/title"],
-                  expr: "${[0]} - ${[1]}",
+                  expr: "${_[0]} - ${_[1]}",
                 },
               ],
             },
@@ -52,7 +52,7 @@ describe("text-formatting", () => {
                 {
                   type: "text",
                   data: "/context/name",
-                  expr: "${[0]} - ${[0]}",
+                  expr: "${_[0]} - ${_[0]}",
                 },
               ],
             },
@@ -73,7 +73,7 @@ describe("text-formatting", () => {
                 {
                   type: "text",
                   data: ["/context/name", "/context/title"],
-                  expr: "${[0]} is ${[1]}",
+                  expr: "${_[0]} is ${_[1]}",
                 },
               ],
             },

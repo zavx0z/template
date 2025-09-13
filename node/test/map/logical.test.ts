@@ -49,7 +49,7 @@ describe("логические операторы в map", () => {
                           string: {
                             src: {
                               data: "[item]/name",
-                              expr: "/avatar/${[0]}.jpg",
+                              expr: "/avatar/${_[0]}.jpg",
                             },
                             alt: {
                               data: "[item]/name",
@@ -323,14 +323,14 @@ describe("логические операторы в map", () => {
                         {
                           type: "text",
                           data: "[item]/price",
-                          expr: "$${[0]}",
+                          expr: "$${_[0]}",
                         },
                       ],
                     },
                     {
                       type: "log",
                       data: ["[item]/inStock", "[item]/context/showDetails"],
-                      expr: "${[0]} && ${[1]}",
+                      expr: "_[0] && _[1]",
                       child: [
                         {
                           tag: "div",

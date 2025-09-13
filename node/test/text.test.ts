@@ -26,7 +26,7 @@ describe("text", () => {
                 {
                   type: "text",
                   data: "/context/name",
-                  expr: "Hello, ${[0]}!",
+                  expr: "Hello, ${_[0]}!",
                 },
               ],
             },
@@ -60,7 +60,7 @@ describe("text", () => {
                 {
                   type: "text",
                   data: ["/context/firstName", "/context/lastName"],
-                  expr: "Hello, ${[0]} ${[1]}!",
+                  expr: "Hello, ${_[0]} ${_[1]}!",
                 },
               ],
             },

@@ -64,7 +64,7 @@ describe("object атрибуты (стили) с переменными из р
                             {
                               type: "text",
                               data: ["../[item]/id", "[item]/id"],
-                              expr: "Dept: ${[0]}-${[1]}",
+                              expr: "Dept: ${_[0]}-${_[1]}",
                             },
                           ],
                           style: {
@@ -141,7 +141,7 @@ describe("object атрибуты (стили) с переменными из р
                     {
                       type: "text",
                       data: "[item]/id",
-                      expr: "User: ${[0]}",
+                      expr: "User: ${_[0]}",
                     },
                   ],
                   style: {

@@ -34,7 +34,7 @@ describe("formatting", () => {
     it("span element class expr", () => {
       const divElement = elements[0] as any
       const spanElement = divElement?.child?.[0] as any
-      expect(spanElement?.string?.class?.expr).toBe('${[0] ? "active" : "inactive"}')
+      expect(spanElement?.string?.class?.expr).toBe('${_[0] ? "active" : "inactive"}')
     })
 
     it("span text type", () => {
@@ -48,7 +48,7 @@ describe("formatting", () => {
       const divElement = elements[0] as any
       const spanElement = divElement?.child?.[0] as any
       const spanText = spanElement?.child?.[0] as any
-      expect(spanText?.expr).toBe('Status: ${[0] ? "Active" : "Inactive"}')
+      expect(spanText?.expr).toBe('Status: ${_[0] ? "Active" : "Inactive"}')
     })
 
     it("p element tag", () => {
@@ -66,7 +66,7 @@ describe("formatting", () => {
     it("p element class expr", () => {
       const divElement = elements[0] as any
       const pElement = divElement?.child?.[1] as any
-      expect(pElement?.string?.class?.expr).toBe('${[0] && [0] ? "double-active" : "not-active"}')
+      expect(pElement?.string?.class?.expr).toBe('${_[0] && _[0] ? "double-active" : "not-active"}')
     })
 
     it("p text type", () => {
@@ -80,7 +80,7 @@ describe("formatting", () => {
       const divElement = elements[0] as any
       const pElement = divElement?.child?.[1] as any
       const pText = pElement?.child?.[0] as any
-      expect(pText?.expr).toBe(`\${[0] ? "This is a very long text that should be formatted properly" : "Short text"}`)
+      expect(pText?.expr).toBe(`\${_[0] ? "This is a very long text that should be formatted properly" : "Short text"}`)
     })
   })
 
@@ -113,22 +113,22 @@ describe("formatting", () => {
       const divElement = elements[0] as any
       const buttonElement = divElement?.child?.[0] as any
       expect(buttonElement?.array?.class).toBeDefined()
-      expect(buttonElement?.array?.class?.[1]?.expr).toBe('${[0] === "dark" ? "btn-dark" : "btn-light"}')
-      expect(buttonElement?.array?.class?.[2]?.expr).toBe('${[0] || "medium"}')
+      expect(buttonElement?.array?.class?.[1]?.expr).toBe('${_[0] === "dark" ? "btn-dark" : "btn-light"}')
+      expect(buttonElement?.array?.class?.[2]?.expr).toBe('${_[0] || "medium"}')
     })
 
     it("форматирует условные классы в input", () => {
       const divElement = elements[0] as any
       const inputElement = divElement?.child?.[1] as any
       expect(inputElement?.array?.class).toBeDefined()
-      expect(inputElement?.array?.class?.[1]?.expr).toBe('${[0] === "dark" ? "input-dark" : "input-light"}')
+      expect(inputElement?.array?.class?.[1]?.expr).toBe('${_[0] === "dark" ? "input-dark" : "input-light"}')
     })
 
     it("форматирует условный placeholder", () => {
       const divElement = elements[0] as any
       const inputElement = divElement?.child?.[1] as any
       expect(inputElement?.string?.placeholder?.expr).toBe(
-        '${[0] === "large" ? "Enter large text here" : "Enter text here"}'
+        '${_[0] === "large" ? "Enter large text here" : "Enter text here"}'
       )
     })
   })

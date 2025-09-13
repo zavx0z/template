@@ -140,7 +140,7 @@ describe("conditions", () => {
             {
               type: "cond",
               data: ["/context/cond", "/context/cond2"],
-              expr: "${[0]} && ${[1]}",
+              expr: "_[0] && _[1]",
               child: [
                 {
                   tag: "em",
@@ -179,7 +179,7 @@ describe("conditions", () => {
             {
               type: "cond",
               data: ["/context/cond", "/context/cond2"],
-              expr: "${[0]} === ${[1]}",
+              expr: "_[0] === _[1]",
               child: [
                 {
                   tag: "em",
@@ -212,7 +212,7 @@ describe("conditions", () => {
         {
           type: "text",
           data: ["/context/a", "/context/b", "/context/c", "/context/d"],
-          expr: '${[0] < [1] && [2] > [3] ? "1" : "0"}',
+          expr: '${_[0] < _[1] && _[2] > _[3] ? "1" : "0"}',
         },
       ])
     })
@@ -337,7 +337,7 @@ describe("conditions", () => {
                     {
                       type: "cond",
                       data: "[index]",
-                      expr: "${[0] % 2}",
+                      expr: "_[0] % 2",
                       child: [
                         {
                           tag: "em",
@@ -384,7 +384,7 @@ describe("conditions", () => {
         {
           type: "text",
           data: ["/context/a", "/context/b", "/context/c", "/context/d"],
-          expr: '${[0] < [1] && [2] > [3] ? "1" : "0"}',
+          expr: '${_[0] < _[1] && _[2] > _[3] ? "1" : "0"}',
         },
       ])
     })

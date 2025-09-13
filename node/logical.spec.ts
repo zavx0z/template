@@ -31,7 +31,7 @@ describe("логические операторы с условиями", () => 
               {
                 type: "log",
                 data: ["/core/user", "/context/isAdmin"],
-                expr: "${[0]} && ${[1]}",
+                expr: "_[0] && _[1]",
                 child: [
                   {
                     tag: "div",

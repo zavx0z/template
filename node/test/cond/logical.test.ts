@@ -36,7 +36,7 @@ describe("логические операторы в условиях", () => {
             {
               type: "cond",
               data: ["/core/user", "/context/showDetails"],
-              expr: "${[0]} && ${[1]}",
+              expr: "_[0] && _[1]",
               child: [
                 {
                   tag: "div",
@@ -152,8 +152,8 @@ describe("логические операторы в условиях", () => {
           child: [
             {
               type: "cond",
-              data: ["/core/user", "/core/user/role", "/admin", "/context/isAdmin"],
-              expr: '${[0]} && ${[0]}.role === "${[2]}" && ${[3]}',
+              data: ["/core/user", "/core/user/role", "/context/isAdmin"],
+              expr: '_[0] && _[1] === "admin" && _[2]',
               child: [
                 {
                   tag: "div",

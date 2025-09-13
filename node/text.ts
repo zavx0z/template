@@ -145,9 +145,9 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
 
     // Проверяем, является ли это простым выражением (только переменные без статического текста)
     const isSimpleExpr =
-      expr === `\${${ARGUMENTS_PREFIX}[0]}` ||
-      expr === `\${${ARGUMENTS_PREFIX}[0]}\${${ARGUMENTS_PREFIX}[1]}` ||
-      expr === `\${${ARGUMENTS_PREFIX}[0]}-\${${ARGUMENTS_PREFIX}[1]}`
+      expr === `${ARGUMENTS_PREFIX}[0]` ||
+      expr === `${ARGUMENTS_PREFIX}[0]${ARGUMENTS_PREFIX}[1]` ||
+      expr === `${ARGUMENTS_PREFIX}[0]-${ARGUMENTS_PREFIX}[1]`
 
     if (isSimpleExpr) {
       return {
