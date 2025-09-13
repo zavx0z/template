@@ -14,97 +14,43 @@ export type TokenText = { kind: "text"; text: string }
  * Текстовый узел.
  * Представляет текст с путями к данным или статическими значениями.
  *
- * @group Nodes
- * @example Статический текст
- * ```html
- * <p>Это статический текст</p>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "type": "text",
- *   "value": "Это статический текст"
- * }
- * ```
- *
- * @example Динамический текст
- * ```html
- * <p>Привет, ${context.name}!</p>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "type": "text",
- *   "data": "/context/name",
- *   "expr": "Привет, ${[0]}!"
- * }
- * ```
- *
- * @example Смешанный текст
- * ```html
- * <p>Пользователь ${context.name} имеет ${core.postCount} постов</p>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "type": "text",
- *   "data": ["/context/name", "/core/postCount"],
- *   "expr": "Пользователь ${[0]} имеет ${[1]} постов"
- * }
- * ```
- *
- * @example Логические операции
- * ```html
- * <div>Пользователь: ${context.isActive && context.name || 'Гость'}</div>
- * <span>Статус: ${context.isAdmin ? 'Администратор' : 'Пользователь'}</span>
- * ```
- *
- * Результат:
- * ```json
- * [
- *   {
- *     "type": "text",
- *     "data": ["/context/isActive", "/context/name"],
- *     "expr": "Пользователь: ${[0]} && ${[1]} || 'Гость'"
- *   },
- *   {
- *     "type": "text",
- *     "data": ["/context/isAdmin"],
- *     "expr": "Статус: ${[0]} ? 'Администратор' : 'Пользователь'"
- *   }
- * ]
- * ```
- *
- * @example Тернарные операторы
- * ```html
- * <p>${context.age >= 18 ? 'Совершеннолетний' : 'Несовершеннолетний'}</p>
- * <div>${context.inStock ? `В наличии: ${core.quantity}` : 'Нет в наличии'}</div>
- * ```
- *
- * Результат:
- * ```json
- * [
- *   {
- *     "type": "text",
- *     "data": ["/context/age"],
- *     "expr": "${[0]} >= 18 ? 'Совершеннолетний' : 'Несовершеннолетний'"
- *   },
- *   {
- *     "type": "text",
- *     "data": ["/context/inStock", "/core/quantity"],
- *     "expr": "${[0]} ? `В наличии: ${[1]}` : 'Нет в наличии'"
- *   }
- * ]
- * ```
- *
- * Структура узла:
+ * ## Структура узла
  * - `type` - всегда "text" для текстовых узлов
  * - `value` - статическое значение (если текст статический)
  * - `data` - путь(и) к данным (если текст динамический)
  * - `expr` - выражение с индексами (если текст смешанный)
+ *
+ * ## Примеры
+ *
+ * ### Статический
+ * {@includeCode ./text.spec.ts#static}
+ * {@includeCode ./text.spec.ts#expectStatic}
+ *
+ * ### Динамический
+ * {@includeCode ./text.spec.ts#dynamic}
+ * {@includeCode ./text.spec.ts#expectDynamic}
+ *
+ * ### Смешанный
+ * {@includeCode ./text.spec.ts#mixed}
+ * {@includeCode ./text.spec.ts#expectMixed}
+ *
+ * ### Логический
+ * {@includeCode ./text.spec.ts#logical}
+ * {@includeCode ./text.spec.ts#expectLogical}
+ *
+ * ### Логический литерал
+ * {@includeCode ./text.spec.ts#logicalLiteral}
+ * {@includeCode ./text.spec.ts#expectLogicalLiteral}
+ *
+ * ### Тернарный
+ * {@includeCode ./text.spec.ts#ternary}
+ * {@includeCode ./text.spec.ts#expectTernary}
+ *
+ * ### Тернарный литерал
+ * {@includeCode ./text.spec.ts#ternaryLiteral}
+ * {@includeCode ./text.spec.ts#expectTernaryLiteral}
+ *
+ * @group Nodes
  */
 
 export interface NodeText {

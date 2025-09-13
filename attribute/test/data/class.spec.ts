@@ -623,7 +623,7 @@ describe("class атрибуты в data.ts", () => {
       })
     })
 
-    describe.todo("class в элементе со сложной строкой с условными выражениями", () => {
+    describe("class в элементе со сложной строкой с условными выражениями", () => {
       let elements: Node[]
 
       beforeAll(() => {

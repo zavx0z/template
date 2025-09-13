@@ -25,11 +25,13 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
     }
   }
 
-  // Проверяем, является ли это условным выражением или логическим оператором
+  // Проверяем, является ли это условным выражением, логическим оператором или математическим выражением
   const hasConditionalOperators = /\?.*:/.test(text) // тернарный оператор ?:
   const hasLogicalOperators = /[&&||]/.test(text)
+  const hasMathematicalOperators = /[+\-*/%]/.test(text) // математические операторы
+  const hasMethodCalls = /\.\w+\s*\(/.test(text) // вызовы методов
 
-  if (hasConditionalOperators || hasLogicalOperators) {
+  if ((hasConditionalOperators || hasLogicalOperators || hasMathematicalOperators) && !hasMethodCalls) {
     // Используем общую функцию для условных выражений и логических операторов
     const templateResult = parseTemplateLiteral(text, context)
     if (templateResult && templateResult.data) {
@@ -145,9 +147,9 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
 
     // Проверяем, является ли это простым выражением (только переменные без статического текста)
     const isSimpleExpr =
-      expr === `${ARGUMENTS_PREFIX}[0]` ||
-      expr === `${ARGUMENTS_PREFIX}[0]${ARGUMENTS_PREFIX}[1]` ||
-      expr === `${ARGUMENTS_PREFIX}[0]-${ARGUMENTS_PREFIX}[1]`
+      expr === `\${${ARGUMENTS_PREFIX}[0]}` ||
+      expr === `\${${ARGUMENTS_PREFIX}[0]}\${${ARGUMENTS_PREFIX}[1]}` ||
+      expr === `\${${ARGUMENTS_PREFIX}[0]}-\${${ARGUMENTS_PREFIX}[1]}`
 
     if (isSimpleExpr) {
       return {
@@ -195,8 +197,36 @@ export const splitText = (text: string): ParseTextPart[] => {
   const parts: ParseTextPart[] = []
   let currentIndex = 0
 
-  // Ищем все переменные
-  const varMatches = text.match(/\$\{[^}]+\}/g) || []
+  // Ищем все переменные с учетом вложенности
+  const varMatches: string[] = []
+  let i = 0
+  while (i < text.length) {
+    if (text[i] === "$" && i + 1 < text.length && text[i + 1] === "{") {
+      // Находим конец template literal с учетом вложенности
+      let braceCount = 1
+      let j = i + 2
+      while (j < text.length && braceCount > 0) {
+        if (text[j] === "$" && j + 1 < text.length && text[j + 1] === "{") {
+          braceCount++
+          j += 2
+        } else if (text[j] === "}") {
+          braceCount--
+          j++
+        } else {
+          j++
+        }
+      }
+      if (braceCount === 0) {
+        const varMatch = text.slice(i, j)
+        varMatches.push(varMatch)
+        i = j
+      } else {
+        i++
+      }
+    } else {
+      i++
+    }
+  }
 
   for (const varMatch of varMatches) {
     const varIndex = text.indexOf(varMatch, currentIndex)

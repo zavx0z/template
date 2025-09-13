@@ -214,8 +214,8 @@ describe("text", () => {
                   child: [
                     {
                       type: "text",
-                      data: ["[item]/name", "[item]/price * product/quantity"],
-                      expr: "${_[0]}: $${_[1]}",
+                      data: ["[item]/name", "[item]/price", "[item]/quantity"],
+                      expr: "${_[0]}: $${_[1] * _[2]}",
                     },
                   ],
                 },
