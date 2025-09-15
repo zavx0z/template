@@ -485,7 +485,15 @@ const findVariableInMapStack = (variable: string, context: ParseContext): string
     const paramIndex = mapContext.params.indexOf(variableName)
 
     // Используем информацию о деструктуризации из контекста
-    return paramIndex === 0 ? buildItemPath(prefix, variableParts, mapContext.isDestructured) : `${prefix}[index]`
+    // В режиме деструктуризации все параметры относятся к полям [item]
+    if (mapContext.isDestructured) {
+      const hasProperty = variableParts.length > 1
+      // variableParts[0] — имя деструктурированного поля
+      return hasProperty ? `${prefix}[item]/${variableParts.join("/")}` : `${prefix}[item]/${variableParts[0]}`
+    }
+
+    // Обычный режим: первый параметр — элемент, остальные — индекс
+    return paramIndex === 0 ? buildItemPath(prefix, variableParts, false) : `${prefix}[index]`
   }
 
   return null

@@ -223,11 +223,13 @@ describe("map", () => {
         elements = parse<{ flag: boolean }, { list: { title: string; nested: string[] }[] }>(
           ({ html, core, context }) => html`
             ${context.flag
-              ? html`<ul>
-                  ${core.list.map(
-                    ({ title, nested }) => html`<li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li>`
-                  )}
-                </ul>`
+              ? html`
+                  <ul>
+                    ${core.list.map(
+                      ({ title, nested }) => html`<li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li>`
+                    )}
+                  </ul>
+                `
               : html`<div>x</div>`}
           `
         )

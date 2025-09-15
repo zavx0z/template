@@ -2,82 +2,108 @@ import { describe, it, expect, beforeAll } from "bun:test"
 import { parse, type Node } from "../../../index"
 
 describe("text", () => {
-  describe("динамический текст в map где значением является строка элемент массива", () => {
+  describe("примитивы", () => {
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse<{ list: string[] }>(
+        // #region itemValue
         ({ html, context }) => html`
           <ul>
             ${context.list.map((name) => html`<li>${name}</li>`)}
           </ul>
         `
+        // #endregion itemValue
       )
     })
     it("data", () => {
-      expect(elements).toEqual([
-        {
-          tag: "ul",
-          type: "el",
-          child: [
-            {
-              type: "map",
-              data: "/context/list",
-              child: [
-                {
-                  tag: "li",
-                  type: "el",
-                  child: [
-                    {
-                      type: "text",
-                      data: "[item]",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ])
+      expect(elements).toEqual(
+        // #region expectItemValue
+        [
+          {
+            tag: "ul",
+            type: "el",
+            child: [
+              {
+                type: "map",
+                data: "/context/list",
+                child: [
+                  {
+                    tag: "li",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        data: "[item]",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]
+        // #endregion expectItemValue
+      )
     })
   })
 
-  describe("динамический текст с разными именами переменных элемента массива", () => {
+  describe("объекты без деструктуризации", () => {
     let elements: Node[]
     beforeAll(() => {
-      elements = parse(({ html }) => html`<div><p>static</p></div>`)
-    })
-    it("data", () => {
-      expect(elements).toEqual([
-        {
-          tag: "div",
-          type: "el",
-          child: [
-            {
-              tag: "p",
-              type: "el",
-              child: [
-                {
-                  type: "text",
-                  value: "static",
-                },
-              ],
-            },
-          ],
-        },
-      ])
-    })
-  })
-
-  describe("динамический текст в map с несколькими переменными", () => {
-    let elements: Node[]
-    beforeAll(() => {
-      elements = parse<any, { users: { firstName: string; lastName: string }[] }>(
+      elements = parse<any, { configs: { name: string; value: string }[] }>(
+        // #region objectValues
         ({ html, core }) => html`
           <ul>
-            ${core.users.map((user) => html`<li>${user.firstName} ${user.lastName}</li>`)}
+            ${core.configs.map((config) => html`<li>${config.name} ${config.value}</li>`)}
           </ul>
         `
+        // #endregion objectValues
+      )
+    })
+    it("data", () => {
+      expect(elements).toEqual(
+        // #region expectObjectValues
+        [
+          {
+            tag: "ul",
+            type: "el",
+            child: [
+              {
+                type: "map",
+                data: "/core/configs",
+                child: [
+                  {
+                    tag: "li",
+                    type: "el",
+                    child: [
+                      {
+                        type: "text",
+                        data: ["[item]/name", "[item]/value"],
+                        expr: "${_[0]} ${_[1]}",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ]
+        // #endregion expectObjectValues
+      )
+    })
+  })
+  describe("объекты с деструктуризацией", () => {
+    let elements: Node[]
+    beforeAll(() => {
+      elements = parse<any, { configs: { name: string; value: string }[] }>(
+        // #region objectDestructValues
+        ({ html, core }) => html`
+          <ul>
+            ${core.configs.map(({ name, value }) => html`<li>${name} ${value}</li>`)}
+          </ul>
+        `
+        // #endregion objectDestructValues
       )
     })
     it("data", () => {
@@ -88,7 +114,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              data: "/core/users",
+              data: "/core/configs",
               child: [
                 {
                   tag: "li",
@@ -96,7 +122,7 @@ describe("text", () => {
                   child: [
                     {
                       type: "text",
-                      data: ["[item]/firstName", "[item]/lastName"],
+                      data: ["[item]/name", "[item]/value"],
                       expr: "${_[0]} ${_[1]}",
                     },
                   ],
@@ -109,7 +135,7 @@ describe("text", () => {
     })
   })
 
-  describe("динамический текст в map с вложенными объектами", () => {
+  describe("вложенные объекты", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { posts: { author: { name: string; email: string } }[] }>(

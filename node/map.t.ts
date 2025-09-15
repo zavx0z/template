@@ -9,93 +9,15 @@ import type { PartText } from "./text.t"
  * Узел map операции.
  * Представляет итерацию по массиву данных с дочерними элементами.
  *
- * @group Nodes
- * @example Простая итерация
- * ```html
- * <ul>
- *   ${core.users.map(user => html`<li>${user}</li>`)}
- * </ul>
- * ```
+ * ### Примитивы
+ * {@includeCode ./test/map/text.test.ts#itemValue}
+ * {@includeCode ./test/map/text.test.ts#expectItemValue}
  *
- * Результат:
- * ```json
- * {
- *   "tag": "ul",
- *   "type": "el",
- *   "child": [
- *     {
- *       "type": "map",
- *       "data": "/core/users",
- *       "child": [
- *         {
- *           "tag": "li",
- *           "type": "el",
- *           "child": [
- *             {
- *               "type": "text",
- *               "data": "[item]/name"
- *             }
- *           ]
- *         }
- *       ]
- *     }
- *   ]
- * }
- * ```
- *
- * @example Итерация с деструктуризацией
- * ```html
- * <div>
- *   ${core.posts.map(({title, content}) => html`
- *     <article>
- *       <h2>${title}</h2>
- *       <p>${content}</p>
- *     </article>
- *   `)}
- * </div>
- * ```
- *
- * Результат:
- * ```json
- * {
- *   "tag": "div",
- *   "type": "el",
- *   "child": [
- *     {
- *       "type": "map",
- *       "data": "/core/posts",
- *       "child": [
- *         {
- *           "tag": "article",
- *           "type": "el",
- *           "child": [
- *             {
- *               "tag": "h2",
- *               "type": "el",
- *               "child": [
- *                 {
- *                   "type": "text",
- *                   "data": "[item]/title"
- *                 }
- *               ]
- *             },
- *             {
- *               "tag": "p",
- *               "type": "el",
- *               "child": [
- *                 {
- *                   "type": "text",
- *                   "data": "[item]/content"
- *                 }
- *               ]
- *             }
- *           ]
- *         }
- *       ]
- *     }
- *   ]
- * }
- * ```
+ * ### Объекты
+ * Могут быть как с деструктуризацией, так и без.
+ * {@includeCode ./test/map/text.test.ts#objectValues}
+ * {@includeCode ./test/map/text.test.ts#objectDestructValues}
+ * {@includeCode ./test/map/text.test.ts#expectObjectValues}
  *
  * @example Итерация с индексом
  * ```html
@@ -207,6 +129,7 @@ import type { PartText } from "./text.t"
  * - `type` - всегда "map" для map операций
  * - `data` - путь к массиву данных для итерации
  * - `child` - дочерние узлы, которые будут повторены для каждого элемента массива
+ * @group Nodes
  */
 
 export interface NodeMap {
