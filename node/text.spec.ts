@@ -125,7 +125,7 @@ describe("text", () => {
               {
                 type: "text",
                 data: "/context/last",
-                expr: "${_[0] && ` last: ${_[0]}`}",
+                expr: "${_[0] && `last: ${_[0]}`}",
               },
             ],
           },

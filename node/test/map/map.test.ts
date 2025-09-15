@@ -49,10 +49,11 @@ describe("map", () => {
         ({ html, context }) => html`
           <ul>
             ${context.list.map(
-              (name) => html`
-                <li>${name}</li>
-                <br />
-              `
+              (name) =>
+                html`
+                  <li>${name}</li>
+                  <br />
+                `
             )}
           </ul>
         `
