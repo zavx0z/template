@@ -1,15 +1,15 @@
 import { parse, type Node } from "../index"
-import { parseText } from "./text"
 import { describe, expect, beforeAll, it } from "bun:test"
-import type { NodeText } from "./text.t"
 
 describe("text", () => {
   describe("статический", () => {
     let elements: Node[]
     beforeAll(() => {
-      // #region static
-      elements = parse(({ html }) => html`Static text`)
-      // #endregion static
+      elements = parse(
+        // #region static
+        ({ html }) => html`Static text`
+        // #endregion static
+      )
     })
     it("data", () => {
       expect(elements).toEqual(
@@ -23,9 +23,11 @@ describe("text", () => {
     let elements: Node[]
     type Context = { dynamic: string }
     beforeAll(() => {
-      // #region dynamic
-      elements = parse<Context>(({ html, context }) => html`<p>${context.dynamic}</p>`)
-      // #endregion dynamic
+      elements = parse<Context>(
+        // #region dynamic
+        ({ html, context }) => html`<p>${context.dynamic}</p>`
+        // #endregion dynamic
+      )
     })
     it("data", () => {
       expect(elements).toEqual(
@@ -45,12 +47,11 @@ describe("text", () => {
     let elements: Node[]
     type Context = { family: string; name: string }
     beforeAll(() => {
-      // prettier-ignore
-      // #region mixed
-      elements = parse<Context>(({ html, context }) => html`
-          <p>Hello, ${context.family}  ${context.name}!</p>
-      `)
-      // #endregion mixed
+      elements = parse<Context>(
+        // #region mixed
+        ({ html, context }) => html`<p>Hello, ${context.family} ${context.name}!</p>`
+        // #endregion mixed
+      )
     })
     it("data", () => {
       expect(elements).toEqual(
@@ -105,16 +106,14 @@ describe("text", () => {
   describe("логический литерал", () => {
     let elements: Node[]
     type Context = { last: string }
-    // prettier-ignore
-    //#region logicalLiteral
+
     beforeAll(() => {
-      elements = parse<Context>(({ html, context }) => html` 
-        <p>
-          ${context.last && ` last: ${context.last}`}
-        </p>
-      `)
+      elements = parse<Context>(
+        //#region logicalLiteral
+        ({ html, context }) => html` <p>${context.last && `last: ${context.last}`}</p>`
+        //#endregion logicalLiteral
+      )
     })
-    //#endregion logicalLiteral
     it("expr", () => {
       expect(elements).toEqual(
         // #region expectLogicalLiteral
