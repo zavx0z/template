@@ -6,7 +6,7 @@ import type { PartAttrMeta } from "./meta.t"
 import type { PartText } from "./text.t"
 
 /**
- * Узел map операции.
+ * Узел map операции в AST.
  * Представляет итерацию по массиву данных с дочерними элементами.
  *
  * ### Примитивы

@@ -4,7 +4,7 @@ import type { Attributes } from "../attribute/index.t"
 import type { Node } from "./index.t"
 
 /**
- * Мета-узел.
+ * Мета-узел в AST.
  *
  * Представляет meta-элемент.
  * Поддерживает создание компонентов с динамическими именами тегов.

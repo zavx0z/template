@@ -5,7 +5,7 @@ import type { Node } from "./index.t"
 import type { PartAttrMeta } from "./meta.t"
 
 /**
- * Узел логического оператора.
+ * Узел логического оператора в AST.
  * Представляет логический оператор && с условным отображением.
  *
  * @group Nodes

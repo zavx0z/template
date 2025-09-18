@@ -3,7 +3,7 @@ import type { Attributes } from "../attribute/index.t"
 import type { Node } from "./index.t"
 
 /**
- * Узел HTML элемента.
+ * Узел HTML элемента в AST.
  * Представляет HTML тег с атрибутами и дочерними элементами.
  *
  * @group Nodes

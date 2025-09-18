@@ -4,7 +4,7 @@ import type { Node } from "./index.t"
 import type { PartAttrMeta } from "./meta.t"
 
 /**
- * Узел условного оператора.
+ * Узел условного оператора в AST.
  * Представляет тернарный оператор с ветками true и false.
  *
  * @group Nodes
