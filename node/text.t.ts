@@ -11,14 +11,18 @@ export type ParseTextPart = {
 export type TokenText = { kind: "text"; text: string }
 
 /**
- * Текстовый узел.
- * Представляет текст с путями к данным или статическими значениями.
+ * Текстовый узел в AST.
  *
- * ## Структура узла
- * - `type` - всегда "text" для текстовых узлов
- * - `value` - статическое значение (если текст статический)
- * - `data` - путь(и) к данным (если текст динамический)
- * - `expr` - выражение с индексами (если текст смешанный)
+ * Узел может представлять:
+ * - **статическое значение** (`value`),
+ * - **динамическое значение** (один или несколько путей в `data`),
+ * - **смешанное выражение** (динамика + статический текст, в `expr`).
+ *
+ * ## Структура
+ * - `type` — всегда `"text"`
+ * - `value` — строка, если узел статический
+ * - `data` — строка или массив строк, если узел динамический
+ * - `expr` — строка-шаблон с индексами `${_[i]}`, если текст смешанный
  *
  * ## Примеры
  *
@@ -33,6 +37,14 @@ export type TokenText = { kind: "text"; text: string }
  * ### Смешанный
  * {@includeCode ./text.spec.ts#mixed}
  * {@includeCode ./text.spec.ts#expectMixed}
+ *
+ * ### Методы
+ * {@includeCode ./text.spec.ts#methods}
+ * {@includeCode ./text.spec.ts#expectMethods}
+ *
+ * ### Математический
+ * {@includeCode ./text.spec.ts#mathematical}
+ * {@includeCode ./text.spec.ts#expectMathematical}
  *
  * ### Логический
  * {@includeCode ./text.spec.ts#logical}
@@ -52,43 +64,24 @@ export type TokenText = { kind: "text"; text: string }
  *
  * @group Nodes
  */
-
 export interface NodeText {
-  /** Тип узла - всегда "text" для текстовых узлов */
+  /** Тип узла — всегда `"text"` */
   type: "text"
-  /**
-   * Путь(и) к данным (если текст динамический)
-   *
-   * @example Простой путь
-   * ```typescript
-   * data: "/context/name"
-   * ```
-   *
-   * @example Массив путей
-   * ```typescript
-   * data: ["/context/name", "/context/age"]
-   * ```
-   */
+
+  /** Путь или список путей к данным. */
   data?: string | string[]
-  /**
-   * Статическое значение (если текст статический)
-   *
-   * @example
-   * ```typescript
-   * value: "Привет, мир!"
-   * ```
-   */
+
+  /** Статическое значение (если текст полностью статический). */
   value?: string
+
   /**
-   * Выражение с индексами (если текст смешанный)
+   * Выражение с индексами (если текст смешанный или содержит операторы).
    *
-   * @example
-   * ```typescript
-   * expr: "Привет ${[0]}, у тебя ${[1]} сообщений"
-   * ```
+   * Индексы (`_[0]`, `_[1]`) ссылаются на элементы массива `data`.
    */
   expr?: string
 }
+
 export type PartText = {
   /** Тип узла */
   type: "text"

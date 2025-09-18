@@ -157,7 +157,7 @@ describe("map", () => {
         ])
       })
     })
-    describe("map рендерит вложенные шаблоны (последовательность name/kind)", () => {
+    describe("map с индексом", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ list: string[] }>(

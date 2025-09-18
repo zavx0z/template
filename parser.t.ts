@@ -73,13 +73,13 @@ export type ValueVariable = {
    * Путь к индексу map
    * @example
    * ```typescript
-   * data: "[index]/theme"
+   * data: "[index]"
    * ```
    *
    * Путь к индексу родительского инстанса из вложенного map
    * @example
    * ```typescript
-   * data: "../[index]/theme"
+   * data: "../[index]"
    * ```
    */
   data: string
@@ -126,13 +126,13 @@ export type ValueDynamic = {
    * Путь к индексу map
    * @example
    * ```typescript
-   * data: "[index]/theme"
+   * data: "[index]"
    * ```
    *
    * Путь к индексу родительского инстанса из вложенного map
    * @example
    * ```typescript
-   * data: "../[index]/theme"
+   * data: "../[index]"
    * ```
    *
    * Пути к данным

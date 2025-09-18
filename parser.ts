@@ -427,7 +427,7 @@ class Hierarchy {
 // Паттерны для парсинга переменных
 
 export const VARIABLE_WITH_DOTS_PATTERN = /([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g
-const VALID_VARIABLE_PATTERN = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/
+export const VALID_VARIABLE_PATTERN = /^[a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*$/
 // Паттерны для парсинга событий
 
 export const UPDATE_OBJECT_PATTERN = /update\(\s*\{([^}]+)\}\s*\)/
@@ -679,50 +679,6 @@ export const resolveDataPath = (variable: string, context: ParseContext): string
     // Абсолютный путь
     return `/${variable.replace(/\./g, "/")}`
   }
-}
-/**
- * Извлекает базовую переменную из сложного выражения с методами.
- * Переиспользуемая функция для обработки выражений типа "context.list.map(...)".
- */
-
-export const extractBaseVariable = (variable: string): string => {
-  // Защищаем строковые литералы от обработки
-  const stringLiterals: string[] = []
-  let protectedVariable = variable
-    .replace(/`[^`]*`/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-    .replace(/"[^"]*"/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-    .replace(/'[^']*'/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-
-  if (protectedVariable.includes("(")) {
-    // Для выражений с методами, ищем переменную до первого вызова метода
-    // Например, для "context.list.map((item) => ...)" нужно получить "context.list"
-    const beforeMethod = protectedVariable
-      .split(/\.\w+\(/)
-      .shift()
-      ?.trim()
-    if (beforeMethod && VALID_VARIABLE_PATTERN.test(beforeMethod)) {
-      return beforeMethod
-    }
-  }
-
-  // Извлекаем только переменные с точками, исключая строковые литералы
-  const variableMatches = protectedVariable.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
-  const variablesWithDots = variableMatches.filter((v) => v.includes(".") && !v.startsWith("__STRING_"))
-
-  if (variablesWithDots.length > 0) {
-    return variablesWithDots[0] as string
-  }
-
-  return variable
 }
 /**
  * Создает унифицированное выражение с заменой переменных на индексы.
