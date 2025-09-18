@@ -278,8 +278,8 @@ describe("text", () => {
                   child: [
                     {
                       type: "text",
-                      data: ["[item]/name/toUpperCase", "[item]/email/toLowerCase"],
-                      expr: "${_[0]()} - ${_[1]()}",
+                      data: ["[item]/name", "[item]/email"],
+                      expr: "${_[0].toUpperCase()} - ${_[1].toLowerCase()}",
                     },
                   ],
                 },

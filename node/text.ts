@@ -10,13 +10,53 @@ import type { ParseContext } from "../parser.t"
 import type { NodeText, ParseTextPart } from "./text.t"
 
 // ============================================================================
+// STRING METHOD SAFELIST
+// ============================================================================
+
+/** Разрешённые безопасные методы String.prototype. */
+const SAFE_STRING_METHODS = new Set<string>([
+  "toUpperCase",
+  "toLowerCase",
+  "toLocaleUpperCase",
+  "toLocaleLowerCase",
+  "trim",
+  "trimStart",
+  "trimEnd",
+  "slice",
+  "substring",
+  "includes",
+  "startsWith",
+  "endsWith",
+  "indexOf",
+  "lastIndexOf",
+  "charAt",
+  "charCodeAt",
+  "codePointAt",
+  "repeat",
+  "padStart",
+  "padEnd",
+  "replace",
+  "replaceAll",
+  "normalize",
+  "split",
+])
+
+const isSafeStringMethod = (name?: string) => !!name && SAFE_STRING_METHODS.has(name)
+
+const logUnsupported = (method: string, expr: string) => {
+  // eslint-disable-next-line no-console
+  console.error(`[template] Unsupported string method "${method}" in expression: ${expr}`)
+}
+
+// ============================================================================
 // TEXT PROCESSING
 // ============================================================================
 
 /**
- * Парсит текстовый узел с поддержкой методов (e.g. .toUpperCase()).
- * Методы попадают в data как суффикс пути (/toUpperCase),
- * а в expr скобки добавляются ВНУТРЬ плейсхолдеров: ${_[i]()}.
+ * Парсит текстовый узел с поддержкой методов.
+ * ВАЖНО: методы НЕ добавляются в data, а отражаются только в expr:
+ *   data: ["/context/name", "/context/email"]
+ *   expr: "${_[0].toUpperCase()} - ${_[1].toLowerCase()}"
  */
 export const parseText = (text: string, context: ParseContext = { pathStack: [], level: 0 }): NodeText => {
   if (!text.includes("${")) {
@@ -24,10 +64,11 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
   }
 
   const hasConditionalOperators = /\?.*:/.test(text)
-  const hasLogicalOperators = /[&&||]/.test(text)
+  const hasLogicalOperators = /(&&|\|\|)/.test(text)
   const hasMathematicalOperators = /[+\-*/%]/.test(text)
   const hasMethodCalls = /\.\w+\s*\(/.test(text)
 
+  // чистые ?:, &&/|| и арифметика без методов — отдаем в общий парсер
   if ((hasConditionalOperators || hasLogicalOperators || hasMathematicalOperators) && !hasMethodCalls) {
     const templateResult = parseTemplateLiteral(text, context)
     if (templateResult?.data) {
@@ -37,6 +78,8 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
 
   const parts = splitText(text)
 
+  // Достаём базовую переменную и (опц.) последний вызов метода.
+  // ВАЖНО: в data кладём ТОЛЬКО базовый путь (без метода).
   const dynamicParts = parts
     .filter((part) => part.type === "dynamic")
     .map((part) => {
@@ -49,10 +92,9 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
       }
 
       const { base, methodName, callSuffix } = extractBaseAndCall(variable)
-      const basePath = resolveDataPath(base, context)
-      const path = methodName ? `${basePath}/${methodName}` : basePath
+      const path = resolveDataPath(base, context) // БЕЗ суффикса метода
 
-      return { path, text: part.text, callSuffix }
+      return { path, text: part.text, methodName, callSuffix }
     })
     .filter((p): p is NonNullable<typeof p> => p !== null)
 
@@ -76,17 +118,26 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
   // одна единственная ${...}
   if (parts.length === 1 && parts[0]!.type === "dynamic") {
     const variable = parts[0]!.text.match(/\$\{([^}]+)\}/)?.[1] || ""
-    const callSuffix = dynamicParts[0]!.callSuffix
+    let methodName = dynamicParts[0]!.methodName
+    let call = dynamicParts[0]!.callSuffix ?? "()" // если метод найден — по умолчанию "()"
 
-    if (callSuffix) {
-      // ВАЖНО: скобки внутри плейсхолдера
+    // Проверяем метод на принадлежность к стандартным строковым.
+    if (methodName && !isSafeStringMethod(methodName)) {
+      logUnsupported(methodName, parts[0]!.text)
+      methodName = undefined
+      call = "" // игнорируем вызов
+    }
+
+    if (methodName) {
+      // метод вызывается на плейсхолдере, data — базовый путь
       return {
         type: "text",
         data: dynamicParts[0]!.path,
-        expr: createUnifiedExpression(`\${${ARGUMENTS_PREFIX}[0]${callSuffix}}`, []),
+        expr: createUnifiedExpression(`\${${ARGUMENTS_PREFIX}[0].${methodName}${call}}`, []),
       }
     }
 
+    // «сложное» выражение без метода (скобки/вызовы функций и т.п.)
     if (variable.includes("(")) {
       const baseVariable = extractBaseVariable(variable)
       const pathDots = resolveDataPath(baseVariable, context).replace(/^\//, "").replace(/\//g, ".")
@@ -97,6 +148,7 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
       return { type: "text", data: dynamicParts[0]!.path, expr: createUnifiedExpression(expr, []) }
     }
 
+    // простая подстановка без метода
     return { type: "text", data: mainPath }
   }
 
@@ -106,34 +158,50 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
       .map((p) => {
         if (p.type === "static") return p.text
         const index = dynamicParts.findIndex((dp) => dp.text === p.text)
-        const call = dynamicParts[index]?.callSuffix ?? ""
-        // ВАЖНО: если есть вызов — помещаем его внутрь плейсхолдера
-        return call ? `\${${ARGUMENTS_PREFIX}[${index}]${call}}` : `\${${ARGUMENTS_PREFIX}[${index}]}`
+        let m = dynamicParts[index]?.methodName
+        let call = dynamicParts[index]?.callSuffix ?? "()" // если метод найден — по умолчанию "()"
+
+        // Проверка метода
+        if (m && !isSafeStringMethod(m)) {
+          logUnsupported(m, dynamicParts[index]!.text)
+          m = undefined
+          call = ""
+        }
+
+        return m ? `\${${ARGUMENTS_PREFIX}[${index}].${m}${call}}` : `\${${ARGUMENTS_PREFIX}[${index}]}`
       })
       .join("")
 
+    // «простой» случай — только переменные, без операторов и БЕЗ методов → expr можно опустить
     const isSimpleExpr =
       exprRaw === `\${${ARGUMENTS_PREFIX}[0]}` ||
       exprRaw === `\${${ARGUMENTS_PREFIX}[0]}\${${ARGUMENTS_PREFIX}[1]}` ||
       exprRaw === `\${${ARGUMENTS_PREFIX}[0]}-\${${ARGUMENTS_PREFIX}[1]}`
 
-    const hasAnyCalls = dynamicParts.some((dp) => !!dp.callSuffix)
-    if (isSimpleExpr && !hasAnyCalls) {
+    const hasAnyMethods = dynamicParts.some((dp) => !!dp.methodName && isSafeStringMethod(dp.methodName))
+    if (isSimpleExpr && !hasAnyMethods) {
       return { type: "text", data: dynamicParts.map((p) => p.path) }
     }
 
     return { type: "text", data: dynamicParts.map((p) => p.path), expr: createUnifiedExpression(exprRaw, []) }
   }
 
-  // одна динамическая + статический текст вокруг
+  // одна динамическая + вокруг есть статический текст
   const hasStaticText = parts.some((p) => p.type === "static" && p.text.trim() !== "")
   if (hasStaticText) {
+    let methodName = dynamicParts[0]?.methodName
+    let call = dynamicParts[0]?.callSuffix ?? "()" // если метод найден
+
+    if (methodName && !isSafeStringMethod(methodName)) {
+      logUnsupported(methodName, dynamicParts[0]!.text)
+      methodName = undefined
+      call = ""
+    }
+
     const exprRaw = parts
       .map((p) => {
         if (p.type === "static") return p.text
-        const call = dynamicParts[0]?.callSuffix ?? ""
-        // ВАЖНО: если есть вызов — внутрь плейсхолдера
-        return call ? `\${${ARGUMENTS_PREFIX}[0]${call}}` : `\${${ARGUMENTS_PREFIX}[0]}`
+        return methodName ? `\${${ARGUMENTS_PREFIX}[0].${methodName}${call}}` : `\${${ARGUMENTS_PREFIX}[0]}`
       })
       .join("")
     return { type: "text", data: mainPath, expr: createUnifiedExpression(exprRaw, []) }
@@ -146,10 +214,7 @@ export const parseText = (text: string, context: ParseContext = { pathStack: [],
 // HELPERS
 // ============================================================================
 
-/**
- * Разбивка строки на последовательность статических и динамических частей.
- * Учитывает вложенные `${...}` по счётчику фигурных скобок.
- */
+/** Разбивка строки на статические/динамические части. Поддерживает вложенные `${...}`. */
 export const splitText = (text: string): ParseTextPart[] => {
   const parts: ParseTextPart[] = []
   let currentIndex = 0
@@ -193,9 +258,7 @@ export const splitText = (text: string): ParseTextPart[] => {
   return parts
 }
 
-/**
- * Возвращает текстовый токен, обрезая «клей» до следующего html`...`.
- */
+/** Возвращает текстовый токен, обрезая «клей» до следующего html`...`. */
 export const findText = (chunk: string) => {
   let start = 0
   if (!chunk || /^\s+$/.test(chunk)) return
@@ -293,7 +356,7 @@ const extractBaseAndCall = (variable: string): { base: string; methodName?: stri
   if (m) {
     const methodName = m[1]
     const args = m[2] ?? ""
-    const callSuffix = `(${args})`
+    const callSuffix = `(${args})` // всегда с круглыми скобками
     const base = extractBaseVariable(variable.replace(m[0], ""))
     return { base, methodName, callSuffix }
   }
