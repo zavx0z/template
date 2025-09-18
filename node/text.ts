@@ -1,212 +1,167 @@
 import {
   parseTemplateLiteral,
-  extractBaseVariable,
   resolveDataPath,
   ARGUMENTS_PREFIX,
   createUnifiedExpression,
+  VALID_VARIABLE_PATTERN,
 } from "../parser"
 import { cutBeforeNextHtml } from "../parser"
 import type { ParseContext } from "../parser.t"
 import type { NodeText, ParseTextPart } from "./text.t"
 
-/**
- * Парсит текстовые данные с путями.
- */
 // ============================================================================
 // TEXT PROCESSING
 // ============================================================================
 
+/**
+ * Парсит текстовый узел с поддержкой методов (e.g. .toUpperCase()).
+ * Методы попадают в data как суффикс пути (/toUpperCase),
+ * а в expr скобки добавляются ВНУТРЬ плейсхолдеров: ${_[i]()}.
+ */
 export const parseText = (text: string, context: ParseContext = { pathStack: [], level: 0 }): NodeText => {
-  // Если текст не содержит переменных - возвращаем статический
   if (!text.includes("${")) {
-    return {
-      type: "text",
-      value: text,
-    }
+    return { type: "text", value: text }
   }
 
-  // Проверяем, является ли это условным выражением, логическим оператором или математическим выражением
-  const hasConditionalOperators = /\?.*:/.test(text) // тернарный оператор ?:
+  const hasConditionalOperators = /\?.*:/.test(text)
   const hasLogicalOperators = /[&&||]/.test(text)
-  const hasMathematicalOperators = /[+\-*/%]/.test(text) // математические операторы
-  const hasMethodCalls = /\.\w+\s*\(/.test(text) // вызовы методов
+  const hasMathematicalOperators = /[+\-*/%]/.test(text)
+  const hasMethodCalls = /\.\w+\s*\(/.test(text)
 
   if ((hasConditionalOperators || hasLogicalOperators || hasMathematicalOperators) && !hasMethodCalls) {
-    // Используем общую функцию для условных выражений и логических операторов
     const templateResult = parseTemplateLiteral(text, context)
-    if (templateResult && templateResult.data) {
-      return {
-        type: "text",
-        data: templateResult.data,
-        ...(templateResult.expr && { expr: templateResult.expr }),
-      }
+    if (templateResult?.data) {
+      return { type: "text", data: templateResult.data, ...(templateResult.expr && { expr: templateResult.expr }) }
     }
   }
 
-  // Разбираем текст на статические и динамические части
   const parts = splitText(text)
 
-  // Парсим динамические части
   const dynamicParts = parts
     .filter((part) => part.type === "dynamic")
     .map((part) => {
       const varMatch = part.text.match(/\$\{([^}]+)\}/)
       const variable = varMatch?.[1] || ""
 
-      // Фильтруем строковые литералы
+      // строковые литералы внутри ${...} не считаем динамикой
       if (variable.startsWith('"') || variable.startsWith("'") || variable.includes('"') || variable.includes("'")) {
         return null
       }
 
-      // Для сложных выражений с методами извлекаем только базовую переменную
-      const baseVariable = extractBaseVariable(variable)
+      const { base, methodName, callSuffix } = extractBaseAndCall(variable)
+      const basePath = resolveDataPath(base, context)
+      const path = methodName ? `${basePath}/${methodName}` : basePath
 
-      // Определяем путь к данным с использованием переиспользуемой функции
-      const path = resolveDataPath(baseVariable, context)
-
-      return {
-        path,
-        text: part.text,
-      }
+      return { path, text: part.text, callSuffix }
     })
-    .filter((part): part is NonNullable<typeof part> => part !== null)
+    .filter((p): p is NonNullable<typeof p> => p !== null)
 
-  // Определяем основной путь (берем первый динамический)
   const firstDynamicPart = dynamicParts[0]
   const mainPath = firstDynamicPart ? firstDynamicPart.path : ""
 
-  // Если все динамические части отфильтрованы (например, остались только строковые литералы),
-  // то это статический текст
-  if (dynamicParts.length === 0 && parts.some((part) => part.type === "dynamic")) {
-    // Извлекаем статический текст из динамических частей
+  // все динамические оказались строками → статический текст
+  if (dynamicParts.length === 0 && parts.some((p) => p.type === "dynamic")) {
     const staticText = parts
-      .filter((part) => part.type === "dynamic")
-      .map((part) => {
-        const varMatch = part.text.match(/\$\{([^}]+)\}/)
-        const variable = varMatch?.[1] || ""
-        // Возвращаем содержимое строковых литералов
-        if (variable.startsWith('"') && variable.endsWith('"')) {
-          return variable.slice(1, -1)
-        }
-        if (variable.startsWith("'") && variable.endsWith("'")) {
-          return variable.slice(1, -1)
-        }
+      .filter((p) => p.type === "dynamic")
+      .map((p) => {
+        const v = p.text.match(/\$\{([^}]+)\}/)?.[1] || ""
+        if (v.startsWith('"') && v.endsWith('"')) return v.slice(1, -1)
+        if (v.startsWith("'") && v.endsWith("'")) return v.slice(1, -1)
         return ""
       })
       .join("")
-
-    if (staticText) {
-      return {
-        type: "text",
-        value: staticText,
-      }
-    }
+    if (staticText) return { type: "text", value: staticText }
   }
 
-  // Если только одна переменная без дополнительного текста
-  if (parts.length === 1 && parts[0] && parts[0].type === "dynamic") {
-    // Проверяем, содержит ли выражение методы или сложные операции
-    const dynamicText = parts[0].text
-    const variable = dynamicText.match(/\$\{([^}]+)\}/)?.[1] || ""
-    const hasComplexExpression = variable.includes("(")
+  // одна единственная ${...}
+  if (parts.length === 1 && parts[0]!.type === "dynamic") {
+    const variable = parts[0]!.text.match(/\$\{([^}]+)\}/)?.[1] || ""
+    const callSuffix = dynamicParts[0]!.callSuffix
 
-    if (hasComplexExpression) {
-      // Для сложных выражений добавляем expr с замещенной базовой переменной
-      const baseVariable = dynamicParts[0]?.path.replace(/^\//, "").replace(/\//g, ".") || ""
-      let expr = variable
-      if (baseVariable) {
-        expr = expr.replace(
-          new RegExp(`\\b${baseVariable.replace(/\./g, "\\.")}\\b`, "g"),
-          `\${${ARGUMENTS_PREFIX}[0]}`
-        )
-      }
-
+    if (callSuffix) {
+      // ВАЖНО: скобки внутри плейсхолдера
       return {
         type: "text",
-        data: mainPath,
-        expr: createUnifiedExpression(expr, []),
+        data: dynamicParts[0]!.path,
+        expr: createUnifiedExpression(`\${${ARGUMENTS_PREFIX}[0]${callSuffix}}`, []),
       }
     }
 
-    // Для простых переменных не добавляем expr
-    return {
-      type: "text",
-      data: mainPath,
+    if (variable.includes("(")) {
+      const baseVariable = extractBaseVariable(variable)
+      const pathDots = resolveDataPath(baseVariable, context).replace(/^\//, "").replace(/\//g, ".")
+      const expr = variable.replace(
+        new RegExp(`\\b${pathDots.replace(/\./g, "\\.")}\\b`, "g"),
+        `\${${ARGUMENTS_PREFIX}[0]}`
+      )
+      return { type: "text", data: dynamicParts[0]!.path, expr: createUnifiedExpression(expr, []) }
     }
+
+    return { type: "text", data: mainPath }
   }
 
-  // Если несколько переменных или смешанный текст
+  // несколько динамических / смешанный текст
   if (dynamicParts.length > 1) {
-    const expr = parts
-      .map((part) => {
-        if (part.type === "static") return part.text
-        const index = dynamicParts.findIndex((dp) => dp.text === part.text)
-        return `\${${ARGUMENTS_PREFIX}[${index}]}`
+    const exprRaw = parts
+      .map((p) => {
+        if (p.type === "static") return p.text
+        const index = dynamicParts.findIndex((dp) => dp.text === p.text)
+        const call = dynamicParts[index]?.callSuffix ?? ""
+        // ВАЖНО: если есть вызов — помещаем его внутрь плейсхолдера
+        return call ? `\${${ARGUMENTS_PREFIX}[${index}]${call}}` : `\${${ARGUMENTS_PREFIX}[${index}]}`
       })
       .join("")
 
-    // Проверяем, является ли это простым выражением (только переменные без статического текста)
     const isSimpleExpr =
-      expr === `\${${ARGUMENTS_PREFIX}[0]}` ||
-      expr === `\${${ARGUMENTS_PREFIX}[0]}\${${ARGUMENTS_PREFIX}[1]}` ||
-      expr === `\${${ARGUMENTS_PREFIX}[0]}-\${${ARGUMENTS_PREFIX}[1]}`
+      exprRaw === `\${${ARGUMENTS_PREFIX}[0]}` ||
+      exprRaw === `\${${ARGUMENTS_PREFIX}[0]}\${${ARGUMENTS_PREFIX}[1]}` ||
+      exprRaw === `\${${ARGUMENTS_PREFIX}[0]}-\${${ARGUMENTS_PREFIX}[1]}`
 
-    if (isSimpleExpr) {
-      return {
-        type: "text",
-        data: dynamicParts.map((part) => part.path),
-      }
+    const hasAnyCalls = dynamicParts.some((dp) => !!dp.callSuffix)
+    if (isSimpleExpr && !hasAnyCalls) {
+      return { type: "text", data: dynamicParts.map((p) => p.path) }
     }
 
-    return {
-      type: "text",
-      data: dynamicParts.map((part) => part.path),
-      expr: createUnifiedExpression(expr, []),
-    }
+    return { type: "text", data: dynamicParts.map((p) => p.path), expr: createUnifiedExpression(exprRaw, []) }
   }
 
-  // Одна переменная с дополнительным текстом
-  const hasStaticText = parts.some((part) => part.type === "static" && part.text.trim() !== "")
-  // Добавляем expr только если есть статический текст (не пробельные символы)
+  // одна динамическая + статический текст вокруг
+  const hasStaticText = parts.some((p) => p.type === "static" && p.text.trim() !== "")
   if (hasStaticText) {
-    const expr = parts
-      .map((part) => {
-        if (part.type === "static") return part.text
-        return `\${${ARGUMENTS_PREFIX}[0]}`
+    const exprRaw = parts
+      .map((p) => {
+        if (p.type === "static") return p.text
+        const call = dynamicParts[0]?.callSuffix ?? ""
+        // ВАЖНО: если есть вызов — внутрь плейсхолдера
+        return call ? `\${${ARGUMENTS_PREFIX}[0]${call}}` : `\${${ARGUMENTS_PREFIX}[0]}`
       })
       .join("")
-
-    return {
-      type: "text",
-      data: mainPath,
-      expr: createUnifiedExpression(expr, []),
-    }
+    return { type: "text", data: mainPath, expr: createUnifiedExpression(exprRaw, []) }
   }
 
-  // Только переменная без дополнительного текста
-  return {
-    type: "text",
-    data: mainPath,
-  }
+  return { type: "text", data: mainPath }
 }
-/**
- * Разбивает текст на статические и динамические части.
- */
 
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+/**
+ * Разбивка строки на последовательность статических и динамических частей.
+ * Учитывает вложенные `${...}` по счётчику фигурных скобок.
+ */
 export const splitText = (text: string): ParseTextPart[] => {
   const parts: ParseTextPart[] = []
   let currentIndex = 0
-
-  // Ищем все переменные с учетом вложенности
   const varMatches: string[] = []
+
   let i = 0
   while (i < text.length) {
-    if (text[i] === "$" && i + 1 < text.length && text[i + 1] === "{") {
-      // Находим конец template literal с учетом вложенности
+    if (text[i] === "$" && text[i + 1] === "{") {
       let braceCount = 1
       let j = i + 2
       while (j < text.length && braceCount > 0) {
-        if (text[j] === "$" && j + 1 < text.length && text[j + 1] === "{") {
+        if (text[j] === "$" && text[j + 1] === "{") {
           braceCount++
           j += 2
         } else if (text[j] === "}") {
@@ -230,28 +185,17 @@ export const splitText = (text: string): ParseTextPart[] => {
 
   for (const varMatch of varMatches) {
     const varIndex = text.indexOf(varMatch, currentIndex)
-
-    // Добавляем статическую часть перед переменной
-    if (varIndex > currentIndex) {
-      const staticPart = text.slice(currentIndex, varIndex)
-      parts.push({ type: "static", text: staticPart })
-    }
-
-    // Добавляем динамическую часть
+    if (varIndex > currentIndex) parts.push({ type: "static", text: text.slice(currentIndex, varIndex) })
     parts.push({ type: "dynamic", text: varMatch })
-
     currentIndex = varIndex + varMatch.length
   }
-
-  // Добавляем оставшуюся статическую часть
-  if (currentIndex < text.length) {
-    const staticPart = text.slice(currentIndex)
-    parts.push({ type: "static", text: staticPart })
-  }
-
+  if (currentIndex < text.length) parts.push({ type: "static", text: text.slice(currentIndex) })
   return parts
 }
 
+/**
+ * Возвращает текстовый токен, обрезая «клей» до следующего html`...`.
+ */
 export const findText = (chunk: string) => {
   let start = 0
   if (!chunk || /^\s+$/.test(chunk)) return
@@ -259,18 +203,16 @@ export const findText = (chunk: string) => {
   const trimmed = chunk.trim()
   if (isPureGlue(trimmed)) return
 
-  // Сохраняем левую «видимую» часть до html`
   const visible = cutBeforeNextHtml(chunk)
   if (!visible || /^\s+$/.test(visible)) return
 
-  // Собираем, оставляя только полностью закрытые ${...}
   let processed = ""
   let i = 0
-  let usedEndLocal = 0 // сколько символов исходного куска реально «поглощено»
+  let usedEndLocal = 0
 
   while (i < visible.length) {
     const ch = visible[i]
-    if (ch === "$" && i + 1 < visible.length && visible[i + 1] === "{") {
+    if (ch === "$" && visible[i + 1] === "{") {
       const exprStart = i
       i += 2
       let b = 1
@@ -280,13 +222,10 @@ export const findText = (chunk: string) => {
         i++
       }
       if (b === 0) {
-        // закрытая интерполяция — целиком сохраняем
         processed += visible.slice(exprStart, i)
         usedEndLocal = i
         continue
       } else {
-        // незакрытая — это «клей», остаток отбрасываем начиная с exprStart
-        // индексы конца должны соответствовать реально использованной части
         break
       }
     }
@@ -299,18 +238,69 @@ export const findText = (chunk: string) => {
   if (collapsed === " ") return
 
   const final = /^\s*\n[\s\S]*\n\s*$/.test(chunk) ? collapsed.trim() : collapsed
+  if (final.length > 0) return { text: final, start, end: start + usedEndLocal - 1, name: "", kind: "text" }
+}
 
-  if (final.length > 0) {
-    return { text: final, start, end: start + usedEndLocal - 1, name: "", kind: "text" }
+/**
+ * Извлекает базовую переменную из выражения (без финального вызова метода).
+ * Примеры:
+ *   "user.name.toUpperCase()" → "user.name"
+ *   "context.list.map(...)"   → "context.list"
+ */
+const extractBaseVariable = (variable: string): string => {
+  const stringLiterals: string[] = []
+  let protectedVariable = variable
+    .replace(/`[^`]*`/g, (m) => {
+      stringLiterals.push(m)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/"[^"]*"/g, (m) => {
+      stringLiterals.push(m)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+    .replace(/'[^']*'/g, (m) => {
+      stringLiterals.push(m)
+      return `__STRING_${stringLiterals.length - 1}__`
+    })
+
+  if (protectedVariable.includes("(")) {
+    const beforeMethod = protectedVariable
+      .split(/\.\w+\(/)
+      .shift()
+      ?.trim()
+    if (beforeMethod && VALID_VARIABLE_PATTERN.test(beforeMethod)) return beforeMethod
   }
-} // ============================================================================
-// УТИЛИТЫ ДЛЯ ТЕКСТА
-// ============================================================================
-// Чистый «клей» между шаблонами (целиком служебный кусок)
 
+  const variableMatches = protectedVariable.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+  const variablesWithDots = variableMatches.filter((v) => v.includes(".") && !v.startsWith("__STRING_"))
+  if (variablesWithDots.length > 0) return variablesWithDots[0]!
+  return variable
+}
+
+/**
+ * Возвращает базу и последний вызов метода (если есть).
+ * base: "user.name"
+ * methodName: "toUpperCase"
+ * callSuffix: "()", "(2)", ...
+ */
+const extractBaseAndCall = (variable: string): { base: string; methodName?: string; callSuffix?: string } => {
+  const shielded = variable
+    .replace(/`[^`]*`/g, "__S__")
+    .replace(/"[^"]*"/g, "__S__")
+    .replace(/'[^']*'/g, "__S__")
+
+  const m = shielded.match(/\.([A-Za-z_$][\w$]*)\s*\(([^()]*)\)\s*$/)
+  if (m) {
+    const methodName = m[1]
+    const args = m[2] ?? ""
+    const callSuffix = `(${args})`
+    const base = extractBaseVariable(variable.replace(m[0], ""))
+    return { base, methodName, callSuffix }
+  }
+  return { base: extractBaseVariable(variable) }
+}
+
+/** «Клей» между шаблонами (служебные куски), которые не считаем текстом. */
 export const isPureGlue = (trimmed: string): boolean =>
   !!trimmed &&
-  (trimmed === "`" ||
-    trimmed.startsWith("`") || // закрытие предыдущего html`
-    /^`}\)?\s*;?\s*$/.test(trimmed) || // `} или `}) (+ ;)
-    /^`\)\}\s*,?\s*$/.test(trimmed)) // `)} (иногда с запятой)
+  (trimmed === "`" || trimmed.startsWith("`") || /^`}\)?\s*;?\s*$/.test(trimmed) || /^`\)\}\s*,?\s*$/.test(trimmed))
