@@ -1,6 +1,6 @@
 import { it, describe, expect } from "bun:test"
-import { enrichWithData } from "../../../parser"
-import type { PartsAttr } from "../../../node/index.t"
+import { enrichWithData } from "../../parser"
+import type { PartsAttr } from "../../node/index.t"
 
 describe("event", () => {
   it("update в функции", () => {

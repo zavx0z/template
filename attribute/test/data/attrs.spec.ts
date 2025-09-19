@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "bun:test"
-import { parse, type Node } from "../../index"
+import { parse, type Node } from "../../../index"
 
 describe("атрибуты", () => {
   describe("namespace", () => {
@@ -153,7 +153,7 @@ describe("атрибуты", () => {
   })
 })
 
-it("булевые атрибуты", () => {
+it("булевы атрибуты", () => {
   let elements: Node[]
   beforeAll(() => {
     elements = parse<{ flag: boolean }>(({ html, context }) => html`<button ${context.flag && "disabled"}></button>`)
