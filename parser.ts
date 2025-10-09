@@ -1,5 +1,5 @@
 import type { ValueDynamic, ValueVariable } from "./parser.t"
-import type { PartsAttr, Node } from "./node/index.t"
+import type { PartsAttr, NodeType } from "./node/index.t"
 import type { Attributes } from "./attribute/index.t"
 import type { PartAttrMap, TokenMapClose, TokenMapOpen } from "./node/map.t"
 import type { PartAttrCondition, TokenCondClose, TokenCondElse, TokenCondOpen } from "./node/condition.t"
@@ -1053,7 +1053,10 @@ export const parseTemplateLiteral = (
   }
 }
 
-export const enrichWithData = (hierarchy: PartsAttr, context: ParseContext = { pathStack: [], level: 0 }): Node[] => {
+export const enrichWithData = (
+  hierarchy: PartsAttr,
+  context: ParseContext = { pathStack: [], level: 0 }
+): NodeType[] => {
   return hierarchy.map((node) => createNode(node, context))
 }
 // ============================================================================

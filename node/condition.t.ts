@@ -1,6 +1,6 @@
 import type { PartAttrMap } from "./map.t"
 import type { PartAttrElement } from "./element.t"
-import type { Node } from "./index.t"
+import type { NodeType } from "./index.t"
 import type { PartAttrMeta } from "./meta.t"
 
 /**
@@ -199,7 +199,7 @@ export interface NodeCondition {
    * - true: первый элемент массива (child[0])
    * - false: второй элемент массива (child[1])
    */
-  child: Node[]
+  child: NodeType[]
 }
 export type TokenCondClose = { kind: "cond-close" }
 export type TokenCondElse = { kind: "cond-else" }

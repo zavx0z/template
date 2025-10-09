@@ -1,9 +1,9 @@
 import { createNode } from "./node"
-import type { Node } from "./node/index.t"
+import type { NodeType } from "./node/index.t"
 import type { Params, Context, Core, State } from "./index.t"
 import { extractHtmlElements } from "./parser"
 
-export type { Node }
+export type { NodeType as Node }
 
 /**
  * Парсит HTML-шаблон и возвращает обогащенную иерархию с метаданными о путях к данным.
@@ -21,7 +21,7 @@ export type { Node }
  */
 export const parse = <C extends Context = Context, I extends Core = Core, S extends State = State>(
   template: (params: Params<C, I, S>) => void
-): Node[] => {
+): NodeType[] => {
   const mainHtml = extractMainHtmlBlock(template)
   const hierarchy = extractHtmlElements(mainHtml)
   const context = { pathStack: [], level: 0 }

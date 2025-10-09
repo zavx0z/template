@@ -1,6 +1,6 @@
 import type { PartAttrCondition } from "./condition.t"
 import type { PartAttrElement } from "./element.t"
-import type { Node } from "./index.t"
+import type { NodeType } from "./index.t"
 import type { PartAttrLogical } from "./logical.t"
 import type { PartAttrMeta } from "./meta.t"
 import type { PartText } from "./text.t"
@@ -172,7 +172,7 @@ export interface NodeMap {
    * ]
    * ```
    */
-  child: Node[]
+  child: NodeType[]
 }
 /**
  * Информация о контексте map.

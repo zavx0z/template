@@ -1,7 +1,7 @@
 import type { ValueStatic, ValueDynamic, ValueVariable } from "../parser.t"
 import type { AttrNodeElement } from "./index.t"
 import type { Attributes } from "../attribute/index.t"
-import type { Node } from "./index.t"
+import type { NodeType } from "./index.t"
 
 /**
  * Мета-узел в AST.
@@ -45,7 +45,7 @@ export interface NodeMeta extends Attributes {
   /** Тип узла - всегда "meta" для мета-узлов */
   type: "meta"
   /** Дочерние элементы (опционально) */
-  child?: Node[]
+  child?: NodeType[]
   /** Core свойство для meta-компонентов (передача core объекта) */
   core?: ValueStatic | ValueDynamic | ValueVariable
   /** Context свойство для meta-компонентов (передача context объекта) */

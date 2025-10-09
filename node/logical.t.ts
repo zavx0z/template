@@ -1,7 +1,7 @@
 import type { PartAttrMap } from "./map.t"
 import type { PartAttrCondition } from "./condition.t"
 import type { PartAttrElement } from "./element.t"
-import type { Node } from "./index.t"
+import type { NodeType } from "./index.t"
 import type { PartAttrMeta } from "./meta.t"
 
 /**
@@ -136,7 +136,7 @@ export interface NodeLogical {
    */
   expr?: string
   /** Дочерние узлы, которые отображаются только если условие истинно */
-  child: Node[]
+  child: NodeType[]
 }
 export type TokenLogicalOpen = { kind: "log-open"; expr: string }
 export type PartAttrLogical = {

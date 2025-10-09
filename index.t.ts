@@ -1,5 +1,5 @@
-import type { Node } from "./node/index.t"
-export type { Node }
+import type { NodeType } from "./node/index.t"
+export type { NodeType }
 export type { NodeMeta } from "./node/meta.t"
 export type { NodeCondition } from "./node/condition.t"
 export type { NodeLogical } from "./node/logical.t"
@@ -128,4 +128,4 @@ export type Params<C extends Context, I extends Core = Core, S extends State = S
  */
 export declare function parse<C extends Context = Context, I extends Core = Core, S extends State = State>(
   template: (params: Params<C, I, S>) => void
-): Node[]
+): NodeType[]
