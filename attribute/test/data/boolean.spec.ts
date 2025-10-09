@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll } from "bun:test"
 import { parse, type Node } from "../../../index"
 
 describe("boolean атрибуты", () => {
-  it("булевы атрибуты с переменными из разных уровней вложенности", () => {
+  describe("булевы атрибуты с переменными из разных уровней вложенности", () => {
     let elements: Node[]
 
     beforeAll(() => {
@@ -64,13 +64,13 @@ describe("boolean атрибуты", () => {
                             {
                               type: "text",
                               data: ["../[item]/id", "[item]/id"],
-                              expr: "Dept: ${[0]}-${[1]}",
+                              expr: "Dept: ${_[0]}-${_[1]}",
                             },
                           ],
                           boolean: {
                             "data-active": {
                               data: ["../[item]/active", "[item]/active"],
-                              expr: "${[0]} && ${[1]}",
+                              expr: "_[0] && _[1]",
                             },
                           },
                         },

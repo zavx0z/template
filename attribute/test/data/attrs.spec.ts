@@ -153,7 +153,7 @@ describe("атрибуты", () => {
   })
 })
 
-it("булевы атрибуты", () => {
+describe("булевы атрибуты", () => {
   let elements: Node[]
   beforeAll(() => {
     elements = parse<{ flag: boolean }>(({ html, context }) => html`<button ${context.flag && "disabled"}></button>`)
