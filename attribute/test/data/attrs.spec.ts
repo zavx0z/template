@@ -86,7 +86,7 @@ describe("атрибуты", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<{ flag: boolean }>(
-        ({ html, context }) => html`<div title="${context.flag ? "a > b" : "c < d"}"></div>`
+        ({ html, fields }) => html`<div title="${fields.flag ? "a > b" : "c < d"}"></div>`
       )
     })
     it("data", () => {
@@ -96,7 +96,7 @@ describe("атрибуты", () => {
           type: "el",
           string: {
             title: {
-              data: "/context/flag",
+              data: "/fields/flag",
               expr: '${_[0] ? "a > b" : "c < d"}',
             },
           },
@@ -109,7 +109,7 @@ describe("атрибуты", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<{ flag: boolean }>(
-        ({ html, context }) => html`<div title=${context.flag ? "a > b" : "c < d"}></div>`
+        ({ html, fields }) => html`<div title=${fields.flag ? "a > b" : "c < d"}></div>`
       )
     })
     it("data", () => {
@@ -119,7 +119,7 @@ describe("атрибуты", () => {
           type: "el",
           string: {
             title: {
-              data: "/context/flag",
+              data: "/fields/flag",
               expr: '${_[0] ? "a > b" : "c < d"}',
             },
           },
@@ -133,7 +133,7 @@ describe("атрибуты", () => {
     beforeAll(() => {
       elements = parse<{ flag: boolean }>(
         // prettier-ignore
-        ({ html, context }) => html`<div title='${context.flag ? "a > b" : "c < d"}'></div>`
+        ({ html, fields }) => html`<div title='${fields.flag ? "a > b" : "c < d"}'></div>`
       )
     })
     it("data", () => {
@@ -143,7 +143,7 @@ describe("атрибуты", () => {
           type: "el",
           string: {
             title: {
-              data: "/context/flag",
+              data: "/fields/flag",
               expr: '${_[0] ? "a > b" : "c < d"}',
             },
           },
@@ -156,7 +156,7 @@ describe("атрибуты", () => {
 describe("булевы атрибуты", () => {
   let elements: Node[]
   beforeAll(() => {
-    elements = parse<{ flag: boolean }>(({ html, context }) => html`<button ${context.flag && "disabled"}></button>`)
+    elements = parse<{ flag: boolean }>(({ html, fields }) => html`<button ${fields.flag && "disabled"}></button>`)
   })
   it("data", () => {
     expect(elements).toEqual([
@@ -165,7 +165,7 @@ describe("булевы атрибуты", () => {
         type: "el",
         boolean: {
           disabled: {
-            data: "/context/flag",
+            data: "/fields/flag",
           },
         },
       },
@@ -177,9 +177,9 @@ describe("класс в map", () => {
   let elements: Node[]
   beforeAll(() => {
     elements = parse<any, { items: { type: string; name: string }[] }>(
-      ({ html, core }) => html`
+      ({ html, mass }) => html`
         <ul>
-          ${core.items.map((item) => html`<li class="item-${item.type}" title="${item.name}">${item.name}</li>`)}
+          ${mass.items.map((item) => html`<li class="item-${item.type}" title="${item.name}">${item.name}</li>`)}
         </ul>
       `
     )
@@ -192,7 +192,7 @@ describe("класс в map", () => {
         child: [
           {
             type: "map",
-            data: "/core/items",
+            data: "/mass/items",
             child: [
               {
                 tag: "li",
@@ -225,7 +225,7 @@ describe("сложные условные атрибуты class", () => {
   let elements: Node[]
   beforeAll(() => {
     elements = parse<{ active: boolean }>(
-      ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"}">Content</div>`
+      ({ html, mass }) => html`<div class="div-${mass.active ? "active" : "inactive"}">Content</div>`
     )
   })
   it("data", () => {
@@ -235,7 +235,7 @@ describe("сложные условные атрибуты class", () => {
         type: "el",
         string: {
           class: {
-            data: "/core/active",
+            data: "/mass/active",
             expr: 'div-${_[0] ? "active" : "inactive"}',
           },
         },

@@ -460,7 +460,7 @@ export const ARGUMENTS_PREFIX = "_"
  * определяя правильные относительные пути для доступа к данным.
  *
  * @param variable - Имя переменной для поиска (может содержать точки для доступа к свойствам)
- * @param context - Контекст парсера с информацией о стеке map контекстов
+ * @param context - Парсер полей с информацией о стеке map контекстов
  * @returns Относительный путь к данным или null, если переменная не найдена
  *
  * @example
@@ -508,13 +508,13 @@ const buildItemPath = (prefix: string, variableParts: string[], isDestructured: 
   return hasProperty ? `${prefix}[item]/${variableParts.slice(1).join("/")}` : `${prefix}[item]`
 }
 /**
- * Обрабатывает семантические атрибуты (core/context) с подходом "единый литерал + переменные".
+ * Обрабатывает семантические атрибуты (mass/fields) с подходом "единый литерал + переменные".
  *
  * Извлекает все переменные из строки и создает унифицированное выражение для дальнейшего eval.
- * Подходит для core/context атрибутов, где нужна цельная строка для выполнения.
+ * Подходит для mass/fields атрибутов, где нужна цельная строка для выполнения.
  *
  * @param str - Строка объекта в формате "{ key: value, key2: value2 }"
- * @param ctx - Контекст парсера
+ * @param ctx - Парсер полей
  * @returns Результат с путями к данным и унифицированным выражением
  */
 
@@ -567,7 +567,7 @@ export const processSemanticAttributes = (
  * - Доступ к свойствам через точку
  *
  * @param variable - Имя переменной для разрешения
- * @param context - Контекст парсера с информацией о текущем map контексте
+ * @param context - Парсер полей с информацией о текущем map контексте
  * @returns Путь к данным в формате относительного или абсолютного пути
  *
  * @example
@@ -642,8 +642,8 @@ export const resolveDataPath = (variable: string, context: ParseContext): string
       }
     } else {
       // Переменная не найдена в текущих mapParams
-      // Если переменная начинается с core., то это абсолютный путь
-      if (variable.startsWith("core.")) {
+      // Если переменная начинается с mass., то это абсолютный путь
+      if (variable.startsWith("mass.")) {
         return `/${variable.replace(/\./g, "/")}`
       }
 
@@ -746,7 +746,7 @@ export const createUnifiedExpression = (value: string, variables: string[]): str
  * - Новый контекст для вложенных операций
  *
  * Поддерживает различные сценарии:
- * - Абсолютные пути к данным (например, core.list.map)
+ * - Абсолютные пути к данным (например, mass.list.map)
  * - Относительные пути в контексте map (например, nested.map)
  * - Вложенные map в контексте существующих map
  *
@@ -755,8 +755,8 @@ export const createUnifiedExpression = (value: string, variables: string[]): str
  * @returns Результат парсинга с путем, новым контекстом и метаданными
  *
  * @example
- * parseMap("core.list.map(({ title }) => ...)")
- * // Возвращает: { path: "/core/list", context: {...}, metadata: { params: ["title"] } }
+ * parseMap("mass.list.map(({ title }) => ...)")
+ * // Возвращает: { path: "/mass/list", context: {...}, metadata: { params: ["title"] } }
  *
  * parseMap("nested.map((item) => ...)", context)
  * // Возвращает: { path: "[item]/nested", context: {...}, metadata: { params: ["item"] } }

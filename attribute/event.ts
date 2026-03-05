@@ -16,12 +16,12 @@ import type { ValueEvent } from "./event.t"
  */
 export const processEventAttributes = (
   eventAttrs: Record<string, string>,
-  context: ParseContext
+  ctx: ParseContext
 ): Record<string, any> => {
   const result: Record<string, any> = {}
 
   for (const [key, value] of Object.entries(eventAttrs)) {
-    const eventResult = parseEventExpression(value, context)
+    const eventResult = parseEventExpression(value, ctx)
     const processed = processSingleEventAttribute(value, eventResult)
 
     if (processed) {
@@ -46,13 +46,13 @@ export const processEventAttributes = (
  * - () => item.handleClick(item.id)
  *
  * @param eventValue - Значение события для парсинга
- * @param context - Контекст парсера с информацией о текущем map контексте
+ * @param context - Парсер полей с информацией о текущем map контексте
  * @returns Результат парсинга с путями к данным и унифицированным выражением
  */
 
 export const parseEventExpression = (
   eventValue: string,
-  context: ParseContext = { pathStack: [], level: 0 }
+  ctx: ParseContext = { pathStack: [], level: 0 }
 ): ValueEvent | null => {
   // Проверяем, является ли это условным выражением (не событием)
   // Ищем тернарный оператор ? ... : (но не стрелочную функцию =>)
@@ -79,7 +79,7 @@ export const parseEventExpression = (
       const keys = keyMatches.map((match) => match.replace(/\s*:$/, "").trim())
 
       if (keys.length > 0) {
-        // Ищем переменные в значениях (например, core.name, context.count)
+        // Ищем переменные в значениях (например, core.name, ctx.count)
         const variableMatches = objectContent.match(VARIABLE_WITH_DOTS_PATTERN) || []
         const uniqueVariables = [...new Set(variableMatches)].filter((variable) => {
           // Исключаем строковые литералы, короткие идентификаторы и булевые литералы
@@ -101,7 +101,7 @@ export const parseEventExpression = (
         // Если есть переменные, добавляем пути к данным
         if (uniqueVariables.length > 0) {
           const paths = uniqueVariables
-            .map((variable) => resolveDataPath(variable, context))
+            .map((variable) => resolveDataPath(variable, ctx))
             .filter((path) => path && path.length > 0) as string[]
           if (paths.length > 0) {
             result.data = paths.length === 1 ? paths[0]! : paths
@@ -154,7 +154,7 @@ export const parseEventExpression = (
   }
 
   // Разрешаем пути к данным с учетом контекста
-  const paths = uniqueVariables.map((variable) => resolveDataPath(variable, context))
+  const paths = uniqueVariables.map((variable) => resolveDataPath(variable, ctx))
 
   // Создаем унифицированное выражение
   let expr = eventValue
@@ -232,7 +232,7 @@ export const processSingleEventAttribute = (value: string, eventResult: any): an
 
 export const processBooleanAttributeWithVariables = (
   booleanValue: string,
-  context: ParseContext
+  ctx: ParseContext
 ): { data: string | string[]; expr?: string } | null => {
   const variableMatches = booleanValue.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
 
@@ -241,7 +241,7 @@ export const processBooleanAttributeWithVariables = (
   }
 
   // Обрабатываем все переменные в выражении
-  const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
+  const paths = variableMatches.map((variable) => resolveDataPath(variable, ctx))
 
   // Создаем выражение, заменяя переменные на индексы
   let expr = booleanValue

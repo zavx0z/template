@@ -7,14 +7,14 @@ import type { ValueVariable, ValueDynamic } from "../parser.t"
  * @group Значения атрибутов
  * @example Простая функция без параметров
  * ```html
- * <button onclick=${core.handleClick}>Кнопка</button>
+ * <button onclick=${mass.handleClick}>Кнопка</button>
  * ```
  *
  * Результат:
  * ```json
  * {
  *   "onclick": {
- *     "data": "/core/handleClick"
+ *     "data": "/mass/handleClick"
  *   }
  * }
  * ```
@@ -36,14 +36,14 @@ import type { ValueVariable, ValueDynamic } from "../parser.t"
  *
  * @example Событие в массиве
  * ```html
- * <li onclick=${() => core.item.onClick()}>${core.item.name}</li>
+ * <li onclick=${() => mass.item.onClick()}>${mass.item.name}</li>
  * ```
  *
  * Результат:
  * ```json
  * {
  *   "onclick": {
- *     "data": "/core/item/onClick",
+ *     "data": "/mass/item/onClick",
  *     "expr": "() => ${[0]}()"
  *   }
  * }
@@ -58,8 +58,8 @@ export type ValueEvent =
        *
        * @example
        * ```typescript
-       * data: "/context/value"
-       * data: ["/context/value", "[item]/nested/variable"]
+       * data: "/fields/value"
+       * data: ["/fields/value", "[item]/nested/variable"]
        * ```
        */
       data: string | string[]
@@ -92,8 +92,8 @@ export type ValueEvent =
        *
        * @example
        * ```typescript
-       * data: "/context/value"
-       * data: ["/context/value", "[item]/nested/variable"]
+       * data: "/fields/value"
+       * data: ["/fields/value", "[item]/nested/variable"]
        * ```
        */
       data: string | string[]

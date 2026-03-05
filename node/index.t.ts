@@ -20,7 +20,7 @@ import type { PartAttrElement } from "./element.t"
  * @example Структура с различными типами узлов
  * ```html
  * <div class="container">
- *   <h1>${context.title}</h1>
+ *   <h1>${fields.title}</h1>
  *   ${context.isLoggedIn ?
  *     html`<span>Добро пожаловать!</span>` :
  *     html`<a href="/login">Войти</a>`
@@ -30,7 +30,7 @@ import type { PartAttrElement } from "./element.t"
  *       ${core.notifications.map(n => html`<li>${n.message}</li>`)}
  *     </ul>
  *   `}
- *   <meta-component core="config" context="userData">
+ *   <meta-component mass="config" fields="userData">
  *     <p>Содержимое компонента</p>
  *   </meta-component>
  * </div>

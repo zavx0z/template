@@ -6,7 +6,7 @@ import type { ParseContext } from "../parser.t"
  */
 export const processBooleanAttributes = (
   booleanAttrs: Record<string, { type: string; value: string | boolean }>,
-  context: ParseContext
+  ctx: ParseContext
 ): Record<string, any> => {
   const result: Record<string, any> = {}
 
@@ -16,7 +16,7 @@ export const processBooleanAttributes = (
     } else if (attr.type === "dynamic" || attr.type === "mixed") {
       // Для булевых атрибутов используем специальную обработку
       const booleanValue = String(attr.value)
-      const processed = processBooleanAttributeWithVariables(booleanValue, context)
+      const processed = processBooleanAttributeWithVariables(booleanValue, ctx)
 
       if (processed) {
         result[key] = processed

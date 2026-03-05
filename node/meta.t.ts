@@ -19,14 +19,14 @@ import type { NodeType } from "./index.t"
  *
  * @example Динамический мета-тег
  * ```html
- * <meta-${core.actorHash} class="dynamic">
+ * <meta-${mass.actorHash} class="dynamic">
  *   <p>Динамический компонент</p>
- * </meta-${core.actorHash}>
+ * </meta-${mass.actorHash}>
  * ```
  *
- * @example Мета-элемент с core и context
+ * @example Мета-элемент с mass и fields
  * ```html
- * <meta-widget core=${core.widgetConfig} context=${core.userData}>
+ * <meta-widget mass=${mass.widgetConfig} fields=${mass.userData}>
  *   <div>Виджет с конфигурацией</div>
  * </meta-widget>
  * ```
@@ -36,7 +36,7 @@ import type { NodeType } from "./index.t"
  * - `tag` - имя мета-тега (статическое или динамическое)
  * - `child` - дочерние элементы (опционально)
  * - Атрибуты: `event`, `boolean`, `array`, `string`, `style`
- * - Свойства: `core`, `context`
+ * - Свойства: `mass`, `fields`
  */
 
 export interface NodeMeta extends Attributes {
@@ -46,16 +46,16 @@ export interface NodeMeta extends Attributes {
   type: "meta"
   /** Дочерние элементы (опционально) */
   child?: NodeType[]
-  /** Core свойство для meta-компонентов (передача core объекта) */
-  core?: ValueStatic | ValueDynamic | ValueVariable
-  /** Context свойство для meta-компонентов (передача context объекта) */
-  context?: ValueStatic | ValueDynamic | ValueVariable
+  /** mass свойство для meta-компонентов (передача mass объекта) */
+  mass?: ValueStatic | ValueDynamic | ValueVariable
+  /** fields свойство для meta-компонентов (передача fields объекта) */
+  fields?: ValueStatic | ValueDynamic | ValueVariable
 }
 export interface PartAttrMeta extends AttrNodeElement {
   /** Тип узла */
   type: "meta"
-  /** Core объекты */
-  core?: string
-  /** Context объекты */
-  context?: string
+  /** mass объекты */
+  mass?: string
+  /** fields объекты */
+  fields?: string
 }

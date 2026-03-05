@@ -7,7 +7,7 @@ import type { RawAttrArray, ValueArray } from "./array.t"
  */
 export const processArrayAttributes = (
   arrayAttrs: RawAttrArray,
-  context: ParseContext
+  ctx: ParseContext
 ): Record<string, ValueArray[]> => {
   const result: Record<string, ValueArray[]> = {}
   for (const [key, values] of Object.entries(arrayAttrs)) {
@@ -15,7 +15,7 @@ export const processArrayAttributes = (
       if (item.type === "static") return item.value
       else if (item.type === "dynamic" || item.type === "mixed") {
         // Для динамических и смешанных атрибутов обрабатываем значение
-        const processed = processTemplateLiteralAttribute(item.value, context)
+        const processed = processTemplateLiteralAttribute(item.value, ctx)
         if (processed) return processed
         else {
           // Если parseTemplateLiteral вернул null, но это dynamic тип,
@@ -23,7 +23,7 @@ export const processArrayAttributes = (
           // Нужно обработать его как динамическое выражение
           const variableMatches = item.value.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
           if (variableMatches.length > 0) {
-            const paths = variableMatches.map((variable) => resolveDataPath(variable, context))
+            const paths = variableMatches.map((variable) => resolveDataPath(variable, ctx))
             let expr = item.value
             variableMatches.forEach((variable, index) => {
               expr = expr.replace(

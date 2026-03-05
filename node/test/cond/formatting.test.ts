@@ -7,13 +7,13 @@ describe("formatting", () => {
 
     beforeAll(() => {
       elements = parse<any, { flag: boolean }>(
-        ({ html, context }) => html`
+        ({ html, fields }) => html`
           <div>
-            <span class="${context.flag ? "active" : "inactive"}">
-              Status: ${context.flag ? "Active" : "Inactive"}</span
+            <span class="${fields.flag ? "active" : "inactive"}">
+              Status: ${fields.flag ? "Active" : "Inactive"}</span
             >
-            <p class="${context.flag && context.flag ? "double-active" : "not-active"}">
-              ${context.flag ? "This is a very long text that should be formatted properly" : "Short text"}
+            <p class="${fields.flag && fields.flag ? "double-active" : "not-active"}">
+              ${fields.flag ? "This is a very long text that should be formatted properly" : "Short text"}
             </p>
           </div>
         `
@@ -89,15 +89,15 @@ describe("formatting", () => {
 
     beforeAll(() => {
       elements = parse<any, { theme: string; size: string }>(
-        ({ html, context }) => html`
+        ({ html, fields }) => html`
           <div>
-            <button class="btn ${context.theme === "dark" ? "btn-dark" : "btn-light"} ${context.size || "medium"}">
+            <button class="btn ${fields.theme === "dark" ? "btn-dark" : "btn-light"} ${fields.size || "medium"}">
               Click me
             </button>
             <input
               type="text"
-              class="input ${context.theme === "dark" ? "input-dark" : "input-light"}"
-              placeholder="${context.size === "large" ? "Enter large text here" : "Enter text here"}" />
+              class="input ${fields.theme === "dark" ? "input-dark" : "input-light"}"
+              placeholder="${fields.size === "large" ? "Enter large text here" : "Enter text here"}" />
           </div>
         `
       )

@@ -7,9 +7,9 @@ import type { ValueVariable, ValueDynamic } from "../parser.t"
  * @group Значения атрибутов
  * @example
  * ```html
- * <input type="checkbox" ${core.user.isSubscribed && "checked"} />
- * <button ${!context.canSubmit && "disabled"}>Отправить</button>
- * <div ${!context.isVisible && "hidden"}>Скрытый контент</div>
+ * <input type="checkbox" ${mass.user.isSubscribed && "checked"} />
+ * <button ${!fields.canSubmit && "disabled"}>Отправить</button>
+ * <div ${!fields.isVisible && "hidden"}>Скрытый контент</div>
  * ```
  */
 

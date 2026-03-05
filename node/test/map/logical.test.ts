@@ -7,9 +7,9 @@ describe("логические операторы в map", () => {
 
     beforeAll(() => {
       elements = parse<{}, { users: Array<{ name: string; hasAvatar: boolean }> }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.users.map(
+            ${mass.users.map(
               (user) => html`
                 <div class="user">
                   ${user.hasAvatar && html`<img src="/avatar/${user.name}.jpg" alt="${user.name}" />`}
@@ -30,7 +30,7 @@ describe("логические операторы в map", () => {
           child: [
             {
               type: "map",
-              data: "/core/users",
+              data: "/mass/users",
               child: [
                 {
                   tag: "div",
@@ -83,9 +83,9 @@ describe("логические операторы в map", () => {
 
     beforeAll(() => {
       elements = parse<{}, { posts: Array<{ title: string; author: { name: string; isVerified: boolean } }> }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.posts.map(
+            ${mass.posts.map(
               (post) => html`
                 <article class="post">
                   <h2>${post.title}</h2>
@@ -112,7 +112,7 @@ describe("логические операторы в map", () => {
           child: [
             {
               type: "map",
-              data: "/core/posts",
+              data: "/mass/posts",
               child: [
                 {
                   tag: "article",
@@ -184,9 +184,9 @@ describe("логические операторы в map", () => {
 
     beforeAll(() => {
       elements = parse<{}, { items: Array<{ name: string; isNew: boolean }> }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <ul>
-            ${core.items.map(
+            ${mass.items.map(
               (item) => html`
                 <li class="item">
                   ${item.isNew && html`<span class="new-badge">NEW</span>`}
@@ -207,7 +207,7 @@ describe("логические операторы в map", () => {
           child: [
             {
               type: "map",
-              data: "/core/items",
+              data: "/mass/items",
               child: [
                 {
                   tag: "li",
@@ -263,15 +263,15 @@ describe("логические операторы в map", () => {
         { showDetails: boolean },
         { products: Array<{ name: string; price: number; inStock: boolean }> }
       >(
-        ({ html, core, context }) => html`
+        ({ html, mass, fields }) => html`
           <div>
-            ${core.products.map(
+            ${mass.products.map(
               (product) => html`
                 <div class="product">
                   <h3>${product.name}</h3>
                   <p class="price">$${product.price}</p>
                   ${product.inStock &&
-                  context.showDetails &&
+                  fields.showDetails &&
                   html`
                     <div class="product-details">
                       <span class="stock-status">In Stock</span>
@@ -294,7 +294,7 @@ describe("логические операторы в map", () => {
           child: [
             {
               type: "map",
-              data: "/core/products",
+              data: "/mass/products",
               child: [
                 {
                   tag: "div",
@@ -329,7 +329,7 @@ describe("логические операторы в map", () => {
                     },
                     {
                       type: "log",
-                      data: ["[item]/inStock", "[item]/context/showDetails"],
+                      data: ["[item]/inStock", "[item]/fields/showDetails"],
                       expr: "_[0] && _[1]",
                       child: [
                         {
@@ -384,9 +384,9 @@ describe("логические операторы в map", () => {
 
     beforeAll(() => {
       elements = parse<{}, { notifications: Array<{ message: string; isImportant: boolean }> }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.notifications.map(
+            ${mass.notifications.map(
               (notification) => html`
                 <div class="notification">
                   ${notification.isImportant && html`<span class="important">!</span>`}
@@ -407,7 +407,7 @@ describe("логические операторы в map", () => {
           child: [
             {
               type: "map",
-              data: "/core/notifications",
+              data: "/mass/notifications",
               child: [
                 {
                   tag: "div",
@@ -466,9 +466,9 @@ describe("логические операторы в map", () => {
         {},
         { categories: Array<{ name: string; hasSubcategories: boolean; subcategories: Array<{ name: string }> }> }
       >(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.categories.map(
+            ${mass.categories.map(
               (category) => html`
                 <div class="category">
                   <h2>${category.name}</h2>
@@ -494,7 +494,7 @@ describe("логические операторы в map", () => {
           child: [
             {
               type: "map",
-              data: "/core/categories",
+              data: "/mass/categories",
               child: [
                 {
                   tag: "div",

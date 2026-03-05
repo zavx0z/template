@@ -6,10 +6,10 @@ describe("event", () => {
   it("update в функции", () => {
     const attributes = [
       {
-        tag: "meta-${core.tag}",
+        tag: "meta-${mass.tag}",
         type: "meta",
         event: {
-          onclick: "() => update({ selected: core.id })",
+          onclick: "() => update({ selected: mass.id })",
         },
       },
     ] as PartsAttr
@@ -18,13 +18,13 @@ describe("event", () => {
     expect(data).toEqual([
       {
         tag: {
-          data: "/core/tag",
+          data: "/mass/tag",
           expr: "meta-${_[0]}",
         },
         type: "meta",
         event: {
           onclick: {
-            data: "/core/id",
+            data: "/mass/id",
             expr: "() => update({ selected: _[0] })",
             upd: "selected",
           },

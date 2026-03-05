@@ -41,21 +41,21 @@ export type ValueStatic = string
  * @group Варианты значений
  * @example
  * ```html
- * <div class=${context.theme}>Тема пользователя</div>
+ * <div class=${fields.theme}>Тема пользователя</div>
  * ```
  */
 export type ValueVariable = {
   /**
-   * Путь к данным в контексте
+   * Путь к данным в полях
    * @example
    * ```typescript
-   * data: "/context/theme"
+   * data: "/fields/theme"
    * ```
    *
-   * Путь к данным в ядре
+   * Путь к данным в mass
    * @example
    * ```typescript
-   * data: "/core/theme"
+   * data: "/mass/theme"
    * ```
    *
    * Путь к данным инстанса map
@@ -92,23 +92,23 @@ export type ValueVariable = {
  * @group Варианты значений
  * @example
  * ```html
- * <div class=${core.role === 'admin' ? 'admin-panel' : 'user-panel'}>
+ * <div class=${mass.role === 'admin' ? 'admin-panel' : 'user-panel'}>
  *   Панель управления
  * </div>
  * ```
  */
 export type ValueDynamic = {
   /**
-   * Путь к данным в контексте
+   * Путь к данным в полях
    * @example
    * ```typescript
-   * data: "/context/theme"
+   * data: "/fields/theme"
    * ```
    * 
-   * Путь к данным в ядре
+   * Путь к данным в mass
    * @example
    * ```typescript
-   * data: "/core/theme"
+   * data: "/mass/theme"
    * ```
    *
    * Путь к данным инстанса map
@@ -138,7 +138,7 @@ export type ValueDynamic = {
    * Пути к данным
    * @example
    * ```typescript
-   * data: ["/context/theme", "[item]/theme", "../[item]/theme", "[index]/theme", "../[index]/theme"]
+   * data: ["/fields/theme", "[item]/theme", "../[item]/theme", "[index]/theme", "../[index]/theme"]
    * ```
    */
   data: string | string[]

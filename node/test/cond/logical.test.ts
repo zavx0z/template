@@ -7,13 +7,13 @@ describe("логические операторы в условиях", () => {
 
     beforeAll(() => {
       elements = parse<{ showDetails: boolean }, { user: { name: string; isVerified: boolean } }>(
-        ({ html, context, core }) => html`
+        ({ html, fields, mass }) => html`
           <div>
-            ${core.user && context.showDetails
+            ${mass.user && fields.showDetails
               ? html`
                   <div class="user-profile">
-                    <h2>${core.user.name}</h2>
-                    ${core.user.isVerified && html` <span class="verified-badge">VERIFIED</span> `}
+                    <h2>${mass.user.name}</h2>
+                    ${mass.user.isVerified && html` <span class="verified-badge">VERIFIED</span> `}
                     <p>User details</p>
                   </div>
                 `
@@ -35,7 +35,7 @@ describe("логические операторы в условиях", () => {
           child: [
             {
               type: "cond",
-              data: ["/core/user", "/context/showDetails"],
+              data: ["/mass/user", "/fields/showDetails"],
               expr: "_[0] && _[1]",
               child: [
                 {
@@ -51,13 +51,13 @@ describe("логические операторы в условиях", () => {
                       child: [
                         {
                           type: "text",
-                          data: "/core/user/name",
+                          data: "/mass/user/name",
                         },
                       ],
                     },
                     {
                       type: "log",
-                      data: "/core/user/isVerified",
+                      data: "/mass/user/isVerified",
                       child: [
                         {
                           tag: "span",
@@ -118,13 +118,13 @@ describe("логические операторы в условиях", () => {
 
     beforeAll(() => {
       elements = parse<{ isAdmin: boolean }, { user: { role: string; isActive: boolean } }>(
-        ({ html, context, core }) => html`
+        ({ html, fields, mass }) => html`
           <div>
-            ${core.user && core.user.role === "admin" && context.isAdmin
+            ${mass.user && mass.user.role === "admin" && fields.isAdmin
               ? html`
                   <div class="admin-dashboard">
                     <h1>Admin Dashboard</h1>
-                    ${core.user.isActive &&
+                    ${mass.user.isActive &&
                     html`
                       <div class="active-admin">
                         <span class="status">Active</span>
@@ -152,7 +152,7 @@ describe("логические операторы в условиях", () => {
           child: [
             {
               type: "cond",
-              data: ["/core/user", "/core/user/role", "/context/isAdmin"],
+              data: ["/mass/user", "/mass/user/role", "/fields/isAdmin"],
               expr: '_[0] && _[1] === "admin" && _[2]',
               child: [
                 {
@@ -174,7 +174,7 @@ describe("логические операторы в условиях", () => {
                     },
                     {
                       type: "log",
-                      data: "/core/user/isActive",
+                      data: "/mass/user/isActive",
                       child: [
                         {
                           tag: "div",

@@ -8,9 +8,9 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<{ list: string[] }>(
         // #region itemValue
-        ({ html, context }) => html`
+        ({ html, fields }) => html`
           <ul>
-            ${context.list.map((name) => html`<li>${name}</li>`)}
+            ${fields.list.map((name) => html`<li>${name}</li>`)}
           </ul>
         `
         // #endregion itemValue
@@ -26,7 +26,7 @@ describe("text", () => {
             child: [
               {
                 type: "map",
-                data: "/context/list",
+                data: "/fields/list",
                 child: [
                   {
                     tag: "li",
@@ -53,9 +53,9 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<any, { configs: { name: string; value: string }[] }>(
         // #region objectValues
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <ul>
-            ${core.configs.map((config) => html`<li>${config.name} ${config.value}</li>`)}
+            ${mass.configs.map((config) => html`<li>${config.name} ${config.value}</li>`)}
           </ul>
         `
         // #endregion objectValues
@@ -71,7 +71,7 @@ describe("text", () => {
             child: [
               {
                 type: "map",
-                data: "/core/configs",
+                data: "/mass/configs",
                 child: [
                   {
                     tag: "li",
@@ -98,9 +98,9 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<any, { configs: { name: string; value: string }[] }>(
         // #region objectDestructValues
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <ul>
-            ${core.configs.map(({ name, value }) => html`<li>${name} ${value}</li>`)}
+            ${mass.configs.map(({ name, value }) => html`<li>${name} ${value}</li>`)}
           </ul>
         `
         // #endregion objectDestructValues
@@ -114,7 +114,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              data: "/core/configs",
+              data: "/mass/configs",
               child: [
                 {
                   tag: "li",
@@ -139,8 +139,8 @@ describe("text", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { posts: { author: { name: string; email: string } }[] }>(
-        ({ html, core }) => html`
-          <div>${core.posts.map((post) => html`<p>Author: ${post.author.name} (${post.author.email})</p>`)}</div>
+        ({ html, mass }) => html`
+          <div>${mass.posts.map((post) => html`<p>Author: ${post.author.name} (${post.author.email})</p>`)}</div>
         `
       )
     })
@@ -152,7 +152,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              data: "/core/posts",
+              data: "/mass/posts",
               child: [
                 {
                   tag: "p",
@@ -177,9 +177,9 @@ describe("text", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { items: { name: string; isActive: boolean }[] }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <ul>
-            ${core.items.map((item) => html`<li>${item.isActive ? item.name : "Inactive"}</li>`)}
+            ${mass.items.map((item) => html`<li>${item.isActive ? item.name : "Inactive"}</li>`)}
           </ul>
         `
       )
@@ -192,7 +192,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              data: "/core/items",
+              data: "/mass/items",
               child: [
                 {
                   tag: "li",
@@ -217,9 +217,9 @@ describe("text", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { products: { name: string; price: number; quantity: number }[] }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.products.map((product) => html`<p>${product.name}: $${product.price * product.quantity}</p>`)}
+            ${mass.products.map((product) => html`<p>${product.name}: $${product.price * product.quantity}</p>`)}
           </div>
         `
       )
@@ -232,7 +232,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              data: "/core/products",
+              data: "/mass/products",
               child: [
                 {
                   tag: "p",
@@ -257,8 +257,8 @@ describe("text", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { users: { name: string; email: string }[] }>(
-        ({ html, core }) => html`
-          <div>${core.users.map((user) => html`<p>${user.name.toUpperCase()} - ${user.email.toLowerCase()}</p>`)}</div>
+        ({ html, mass }) => html`
+          <div>${mass.users.map((user) => html`<p>${user.name.toUpperCase()} - ${user.email.toLowerCase()}</p>`)}</div>
         `
       )
     })
@@ -270,7 +270,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              data: "/core/users",
+              data: "/mass/users",
               child: [
                 {
                   tag: "p",
@@ -295,9 +295,9 @@ describe("text", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { categories: { name: string; products: { name: string; price: number }[] }[] }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.categories.map(
+            ${mass.categories.map(
               (category) => html`
                 <h2>${category.name}</h2>
                 <ul>
@@ -317,7 +317,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              data: "/core/categories",
+              data: "/mass/categories",
               child: [
                 {
                   tag: "h2",
@@ -364,9 +364,9 @@ describe("text", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { items: { name: string; isVisible: boolean; description: string }[] }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.items.map(
+            ${mass.items.map(
               (item) => html`
                 ${item.isVisible ? html`<p>${item.name}: ${item.description}</p>` : html`<p>Hidden item</p>`}
               `
@@ -383,7 +383,7 @@ describe("text", () => {
           child: [
             {
               type: "map",
-              data: "/core/items",
+              data: "/mass/items",
               child: [
                 {
                   type: "cond",

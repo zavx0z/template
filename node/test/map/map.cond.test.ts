@@ -14,11 +14,11 @@ describe("map с условиями", () => {
 
     beforeAll(() => {
       elements = parse<Context, Core>(
-        ({ html, context, core }) => html`
-          ${core.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
-          ${context.flag
+        ({ html, fields, mass }) => html`
+          ${mass.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
+          ${fields.flag
             ? html`<div class="conditional">
-                ${core.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
+                ${mass.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
               </div>`
             : html`<div class="fallback">No items</div>`}
         `
@@ -28,7 +28,7 @@ describe("map с условиями", () => {
       expect(elements).toEqual([
         {
           type: "map",
-          data: "/core/list1",
+          data: "/mass/list1",
           child: [
             {
               tag: "div",
@@ -47,7 +47,7 @@ describe("map с условиями", () => {
         },
         {
           type: "cond",
-          data: "/context/flag",
+          data: "/fields/flag",
           child: [
             {
               tag: "div",
@@ -58,7 +58,7 @@ describe("map с условиями", () => {
               child: [
                 {
                   type: "map",
-                  data: "/core/list2",
+                  data: "/mass/list2",
                   child: [
                     {
                       tag: "div",
@@ -108,12 +108,12 @@ describe("map с условиями", () => {
 
     beforeAll(() => {
       elements = parse<Context, Core>(
-        ({ html, context, core }) => html`
+        ({ html, fields, mass }) => html`
           <div class="container">
-            ${core.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
-            ${context.flag
+            ${mass.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
+            ${fields.flag
               ? html`<div class="conditional">
-                  ${core.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
+                  ${mass.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
                 </div>`
               : html`<div class="fallback">No items</div>`}
           </div>
@@ -128,7 +128,7 @@ describe("map с условиями", () => {
           child: [
             {
               type: "map",
-              data: "/core/list1",
+              data: "/mass/list1",
               child: [
                 {
                   tag: "div",
@@ -147,7 +147,7 @@ describe("map с условиями", () => {
             },
             {
               type: "cond",
-              data: "/context/flag",
+              data: "/fields/flag",
               child: [
                 {
                   tag: "div",
@@ -155,7 +155,7 @@ describe("map с условиями", () => {
                   child: [
                     {
                       type: "map",
-                      data: "/core/list2",
+                      data: "/mass/list2",
                       child: [
                         {
                           tag: "div",
@@ -215,17 +215,17 @@ describe("map с условиями", () => {
 
     beforeAll(() => {
       elements = parse<Context, Core>(
-        ({ html, context, core }) => html`
+        ({ html, fields, mass }) => html`
           <div class="level1">
             <div class="level2">
               <div class="level3">
-                ${core.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
-                ${context.flag
+                ${mass.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
+                ${fields.flag
                   ? html`<div class="conditional">
-                      ${core.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
-                      ${context.deepFlag
+                      ${mass.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
+                      ${fields.deepFlag
                         ? html`<div class="deep-conditional">
-                            ${core.list3.map(({ title }) => html`<div class="item3">${title}</div>`)}
+                            ${mass.list3.map(({ title }) => html`<div class="item3">${title}</div>`)}
                           </div>`
                         : html`<div class="deep-fallback">No deep items</div>`}
                     </div>`
@@ -252,7 +252,7 @@ describe("map с условиями", () => {
                   child: [
                     {
                       type: "map",
-                      data: "/core/list1",
+                      data: "/mass/list1",
                       child: [
                         {
                           tag: "div",
@@ -271,7 +271,7 @@ describe("map с условиями", () => {
                     },
                     {
                       type: "cond",
-                      data: "/context/flag",
+                      data: "/fields/flag",
                       child: [
                         {
                           tag: "div",
@@ -279,7 +279,7 @@ describe("map с условиями", () => {
                           child: [
                             {
                               type: "map",
-                              data: "/core/list2",
+                              data: "/mass/list2",
                               child: [
                                 {
                                   tag: "div",
@@ -298,7 +298,7 @@ describe("map с условиями", () => {
                             },
                             {
                               type: "cond",
-                              data: "/context/deepFlag",
+                              data: "/fields/deepFlag",
                               child: [
                                 {
                                   tag: "div",
@@ -306,7 +306,7 @@ describe("map с условиями", () => {
                                   child: [
                                     {
                                       type: "map",
-                                      data: "/core/list3",
+                                      data: "/mass/list3",
                                       child: [
                                         {
                                           tag: "div",
@@ -387,11 +387,11 @@ describe("map с условиями", () => {
 
     beforeAll(() => {
       elements = parse<{ show: boolean }, { items: string[] }>(
-        ({ html, core, context }) => html`
+        ({ html, mass, fields }) => html`
           <div>
-            ${context.show
-              ? html` ${core.items.map((item) => html`<div class="true-${item}"></div>`)}`
-              : html` ${core.items.map((item) => html`<div class="false-${item}"></div>`)}`}
+            ${fields.show
+              ? html` ${mass.items.map((item) => html`<div class="true-${item}"></div>`)}`
+              : html` ${mass.items.map((item) => html`<div class="false-${item}"></div>`)}`}
           </div>
         `
       )
@@ -404,11 +404,11 @@ describe("map с условиями", () => {
           child: [
             {
               type: "cond",
-              data: "/context/show",
+              data: "/fields/show",
               child: [
                 {
                   type: "map",
-                  data: "/core/items",
+                  data: "/mass/items",
                   child: [
                     {
                       tag: "div",
@@ -424,7 +424,7 @@ describe("map с условиями", () => {
                 },
                 {
                   type: "map",
-                  data: "/core/items",
+                  data: "/mass/items",
                   child: [
                     {
                       tag: "div",

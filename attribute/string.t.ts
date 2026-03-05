@@ -8,8 +8,8 @@ import type { ValueStatic, ValueVariable, ValueDynamic } from "../parser.t"
  * @group Значения атрибутов
  * @example
  * ```html
- * <img src=${context.url} alt=${context.alt} title=${context.title} />
- * <a href="/user/${core.user.id}">Профиль пользователя</a>
+ * <img src=${fields.url} alt=${fields.alt} title=${fields.title} />
+ * <a href="/user/${mass.user.id}">Профиль пользователя</a>
  * ```
  */
 

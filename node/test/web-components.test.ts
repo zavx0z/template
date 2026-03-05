@@ -103,7 +103,7 @@ describe("web-components", () => {
 
     beforeAll(() => {
       elements = parse<{ userId: string; theme: string }>(
-        ({ html, context }) => html`<user-profile id="${context.userId}" theme="${context.theme}"></user-profile>`
+        ({ html, fields }) => html`<user-profile id="${fields.userId}" theme="${fields.theme}"></user-profile>`
       )
     })
 
@@ -114,10 +114,10 @@ describe("web-components", () => {
           type: "el",
           string: {
             id: {
-              data: "/context/userId",
+              data: "/fields/userId",
             },
             theme: {
-              data: "/context/theme",
+              data: "/fields/theme",
             },
           },
         },
@@ -130,15 +130,15 @@ describe("web-components", () => {
 
     beforeAll(() => {
       elements = parse<{ isAdmin: boolean }>(
-        ({ html, context }) =>
-          html`${context.isAdmin ? html`<admin-panel></admin-panel>` : html`<user-panel></user-panel>`}`
+        ({ html, fields }) =>
+          html`${fields.isAdmin ? html`<admin-panel></admin-panel>` : html`<user-panel></user-panel>`}`
       )
     })
     it("data", () => {
       expect(elements).toEqual([
         {
           type: "cond",
-          data: "/context/isAdmin",
+          data: "/fields/isAdmin",
           child: [
             {
               tag: "admin-panel",
@@ -159,9 +159,9 @@ describe("web-components", () => {
 
     beforeAll(() => {
       elements = parse<any, { users: { id: string; name: string }[] }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <user-list>
-            ${core.users.map((user) => html`<user-item id="${user.id}">${user.name}</user-item>`)}
+            ${mass.users.map((user) => html`<user-item id="${user.id}">${user.name}</user-item>`)}
           </user-list>
         `
       )
@@ -174,7 +174,7 @@ describe("web-components", () => {
           child: [
             {
               type: "map",
-              data: "/core/users",
+              data: "/mass/users",
               child: [
                 {
                   tag: "user-item",
@@ -256,8 +256,8 @@ describe("web-components", () => {
 
     beforeAll(() => {
       elements = parse(
-        ({ html, core }) => html`
-          <modal-dialog onclose=${() => core.close()} onopen=${() => core.open()} data-modal-id="user-modal">
+        ({ html, mass }) => html`
+          <modal-dialog onclose=${() => mass.close()} onopen=${() => mass.open()} data-modal-id="user-modal">
           </modal-dialog>
         `
       )
@@ -269,11 +269,11 @@ describe("web-components", () => {
           type: "el",
           event: {
             onclose: {
-              data: "/core/close",
+              data: "/mass/close",
               expr: "() => _[0]()",
             },
             onopen: {
-              data: "/core/open",
+              data: "/mass/open",
               expr: "() => _[0]()",
             },
           },

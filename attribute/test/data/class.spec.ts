@@ -63,7 +63,7 @@ describe("class атрибуты в data.ts", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) => html`<div class="${core.active ? "active" : "inactive"}"></div>`
+          ({ html, mass }) => html`<div class="${mass.active ? "active" : "inactive"}"></div>`
         )
       })
 
@@ -74,7 +74,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/active",
+                data: "/mass/active",
                 expr: '${_[0] ? "active" : "inactive"}',
               },
             },
@@ -87,7 +87,7 @@ describe("class атрибуты в data.ts", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) => html`<div class=${core.active ? "active" : "inactive"}></div>`
+          ({ html, mass }) => html`<div class=${mass.active ? "active" : "inactive"}></div>`
         )
       })
       it("data", () => {
@@ -97,7 +97,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/active",
+                data: "/mass/active",
                 expr: '${_[0] ? "active" : "inactive"}',
               },
             },
@@ -110,8 +110,8 @@ describe("class атрибуты в data.ts", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) => html`
-            <div class="${core.active ? "active" : "inactive"} ${core.active ? "active" : "inactive"}"></div>
+          ({ html, mass }) => html`
+            <div class="${mass.active ? "active" : "inactive"} ${mass.active ? "active" : "inactive"}"></div>
           `
         )
       })
@@ -124,11 +124,11 @@ describe("class атрибуты в data.ts", () => {
             array: {
               class: [
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: '${_[0] ? "active" : "inactive"}',
                 },
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: '${_[0] ? "active" : "inactive"}',
                 },
               ],
@@ -142,7 +142,7 @@ describe("class атрибуты в data.ts", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ count: number }>(
-          ({ html, core }) => html`<div class="${core.count > 5 ? "large" : "small"}"></div>`
+          ({ html, mass }) => html`<div class="${mass.count > 5 ? "large" : "small"}"></div>`
         )
       })
       it("data", () => {
@@ -152,7 +152,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/count",
+                data: "/mass/count",
                 expr: '${_[0] > 5 ? "large" : "small"}',
               },
             },
@@ -165,7 +165,7 @@ describe("class атрибуты в data.ts", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ status: string }>(
-          ({ html, core }) => html`<div class="${core.status === "loading" ? "loading" : "ready"}"></div>`
+          ({ html, mass }) => html`<div class="${mass.status === "loading" ? "loading" : "ready"}"></div>`
         )
       })
       it("data", () => {
@@ -175,7 +175,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/status",
+                data: "/mass/status",
                 expr: '${_[0] === "loading" ? "loading" : "ready"}',
               },
             },
@@ -189,7 +189,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean; visible: boolean }>(
-          ({ html, core }) => html`<div class="${core.active && core.visible ? "show" : "hide"}"></div>`
+          ({ html, mass }) => html`<div class="${mass.active && mass.visible ? "show" : "hide"}"></div>`
         )
       })
       it("data", () => {
@@ -199,7 +199,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: ["/core/active", "/core/visible"],
+                data: ["/mass/active", "/mass/visible"],
                 expr: '${_[0] && _[1] ? "show" : "hide"}',
               },
             },
@@ -213,7 +213,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ error: boolean; warning: boolean }>(
-          ({ html, core }) => html`<div class="${core.error || core.warning ? "alert" : "normal"}"></div>`
+          ({ html, mass }) => html`<div class="${mass.error || mass.warning ? "alert" : "normal"}"></div>`
         )
       })
       it("data", () => {
@@ -223,7 +223,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: ["/core/error", "/core/warning"],
+                data: ["/mass/error", "/mass/warning"],
                 expr: '${_[0] || _[1] ? "alert" : "normal"}',
               },
             },
@@ -237,7 +237,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ disabled: boolean }>(
-          ({ html, core }) => html`<div class="${!core.disabled ? "enabled" : "disabled"}"></div>`
+          ({ html, mass }) => html`<div class="${!mass.disabled ? "enabled" : "disabled"}"></div>`
         )
       })
       it("data", () => {
@@ -247,7 +247,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/disabled",
+                data: "/mass/disabled",
                 expr: '${!_[0] ? "enabled" : "disabled"}',
               },
             },
@@ -260,7 +260,7 @@ describe("class атрибуты в data.ts", () => {
       let elements: Node[]
 
       beforeAll(() => {
-        elements = parse<{ active: boolean }>(({ html, core }) => html`<div class="${core.active && "active"}"></div>`)
+        elements = parse<{ active: boolean }>(({ html, mass }) => html`<div class="${mass.active && "active"}"></div>`)
       })
       it("data", () => {
         expect(elements).toEqual([
@@ -269,7 +269,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/active",
+                data: "/mass/active",
                 expr: '${_[0] && "active"}',
               },
             },
@@ -285,7 +285,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"}"></div>`
+          ({ html, mass }) => html`<div class="div-${mass.active ? "active" : "inactive"}"></div>`
         )
       })
       it("data", () => {
@@ -295,7 +295,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/active",
+                data: "/mass/active",
                 expr: 'div-${_[0] ? "active" : "inactive"}',
               },
             },
@@ -309,7 +309,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"}"></div>`
+          ({ html, mass }) => html`<div class="div-${mass.active ? "active" : "inactive"}"></div>`
         )
       })
 
@@ -320,7 +320,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/active",
+                data: "/mass/active",
                 expr: 'div-${_[0] ? "active" : "inactive"}',
               },
             },
@@ -334,9 +334,9 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) =>
+          ({ html, mass }) =>
             html`<div
-              class="div-${core.active ? "active" : "inactive"} div-${core.active ? "active" : "inactive"}"></div>`
+              class="div-${mass.active ? "active" : "inactive"} div-${mass.active ? "active" : "inactive"}"></div>`
         )
       })
       it("data", () => {
@@ -347,11 +347,11 @@ describe("class атрибуты в data.ts", () => {
             array: {
               class: [
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: 'div-${_[0] ? "active" : "inactive"}',
                 },
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: 'div-${_[0] ? "active" : "inactive"}',
                 },
               ],
@@ -368,7 +368,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) => html`<div class="div-${core.active ? "active" : "inactive"} visible"></div>`
+          ({ html, mass }) => html`<div class="div-${mass.active ? "active" : "inactive"} visible"></div>`
         )
       })
       it("data", () => {
@@ -379,7 +379,7 @@ describe("class атрибуты в data.ts", () => {
             array: {
               class: [
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: 'div-${_[0] ? "active" : "inactive"}',
                 },
                 "visible",
@@ -395,7 +395,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) => html`<div class="${core.active ? "active" : "inactive"} visible"></div>`
+          ({ html, mass }) => html`<div class="${mass.active ? "active" : "inactive"} visible"></div>`
         )
       })
       it("data", () => {
@@ -406,7 +406,7 @@ describe("class атрибуты в data.ts", () => {
             array: {
               class: [
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: '${_[0] ? "active" : "inactive"}',
                 },
                 "visible",
@@ -422,8 +422,8 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean; type: string }>(
-          ({ html, core }) =>
-            html`<div class="static-value ${core.active ? "active" : "inactive"} mixed-${core.type}"></div>`
+          ({ html, mass }) =>
+            html`<div class="static-value ${mass.active ? "active" : "inactive"} mixed-${mass.type}"></div>`
         )
       })
       it("data", () => {
@@ -435,11 +435,11 @@ describe("class атрибуты в data.ts", () => {
               class: [
                 "static-value",
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: '${_[0] ? "active" : "inactive"}',
                 },
                 {
-                  data: "/core/type",
+                  data: "/mass/type",
                   expr: "mixed-${_[0]}",
                 },
               ],
@@ -454,7 +454,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ variant: string; size: string; theme: string }>(
-          ({ html, core }) => html`<div class="btn-${core.variant} text-${core.size} bg-${core.theme}"></div>`
+          ({ html, mass }) => html`<div class="btn-${mass.variant} text-${mass.size} bg-${mass.theme}"></div>`
         )
       })
       it("data", () => {
@@ -465,15 +465,15 @@ describe("class атрибуты в data.ts", () => {
             array: {
               class: [
                 {
-                  data: "/core/variant",
+                  data: "/mass/variant",
                   expr: "btn-${_[0]}",
                 },
                 {
-                  data: "/core/size",
+                  data: "/mass/size",
                   expr: "text-${_[0]}",
                 },
                 {
-                  data: "/core/theme",
+                  data: "/mass/theme",
                   expr: "bg-${_[0]}",
                 },
               ],
@@ -488,9 +488,9 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean; disabled: boolean }>(
-          ({ html, core }) =>
+          ({ html, mass }) =>
             html`<div
-              class="base-class ${core.active ? "active" : "inactive"} ${core.disabled ? "disabled" : ""}"></div>`
+              class="base-class ${mass.active ? "active" : "inactive"} ${mass.disabled ? "disabled" : ""}"></div>`
         )
       })
       it("data", () => {
@@ -502,11 +502,11 @@ describe("class атрибуты в data.ts", () => {
               class: [
                 "base-class",
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: '${_[0] ? "active" : "inactive"}',
                 },
                 {
-                  data: "/core/disabled",
+                  data: "/mass/disabled",
                   expr: '${_[0] ? "disabled" : ""}',
                 },
               ],
@@ -521,7 +521,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ nested: boolean }>(
-          ({ html, core }) => html`<div class="container ${core.nested ? "nested" : "default"}"></div>`
+          ({ html, mass }) => html`<div class="container ${mass.nested ? "nested" : "default"}"></div>`
         )
       })
       it("data", () => {
@@ -533,7 +533,7 @@ describe("class атрибуты в data.ts", () => {
               class: [
                 "container",
                 {
-                  data: "/core/nested",
+                  data: "/mass/nested",
                   expr: '${_[0] ? "nested" : "default"}',
                 },
               ],
@@ -548,8 +548,8 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ hidden: boolean; active: boolean }>(
-          ({ html, core }) =>
-            html`<div class="visible ${core.hidden ? "" : "show"} ${core.active ? "active" : ""}"></div>`
+          ({ html, mass }) =>
+            html`<div class="visible ${mass.hidden ? "" : "show"} ${mass.active ? "active" : ""}"></div>`
         )
       })
       it("data", () => {
@@ -561,11 +561,11 @@ describe("class атрибуты в data.ts", () => {
               class: [
                 "visible",
                 {
-                  data: "/core/hidden",
+                  data: "/mass/hidden",
                   expr: '${_[0] ? "" : "show"}',
                 },
                 {
-                  data: "/core/active",
+                  data: "/mass/active",
                   expr: '${_[0] ? "active" : ""}',
                 },
               ],
@@ -580,7 +580,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<{ active: boolean }>(
-          ({ html, core }) => html`<div class="static-value-${core.active ? "active" : "inactive"}"></div>`
+          ({ html, mass }) => html`<div class="static-value-${mass.active ? "active" : "inactive"}"></div>`
         )
       })
       it("data", () => {
@@ -590,7 +590,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: "/core/active",
+                data: "/mass/active",
                 expr: 'static-value-${_[0] ? "active" : "inactive"}',
               },
             },
@@ -604,7 +604,7 @@ describe("class атрибуты в data.ts", () => {
 
       beforeAll(() => {
         elements = parse<any, { user: { id: string; role: string }; theme: string }>(
-          ({ html, core }) => html`<div class="user-${core.user.id}-${core.user.role}-${core.theme}"></div>`
+          ({ html, mass }) => html`<div class="user-${mass.user.id}-${mass.user.role}-${mass.theme}"></div>`
         )
       })
       it("data", () => {
@@ -614,7 +614,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: ["/core/user/id", "/core/user/role", "/core/theme"],
+                data: ["/mass/user/id", "/mass/user/role", "/mass/theme"],
                 expr: "user-${_[0]}-${_[1]}-${_[2]}",
               },
             },
@@ -635,9 +635,9 @@ describe("class атрибуты в data.ts", () => {
             isActive: boolean
           }
         >(
-          ({ html, core }) =>
+          ({ html, mass }) =>
             html`<div
-              class="user-${core.user.id}-${core.user.role}-${core.theme}-${core.isActive
+              class="user-${mass.user.id}-${mass.user.role}-${mass.theme}-${mass.isActive
                 ? "active"
                 : "inactive"}"></div>`
         )
@@ -649,7 +649,7 @@ describe("class атрибуты в data.ts", () => {
             type: "el",
             string: {
               class: {
-                data: ["/core/user/id", "/core/user/role", "/core/theme", "/core/isActive"],
+                data: ["/mass/user/id", "/mass/user/role", "/mass/theme", "/mass/isActive"],
                 expr: 'user-${_[0]}-${_[1]}-${_[2]}-${_[3] ? "active" : "inactive"}',
               },
             },
@@ -662,7 +662,7 @@ describe("class атрибуты в data.ts", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<any, { user: { id: string; role: string }; theme: string }>(
-          ({ html, core }) => html`<div class="base user-${core.user.id}-${core.user.role} theme-${core.theme}"></div>`
+          ({ html, mass }) => html`<div class="base user-${mass.user.id}-${mass.user.role} theme-${mass.theme}"></div>`
         )
       })
       it("data", () => {
@@ -674,11 +674,11 @@ describe("class атрибуты в data.ts", () => {
               class: [
                 "base",
                 {
-                  data: ["/core/user/id", "/core/user/role"],
+                  data: ["/mass/user/id", "/mass/user/role"],
                   expr: "user-${_[0]}-${_[1]}",
                 },
                 {
-                  data: "/core/theme",
+                  data: "/mass/theme",
                   expr: "theme-${_[0]}",
                 },
               ],
@@ -700,15 +700,15 @@ describe("class атрибуты в data.ts", () => {
             isAdmin: boolean
           }
         >(
-          ({ html, core }) =>
+          ({ html, mass }) =>
             html`
               <div
                 class="
               base 
-              user-${core.user.id} 
-              ${core.isActive ? "active" : "inactive"} 
-              ${core.isAdmin ? "admin" : "user"} 
-              theme-${core.theme}
+              user-${mass.user.id} 
+              ${mass.isActive ? "active" : "inactive"} 
+              ${mass.isAdmin ? "admin" : "user"} 
+              theme-${mass.theme}
               "></div>
             `
         )
@@ -722,19 +722,19 @@ describe("class атрибуты в data.ts", () => {
               class: [
                 "base",
                 {
-                  data: "/core/user/id",
+                  data: "/mass/user/id",
                   expr: "user-${_[0]}",
                 },
                 {
-                  data: "/core/isActive",
+                  data: "/mass/isActive",
                   expr: '${_[0] ? "active" : "inactive"}',
                 },
                 {
-                  data: "/core/isAdmin",
+                  data: "/mass/isAdmin",
                   expr: '${_[0] ? "admin" : "user"}',
                 },
                 {
-                  data: "/core/theme",
+                  data: "/mass/theme",
                   expr: "theme-${_[0]}",
                 },
               ],
@@ -748,7 +748,7 @@ describe("class атрибуты в data.ts", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<{ status: boolean }>(
-        ({ html, context }) => html`<div class="${context.status ? "active" : "inactive"}-status">Status</div>`
+        ({ html, fields }) => html`<div class="${fields.status ? "active" : "inactive"}-status">Status</div>`
       )
     })
     it("data", () => {
@@ -758,7 +758,7 @@ describe("class атрибуты в data.ts", () => {
           type: "el",
           string: {
             class: {
-              data: "/context/status",
+              data: "/fields/status",
               expr: '${_[0] ? "active" : "inactive"}-status',
             },
           },

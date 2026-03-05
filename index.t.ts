@@ -15,16 +15,16 @@ export type { ValueStyle } from "./attribute/style.t"
 export type { ValueStatic, ValueVariable, ValueDynamic } from "./parser.t"
 
 /**
- * Контекст.
+ * Поля.
  *
- * {@link https://zavx0z.github.io/context/types/Values | Контекстные значения}
+ * {@link https://zavx0z.github.io/fields/types/Values | Значения полей}
  * содержат простые данные, доступные в шаблоне для рендеринга.
  * Поддерживает только примитивные типы и массивы примитивных типов.
  *
  * @group Шаблонизатор
  * @example
  * ```typescript
- * const context: Context = {
+ * const fields: Fields = {
  *   framework: "MetaFor",
  *   isActive: true,
  *   tags: ["tag1", "tag2", "tag3"]
@@ -32,17 +32,17 @@ export type { ValueStatic, ValueVariable, ValueDynamic } from "./parser.t"
  * }
  * ```
  */
-export type Context = Record<string, string | number | boolean | null | Array<string | number | boolean>>
+export type Fields = Record<string, string | number | boolean | null | Array<string | number | boolean>>
 
 /**
- * Core объект.
+ * Mass объект.
  * Содержит сложные данные, объекты, функции и утилиты, доступные в шаблоне.
  * Может содержать любые типы данных: объекты, массивы, функции, классы.
  *
  * @group Шаблонизатор
  * @example
  * ```typescript
- * const core: Core = {
+ * const mass: Mass = {
  *   user: {
  *     name: "Иван",
  *     profile: {
@@ -65,7 +65,7 @@ export type Context = Record<string, string | number | boolean | null | Array<st
  * }
  * ```
  */
-export type Core = Record<string, any>
+export type Mass = Record<string, any>
 
 /**
  * Состояние приложения.
@@ -86,23 +86,23 @@ export type State = string
  *
  * @group Шаблонизатор
  */
-export type Params<C extends Context, I extends Core = Core, S extends State = State> = {
+export type Params<F extends Fields, M extends Mass = Mass, S extends State = State> = {
   /** Функция для создания HTML из template literals */
   html: (strings: TemplateStringsArray, ...values: any[]) => string
   /**
-   * @inheritdoc Core
+   * @inheritdoc Mass
    */
-  core: I
+  mass: M
   /**
-   * @inheritdoc Context
+   * @inheritdoc Fields
    */
-  context: C
+  fields: F
   /**
    * @inheritdoc State
    */
   state: S
   /**
-   * Функция для обновления контекста {@link https://zavx0z.github.io/context/types/Update | Update}.
+   * Функция для обновления полей {@link https://zavx0z.github.io/fields/types/Update | Update}.
    * Используется в обработчиках событий для изменения состояния.
    *
    * @example
@@ -114,18 +114,18 @@ export type Params<C extends Context, I extends Core = Core, S extends State = S
    * update({ name: "John", age: 25 })
    *
    * // В обработчике события
-   * html`<button onclick=${() => update({ active: !context.active })}>Toggle</button>`
+   * html`<button onclick=${() => update({ active: !fields.active })}>Toggle</button>`
    * ```
    */
-  update: (context: Partial<C>) => void
+  update: (fields: Partial<F>) => void
 }
 
 /**
  * Парсит HTML-шаблон и возвращает обогащенную иерархию с метаданными о путях к данным.
  *
- * @param template - Функция шаблонизатора, которая принимает параметры { html, context, core, state, update }
+ * @param template - Функция шаблонизатора, которая принимает параметры { html, fields, mass, state, update }
  * @returns Массив узлов с полной структурой и метаданными о путях к данным
  */
-export declare function parse<C extends Context = Context, I extends Core = Core, S extends State = State>(
-  template: (params: Params<C, I, S>) => void
+export declare function parse<F extends Fields = Fields, M extends Mass = Mass, S extends State = State>(
+  template: (params: Params<F, M, S>) => void
 ): NodeType[]

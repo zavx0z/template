@@ -86,7 +86,7 @@ export interface NodeElement extends Attributes {
    * ```typescript
    * child: [
    *   { type: "text", value: "Привет" },
-   *   { type: "text", data: "/context/user/name" }
+   *   { type: "text", data: "/fields/user/name" }
    * ]
    * ```
    */

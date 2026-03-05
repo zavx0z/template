@@ -57,14 +57,14 @@ describe("meta", () => {
       let elements: Node[]
 
       beforeAll(() => {
-        elements = parse(({ html, core }) => html`<meta-${core.actors.child} />`)
+        elements = parse(({ html, mass }) => html`<meta-${mass.actors.child} />`)
       })
 
       it("data", () => {
         expect(elements).toEqual([
           {
             tag: {
-              data: "/core/actors/child",
+              data: "/mass/actors/child",
               expr: "meta-${_[0]}",
             },
             type: "meta",
@@ -77,14 +77,14 @@ describe("meta", () => {
       let elements: Node[]
 
       beforeAll(() => {
-        elements = parse(({ html, core }) => html`<meta-${core.actors.child}></meta-${core.actors.child}>`)
+        elements = parse(({ html, mass }) => html`<meta-${mass.actors.child}></meta-${mass.actors.child}>`)
       })
 
       it("data", () => {
         expect(elements).toEqual([
           {
             tag: {
-              data: "/core/actors/child",
+              data: "/mass/actors/child",
               expr: "meta-${_[0]}",
             },
             type: "meta",
@@ -97,7 +97,7 @@ describe("meta", () => {
       let elements: Node[]
 
       beforeAll(() => {
-        elements = parse(({ html, core }) => html`<div><meta-${core.tag} /></div>`)
+        elements = parse(({ html, mass }) => html`<div><meta-${mass.tag} /></div>`)
       })
 
       it("data", () => {
@@ -108,7 +108,7 @@ describe("meta", () => {
             child: [
               {
                 tag: {
-                  data: "/core/tag",
+                  data: "/mass/tag",
                   expr: "meta-${_[0]}",
                 },
                 type: "meta",
@@ -123,7 +123,7 @@ describe("meta", () => {
       let elements: Node[]
 
       beforeAll(() => {
-        elements = parse(({ html, core }) => html`<meta-hash><meta-${core.tag} /></meta-hash>`)
+        elements = parse(({ html, mass }) => html`<meta-hash><meta-${mass.tag} /></meta-hash>`)
       })
 
       it("data", () => {
@@ -134,7 +134,7 @@ describe("meta", () => {
             child: [
               {
                 tag: {
-                  data: "/core/tag",
+                  data: "/mass/tag",
                   expr: "meta-${_[0]}",
                 },
                 type: "meta",
@@ -150,7 +150,7 @@ describe("meta", () => {
 
       beforeAll(() => {
         elements = parse<any, { items: { tag: string }[] }>(
-          ({ html, core }) => html`${core.items.map((item) => html`<meta-${item.tag} />`)}`
+          ({ html, mass }) => html`${mass.items.map((item) => html`<meta-${item.tag} />`)}`
         )
       })
 
@@ -158,7 +158,7 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             type: "map",
-            data: "/core/items",
+            data: "/mass/items",
             child: [
               {
                 tag: {
@@ -178,7 +178,7 @@ describe("meta", () => {
 
       beforeAll(() => {
         elements = parse(
-          ({ html, core }) => html`${core.items.length > 0 ? html`<meta-${core.tag} />` : html`<meta-${core.tag} />`}`
+          ({ html, mass }) => html`${mass.items.length > 0 ? html`<meta-${mass.tag} />` : html`<meta-${mass.tag} />`}`
         )
       })
 
@@ -186,19 +186,19 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             type: "cond",
-            data: "/core/items/length",
+            data: "/mass/items/length",
             expr: "_[0] > 0",
             child: [
               {
                 tag: {
-                  data: "/core/tag",
+                  data: "/mass/tag",
                   expr: "meta-${_[0]}",
                 },
                 type: "meta",
               },
               {
                 tag: {
-                  data: "/core/tag",
+                  data: "/mass/tag",
                   expr: "meta-${_[0]}",
                 },
                 type: "meta",
@@ -236,23 +236,23 @@ describe("meta", () => {
       let elements: Node[]
 
       beforeAll(() => {
-        elements = parse(({ html, core }) => html`<meta-${core.tag} data-id="${core.id}" class="meta-${core.type}" />`)
+        elements = parse(({ html, mass }) => html`<meta-${mass.tag} data-id="${mass.id}" class="meta-${mass.type}" />`)
       })
 
       it("data", () => {
         expect(elements).toEqual([
           {
             tag: {
-              data: "/core/tag",
+              data: "/mass/tag",
               expr: "meta-${_[0]}",
             },
             type: "meta",
             string: {
               "data-id": {
-                data: "/core/id",
+                data: "/mass/id",
               },
               class: {
-                data: "/core/type",
+                data: "/mass/type",
                 expr: "meta-${_[0]}",
               },
             },
@@ -266,8 +266,8 @@ describe("meta", () => {
 
       beforeAll(() => {
         elements = parse(
-          ({ html, core }) => html`
-            <meta-${core.tag} ${core.active && "data-active"} class="${core.active ? "active" : "inactive"}" />
+          ({ html, mass }) => html`
+            <meta-${mass.tag} ${mass.active && "data-active"} class="${mass.active ? "active" : "inactive"}" />
           `
         )
       })
@@ -275,18 +275,18 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             tag: {
-              data: "/core/tag",
+              data: "/mass/tag",
               expr: "meta-${_[0]}",
             },
             type: "meta",
             boolean: {
               "data-active": {
-                data: "/core/active",
+                data: "/mass/active",
               },
             },
             string: {
               class: {
-                data: "/core/active",
+                data: "/mass/active",
                 expr: '${_[0] ? "active" : "inactive"}',
               },
             },
@@ -300,10 +300,10 @@ describe("meta", () => {
 
       beforeAll(() => {
         elements = parse(
-          ({ html, core }) => html`
-            <meta-${core.tag}
-              onclick=${() => core.handleClick(core.id)}
-              onchange=${(e: Event) => core.handleChange(e, core.value)} />
+          ({ html, mass }) => html`
+            <meta-${mass.tag}
+              onclick=${() => mass.handleClick(mass.id)}
+              onchange=${(e: Event) => mass.handleChange(e, mass.value)} />
           `
         )
       })
@@ -311,17 +311,17 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             tag: {
-              data: "/core/tag",
+              data: "/mass/tag",
               expr: "meta-${_[0]}",
             },
             type: "meta",
             event: {
               onclick: {
-                data: ["/core/handleClick", "/core/id"],
+                data: ["/mass/handleClick", "/mass/id"],
                 expr: "() => _[0](_[1])",
               },
               onchange: {
-                data: ["/core/handleChange", "/core/value"],
+                data: ["/mass/handleChange", "/mass/value"],
                 expr: "(e) => _[0](e, _[1])",
               },
             },
@@ -335,7 +335,7 @@ describe("meta", () => {
 
       beforeAll(() => {
         elements = parse(
-          ({ html, core, update }) => html`<meta-${core.tag} onclick=${() => update({ selected: core.id })} />`
+          ({ html, mass, update }) => html`<meta-${mass.tag} onclick=${() => update({ selected: mass.id })} />`
         )
       })
 
@@ -343,13 +343,13 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             tag: {
-              data: "/core/tag",
+              data: "/mass/tag",
               expr: "meta-${_[0]}",
             },
             type: "meta",
             event: {
               onclick: {
-                data: "/core/id",
+                data: "/mass/id",
                 expr: "() => update({ selected: _[0] })",
                 upd: "selected",
               },
@@ -367,8 +367,8 @@ describe("meta", () => {
 
       beforeAll(() => {
         elements = parse<any, Core>(
-          ({ html, core }) => html`
-            ${core.items.map(
+          ({ html, mass }) => html`
+            ${mass.items.map(
               (item) => html`
                 <meta-${item.tag}
                   data-id="${item.id}"
@@ -384,7 +384,7 @@ describe("meta", () => {
         expect(elements).toEqual([
           {
             type: "map",
-            data: "/core/items",
+            data: "/mass/items",
             child: [
               {
                 tag: {

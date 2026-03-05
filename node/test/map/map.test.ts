@@ -7,9 +7,9 @@ describe("map", () => {
 
     beforeAll(() => {
       elements = parse<{ list: string[] }>(
-        ({ html, context }) => html`
+        ({ html, fields }) => html`
           <ul>
-            ${context.list.map((name) => html`<li>${name}</li>`)}
+            ${fields.list.map((name) => html`<li>${name}</li>`)}
           </ul>
         `
       )
@@ -22,7 +22,7 @@ describe("map", () => {
           child: [
             {
               type: "map",
-              data: "/context/list",
+              data: "/fields/list",
               child: [
                 {
                   tag: "li",
@@ -46,9 +46,9 @@ describe("map", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<{ list: string[] }>(
-        ({ html, context }) => html`
+        ({ html, fields }) => html`
           <ul>
-            ${context.list.map(
+            ${fields.list.map(
               (name) =>
                 html`
                   <li>${name}</li>
@@ -67,7 +67,7 @@ describe("map", () => {
           child: [
             {
               type: "map",
-              data: "/context/list",
+              data: "/fields/list",
               child: [
                 {
                   tag: "li",
@@ -94,9 +94,9 @@ describe("map", () => {
       beforeAll(() => {
         elements = parse<any, { list: { title: string; nested: string[] }[] }>(
           // prettier-ignore
-          ({ html, core }) => html`
+          ({ html, mass }) => html`
           <ul>
-            ${core.list.map(
+            ${mass.list.map(
               ({ title, nested }) => html`
                 <li>
                   <p>${title} </p>
@@ -116,7 +116,7 @@ describe("map", () => {
             child: [
               {
                 type: "map",
-                data: "/core/list",
+                data: "/mass/list",
                 child: [
                   {
                     tag: "li",
@@ -161,9 +161,9 @@ describe("map", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ list: string[] }>(
-          ({ html, context }) => html`
+          ({ html, fields }) => html`
             <ul>
-              ${context.list.map((_, i) => html`<li>${i % 2 ? html`<em>A</em>` : html`<strong>B</strong>`}</li>`)}
+              ${fields.list.map((_, i) => html`<li>${i % 2 ? html`<em>A</em>` : html`<strong>B</strong>`}</li>`)}
             </ul>
           `
         )
@@ -176,7 +176,7 @@ describe("map", () => {
             child: [
               {
                 type: "map",
-                data: "/context/list",
+                data: "/fields/list",
                 child: [
                   {
                     tag: "li",
@@ -222,11 +222,11 @@ describe("map", () => {
       let elements: Node[]
       beforeAll(() => {
         elements = parse<{ flag: boolean }, { list: { title: string; nested: string[] }[] }>(
-          ({ html, core, context }) => html`
-            ${context.flag
+          ({ html, mass, fields }) => html`
+            ${fields.flag
               ? html`
                   <ul>
-                    ${core.list.map(
+                    ${mass.list.map(
                       ({ title, nested }) => html`<li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li>`
                     )}
                   </ul>
@@ -239,7 +239,7 @@ describe("map", () => {
         expect(elements).toEqual([
           {
             type: "cond",
-            data: "/context/flag",
+            data: "/fields/flag",
             child: [
               {
                 tag: "ul",
@@ -247,7 +247,7 @@ describe("map", () => {
                 child: [
                   {
                     type: "map",
-                    data: "/core/list",
+                    data: "/mass/list",
                     child: [
                       {
                         tag: "li",
@@ -299,9 +299,9 @@ describe("map", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { list: { title: string; nested: string[] }[] }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <ul>
-            ${core.list.map(({ title, nested }) => html`<li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li>`)}
+            ${mass.list.map(({ title, nested }) => html`<li>${title} ${nested.map((n) => html`<em>${n}</em>`)}</li>`)}
           </ul>
         `
       )
@@ -314,7 +314,7 @@ describe("map", () => {
           child: [
             {
               type: "map",
-              data: "/core/list",
+              data: "/mass/list",
               child: [
                 {
                   tag: "li",

@@ -7,13 +7,13 @@ describe("text-formatting", () => {
 
     beforeAll(() => {
       elements = parse<{ name: string; title: string }, { items: { title: string }[] }>(
-        ({ html, context, core }) => html`
+        ({ html, fields, mass }) => html`
           <div>
             <p>Hello World</p>
-            <span>${context.name} - ${context.title}</span>
-            <span>${context.name} - ${core.items.map((item) => item.title).join(", ")}</span>
+            <span>${fields.name} - ${fields.title}</span>
+            <span>${fields.name} - ${mass.items.map((item) => item.title).join(", ")}</span>
             <div>Welcome to our site!</div>
-            <p>${context.name} is ${context.title}</p>
+            <p>${fields.name} is ${fields.title}</p>
           </div>
         `
       )
@@ -40,7 +40,7 @@ describe("text-formatting", () => {
               child: [
                 {
                   type: "text",
-                  data: ["/context/name", "/context/title"],
+                  data: ["/fields/name", "/fields/title"],
                   expr: "${_[0]} - ${_[1]}",
                 },
               ],
@@ -51,7 +51,7 @@ describe("text-formatting", () => {
               child: [
                 {
                   type: "text",
-                  data: "/context/name",
+                  data: "/fields/name",
                   expr: "${_[0]} - ${_[0]}",
                 },
               ],
@@ -72,7 +72,7 @@ describe("text-formatting", () => {
               child: [
                 {
                   type: "text",
-                  data: ["/context/name", "/context/title"],
+                  data: ["/fields/name", "/fields/title"],
                   expr: "${_[0]} is ${_[1]}",
                 },
               ],

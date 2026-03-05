@@ -6,7 +6,7 @@ import type { ParseContext } from "../parser.t"
  */
 export const processStringAttributes = (
   stringAttrs: Record<string, { type: string; value: string }>,
-  context: ParseContext
+  ctx: ParseContext
 ): Record<string, any> => {
   const result: Record<string, any> = {}
 
@@ -14,7 +14,7 @@ export const processStringAttributes = (
     if (attr.type === "static") {
       result[key] = attr.value
     } else if (attr.type === "dynamic" || attr.type === "mixed") {
-      const processed = processTemplateLiteralAttribute(attr.value, context)
+      const processed = processTemplateLiteralAttribute(attr.value, ctx)
       result[key] = processed || attr.value
     }
   }

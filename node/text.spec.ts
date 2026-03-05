@@ -25,7 +25,7 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<Context>(
         // #region dynamic
-        ({ html, context }) => html`<p>${context.dynamic}</p>`
+        ({ html, fields }) => html`<p>${fields.dynamic}</p>`
         // #endregion dynamic
       )
     })
@@ -36,7 +36,7 @@ describe("text", () => {
           {
             tag: "p",
             type: "el",
-            child: [{ type: "text", data: "/context/dynamic" }],
+            child: [{ type: "text", data: "/fields/dynamic" }],
           },
         ]
         // #endregion expectDynamic
@@ -49,7 +49,7 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<Context>(
         // #region mixed
-        ({ html, context }) => html`<p>Hello, ${context.family} ${context.name}!</p>`
+        ({ html, fields }) => html`<p>Hello, ${fields.family} ${fields.name}!</p>`
         // #endregion mixed
       )
     })
@@ -63,7 +63,7 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                data: ["/context/family", "/context/name"],
+                data: ["/fields/family", "/fields/name"],
                 expr: "Hello, ${_[0]} ${_[1]}!",
               },
             ],
@@ -80,7 +80,7 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<Context>(
         //#region mathematical
-        ({ html, context }) => html`<p>${context.a + context.b * 2}</p>`
+        ({ html, fields }) => html`<p>${fields.a + fields.b * 2}</p>`
         //#endregion mathematical
       )
     })
@@ -95,7 +95,7 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                data: ["/context/a", "/context/b"],
+                data: ["/fields/a", "/fields/b"],
                 expr: "${_[0] + _[1] * 2}",
               },
             ],
@@ -113,7 +113,7 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<Context>(
         //#region ternary
-        ({ html, context }) => html`<p>${context.flag ? "Yes" : "No"}</p>`
+        ({ html, fields }) => html`<p>${fields.flag ? "Yes" : "No"}</p>`
         //#endregion ternary
       )
     })
@@ -128,7 +128,7 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                data: "/context/flag",
+                data: "/fields/flag",
                 expr: '${_[0] ? "Yes" : "No"}',
               },
             ],
@@ -146,7 +146,7 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<Context>(
         //#region ternaryLiteral
-        ({ html, context }) => html`<p>${context.name ? `Hi, ${context.name}!` : ""}</p>`
+        ({ html, fields }) => html`<p>${fields.name ? `Hi, ${fields.name}!` : ""}</p>`
         //#endregion ternaryLiteral
       )
     })
@@ -161,7 +161,7 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                data: "/context/name",
+                data: "/fields/name",
                 expr: '${_[0] ? `Hi, ${_[0]}!` : ""}',
               },
             ],
@@ -179,7 +179,7 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<Context>(
         //#region logical
-        ({ html, context }) => html`<p class=${context.isOpen && "open"}>${context.isOpen && "Open"}</p>`
+        ({ html, fields }) => html`<p class=${fields.isOpen && "open"}>${fields.isOpen && "Open"}</p>`
         //#endregion logical
       )
     })
@@ -193,14 +193,14 @@ describe("text", () => {
             type: "el",
             string: {
               class: {
-                data: "/context/isOpen",
+                data: "/fields/isOpen",
                 expr: '${_[0] && "open"}',
               },
             },
             child: [
               {
                 type: "text",
-                data: "/context/isOpen",
+                data: "/fields/isOpen",
                 expr: '${_[0] && "Open"}',
               },
             ],
@@ -218,7 +218,7 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<Context>(
         //#region logicalLiteral
-        ({ html, context }) => html` <p>${context.last && `last: ${context.last}`}</p>`
+        ({ html, fields }) => html` <p>${fields.last && `last: ${fields.last}`}</p>`
         //#endregion logicalLiteral
       )
     })
@@ -232,7 +232,7 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                data: "/context/last",
+                data: "/fields/last",
                 expr: "${_[0] && `last: ${_[0]}`}",
               },
             ],
@@ -249,7 +249,7 @@ describe("text", () => {
     beforeAll(() => {
       elements = parse<Context>(
         //#region methods
-        ({ html, context }) => html`<p>${context.name.toUpperCase()} - ${context.email.toLowerCase()}</p>`
+        ({ html, fields }) => html`<p>${fields.name.toUpperCase()} - ${fields.email.toLowerCase()}</p>`
         //#endregion methods
       )
     })
@@ -264,7 +264,7 @@ describe("text", () => {
             child: [
               {
                 type: "text",
-                data: ["/context/name", "/context/email"],
+                data: ["/fields/name", "/fields/email"],
                 expr: "${_[0].toUpperCase()} - ${_[1].toLowerCase()}",
               },
             ],

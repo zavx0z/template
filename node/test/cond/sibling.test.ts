@@ -10,12 +10,12 @@ describe("условия соседствующие", () => {
     let elements: Node[]
 
     beforeAll(() => {
-      elements = parse<Context, {}>(
-        ({ html, context }) => html`
-          ${context.flag1
+      elements = parse<{ flag1: boolean; flag2: boolean }, {}>(
+        ({ html, fields }) => html`
+          ${fields.flag1
             ? html`<div class="conditional1">Content 1</div>`
             : html`<div class="fallback1">No content 1</div>`}
-          ${context.flag2
+          ${fields.flag2
             ? html`<div class="conditional2">Content 2</div>`
             : html`<div class="fallback2">No content 2</div>`}
         `
@@ -25,7 +25,7 @@ describe("условия соседствующие", () => {
       expect(elements).toEqual([
         {
           type: "cond",
-          data: "/context/flag1",
+          data: "/fields/flag1",
           child: [
             {
               tag: "div",
@@ -57,7 +57,7 @@ describe("условия соседствующие", () => {
         },
         {
           type: "cond",
-          data: "/context/flag2",
+          data: "/fields/flag2",
           child: [
             {
               tag: "div",
@@ -96,12 +96,12 @@ describe("условия соседствующие", () => {
 
     beforeAll(() => {
       elements = parse<{ flag1: boolean; flag2: boolean }, {}>(
-        ({ html, context }) => html`
+        ({ html, fields }) => html`
           <div class="container">
-            ${context.flag1
+            ${fields.flag1
               ? html`<div class="conditional1">Content 1</div>`
               : html`<div class="fallback1">No content 1</div>`}
-            ${context.flag2
+            ${fields.flag2
               ? html`<div class="conditional2">Content 2</div>`
               : html`<div class="fallback2">No content 2</div>`}
           </div>
@@ -119,7 +119,7 @@ describe("условия соседствующие", () => {
           child: [
             {
               type: "cond",
-              data: "/context/flag1",
+              data: "/fields/flag1",
               child: [
                 {
                   tag: "div",
@@ -151,7 +151,7 @@ describe("условия соседствующие", () => {
             },
             {
               type: "cond",
-              data: "/context/flag2",
+              data: "/fields/flag2",
               child: [
                 {
                   tag: "div",
@@ -192,17 +192,17 @@ describe("условия соседствующие", () => {
 
     beforeAll(() => {
       elements = parse<{ flag1: boolean; flag2: boolean; flag3: boolean }, {}>(
-        ({ html, context }) => html`
+        ({ html, fields }) => html`
           <div class="level1">
             <div class="level2">
               <div class="level3">
-                ${context.flag1
+                ${fields.flag1
                   ? html`<div class="conditional1">Content 1</div>`
                   : html`<div class="fallback1">No content 1</div>`}
-                ${context.flag2
+                ${fields.flag2
                   ? html`<div class="conditional2">Content 2</div>`
                   : html`<div class="fallback2">No content 2</div>`}
-                ${context.flag3
+                ${fields.flag3
                   ? html`<div class="conditional3">Content 3</div>`
                   : html`<div class="fallback3">No content 3</div>`}
               </div>
@@ -236,7 +236,7 @@ describe("условия соседствующие", () => {
                   child: [
                     {
                       type: "cond",
-                      data: "/context/flag1",
+                      data: "/fields/flag1",
                       child: [
                         {
                           tag: "div",
@@ -268,7 +268,7 @@ describe("условия соседствующие", () => {
                     },
                     {
                       type: "cond",
-                      data: "/context/flag2",
+                      data: "/fields/flag2",
                       child: [
                         {
                           tag: "div",
@@ -300,7 +300,7 @@ describe("условия соседствующие", () => {
                     },
                     {
                       type: "cond",
-                      data: "/context/flag3",
+                      data: "/fields/flag3",
                       child: [
                         {
                           tag: "div",

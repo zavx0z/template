@@ -25,14 +25,14 @@ bun i @zavx0z/template
 
 ```typescript
 import { parse } from "@zavx0z/template"
-import { Context } from "@zavx0z/context"
+import { Fields } from "@zavx0z/fields"
 
-const { context, update, onUpdate } = new Context((t) => ({
+const { fields, update, onUpdate } = new Fields((t) => ({
   cups: t.number.required(0)({ title: "orders" }),
   last: t.string.optional()({ title: "last ordered drink" }),
 }))
 
-const core = {
+const mass = {
   menu: [
     { label: "Espresso", size: "30ml" },
     { label: "Cappuccino", size: "200ml" },
@@ -42,23 +42,23 @@ const core = {
 
 let state = "open"
 
-const nodes = parse<typeof context, typeof core, "open" | "closed">(
-  ({ html, context, update, core, state }) => html`
+const nodes = parse<typeof fields, typeof mass, "open" | "closed">(
+  ({ html, fields, update, mass, state }) => html`
     <h1>☕ Quick Coffee Order</h1>
 
     <p>
-      Status: ${state === "open" ? "🟢 Open" : "🔴 Closed"} · Orders: ${context.cups}${context.last &&
-      ` · last: ${context.last}`}
+      Status: ${state === "open" ? "🟢 Open" : "🔴 Closed"} · Orders: ${fields.cups}${fields.last &&
+      ` · last: ${fields.last}`}
     </p>
 
     ${state === "open" &&
     html`
       <ul>
-        ${core.menu.map(
+        ${mass.menu.map(
           (product) =>
             html`<li>
               ${product.label} (${product.size})
-              <button onclick=${() => update({ cups: context.cups + 1, last: product.label })}>Add</button>
+              <button onclick=${() => update({ cups: fields.cups + 1, last: product.label })}>Add</button>
             </li>`
         )}
       </ul>

@@ -9,7 +9,7 @@ import type { ValueVariable, ValueDynamic } from "../parser.t"
  * @group Значения атрибутов
  * @example
  * ```html
- * <div class="container ${context.theme} ${context.isActive && 'active'}">
+ * <div class="container ${fields.theme} ${fields.isActive && 'active'}">
  *   Элемент с несколькими классами
  * </div>
  * ```

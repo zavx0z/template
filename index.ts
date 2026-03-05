@@ -1,6 +1,6 @@
 import { createNode } from "./node"
 import type { NodeType } from "./node/index.t"
-import type { Params, Context, Core, State } from "./index.t"
+import type { Params, Fields, Mass, State } from "./index.t"
 import { extractHtmlElements } from "./parser"
 
 export type { NodeType as Node }
@@ -16,11 +16,11 @@ export type { NodeType as Node }
  * - События и динамические атрибуты
  * - Web Components
  *
- * @param template - Template-функция вида ({ html, context, core, state }) => html`...`
+ * @param template - Template-функция вида ({ html, fields, mass, state }) => html`...`
  * @returns Обогащенная иерархия с метаданными о путях к данным
  */
-export const parse = <C extends Context = Context, I extends Core = Core, S extends State = State>(
-  template: (params: Params<C, I, S>) => void
+export const parse = <F extends Fields = Fields, M extends Mass = Mass, S extends State = State>(
+  template: (params: Params<F, M, S>) => void
 ): NodeType[] => {
   const mainHtml = extractMainHtmlBlock(template)
   const hierarchy = extractHtmlElements(mainHtml)

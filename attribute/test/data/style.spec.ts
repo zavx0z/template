@@ -16,9 +16,9 @@ describe("object атрибуты (стили) с переменными из р
     }
     beforeAll(() => {
       elements = parse<any, Core>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.companies.map(
+            ${mass.companies.map(
               (company) => html`
                 <section style="${{ backgroundColor: company.theme }}">
                   ${company.departments.map(
@@ -47,7 +47,7 @@ describe("object атрибуты (стили) с переменными из р
           child: [
             {
               type: "map",
-              data: "/core/companies",
+              data: "/mass/companies",
               child: [
                 {
                   tag: "section",
@@ -105,9 +105,9 @@ describe("object атрибуты (стили) с переменными из р
           }[]
         }
       >(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.users.map(
+            ${mass.users.map(
               (user) => html`
                 <div
                   style="${{
@@ -132,7 +132,7 @@ describe("object атрибуты (стили) с переменными из р
           child: [
             {
               type: "map",
-              data: "/core/users",
+              data: "/mass/users",
               child: [
                 {
                   tag: "div",

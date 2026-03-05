@@ -7,14 +7,14 @@ import { parseText } from "../text"
 describe("data-parser", () => {
   describe("parseMap", () => {
     it("парсит простой map с одним параметром", () => {
-      const result = parseMap("context.list.map((name) => html`")
-      expect(result.path).toBe("/context/list")
+      const result = parseMap("fields.list.map((name) => html`")
+      expect(result.path).toBe("/fields/list")
       expect(result.metadata?.params).toEqual(["name"])
     })
 
     it("парсит map с деструктуризацией", () => {
-      const result = parseMap("core.data.map(({ title, nested }) => html`")
-      expect(result.path).toBe("/core/data")
+      const result = parseMap("mass.data.map(({ title, nested }) => html`")
+      expect(result.path).toBe("/mass/data")
       expect(result.metadata?.params).toEqual(["title", "nested"])
     })
 
@@ -25,14 +25,14 @@ describe("data-parser", () => {
     })
 
     it("парсит вложенный map в контексте", () => {
-      const context = { currentPath: "/core/list", pathStack: ["/core/list"], level: 1, mapParams: ["item"] }
+      const context = { currentPath: "/mass/list", pathStack: ["/mass/list"], level: 1, mapParams: ["item"] }
       const result = parseMap("nested.map((n) => html`", context)
       expect(result.path).toBe("[item]/nested")
       expect(result.metadata?.params).toEqual(["n"])
     })
 
     it("парсит вложенный map с полным путем", () => {
-      const context = { currentPath: "/core/list", pathStack: ["/core/list"], level: 1, mapParams: ["item"] }
+      const context = { currentPath: "/mass/list", pathStack: ["/mass/list"], level: 1, mapParams: ["item"] }
       const result = parseMap("item.nested.map((n) => html`", context)
       expect(result.path).toBe("[item]/nested")
     })
@@ -72,20 +72,20 @@ describe("data-parser", () => {
 
   describe("parseCondition", () => {
     it("парсит простое условие", () => {
-      const result = parseCondition("context.flag")
-      expect(result.path).toBe("/context/flag")
+      const result = parseCondition("fields.flag")
+      expect(result.path).toBe("/fields/flag")
       expect(result.metadata?.expression).toBe("_[0]")
     })
 
     it("парсит сложное условие", () => {
-      const result = parseCondition("context.cond && context.cond2")
-      expect(result.path).toEqual(["/context/cond", "/context/cond2"])
+      const result = parseCondition("fields.cond && fields.cond2")
+      expect(result.path).toEqual(["/fields/cond", "/fields/cond2"])
       expect(result.metadata?.expression).toBe("_[0] && _[1]")
     })
 
     it("парсит условие с операторами", () => {
-      const result = parseCondition("context.flag === context.cond2")
-      expect(result.path).toEqual(["/context/flag", "/context/cond2"])
+      const result = parseCondition("fields.flag === fields.cond2")
+      expect(result.path).toEqual(["/fields/flag", "/fields/cond2"])
       expect(result.metadata?.expression).toBe("_[0] === _[1]")
     })
   })
@@ -106,7 +106,7 @@ describe("data-parser", () => {
     })
 
     it("парсит текст с переменной в контексте map", () => {
-      const context = { currentPath: "/context/list", pathStack: ["/context/list"], level: 1, mapParams: ["name"] }
+      const context = { currentPath: "/fields/list", pathStack: ["/fields/list"], level: 1, mapParams: ["name"] }
       const result = parseText("Hello, ${name}!", context)
       expect(result.data).toBe("[item]")
       expect(result.expr).toBe("Hello, ${_[0]}!")
@@ -186,7 +186,7 @@ describe("data-parser", () => {
       const enriched = enrichWithData([
         {
           type: "map",
-          text: "context.list.map((name) => html`",
+          text: "fields.list.map((name) => html`",
           child: [
             {
               type: "el",
@@ -203,7 +203,7 @@ describe("data-parser", () => {
       ])
       expect(enriched[0]?.type).toBe("map")
       const mapNode = enriched[0] as any
-      expect(mapNode.data).toBe("/context/list")
+      expect(mapNode.data).toBe("/fields/list")
       expect(mapNode.child?.[0]?.child?.[0]?.data).toBe("[item]")
     })
 
@@ -211,7 +211,7 @@ describe("data-parser", () => {
       const enriched = enrichWithData([
         {
           type: "cond",
-          text: "context.flag",
+          text: "fields.flag",
           child: [
             { type: "el", tag: "div", child: [] },
             { type: "el", tag: "span", child: [] },
@@ -220,7 +220,7 @@ describe("data-parser", () => {
       ])
       expect(enriched[0]?.type).toBe("cond")
       const condNode = enriched[0] as any
-      expect(condNode.data).toBe("/context/flag")
+      expect(condNode.data).toBe("/fields/flag")
       expect(condNode.expr).toBeUndefined()
     })
   })

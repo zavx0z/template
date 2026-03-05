@@ -10,9 +10,9 @@ describe("map соседствующие", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, Core>(
-        ({ html, core }) => html`
-          ${core.list1.map(({ title }) => html` <div>${title}</div> `)}
-          ${core.list2.map(({ title }) => html` <div>${title}</div> `)}
+        ({ html, mass }) => html`
+          ${mass.list1.map(({ title }) => html` <div>${title}</div> `)}
+          ${mass.list2.map(({ title }) => html` <div>${title}</div> `)}
         `
       )
     })
@@ -20,7 +20,7 @@ describe("map соседствующие", () => {
       expect(elements).toEqual([
         {
           type: "map",
-          data: "/core/list1",
+          data: "/mass/list1",
           child: [
             {
               tag: "div",
@@ -36,7 +36,7 @@ describe("map соседствующие", () => {
         },
         {
           type: "map",
-          data: "/core/list2",
+          data: "/mass/list2",
           child: [
             {
               tag: "div",
@@ -67,10 +67,10 @@ describe("map соседствующие", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<Context, Core>(
-        ({ html, context, core }) => html`
+        ({ html, fields, mass }) => html`
           <div class="dashboard">
-            ${context.categories.map((cat) => html`<span class="category">${cat}</span>`)}
-            ${core.items.map(
+            ${fields.categories.map((cat) => html`<span class="category">${cat}</span>`)}
+            ${mass.items.map(
               (item) => html`
                 <div class="item" data-category="${item.categoryId}">
                   <h4>${item.title}</h4>
@@ -92,7 +92,7 @@ describe("map соседствующие", () => {
           child: [
             {
               type: "map",
-              data: "/context/categories",
+              data: "/fields/categories",
               child: [
                 {
                   tag: "span",
@@ -111,7 +111,7 @@ describe("map соседствующие", () => {
             },
             {
               type: "map",
-              data: "/core/items",
+              data: "/mass/items",
               child: [
                 {
                   tag: "div",
@@ -151,14 +151,14 @@ describe("map соседствующие", () => {
     }
     let elements: Node[]
     beforeAll(() => {
-      elements = parse<{}, Core>(
-        ({ html, core }) => html`
+      elements = parse<{}, { list1: { title: string }[]; list2: { title: string }[]; list3: { title: string }[] }>(
+        ({ html, mass }) => html`
           <div class="level1">
             <div class="level2">
               <div class="level3">
-                ${core.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
-                ${core.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
-                ${core.list3.map(({ title }) => html`<div class="item3">${title}</div>`)}
+                ${mass.list1.map(({ title }) => html`<div class="item1">${title}</div>`)}
+                ${mass.list2.map(({ title }) => html`<div class="item2">${title}</div>`)}
+                ${mass.list3.map(({ title }) => html`<div class="item3">${title}</div>`)}
               </div>
             </div>
           </div>
@@ -181,7 +181,7 @@ describe("map соседствующие", () => {
                   child: [
                     {
                       type: "map",
-                      data: "/core/list1",
+                      data: "/mass/list1",
                       child: [
                         {
                           tag: "div",
@@ -200,7 +200,7 @@ describe("map соседствующие", () => {
                     },
                     {
                       type: "map",
-                      data: "/core/list2",
+                      data: "/mass/list2",
                       child: [
                         {
                           tag: "div",
@@ -219,7 +219,7 @@ describe("map соседствующие", () => {
                     },
                     {
                       type: "map",
-                      data: "/core/list3",
+                      data: "/mass/list3",
                       child: [
                         {
                           tag: "div",

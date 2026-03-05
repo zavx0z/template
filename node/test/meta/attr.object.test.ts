@@ -1,25 +1,25 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { parse, type Node } from "../../../index"
 
-describe("core/context в атрибутах", () => {
-  describe("core с динамическими значениями", () => {
+describe("fields/mass в атрибутах", () => {
+  describe("mass с динамическими значениями", () => {
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse(
-        ({ html, core, context }) => html`<meta-${core.tag} core=${{ id: context.id, name: context.name }} />`
+        ({ html, mass, fields }) => html`<meta-${mass.tag} mass=${{ id: fields.id, name: fields.name }} />`
       )
     })
     it("data", () => {
       expect(elements).toEqual([
         {
           tag: {
-            data: "/core/tag",
+            data: "/mass/tag",
             expr: "meta-${_[0]}",
           },
           type: "meta",
-          core: {
-            data: ["/context/id", "/context/name"],
+          mass: {
+            data: ["/fields/id", "/fields/name"],
             expr: "{ id: _[0], name: _[1] }",
           },
         },
@@ -27,33 +27,33 @@ describe("core/context в атрибутах", () => {
     })
   })
 
-  describe("core со статическими значениями", () => {
+  describe("mass со статическими значениями", () => {
     let elements: Node[]
 
     beforeAll(() => {
-      elements = parse(({ html, core }) => html`<meta-${core.tag} core=${{ id: "1", name: "2" }} />`)
+      elements = parse(({ html, mass }) => html`<meta-${mass.tag} mass=${{ id: "1", name: "2" }} />`)
     })
     it("data", () => {
       expect(elements).toEqual([
         {
           tag: {
-            data: "/core/tag",
+            data: "/mass/tag",
             expr: "meta-${_[0]}",
           },
           type: "meta",
-          core: '{ id: "1", name: "2" }',
+          mass: '{ id: "1", name: "2" }',
         },
       ])
     })
   })
 
-  describe("core/context во вложенных элементах", () => {
+  describe("fields/mass во вложенных элементах", () => {
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse(
-        ({ html, core, context }) => html`
-          <div><meta-${core.tag} context=${{ id: context.id, name: context.name }} /></div>
+        ({ html, mass, fields }) => html`
+          <div><meta-${mass.tag} fields=${{ id: fields.id, name: fields.name }} /></div>
         `
       )
     })
@@ -65,12 +65,12 @@ describe("core/context в атрибутах", () => {
           child: [
             {
               tag: {
-                data: "/core/tag",
+                data: "/mass/tag",
                 expr: "meta-${_[0]}",
               },
               type: "meta",
-              context: {
-                data: ["/context/id", "/context/name"],
+              fields: {
+                data: ["/fields/id", "/fields/name"],
                 expr: "{ id: _[0], name: _[1] }",
               },
             },
@@ -80,24 +80,24 @@ describe("core/context в атрибутах", () => {
     })
   })
 
-  describe("context", () => {
+  describe("fields", () => {
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse(
-        ({ html, core, context }) => html`<meta-${core.tag} context=${{ id: context.id, name: context.name }} />`
+        ({ html, mass, fields }) => html`<meta-${mass.tag} fields=${{ id: fields.id, name: fields.name }} />`
       )
     })
     it("data", () => {
       expect(elements).toEqual([
         {
           tag: {
-            data: "/core/tag",
+            data: "/mass/tag",
             expr: "meta-${_[0]}",
           },
           type: "meta",
-          context: {
-            data: ["/context/id", "/context/name"],
+          fields: {
+            data: ["/fields/id", "/fields/name"],
             expr: "{ id: _[0], name: _[1] }",
           },
         },
@@ -105,15 +105,15 @@ describe("core/context в атрибутах", () => {
     })
   })
 
-  describe("core/context", () => {
+  describe("fields/mass", () => {
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse(
-        ({ html, core, context }) => html`
-          <meta-${core.tag}
-            core=${{ id: context.id, name: context.name }}
-            context=${{ id: context.id, name: context.name }} />
+        ({ html, mass, fields }) => html`
+          <meta-${mass.tag}
+            mass=${{ id: fields.id, name: fields.name }}
+            fields=${{ id: fields.id, name: fields.name }} />
         `
       )
     })
@@ -121,16 +121,16 @@ describe("core/context в атрибутах", () => {
       expect(elements).toEqual([
         {
           tag: {
-            data: "/core/tag",
+            data: "/mass/tag",
             expr: "meta-${_[0]}",
           },
           type: "meta",
-          core: {
-            data: ["/context/id", "/context/name"],
+          mass: {
+            data: ["/fields/id", "/fields/name"],
             expr: "{ id: _[0], name: _[1] }",
           },
-          context: {
-            data: ["/context/id", "/context/name"],
+          fields: {
+            data: ["/fields/id", "/fields/name"],
             expr: "{ id: _[0], name: _[1] }",
           },
         },

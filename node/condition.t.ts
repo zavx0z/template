@@ -11,7 +11,7 @@ import type { PartAttrMeta } from "./meta.t"
  * @example Простое условие
  * ```html
  * <div>
- *   ${context.isLoggedIn ? html`<span>Добро пожаловать, ${context.name}!</span>` : html`<a href="/login">Войти</a>`}
+ *   ${fields.isLoggedIn ? html`<span>Добро пожаловать, ${fields.name}!</span>` : html`<a href="/login">Войти</a>`}
  * </div>
  * ```
  *
@@ -23,7 +23,7 @@ import type { PartAttrMeta } from "./meta.t"
  *   "child": [
  *     {
  *       "type": "cond",
- *       "data": "/context/isLoggedIn",
+ *       "data": "/fields/isLoggedIn",
  *       "child": [
  *         {
  *           "tag": "span",
@@ -31,7 +31,7 @@ import type { PartAttrMeta } from "./meta.t"
  *           "child": [
  *             {
  *               "type": "text",
- *               "data": "/context/name",
+ *               "data": "/fields/name",
  *               "expr": "Добро пожаловать, ${[0]}!"
  *             }
  *           ]
@@ -58,7 +58,7 @@ import type { PartAttrMeta } from "./meta.t"
  * @example Сложное условие
  * ```html
  * <div>
- *   ${core.role === 'admin' && core.permissions.includes('write') ?
+ *   ${mass.role === 'admin' && mass.permissions.includes('write') ?
  *     html`<button>Редактировать</button>` :
  *     html`<span>Нет прав</span>`
  *   }
@@ -105,8 +105,8 @@ import type { PartAttrMeta } from "./meta.t"
  * @example Условие с проверкой массива
  * ```html
  * <div>
- *   ${core.posts.length > 0 ?
- *     html`<ul>${core.posts.map(post => html`<li>${post.title}</li>`)}</ul>` :
+ *   ${mass.posts.length > 0 ?
+ *     html`<ul>${mass.posts.map(post => html`<li>${post.title}</li>`)}</ul>` :
  *     html`<p>Постов пока нет</p>`
  *   }
  * </div>
@@ -120,7 +120,7 @@ import type { PartAttrMeta } from "./meta.t"
  *   "child": [
  *     {
  *       "type": "cond",
- *       "data": "/core/posts.length",
+ *       "data": "/mass/posts.length",
  *       "expr": "${[0]} > 0",
  *       "child": [
  *         {
@@ -129,7 +129,7 @@ import type { PartAttrMeta } from "./meta.t"
  *           "child": [
  *             {
  *               "type": "map",
- *               "data": "/core/posts",
+ *               "data": "/mass/posts",
  *               "child": [
  *                 {
  *                   "tag": "li",
@@ -175,14 +175,14 @@ export interface NodeCondition {
    *
    * @example Простой путь
    * ```typescript
-   * data: "/context/isLoggedIn"
+   * data: "/fields/isLoggedIn"
    * ```
    *
    * ---
    *
    * @example Массив путей
    * ```typescript
-   * data: ["/context/isAdmin", "/core/role"]
+   * data: ["/fields/isAdmin", "/mass/role"]
    * ```
    */
   data: string | string[]

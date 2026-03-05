@@ -22,7 +22,7 @@ import type { PartText } from "./text.t"
  * @example Итерация с индексом
  * ```html
  * <ul>
- *   ${core.items.map((item, index) => html`
+ *   ${mass.items.map((item, index) => html`
  *     <li class=${index % 2 === 0 ? 'even' : 'odd'}>
  *       ${index + 1}. ${item.name}
  *     </li>
@@ -38,7 +38,7 @@ import type { PartText } from "./text.t"
  *   "child": [
  *     {
  *       "type": "map",
- *       "data": "/core/items",
+ *       "data": "/mass/items",
  *       "child": [
  *         {
  *           "tag": "li",
@@ -66,7 +66,7 @@ import type { PartText } from "./text.t"
  * @example Вложенная итерация
  * ```html
  * <div>
- *   ${core.categories.map(category => html`
+ *   ${mass.categories.map(category => html`
  *     <section>
  *       <h1>${category.name}</h1>
  *       ${category.products.map(product => html`
@@ -85,7 +85,7 @@ import type { PartText } from "./text.t"
  *   "child": [
  *     {
  *       "type": "map",
- *       "data": "/core/categories",
+ *       "data": "/mass/categories",
  *       "child": [
  *         {
  *           "tag": "section",
@@ -147,12 +147,12 @@ export interface NodeMap {
    *
    * @example Простой путь
    * ```typescript
-   * data: "/context/users"
+   * data: "/fields/users"
    * ```
    *
    * @example Вложенный путь
    * ```typescript
-   * data: "/core/products"
+   * data: "/mass/products"
    * ```
    */
   data: string

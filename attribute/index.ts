@@ -402,8 +402,8 @@ export const parseAttributes = (
   string?: RawAttrString
   boolean?: RawAttrBoolean
   style?: string
-  context?: string
-  core?: string
+  fields?: string
+  mass?: string
 } => {
   const len = inside.length
   let i = 0
@@ -414,8 +414,8 @@ export const parseAttributes = (
     string?: RawAttrString
     boolean?: RawAttrBoolean
     style?: string
-    context?: string
-    core?: string
+    fields?: string
+    mass?: string
   } = {}
 
   const ensure = {
@@ -424,8 +424,8 @@ export const parseAttributes = (
     string: () => (result.string ??= {}),
     boolean: () => (result.boolean ??= {}),
     style: () => (result.style ??= ""),
-    context: () => (result.context ??= ""),
-    core: () => (result.core ??= ""),
+    fields: () => (result.fields ??= ""),
+    mass: () => (result.mass ??= ""),
   }
 
   while (i < len) {
@@ -529,8 +529,8 @@ export const parseAttributes = (
       continue
     }
 
-    // context и core для meta-компонентов - обрабатываем как объекты
-    if (name === "context" || name === "core") {
+    // fields и mass для meta-компонентов - обрабатываем как объекты
+    if (name === "fields" || name === "mass") {
       while (i < len && /\s/.test(inside[i] || "")) i++
 
       const { value, nextIndex } = readAttributeValue(inside, i)
@@ -544,16 +544,16 @@ export const parseAttributes = (
           : formatExpression(value.slice(2, -1))
         : "{}"
 
-      // Не добавляем пустые core и context атрибуты
+      // Не добавляем пустые mass и fields атрибуты
       if (objectValue === "{}") {
         continue
       }
 
-      // Для meta-компонентов context и core будут обработаны отдельно
-      if (name === "context") {
-        result.context = objectValue
+      // Для meta-компонентов fields и mass будут обработаны отдельно
+      if (name === "fields") {
+        result.fields = objectValue
       } else {
-        result.core = objectValue
+        result.mass = objectValue
       }
       continue
     }

@@ -10,9 +10,9 @@ describe("логические операторы с условиями", () => 
     beforeAll(() => {
       // prettier-ignore
       // #region parse
-      elements = parse<Context, Core>(({ html, context, core }) => html`
+      elements = parse<{ isAdmin: boolean }, { user: { role: string } }>(({ html, fields, mass }) => html`
           <div>
-            ${core.user && context.isAdmin && html`
+            ${mass.user && fields.isAdmin && html`
               <div class="admin">Admin Panel</div>
             `}
           </div>
@@ -30,7 +30,7 @@ describe("логические операторы с условиями", () => 
             child: [
               {
                 type: "log",
-                data: ["/core/user", "/context/isAdmin"],
+                data: ["/mass/user", "/fields/isAdmin"],
                 expr: "_[0] && _[1]",
                 child: [
                   {

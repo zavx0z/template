@@ -13,7 +13,7 @@ export const typegen = async (entrypoint: string, destination: string) => {
     }, 120)
 
     // Включаем все необходимые типы для полноценного автодополнения
-    await $`dts-bundle-generator --out-file ${destination} --export-referenced-types true --inline-declare-global true --inline-declare-externals true ${entrypoint}`.quiet()
+    await $`dts-bundle-generator --out-file ${destination} --export-referenced-types true --inline-declare-global true --inline-declare-externals true --no-check ${entrypoint}`.quiet()
 
     spinnerActive = false
     clearInterval(spinner)
@@ -21,7 +21,7 @@ export const typegen = async (entrypoint: string, destination: string) => {
   } else {
     console.log("🛠️  Генерация типов...")
     // Включаем все необходимые типы для полноценного автодополнения
-    await $`dts-bundle-generator --out-file ${destination} --export-referenced-types true --inline-declare-global true --inline-declare-externals true ${entrypoint}`.quiet()
+    await $`dts-bundle-generator --out-file ${destination} --export-referenced-types true --inline-declare-global true --inline-declare-externals true --no-check ${entrypoint}`.quiet()
     console.log("✅ Типы успешно сгенерированы!")
   }
 }

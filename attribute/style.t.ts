@@ -14,14 +14,14 @@ import type { ValueStatic, ValueVariable, ValueDynamic } from "../parser.t"
  *
  * @example Динамические стили
  * ```html
- * <div style=${{backgroundColor: core.theme.primary, color: core.theme.text}}>
+ * <div style=${{backgroundColor: mass.theme.primary, color: mass.theme.text}}>
  *   Элемент с темой
  * </div>
  * ```
  *
  * @example Условные стили
  * ```html
- * <div style=${{backgroundColor: context.isActive ? "green" : "red", color: "white"}}>
+ * <div style=${{backgroundColor: fields.isActive ? "green" : "red", color: "white"}}>
  *   Условный стиль
  * </div>
  * ```

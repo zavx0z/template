@@ -5,7 +5,7 @@ describe("events", () => {
   describe("onclick с выражением", () => {
     let elements: Node[]
     beforeAll(() => {
-      elements = parse(({ html, core }) => html`<button onclick=${() => core.onClick()}>OK</button>`)
+      elements = parse(({ html, mass }) => html`<button onclick=${() => mass.onClick()}>OK</button>`)
     })
     it("data", () => {
       expect(elements, "должен распознать onclick и не сериализовать функцию").toEqual([
@@ -14,7 +14,7 @@ describe("events", () => {
           type: "el",
           event: {
             onclick: {
-              data: "/core/onClick",
+              data: "/mass/onClick",
               expr: "() => _[0]()",
             },
           },
@@ -32,7 +32,7 @@ describe("events", () => {
   describe("onclick без кавычек со стрелочной функцией", () => {
     let elements: Node[]
     beforeAll(() => {
-      elements = parse(({ html, core }) => html`<button onclick=${core.onClick}>OK</button>`)
+      elements = parse(({ html, mass }) => html`<button onclick=${mass.onClick}>OK</button>`)
     })
     it("data", () => {
       expect(elements, "onclick без кавычек со стрелочной функцией").toEqual([
@@ -41,7 +41,7 @@ describe("events", () => {
           type: "el",
           event: {
             onclick: {
-              data: "/core/onClick",
+              data: "/mass/onClick",
             },
           },
           child: [{ type: "text", value: "OK" }],
@@ -75,7 +75,7 @@ describe("events", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse(
-        ({ html, core }) => html`<input onclick=${() => core.onClick()} oninput="${(e: Event) => core.onInput(e)}" />`
+        ({ html, mass }) => html`<input onclick=${() => mass.onClick()} oninput="${(e: Event) => mass.onInput(e)}" />`
       )
     })
     it("data", () => {
@@ -85,11 +85,11 @@ describe("events", () => {
           type: "el",
           event: {
             onclick: {
-              data: "/core/onClick",
+              data: "/mass/onClick",
               expr: "() => _[0]()",
             },
             oninput: {
-              data: "/core/onInput",
+              data: "/mass/onInput",
               expr: "(e) => _[0](e)",
             },
           },
@@ -102,7 +102,7 @@ describe("events", () => {
     let elements: Node[]
 
     beforeAll(() => {
-      elements = parse(({ html, core }) => html`<input oninput=${(e: Event) => core.onInput(e)} />`)
+      elements = parse(({ html, mass }) => html`<input oninput=${(e: Event) => mass.onInput(e)} />`)
     })
     it("data", () => {
       expect(elements, "oninput без кавычек со стрелочной функцией").toEqual([
@@ -111,7 +111,7 @@ describe("events", () => {
           type: "el",
           event: {
             oninput: {
-              data: "/core/onInput",
+              data: "/mass/onInput",
               expr: "(e) => _[0](e)",
             },
           },
@@ -125,9 +125,9 @@ describe("events", () => {
 
     beforeAll(() => {
       elements = parse<any, { items: { name: string; onClick: () => void }[] }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <ul>
-            ${core.items.map((item) => html`<li onclick=${() => item.onClick()}>${item.name}</li>`)}
+            ${mass.items.map((item) => html`<li onclick=${() => item.onClick()}>${item.name}</li>`)}
           </ul>
         `
       )
@@ -141,7 +141,7 @@ describe("events", () => {
           child: [
             {
               type: "map",
-              data: "/core/items",
+              data: "/mass/items",
               child: [
                 {
                   tag: "li",
@@ -172,9 +172,9 @@ describe("events", () => {
 
     beforeAll(() => {
       elements = parse<any, { buttons: { id: string; text: string; handleClick: (e: Event, id: string) => void }[] }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.buttons.map(
+            ${mass.buttons.map(
               (btn) => html` <button onclick=${(e: Event) => btn.handleClick(e, btn.id)}>${btn.text}</button> `
             )}
           </div>
@@ -190,7 +190,7 @@ describe("events", () => {
           child: [
             {
               type: "map",
-              data: "/core/buttons",
+              data: "/mass/buttons",
               child: [
                 {
                   tag: "button",
@@ -224,10 +224,10 @@ describe("events", () => {
         any,
         { handleSubmit: (e: Event) => void; handleChange: (e: Event) => void; onClick: () => void }
       >(
-        ({ html, core }) => html`
-          <form onsubmit=${(e: Event) => core.handleSubmit(e)} class="form" method="post">
-            <input type="text" onchange=${(e: Event) => core.handleChange(e)} />
-            <button type="submit" onclick=${() => core.onClick()}>Submit</button>
+        ({ html, mass }) => html`
+          <form onsubmit=${(e: Event) => mass.handleSubmit(e)} class="form" method="post">
+            <input type="text" onchange=${(e: Event) => mass.handleChange(e)} />
+            <button type="submit" onclick=${() => mass.onClick()}>Submit</button>
           </form>
         `
       )
@@ -240,7 +240,7 @@ describe("events", () => {
           type: "el",
           event: {
             onsubmit: {
-              data: "/core/handleSubmit",
+              data: "/mass/handleSubmit",
               expr: "(e) => _[0](e)",
             },
           },
@@ -257,7 +257,7 @@ describe("events", () => {
               },
               event: {
                 onchange: {
-                  data: "/core/handleChange",
+                  data: "/mass/handleChange",
                   expr: "(e) => _[0](e)",
                 },
               },
@@ -270,7 +270,7 @@ describe("events", () => {
               },
               event: {
                 onclick: {
-                  data: "/core/onClick",
+                  data: "/mass/onClick",
                   expr: "() => _[0]()",
                 },
               },
@@ -292,8 +292,8 @@ describe("events", () => {
 
     beforeAll(() => {
       elements = parse<any, { onClick: () => void; isDisabled: boolean }>(
-        ({ html, core }) => html`
-          <button onclick=${() => core.onClick()} ${core.isDisabled && "disabled"}>Click me</button>
+        ({ html, mass }) => html`
+          <button onclick=${() => mass.onClick()} ${mass.isDisabled && "disabled"}>Click me</button>
         `
       )
     })
@@ -304,13 +304,13 @@ describe("events", () => {
           type: "el",
           event: {
             onclick: {
-              data: "/core/onClick",
+              data: "/mass/onClick",
               expr: "() => _[0]()",
             },
           },
           boolean: {
             disabled: {
-              data: "/core/isDisabled",
+              data: "/mass/isDisabled",
             },
           },
           child: [
@@ -353,9 +353,9 @@ describe("events", () => {
           }[]
         }
       >(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.companies.map(
+            ${mass.companies.map(
               (company) => html`
                 <section onclick=${() => company.handleCompanyClick(company.id)}>
                   <h1>Company: ${company.name}</h1>
@@ -396,7 +396,7 @@ describe("events", () => {
           child: [
             {
               type: "map",
-              data: "/core/companies",
+              data: "/mass/companies",
               child: [
                 {
                   tag: "section",

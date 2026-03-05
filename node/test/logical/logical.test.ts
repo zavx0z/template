@@ -7,7 +7,7 @@ describe("логические операторы", () => {
 
     beforeAll(() => {
       elements = parse<{ error: string }>(
-        ({ html, context }) => html` <div>${context.error && html`<span class="error">${context.error}</span>`}</div> `
+        ({ html, fields }) => html` <div>${fields.error && html`<span class="error">${fields.error}</span>`}</div> `
       )
     })
 
@@ -19,7 +19,7 @@ describe("логические операторы", () => {
           child: [
             {
               type: "log",
-              data: "/context/error",
+              data: "/fields/error",
               child: [
                 {
                   tag: "span",
@@ -30,7 +30,7 @@ describe("логические операторы", () => {
                   child: [
                     {
                       type: "text",
-                      data: "/context/error",
+                      data: "/fields/error",
                     },
                   ],
                 },
@@ -47,13 +47,13 @@ describe("логические операторы", () => {
 
     beforeAll(() => {
       elements = parse<{}, { user: { name: string; avatar: string } }>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.user &&
+            ${mass.user &&
             html`
               <div class="user">
-                <img src="${core.user.avatar}" alt="${core.user.name}" />
-                <span>${core.user.name}</span>
+                <img src="${mass.user.avatar}" alt="${mass.user.name}" />
+                <span>${mass.user.name}</span>
               </div>
             `}
           </div>
@@ -69,7 +69,7 @@ describe("логические операторы", () => {
           child: [
             {
               type: "log",
-              data: "/core/user",
+              data: "/mass/user",
               child: [
                 {
                   tag: "div",
@@ -83,10 +83,10 @@ describe("логические операторы", () => {
                       type: "el",
                       string: {
                         src: {
-                          data: "/core/user/avatar",
+                          data: "/mass/user/avatar",
                         },
                         alt: {
-                          data: "/core/user/name",
+                          data: "/mass/user/name",
                         },
                       },
                     },
@@ -96,7 +96,7 @@ describe("логические операторы", () => {
                       child: [
                         {
                           type: "text",
-                          data: "/core/user/name",
+                          data: "/mass/user/name",
                         },
                       ],
                     },
@@ -115,7 +115,7 @@ describe("логические операторы", () => {
 
     beforeAll(() => {
       elements = parse<{ isVisible: boolean; message: string }>(
-        ({ html, context }) => html` <div>${context.isVisible && html`<p>${context.message}</p>`}</div> `
+        ({ html, fields }) => html` <div>${fields.isVisible && html`<p>${fields.message}</p>`}</div> `
       )
     })
 
@@ -127,7 +127,7 @@ describe("логические операторы", () => {
           child: [
             {
               type: "log",
-              data: "/context/isVisible",
+              data: "/fields/isVisible",
               child: [
                 {
                   tag: "p",
@@ -135,7 +135,7 @@ describe("логические операторы", () => {
                   child: [
                     {
                       type: "text",
-                      data: "/context/message",
+                      data: "/fields/message",
                     },
                   ],
                 },
@@ -152,7 +152,7 @@ describe("логические операторы", () => {
 
     beforeAll(() => {
       elements = parse<{ hasError: boolean }>(
-        ({ html, context }) => html` <div>${context.hasError && html`<br />`}</div> `
+        ({ html, fields }) => html` <div>${fields.hasError && html`<br />`}</div> `
       )
     })
 
@@ -164,7 +164,7 @@ describe("логические операторы", () => {
           child: [
             {
               type: "log",
-              data: "/context/hasError",
+              data: "/fields/hasError",
               child: [
                 {
                   tag: "br",

@@ -1,92 +1,92 @@
 import { describe, it, expect } from "bun:test"
 import { parseAttributes } from "../index.ts"
 
-describe("context и core", () => {
-  describe("meta-компоненты с context и core", () => {
-    it("meta-компонент с context", () => {
-      const attrs = parseAttributes("context=${{user: currentUser, theme: currentTheme}}")
+describe("fields и mass", () => {
+  describe("meta-компоненты с fields и mass", () => {
+    it("meta-компонент с fields", () => {
+      const attrs = parseAttributes("fields=${{user: currentUser, theme: currentTheme}}")
       expect(attrs).toEqual({
-        context: "{ user: currentUser, theme: currentTheme }",
+        fields: "{ user: currentUser, theme: currentTheme }",
       })
     })
 
-    it("meta-компонент с core", () => {
-      const attrs = parseAttributes("core=${{state: appState, actions: appActions}}")
+    it("meta-компонент с mass", () => {
+      const attrs = parseAttributes("mass=${{state: appState, actions: appActions}}")
       expect(attrs).toEqual({
-        core: "{ state: appState, actions: appActions }",
+        mass: "{ state: appState, actions: appActions }",
       })
     })
 
-    it("meta-компонент с context и core", () => {
+    it("meta-компонент с fields и mass", () => {
       const attrs = parseAttributes(
-        "context=${{user: currentUser, theme: currentTheme}} core=${{state: appState, actions: appActions}}"
+        "fields=${{user: currentUser, theme: currentTheme}} mass=${{state: appState, actions: appActions}}"
       )
       expect(attrs).toEqual({
-        context: "{ user: currentUser, theme: currentTheme }",
-        core: "{ state: appState, actions: appActions }",
+        fields: "{ user: currentUser, theme: currentTheme }",
+        mass: "{ state: appState, actions: appActions }",
       })
     })
 
-    it("meta-компонент с динамическим context", () => {
-      const attrs = parseAttributes("context=${{user: ${getCurrentUser()}, theme: ${getTheme()}}}")
+    it("meta-компонент с динамическим fields", () => {
+      const attrs = parseAttributes("fields=${{user: ${getCurrentUser()}, theme: ${getTheme()}}}")
       expect(attrs).toEqual({
-        context: "{ user: ${getCurrentUser()}, theme: ${getTheme()} }",
+        fields: "{ user: ${getCurrentUser()}, theme: ${getTheme()} }",
       })
     })
 
-    it("meta-компонент с условным context", () => {
+    it("meta-компонент с условным fields", () => {
       const attrs = parseAttributes(
-        "context=${{user: isLoggedIn ? currentUser : null, theme: isDark ? darkTheme : lightTheme}}"
+        "fields=${{user: isLoggedIn ? currentUser : null, theme: isDark ? darkTheme : lightTheme}}"
       )
       expect(attrs).toEqual({
-        context: "{ user: isLoggedIn ? currentUser : null, theme: isDark ? darkTheme : lightTheme }",
+        fields: "{ user: isLoggedIn ? currentUser : null, theme: isDark ? darkTheme : lightTheme }",
       })
     })
 
-    it("meta-компонент с вложенными объектами в context", () => {
+    it("meta-компонент с вложенными объектами в fields", () => {
       const attrs = parseAttributes(
-        'context=${{user: { id: currentUser.id, name: currentUser.name }, settings: { theme: "dark", lang: "ru" }}}'
+        'fields=${{user: { id: currentUser.id, name: currentUser.name }, settings: { theme: "dark", lang: "ru" }}}'
       )
       expect(attrs).toEqual({
-        context: '{ user: { id: currentUser.id, name: currentUser.name }, settings: { theme: "dark", lang: "ru" } }',
+        fields: '{ user: { id: currentUser.id, name: currentUser.name }, settings: { theme: "dark", lang: "ru" } }',
       })
     })
 
-    it("meta-компонент с функциями в core", () => {
+    it("meta-компонент с функциями в mass", () => {
       const attrs = parseAttributes(
-        "core=${{actions: { save: saveData, delete: deleteData }, utils: { format: formatText }}}"
+        "mass=${{actions: { save: saveData, delete: deleteData }, utils: { format: formatText }}}"
       )
       expect(attrs).toEqual({
-        core: "{ actions: { save: saveData, delete: deleteData }, utils: { format: formatText } }",
+        mass: "{ actions: { save: saveData, delete: deleteData }, utils: { format: formatText } }",
       })
     })
 
-    it("meta-компонент с template literals в context", () => {
+    it("meta-компонент с template literals в fields", () => {
       const attrs = parseAttributes(
-        'context=${{apiUrl: `${baseUrl}/api`, wsUrl: `${baseUrl.replace("http", "ws")}/ws`}}'
+        'fields=${{apiUrl: `${baseUrl}/api`, wsUrl: `${baseUrl.replace("http", "ws")}/ws`}}'
       )
       expect(attrs).toEqual({
-        context: '{ apiUrl: `${baseUrl}/api`, wsUrl: `${baseUrl.replace("http", "ws")}/ws` }',
+        fields: '{ apiUrl: `${baseUrl}/api`, wsUrl: `${baseUrl.replace("http", "ws")}/ws` }',
       })
     })
 
-    it("meta-компонент с пустым context", () => {
-      const attrs = parseAttributes("context=${{}}")
+    it("meta-компонент с пустым fields", () => {
+      const attrs = parseAttributes("fields=${{}}")
       expect(attrs).toEqual({})
     })
 
-    it("meta-компонент с пустым core", () => {
-      const attrs = parseAttributes("core=${{}}")
+    it("meta-компонент с пустым mass", () => {
+      const attrs = parseAttributes("mass=${{}}")
       expect(attrs).toEqual({})
     })
 
-    it("meta-компонент с context, core и другими атрибутами", () => {
+    it("meta-компонент с fields, core и другими атрибутами", () => {
       const attrs = parseAttributes(
-        'class="container" context=${{user: currentUser}} core=${{state: appState}} data-testid="meta-component"'
+        'class="container" fields=${{user: currentUser}} mass=${{state: appState}} data-testid="meta-component"'
       )
       expect(attrs).toEqual({
-        context: "{ user: currentUser }",
-        core: "{ state: appState }",
+        fields: "{ user: currentUser }",
+        mass: "{ state: appState }",
         string: {
           class: { type: "static", value: "container" },
           "data-testid": { type: "static", value: "meta-component" },

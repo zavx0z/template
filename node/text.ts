@@ -55,7 +55,7 @@ const logUnsupported = (method: string, expr: string) => {
 /**
  * Парсит текстовый узел с поддержкой методов.
  * ВАЖНО: методы НЕ добавляются в data, а отражаются только в expr:
- *   data: ["/context/name", "/context/email"]
+ *   data: ["/fields/name", "/fields/email"]
  *   expr: "${_[0].toUpperCase()} - ${_[1].toLowerCase()}"
  */
 export const parseText = (text: string, context: ParseContext = { pathStack: [], level: 0 }): NodeText => {
@@ -308,7 +308,7 @@ export const findText = (chunk: string) => {
  * Извлекает базовую переменную из выражения (без финального вызова метода).
  * Примеры:
  *   "user.name.toUpperCase()" → "user.name"
- *   "context.list.map(...)"   → "context.list"
+ *   "fields.list.map(...)"   → "context.list"
  */
 const extractBaseVariable = (variable: string): string => {
   const stringLiterals: string[] = []

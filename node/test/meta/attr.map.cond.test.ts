@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeAll } from "bun:test"
 import { parse, type Node } from "../../../index"
 
-describe("meta-компоненты с core/context в map и condition", () => {
+describe("meta-компоненты с fields/mass в map и condition", () => {
   describe("meta-элемент с пустыми объектами", () => {
     let elements: Node[]
 
     beforeAll(() => {
-      elements = parse(({ html }) => html` <meta-hash context=${{}} core=${{}} /> `)
+      elements = parse(({ html }) => html` <meta-hash fields=${{}} mass=${{}} /> `)
     })
     it("attributes", () => {
-      expect(elements, "при обработке пустых объектов не должен устанавливаться core и context").toEqual([
+      expect(elements, "при обработке пустых объектов не должен устанавливаться mass и fields").toEqual([
         {
           tag: "meta-hash",
           type: "meta",
@@ -17,7 +17,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
       ])
     })
     it("data", () => {
-      expect(elements, "core и context не должно быть в data").toEqual([
+      expect(elements, "fields и mass не должно быть в data").toEqual([
         {
           tag: "meta-hash",
           type: "meta",
@@ -25,19 +25,19 @@ describe("meta-компоненты с core/context в map и condition", () => 
       ])
     })
   })
-  describe("meta-компоненты в map с core объектами", () => {
+  describe("meta-компоненты в map с mass объектами", () => {
     type Core = { items: any[]; tag: string; type: string }
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse<any, Core>(
-        ({ html, core, context }) => html`
+        ({ html, mass, fields }) => html`
           <div>
-            ${core.items.map(
+            ${mass.items.map(
               (item) => html`
-                <meta-${core.tag}
-                  core=${{ id: item.id, name: item.name, type: core.type }}
-                  context=${{ status: item.status, active: item.active }} />
+                <meta-${mass.tag}
+                  mass=${{ id: item.id, name: item.name, type: mass.type }}
+                  fields=${{ status: item.status, active: item.active }} />
               `
             )}
           </div>
@@ -53,19 +53,19 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "map",
-              data: "/core/items",
+              data: "/mass/items",
               child: [
                 {
                   tag: {
-                    data: "/core/tag",
+                    data: "/mass/tag",
                     expr: "meta-${_[0]}",
                   },
                   type: "meta",
-                  core: {
-                    data: ["[item]/id", "[item]/name", "/core/type"],
+                  mass: {
+                    data: ["[item]/id", "[item]/name", "/mass/type"],
                     expr: "{ id: _[0], name: _[1], type: _[2] }",
                   },
-                  context: {
+                  fields: {
                     data: ["[item]/status", "[item]/active"],
                     expr: "{ status: _[0], active: _[1] }",
                   },
@@ -78,23 +78,23 @@ describe("meta-компоненты с core/context в map и condition", () => 
     })
   })
 
-  describe("meta-компоненты в condition с core/context объектами", () => {
+  describe("meta-компоненты в condition с fields/mass объектами", () => {
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse(
-        ({ html, core, context }) => html`
+        ({ html, mass, fields }) => html`
           <div>
-            ${context.showMeta
+            ${fields.showMeta
               ? html`
-                  <meta-${core.tag}
-                    core=${{ id: context.id, name: context.name }}
-                    context=${{ type: "primary", active: true }} />
+                  <meta-${mass.tag}
+                    mass=${{ id: fields.id, name: fields.name }}
+                    fields=${{ type: "primary", active: true }} />
                 `
               : html`
-                  <meta-${core.tag}
-                    core=${{ id: "default", name: "default" }}
-                    context=${{ type: "secondary", active: false }} />
+                  <meta-${mass.tag}
+                    mass=${{ id: "default", name: "default" }}
+                    fields=${{ type: "secondary", active: false }} />
                 `}
           </div>
         `
@@ -108,28 +108,28 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "cond",
-              data: "/context/showMeta",
+              data: "/fields/showMeta",
               child: [
                 {
                   tag: {
-                    data: "/core/tag",
+                    data: "/mass/tag",
                     expr: "meta-${_[0]}",
                   },
                   type: "meta",
-                  core: {
-                    data: ["/context/id", "/context/name"],
+                  mass: {
+                    data: ["/fields/id", "/fields/name"],
                     expr: "{ id: _[0], name: _[1] }",
                   },
-                  context: '{ type: "primary", active: true }',
+                  fields: '{ type: "primary", active: true }',
                 },
                 {
                   tag: {
-                    data: "/core/tag",
+                    data: "/mass/tag",
                     expr: "meta-${_[0]}",
                   },
                   type: "meta",
-                  core: '{ id: "default", name: "default" }',
-                  context: '{ type: "secondary", active: false }',
+                  mass: '{ id: "default", name: "default" }',
+                  fields: '{ type: "secondary", active: false }',
                 },
               ],
             },
@@ -145,20 +145,20 @@ describe("meta-компоненты с core/context в map и condition", () => 
 
     beforeAll(() => {
       elements = parse<any, Core>(
-        ({ html, core, context }) => html`
+        ({ html, mass, fields }) => html`
           <div>
-            ${context.showList
+            ${fields.showList
               ? html`
-                  ${core.items.map(
+                  ${mass.items.map(
                     (item) => html`
-                      <meta-${core.tag}
-                        core=${{
+                      <meta-${mass.tag}
+                        mass=${{
                           id: item.id,
                           name: item.name,
-                          type: core.type,
+                          type: mass.type,
                           metadata: item.metadata,
                         }}
-                        context=${{
+                        fields=${{
                           status: item.status,
                           active: item.active,
                           permissions: item.permissions,
@@ -167,9 +167,9 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   )}
                 `
               : html`
-                  <meta-${core.tag}
-                    core=${{ id: "empty", name: "empty" }}
-                    context=${{ type: "empty", active: false }} />
+                  <meta-${mass.tag}
+                    mass=${{ id: "empty", name: "empty" }}
+                    fields=${{ type: "empty", active: false }} />
                 `}
           </div>
         `
@@ -183,23 +183,23 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "cond",
-              data: "/context/showList",
+              data: "/fields/showList",
               child: [
                 {
                   type: "map",
-                  data: "/core/items",
+                  data: "/mass/items",
                   child: [
                     {
                       tag: {
-                        data: "/core/tag",
+                        data: "/mass/tag",
                         expr: "meta-${_[0]}",
                       },
                       type: "meta",
-                      core: {
-                        data: ["[item]/id", "[item]/name", "/core/type", "[item]/metadata"],
+                      mass: {
+                        data: ["[item]/id", "[item]/name", "/mass/type", "[item]/metadata"],
                         expr: "{ id: _[0], name: _[1], type: _[2], metadata: _[3] }",
                       },
-                      context: {
+                      fields: {
                         data: ["[item]/status", "[item]/active", "[item]/permissions"],
                         expr: "{ status: _[0], active: _[1], permissions: _[2] }",
                       },
@@ -208,12 +208,12 @@ describe("meta-компоненты с core/context в map и condition", () => 
                 },
                 {
                   tag: {
-                    data: "/core/tag",
+                    data: "/mass/tag",
                     expr: "meta-${_[0]}",
                   },
                   type: "meta",
-                  core: '{ id: "empty", name: "empty" }',
-                  context: '{ type: "empty", active: false }',
+                  mass: '{ id: "empty", name: "empty" }',
+                  fields: '{ type: "empty", active: false }',
                 },
               ],
             },
@@ -229,40 +229,40 @@ describe("meta-компоненты с core/context в map и condition", () => 
 
     beforeAll(() => {
       elements = parse<any, Core>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.items.map(
+            ${mass.items.map(
               (item) => html`
                 ${item.isActive
                   ? html`
-                      <meta-${core.tag}
-                        core=${{
+                      <meta-${mass.tag}
+                        mass=${{
                           id: item.id,
                           name: item.name,
                           type: "active",
                         }}
-                        context=${{
+                        fields=${{
                           status: "active",
                           permissions: item.permissions,
                         }} />
                     `
                   : item.hasError
                   ? html`
-                      <meta-${core.tag}
-                        core=${{
+                      <meta-${mass.tag}
+                        mass=${{
                           id: item.id,
                           name: item.name,
                           type: "error",
                         }}
-                        context=${{
+                        fields=${{
                           status: "error",
                           message: "Item has error",
                         }} />
                     `
                   : html`
-                      <meta-${core.tag}
-                        core=${{ id: item.id, name: item.name, type: "inactive" }}
-                        context=${{ status: "inactive" }} />
+                      <meta-${mass.tag}
+                        mass=${{ id: item.id, name: item.name, type: "inactive" }}
+                        fields=${{ status: "inactive" }} />
                     `}
               `
             )}
@@ -279,7 +279,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "map",
-              data: "/core/items",
+              data: "/mass/items",
               child: [
                 {
                   type: "cond",
@@ -287,15 +287,15 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   child: [
                     {
                       tag: {
-                        data: "/core/tag",
+                        data: "/mass/tag",
                         expr: "meta-${_[0]}",
                       },
                       type: "meta",
-                      core: {
+                      mass: {
                         data: ["[item]/id", "[item]/name"],
                         expr: '{ id: _[0], name: _[1], type: "active" }',
                       },
-                      context: {
+                      fields: {
                         data: "[item]/permissions",
                         expr: '{ status: "active", permissions: _[0] }',
                       },
@@ -306,27 +306,27 @@ describe("meta-компоненты с core/context в map и condition", () => 
                       child: [
                         {
                           tag: {
-                            data: "/core/tag",
+                            data: "/mass/tag",
                             expr: "meta-${_[0]}",
                           },
                           type: "meta",
-                          core: {
+                          mass: {
                             data: ["[item]/id", "[item]/name"],
                             expr: '{ id: _[0], name: _[1], type: "error" }',
                           },
-                          context: '{ status: "error", message: "Item has error" }',
+                          fields: '{ status: "error", message: "Item has error" }',
                         },
                         {
                           tag: {
-                            data: "/core/tag",
+                            data: "/mass/tag",
                             expr: "meta-${_[0]}",
                           },
                           type: "meta",
-                          core: {
+                          mass: {
                             data: ["[item]/id", "[item]/name"],
                             expr: '{ id: _[0], name: _[1], type: "inactive" }',
                           },
-                          context: '{ status: "inactive" }',
+                          fields: '{ status: "inactive" }',
                         },
                       ],
                     },
@@ -340,19 +340,19 @@ describe("meta-компоненты с core/context в map и condition", () => 
     })
   })
 
-  describe("сложные meta-компоненты с вложенными core/context объектами", () => {
+  describe("сложные meta-компоненты с вложенными fields/mass объектами", () => {
     type Core = { users: any[]; tag: string }
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse<any, Core>(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.users.map(
+            ${mass.users.map(
               (user) => html`
                 ${user.permissions.includes("admin")
-                  ? html`<meta-${core.tag}
-                      core=${{
+                  ? html`<meta-${mass.tag}
+                      mass=${{
                         id: user.id,
                         name: user.name,
                         type: "admin",
@@ -363,7 +363,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                           settings: user.settings,
                         },
                       }}
-                      context=${{
+                      fields=${{
                         status: "admin",
                         active: user.isOnline,
                         canEdit: true,
@@ -371,8 +371,8 @@ describe("meta-компоненты с core/context в map и condition", () => 
                         canManage: true,
                       }} />`
                   : user.permissions.includes("moderator")
-                  ? html`<meta-${core.tag}
-                      core=${{
+                  ? html`<meta-${mass.tag}
+                      mass=${{
                         id: user.id,
                         name: user.name,
                         type: "moderator",
@@ -383,15 +383,15 @@ describe("meta-компоненты с core/context в map и condition", () => 
                           settings: user.settings,
                         },
                       }}
-                      context=${{
+                      fields=${{
                         status: "moderator",
                         active: user.isOnline,
                         canEdit: true,
                         canDelete: false,
                         canManage: false,
                       }} />`
-                  : html`<meta-${core.tag}
-                      core=${{
+                  : html`<meta-${mass.tag}
+                      mass=${{
                         id: user.id,
                         name: user.name,
                         type: "user",
@@ -402,7 +402,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                           settings: user.settings,
                         },
                       }}
-                      context=${{
+                      fields=${{
                         status: "user",
                         active: user.isOnline,
                         canEdit: false,
@@ -424,7 +424,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "map",
-              data: "/core/users",
+              data: "/mass/users",
               child: [
                 {
                   type: "cond",
@@ -433,15 +433,15 @@ describe("meta-компоненты с core/context в map и condition", () => 
                   child: [
                     {
                       tag: {
-                        data: "/core/tag",
+                        data: "/mass/tag",
                         expr: "meta-${_[0]}",
                       },
                       type: "meta",
-                      core: {
+                      mass: {
                         data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
                         expr: '{ id: _[0], name: _[1], type: "admin", permissions: _[2], metadata: { level: "admin", access: "full", settings: _[3] } }',
                       },
-                      context: {
+                      fields: {
                         data: "[item]/isOnline",
                         expr: '{ status: "admin", active: _[0], canEdit: true, canDelete: true, canManage: true }',
                       },
@@ -453,30 +453,30 @@ describe("meta-компоненты с core/context в map и condition", () => 
                       child: [
                         {
                           tag: {
-                            data: "/core/tag",
+                            data: "/mass/tag",
                             expr: "meta-${_[0]}",
                           },
                           type: "meta",
-                          core: {
+                          mass: {
                             data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
                             expr: '{ id: _[0], name: _[1], type: "moderator", permissions: _[2], metadata: { level: "moderator", access: "limited", settings: _[3] } }',
                           },
-                          context: {
+                          fields: {
                             data: "[item]/isOnline",
                             expr: '{ status: "moderator", active: _[0], canEdit: true, canDelete: false, canManage: false }',
                           },
                         },
                         {
                           tag: {
-                            data: "/core/tag",
+                            data: "/mass/tag",
                             expr: "meta-${_[0]}",
                           },
                           type: "meta",
-                          core: {
+                          mass: {
                             data: ["[item]/id", "[item]/name", "[item]/permissions", "[item]/settings"],
                             expr: '{ id: _[0], name: _[1], type: "user", permissions: _[2], metadata: { level: "user", access: "basic", settings: _[3] } }',
                           },
-                          context: {
+                          fields: {
                             data: "[item]/isOnline",
                             expr: '{ status: "user", active: _[0], canEdit: false, canDelete: false, canManage: false }',
                           },
@@ -493,21 +493,21 @@ describe("meta-компоненты с core/context в map и condition", () => 
     })
   })
 
-  describe("meta-компоненты с динамическими core/context объектами", () => {
+  describe("meta-компоненты с динамическими mass/context объектами", () => {
     type Core = { items: any[]; tag: string; type: string }
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse<any, Core>(
-        ({ html, core, context }) => html`
+        ({ html, mass, fields }) => html`
           <div>
-            ${core.items.map(
+            ${mass.items.map(
               (item) => html`
-                <meta-${core.tag}
-                  core=${{
+                <meta-${mass.tag}
+                  mass=${{
                     id: item.id,
                     name: item.name,
-                    type: core.type,
+                    type: mass.type,
                     dynamic: item.isActive ? "active" : "inactive",
                     computed: `${item.id}-${item.name}`,
                     metadata: {
@@ -516,7 +516,7 @@ describe("meta-компоненты с core/context в map и condition", () => 
                       tags: item.tags || [],
                     },
                   }}
-                  context=${{
+                  fields=${{
                     status: item.isActive ? "active" : "inactive",
                     active: item.isActive,
                     canEdit: item.permissions.includes("edit"),
@@ -541,15 +541,15 @@ describe("meta-компоненты с core/context в map и condition", () => 
           child: [
             {
               type: "map",
-              data: "/core/items",
+              data: "/mass/items",
               child: [
                 {
                   tag: {
-                    data: "/core/tag",
+                    data: "/mass/tag",
                     expr: "meta-${_[0]}",
                   },
                   type: "meta",
-                  context: {
+                  fields: {
                     data: [
                       "[item]/isActive",
                       "[item]/permissions/includes",
@@ -559,11 +559,11 @@ describe("meta-компоненты с core/context в map и condition", () => 
                     ],
                     expr: '{ status: _[0] ? "active" : "inactive", active: _[0], canEdit: _[1]("edit"), canDelete: _[1]("delete"), dynamic: { lastModified: _[2], created: _[3], updated: _[4] || _[2] } }',
                   },
-                  core: {
+                  mass: {
                     data: [
                       "[item]/id",
                       "[item]/name",
-                      "/core/type",
+                      "/mass/type",
                       "[item]/isActive",
                       "[item]/status",
                       "[item]/priority",

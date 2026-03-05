@@ -6,8 +6,8 @@ describe("условные выражения в атрибутах", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<{ count: number }>(
-        ({ html, context }) => html`
-          <div class="${10 > context.count && context.count < 3 ? "active" : "inactive"}">Content</div>
+        ({ html, fields }) => html`
+          <div class="${10 > fields.count && fields.count < 3 ? "active" : "inactive"}">Content</div>
         `
       )
     })
@@ -18,7 +18,7 @@ describe("условные выражения в атрибутах", () => {
           type: "el",
           string: {
             class: {
-              data: "/context/count",
+              data: "/fields/count",
               expr: '${10 > _[0] && _[0] < 3 ? "active" : "inactive"}',
             },
           },
@@ -36,8 +36,8 @@ describe("условные выражения в атрибутах", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<{ isActive: boolean; status: "waiting" | "running"; item: string }>(
-        ({ html, context, core }) => html`
-          <div class="${core.isActive === context.isActive ? `${context.item}-active-${context.status}` : "inactive"}">
+        ({ html, fields, mass }) => html`
+          <div class="${mass.isActive === fields.isActive ? `${fields.item}-active-${fields.status}` : "inactive"}">
             Content
           </div>
         `
@@ -50,7 +50,7 @@ describe("условные выражения в атрибутах", () => {
           type: "el",
           string: {
             class: {
-              data: ["/core/isActive", "/context/isActive", "/context/item", "/context/status"],
+              data: ["/mass/isActive", "/fields/isActive", "/fields/item", "/fields/status"],
               expr: '${_[0] === _[1] ? `${_[2]}-active-${_[3]}` : "inactive"}',
             },
           },

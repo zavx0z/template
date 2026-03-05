@@ -19,9 +19,9 @@ describe("boolean атрибуты", () => {
           }[]
         }
       >(
-        ({ html, core }) => html`
+        ({ html, mass }) => html`
           <div>
-            ${core.companies.map(
+            ${mass.companies.map(
               (company) => html`
                 <section ${company.active && "data-active"}>
                   ${company.departments.map(
@@ -47,7 +47,7 @@ describe("boolean атрибуты", () => {
           child: [
             {
               type: "map",
-              data: "/core/companies",
+              data: "/mass/companies",
               child: [
                 {
                   tag: "section",
@@ -94,7 +94,7 @@ describe("boolean атрибуты", () => {
     let elements: Node[]
     beforeAll(() => {
       elements = parse<any, { visible: boolean }>(
-        ({ html, context }) => html`<img src="https://example.com" ${context.visible ? "visible" : "hidden"} />`
+        ({ html, fields }) => html`<img src="https://example.com" ${fields.visible ? "visible" : "hidden"} />`
       )
     })
     it("data", () => {
@@ -107,10 +107,10 @@ describe("boolean атрибуты", () => {
           },
           boolean: {
             visible: {
-              data: "/context/visible",
+              data: "/fields/visible",
             },
             hidden: {
-              data: "/context/visible",
+              data: "/fields/visible",
               expr: "!_[0]",
             },
           },

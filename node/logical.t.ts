@@ -12,7 +12,7 @@ import type { PartAttrMeta } from "./meta.t"
  * @example Простое логическое условие
  * ```html
  * <div>
- *   ${context.isAdmin && html`<button>Админ-панель</button>`}
+ *   ${fields.isAdmin && html`<button>Админ-панель</button>`}
  * </div>
  * ```
  *
@@ -24,7 +24,7 @@ import type { PartAttrMeta } from "./meta.t"
  *   "child": [
  *     {
  *       "type": "log",
- *       "data": "/context/isAdmin",
+ *       "data": "/fields/isAdmin",
  *       "child": [
  *         {
  *           "tag": "button",
@@ -45,9 +45,9 @@ import type { PartAttrMeta } from "./meta.t"
  * @example Логическое условие с проверкой массива
  * ```html
  * <div>
- *   ${core.notifications.length > 0 && html`
+ *   ${mass.notifications.length > 0 && html`
  *     <div class="notifications">
- *       ${core.notifications.map(n => html`<div>${n.message}</div>`)}
+ *       ${mass.notifications.map(n => html`<div>${n.message}</div>`)}
  *     </div>
  *   `}
  * </div>
@@ -61,7 +61,7 @@ import type { PartAttrMeta } from "./meta.t"
  *   "child": [
  *     {
  *       "type": "log",
- *       "data": "/core/notifications.length",
+ *       "data": "/mass/notifications.length",
  *       "expr": "${[0]} > 0",
  *       "child": [
  *         {
@@ -73,7 +73,7 @@ import type { PartAttrMeta } from "./meta.t"
  *           "child": [
  *             {
  *               "type": "map",
- *               "data": "/core/notifications",
+ *               "data": "/mass/notifications",
  *               "child": [
  *                 {
  *                   "tag": "div",
@@ -115,14 +115,14 @@ export interface NodeLogical {
    *
    * @example Простой путь
    * ```typescript
-   * data: "/context/isAdmin"
+   * data: "/fields/isAdmin"
    * ```
    *
    * ---
    *
    * @example Массив путей
    * ```typescript
-   * data: ["/context/notifications", "/context/count"]
+   * data: ["/fields/notifications", "/fields/count"]
    * ```
    */
   data: string | string[]

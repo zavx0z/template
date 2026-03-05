@@ -19,11 +19,11 @@ export const createNodeDataMeta = (
     ...(node.child && { child: node.child.map((child) => createNode(child, context)) }),
   }
   // Обрабатываем семантические атрибуты
-  if ("core" in node && node.core) {
-    result.core = processSemanticAttributes(node.core, context) || node.core
+  if ("mass" in node && node.mass) {
+    result.mass = processSemanticAttributes(node.mass, context) || node.mass
   }
-  if ("context" in node && node.context) {
-    result.context = processSemanticAttributes(node.context, context) || node.context
+  if ("fields" in node && node.fields) {
+    result.fields = processSemanticAttributes(node.fields, context) || node.fields
   }
   return result
 }

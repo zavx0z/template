@@ -68,7 +68,7 @@ describe("update", () => {
 
     beforeAll(() => {
       elements = parse<{ count: number }>(
-        ({ html, update, context }) => html` <button onclick=${() => update({ count: context.count + 1 })}>OK</button> `
+        ({ html, update, fields }) => html` <button onclick=${() => update({ count: fields.count + 1 })}>OK</button> `
       )
     })
     it("data", () => {
@@ -79,7 +79,7 @@ describe("update", () => {
           event: {
             onclick: {
               upd: "count",
-              data: "/context/count",
+              data: "/fields/count",
               expr: "() => update({ count: _[0] + 1 })",
             },
           },
@@ -94,14 +94,14 @@ describe("update", () => {
     })
   })
 
-  describe("функция обновления контекста данными из core и context", () => {
+  describe("функция обновления fields данными из mass и fields", () => {
     let elements: Node[]
 
     beforeAll(() => {
       elements = parse<{ count: number; iteration: number }>(
-        ({ html, update, core, context }) =>
+        ({ html, update, mass, fields }) =>
           html`
-            <button onclick=${() => update({ count: core.count + context.count, iteration: context.iteration + 1 })}>
+            <button onclick=${() => update({ count: mass.count + fields.count, iteration: fields.iteration + 1 })}>
               OK
             </button>
           `
@@ -116,7 +116,7 @@ describe("update", () => {
           event: {
             onclick: {
               upd: ["count", "iteration"],
-              data: ["/core/count", "/context/count", "/context/iteration"],
+              data: ["/mass/count", "/fields/count", "/fields/iteration"],
               expr: "() => update({ count: _[0] + _[1], iteration: _[2] + 1 })",
             },
           },
@@ -131,7 +131,7 @@ describe("update", () => {
     })
   })
 
-  describe("функция обновления контекста данными из core и context внутри массива вложенного в массив", () => {
+  describe("функция обновления fields данными из mass и fields внутри массива вложенного в массив", () => {
     let elements: Node[]
 
     beforeAll(() => {
@@ -139,11 +139,11 @@ describe("update", () => {
         { count: number; iteration: number },
         { items: { count: number; iteration: number }[]; count: number; iteration: number }
       >(
-        ({ html, update, core }) =>
+        ({ html, update, mass }) =>
           html`
-            ${core.items.map(
+            ${mass.items.map(
               (item) => html`
-                <button onclick=${() => update({ count: core.count + item.count, iteration: item.iteration + 1 })}>
+                <button onclick=${() => update({ count: mass.count + item.count, iteration: item.iteration + 1 })}>
                   OK
                 </button>
               `
@@ -155,7 +155,7 @@ describe("update", () => {
       expect(elements).toEqual([
         {
           type: "map",
-          data: "/core/items",
+          data: "/mass/items",
           child: [
             {
               tag: "button",
@@ -163,7 +163,7 @@ describe("update", () => {
               event: {
                 onclick: {
                   upd: ["count", "iteration"],
-                  data: ["/core/count", "[item]/count", "[item]/iteration"],
+                  data: ["/mass/count", "[item]/count", "[item]/iteration"],
                   expr: "() => update({ count: _[0] + _[1], iteration: _[2] + 1 })",
                 },
               },
