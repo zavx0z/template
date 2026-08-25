@@ -1,6 +1,6 @@
 import type { PartAttrMap } from "./map.t"
 import type { PartAttrElement } from "./element.t"
-import type { NodeType } from "./index.t"
+import type { Node } from "./index.t"
 import type { PartAttrMeta } from "./meta.t"
 
 /**
@@ -161,11 +161,9 @@ import type { PartAttrMeta } from "./meta.t"
  * }
  * ```
  *
- * Структура узла:
- * - `type` - всегда "cond" для условных операторов
- * - `data` - путь(и) к данным для условия
- * - `expr` - выражение с индексами (если условие сложное)
- * - `child` - массив из двух элементов: [true-ветка, false-ветка]
+ * `child` содержит все узлы true-ветки, затем все узлы false-ветки.
+ * `elseIndex` указывает индекс первого false-узла и не записывается для обычной
+ * границы `1`.
  */
 export interface NodeCondition {
   /** Тип узла - всегда "cond" для условных операторов */
@@ -195,11 +193,10 @@ export interface NodeCondition {
    * ```
    */
   expr?: string
-  /** Узлы для случая когда условие истинно и ложно
-   * - true: первый элемент массива (child[0])
-   * - false: второй элемент массива (child[1])
-   */
-  child: NodeType[]
+  /** Индекс первого false-узла в `child`; отсутствует при значении `1`. */
+  elseIndex?: number
+  /** Узлы обеих ветвей: сначала true, затем false. */
+  child: Node[]
 }
 export type TokenCondClose = { kind: "cond-close" }
 export type TokenCondElse = { kind: "cond-else" }
@@ -209,9 +206,8 @@ export type PartAttrCondition = {
   type: "cond"
   /** Исходный текст условия */
   text: string
-  /** Элементы, условия
-   * - true: первый элемент массива
-   * - false: второй элемент массива
-   */
+  /** Индекс первого элемента false-ветки. */
+  elseIndex?: number
+  /** Элементы обеих ветвей: сначала true, затем false. */
   child: (PartAttrElement | PartAttrMeta | PartAttrCondition | PartAttrMap)[]
 }

@@ -1,75 +1,46 @@
-# @zavx0z/template
+# `@zavx0z/template`
 
-[![npm](https://img.shields.io/npm/v/@zavx0z/renderer)](https://www.npmjs.com/package/@zavx0z/renderer)
-[![bun](https://img.shields.io/badge/bun-1.0+-black)](https://bun.sh/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
-[![JavaScript](https://img.shields.io/badge/JavaScript-ESM-green)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)
-[![MDN](https://img.shields.io/badge/MDN-HTML-red)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+Browser-safe parser ограниченного HTML-like template syntax.
 
-## Шаблонизатор для **MetaFor**. Извлекает структуру, пути к данным и выражения из tagged template literals **без их выполнения**
+Пакет статически читает callback с `html\`...\`` и возвращает типизированное
+дерево, не выполняя переданную функцию. Он сохраняет авторский порядок и
+поддерживает элементы, атрибуты, текст, интерполяции, тернарные и логические
+ветви, `map()` и custom elements.
 
-`@zavx0z/template` статически парсит исходный код render-функции, достаёт блок `html\`...\`\` и строит нормализованное дерево элементов, текстов, атрибутов, условий, итераций и **meta‑элементов акторов** (в рамках MetaFor).
-
-- Работает в **Node**, **Bun**, браузерах и воркерах
-- Поддерживает **условия**, **циклы**, **логические выражения**, **meta‑теги акторов**
-- Формирует **пути к данным** и **унифицированные выражения**
-- Ничего не исполняет, только анализирует
+Смысл тегов, допустимые expressions и преобразование дерева принадлежат
+потребителю. Например, MetaFor отдельно проверяет Matter и превращает syntax
+nodes в `MatterSchema`.
 
 ## Установка
 
 ```bash
-bun i @zavx0z/template
+bun add @zavx0z/template
 ```
 
-🛠 Пример
+## Использование
 
 ```typescript
-import { parse } from "@zavx0z/template"
-import { Fields } from "@zavx0z/fields"
+import {parse} from "@zavx0z/template"
 
-const { fields, update, onUpdate } = new Fields((t) => ({
-  cups: t.number.required(0)({ title: "orders" }),
-  last: t.string.optional()({ title: "last ordered drink" }),
-}))
-
-const mass = {
-  menu: [
-    { label: "Espresso", size: "30ml" },
-    { label: "Cappuccino", size: "200ml" },
-    { label: "Latte", size: "250ml" },
-  ],
-}
-
-let state = "open"
-
-const nodes = parse<typeof fields, typeof mass, "open" | "closed">(
-  ({ html, fields, update, mass, state }) => html`
-    <h1>☕ Quick Coffee Order</h1>
-
-    <p>
-      Status: ${state === "open" ? "🟢 Open" : "🔴 Closed"} · Orders: ${fields.cups}${fields.last &&
-      ` · last: ${fields.last}`}
-    </p>
-
-    ${state === "open" &&
-    html`
-      <ul>
-        ${mass.menu.map(
-          (product) =>
-            html`<li>
-              ${product.label} (${product.size})
-              <button onclick=${() => update({ cups: fields.cups + 1, last: product.label })}>Add</button>
-            </li>`
-        )}
-      </ul>
-    `} ${state === "closed" && html`<p>Come back later — we’ll brew something tasty ☺️</p>`}
-  `
-)
+const nodes = parse(({html, value}) => html`
+  <article>
+    <h1>${value.title}</h1>
+    ${value.items.map((item) => html`<p>${item.label}</p>`)}
+  </article>
+`)
 ```
 
-## Документация
+`parse()` возвращает `Node[]`. Public TSDoc в исходниках описывает точную форму
+узлов, paths, expressions и ошибки parser.
 
-Полная документация с описанием и примерами доступна здесь: [https://zavx0z.github.io/template/](https://zavx0z.github.io/template/)
+## Граница
+
+- Parser не создаёт DOM и не рендерит результат.
+- Callback и expressions не исполняются.
+- Синтаксис остаётся намеренно меньше полного XML/HTML стандарта.
+- Доменная семантика и runtime validation не входят в пакет.
+
+Toolchain: Bun `1.4.0`, TypeScript `7.0.2`.
 
 ## Лицензия
 

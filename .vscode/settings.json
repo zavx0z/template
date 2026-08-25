@@ -21,18 +21,9 @@
     "explorer.fileNesting.patterns": {
         "*.html": "$(basename).{js,css,json,config.ts} ${capture}.js.map, ${capture}.min.js, ${capture}.d.ts, ${capture}.spec.ts, ${capture}.t.ts",
         "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lock, bun.lockb, bunfig.toml, .npmrc",
-        "*.ts": "${capture}.js, ${capture}.js.gz, ${capture}.typegen.ts, ${capture}.typegen.d.ts, ${capture}.t.ts, ${capture}.spec.ts, ${capture}.build.ts, ${capture}.d.ts, ${capture}.md",
-        "typedoc.json": "markdown.typedoc.json"
+        "*.ts": "${capture}.js, ${capture}.js.gz, ${capture}.typegen.ts, ${capture}.typegen.d.ts, ${capture}.t.ts, ${capture}.spec.ts, ${capture}.build.ts, ${capture}.d.ts, ${capture}.md"
     },
-    "cSpell.ignorePaths": [
-        "docs/**",
-        "docs-markdown/**",
-        ".gitignore"
-    ],
-    "markdownlint.ignore": [
-        "docs/**",
-        "docs-markdown/**",
-        ".cursor/**/*.mdc"
-    ],
+    "cSpell.ignorePaths": [".gitignore"],
+    "markdownlint.ignore": [".cursor/**/*.mdc"],
     "liveServer.settings.port": 5502
 }

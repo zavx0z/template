@@ -1,34 +1,66 @@
+/**
+Browser-safe parser for the package's bounded HTML-like template syntax.
+
+The parser reads `Function.prototype.toString()` and never invokes the supplied
+callback. It owns syntax only: elements, attributes, text, template
+expressions, conditions, logical branches, maps and `meta-*` elements. Domain
+meaning and validation belong to consumers such as the MetaFor Matter DSL.
+
+@packageDocumentation
+*/
+
 import { createNode } from "./node"
-import type { NodeType } from "./node/index.t"
-import type { Params, Fields, Mass, State } from "./index.t"
+import type { Node } from "./node/index.t"
 import { extractHtmlElements } from "./parser"
 
-export type { NodeType as Node }
+export type { Node } from "./node/index.t"
+
+export type TemplateParameters<
+  Fields extends object = Record<string, any>,
+  Mass extends object = Record<string, any>,
+  State = string,
+> = {
+  html: (strings: TemplateStringsArray, ...values: any[]) => string
+  fields: Fields
+  mass: Mass
+  state: State
+  update: (fields: Partial<Fields>) => void
+  [binding: string]: any
+}
 
 /**
- * Парсит HTML-шаблон и возвращает обогащенную иерархию с метаданными о путях к данным.
- * Поддерживает все возможности парсера:
- * - HTML элементы с атрибутами
- * - Template literals с переменными ${...}
- * - Map операции для итерации по коллекциям
- * - Условные операторы (тернарные)
- * - Вложенные структуры любой сложности
- * - События и динамические атрибуты
- * - Web Components
- *
- * @param template - Template-функция вида ({ html, fields, mass, state }) => html`...`
- * @returns Обогащенная иерархия с метаданными о путях к данным
- */
-export const parse = <F extends Fields = Fields, M extends Mass = Mass, S extends State = State>(
-  template: (params: Params<F, M, S>) => void
-): NodeType[] => {
+Parses the first `html` tagged template found in a callback source.
+
+The parameter type is intentionally generic. A domain can pass its own typed
+declaration callback without making this package depend on that domain. The
+default parameter shape only provides contextual typing for inline templates;
+the callback is never executed.
+
+@param template - Callback whose source contains an `html` tagged template.
+@returns Root syntax nodes in authored order.
+@throws Error when the callback source contains no complete `html` block.
+
+@example
+```ts
+const nodes = parse(({html, value}) => html`
+  <section>${value.title}</section>
+`)
+```
+*/
+export function parse<
+  Fields extends object = Record<string, any>,
+  Mass extends object = Record<string, any>,
+  State = string,
+>(template: (parameters: TemplateParameters<Fields, Mass, State>) => unknown): Node[]
+export function parse<Parameters extends object>(template: (parameters: Parameters) => unknown): Node[]
+export function parse(template: Function): Node[] {
   const mainHtml = extractMainHtmlBlock(template)
   const hierarchy = extractHtmlElements(mainHtml)
   const context = { pathStack: [], level: 0 }
   return hierarchy.map((node) => createNode(node, context))
 }
 
-const extractMainHtmlBlock = (template: (params: Params<any, any, any>) => void): string => {
+const extractMainHtmlBlock = (template: Function): string => {
   const src = Function.prototype.toString.call(template)
   const firstIndex = src.indexOf("html`")
   if (firstIndex === -1) throw new Error("функция template не содержит html`")

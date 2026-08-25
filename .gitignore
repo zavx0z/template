@@ -1,11 +1,8 @@
-# docs
-docs
-docs-markdown
-rules.md
 # dependencies (bun install)
 node_modules
 # output
 dist
+tmp
 # IntelliJ based IDEs
 .idea
 # Finder (MacOS) folder config

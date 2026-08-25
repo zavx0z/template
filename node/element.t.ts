@@ -1,6 +1,6 @@
 import type { AttrNodeElement } from "./index.t"
 import type { Attributes } from "../attribute/index.t"
-import type { NodeType } from "./index.t"
+import type { Node } from "./index.t"
 
 /**
  * Узел HTML элемента в AST.
@@ -90,7 +90,7 @@ export interface NodeElement extends Attributes {
    * ]
    * ```
    */
-  child?: NodeType[]
+  child?: Node[]
 }
 export interface PartAttrElement extends AttrNodeElement {
   /** Тип узла */

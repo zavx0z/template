@@ -1,5 +1,5 @@
 import type { ValueDynamic, ValueVariable } from "./parser.t"
-import type { PartsAttr, NodeType } from "./node/index.t"
+import type { PartsAttr, Node } from "./node/index.t"
 import type { Attributes } from "./attribute/index.t"
 import type { PartAttrMap, TokenMapClose, TokenMapOpen } from "./node/map.t"
 import type { PartAttrCondition, TokenCondClose, TokenCondElse, TokenCondOpen } from "./node/condition.t"
@@ -149,9 +149,8 @@ export const extractHtmlElements = (input: string): PartsAttr => {
     lastIndex = tagEnd
   }
 
-  if (store.child.length) return store.child
-  // если нет тегов, то парсим текст и операторы
-  if (input.trim()) parseTextAndOperators(input.slice(lastIndex), store)
+  const tail = input.slice(lastIndex)
+  if (tail.trim()) parseTextAndOperators(tail, store)
   return store.child
 }
 
@@ -313,6 +312,8 @@ class Hierarchy {
     const curEl = this.cursor.element as unknown as PartAttrElement | PartAttrMeta
     !Object.hasOwn(curEl, "child") && (curEl.child = [])
     if (this.cursor.part === "if") {
+      const condition = curEl as unknown as PartAttrCondition
+      condition.elseIndex = condition.child.length
       this.cursor.parts.pop()
       this.cursor.parts.push("else")
     }
@@ -522,8 +523,10 @@ export const processSemanticAttributes = (
   str: string,
   ctx: ParseContext = { pathStack: [], level: 0 }
 ): ValueVariable | ValueDynamic | null => {
+  const { protectedExpr, stringLiterals } = protectStringLiterals(str)
+
   // Извлекаем все переменные из строки объекта
-  const variableMatches = str.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
+  const variableMatches = protectedExpr.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)+)/g) || []
 
   if (variableMatches.length === 0) {
     return null
@@ -536,10 +539,7 @@ export const processSemanticAttributes = (
   const paths = uniqueVariables.map((variable: string) => resolveDataPath(variable, ctx) || variable)
 
   // Создаем унифицированное выражение, заменяя переменные на индексы
-  let expr = str
-
-  // Защищаем строковые литералы от замены
-  const { protectedExpr, stringLiterals } = protectStringLiterals(expr)
+  let expr = protectedExpr
 
   uniqueVariables.forEach((variable: string, index: number) => {
     // Заменяем переменные на индексы во всем выражении
@@ -547,11 +547,11 @@ export const processSemanticAttributes = (
     expr = expr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
   })
 
-  // Восстанавливаем строковые литералы
-  expr = restoreStringLiterals(expr, stringLiterals)
-
   // Применяем форматирование к выражению
   expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
+
+  // Восстанавливаем строковые литералы после форматирования
+  expr = restoreStringLiterals(expr, stringLiterals)
 
   // Возвращаем результат в новом формате
   return {
@@ -705,10 +705,9 @@ export const resolveDataPath = (variable: string, context: ParseContext): string
  */
 
 export const createUnifiedExpression = (value: string, variables: string[]): string => {
-  let expr = value
-
   // Сначала защищаем строковые литералы от замены
-  const { stringLiterals } = protectStringLiterals(expr)
+  const { protectedExpr, stringLiterals } = protectStringLiterals(value)
+  let expr = protectedExpr
 
   // Заменяем переменные в ${} на индексы
   variables.forEach((variable, index) => {
@@ -821,18 +820,9 @@ export const parseCondition = (condText: string, context: ParseContext = { pathS
   const cleanCondText = cleanConditionText(condText)
 
   // Защищаем строковые литералы от обработки
-  const stringLiterals: string[] = []
-  let protectedText = cleanCondText
-    .replace(/"[^"]*"/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
-    .replace(/'[^']*'/g, (match) => {
-      stringLiterals.push(match)
-      return `__STRING_${stringLiterals.length - 1}__`
-    })
+  const { protectedExpr } = protectStringLiterals(cleanCondText)
 
-  const allMatches = protectedText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+  const allMatches = protectedExpr.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
   const pathMatches = allMatches.filter((match) => !match.startsWith("__STRING_"))
 
   if (pathMatches.length === 0) return { path: "" }
@@ -859,10 +849,13 @@ const cleanConditionText = (condText: string): string => {
  * Извлекает выражение условия.
  */
 export const extractConditionExpression = (condText: string, pathMatches?: string[]): string => {
+  const { protectedExpr, stringLiterals } = protectStringLiterals(condText)
+  const restore = (expression: string): string => restoreStringLiterals(expression, stringLiterals)
+
   // Для условий с индексами, извлекаем только логическое выражение
-  if (condText.includes("Index")) {
+  if (protectedExpr.includes("Index")) {
     // Ищем все логические выражения с индексами
-    const indexMatches = condText.match(/([a-zA-Z_$][\w$]*\s*[=!<>]+\s*[0-9]+)/g) || []
+    const indexMatches = protectedExpr.match(/([a-zA-Z_$][\w$]*\s*[=!<>]+\s*[0-9]+)/g) || []
     if (indexMatches.length > 0) {
       // Собираем все логические выражения
       let logicalExpression = indexMatches.join(" && ")
@@ -878,16 +871,16 @@ export const extractConditionExpression = (condText: string, pathMatches?: strin
         )
       })
 
-      return logicalExpression.replace(/\s+/g, " ").trim()
+      return restore(logicalExpression.replace(/\s+/g, " ").trim())
     }
   }
 
   // Ищем все переменные в условии (но не числа)
-  const variables = pathMatches || condText.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+  const variables = pathMatches || protectedExpr.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
 
   // Проверяем, есть ли математические операции или другие сложные операции
-  const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(condText)
-  const hasLogicalOperators = /[&&||]/.test(condText)
+  const hasComplexOperations = /[%+\-*/===!===!=<>().]/.test(protectedExpr)
+  const hasLogicalOperators = /[&&||]/.test(protectedExpr)
 
   // Если найдена только одна переменная и нет сложных операций, возвращаем простое выражение
   if (variables.length === 1 && !hasComplexOperations && !hasLogicalOperators) {
@@ -897,19 +890,19 @@ export const extractConditionExpression = (condText: string, pathMatches?: strin
   // Если найдена только одна переменная, но есть простые математические операции (например, i % 2)
   if (variables.length === 1 && hasComplexOperations && !hasLogicalOperators) {
     // Заменяем переменную на индекс и оборачиваем в ${}
-    let expression = condText
+    let expression = protectedExpr
     expression = expression.replace(
       new RegExp(`\\b${variables[0]!.replace(/\./g, "\\.")}\\b`, "g"),
       `${ARGUMENTS_PREFIX}[0]`
     )
-    return expression
+    return restore(expression)
   }
 
   // Заменяем переменные на индексы ${${ARGUMENTS_PREFIX}[0]}, ${${ARGUMENTS_PREFIX}[1]}, и т.д.
   // Сортируем переменные по длине (сначала более длинные), чтобы избежать частичной замены
   const sortedVariables = [...variables].sort((a, b) => b.length - a.length)
 
-  let expression = condText
+  let expression = protectedExpr
   sortedVariables.forEach((path) => {
     const index = variables.indexOf(path)
     expression = expression.replace(
@@ -918,7 +911,7 @@ export const extractConditionExpression = (condText: string, pathMatches?: strin
     )
   })
 
-  return expression.replace(/\s+/g, " ").trim()
+  return restore(expression.replace(/\s+/g, " ").trim())
 }
 
 /**
@@ -937,8 +930,10 @@ export const parseTemplateLiteral = (
 
   // Функция для извлечения переменных из строки с учетом вложенных ${...}
   const extractVariables = (str: string) => {
+    const { protectedExpr } = protectStringLiterals(str)
+
     // Извлекаем все переменные в порядке их появления в строке
-    const allVariableMatches = str.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
+    const allVariableMatches = protectedExpr.match(/([a-zA-Z_$][\w$]*(?:\.[a-zA-Z_$][\w$]*)*)/g) || []
     allVariableMatches.forEach((variable) => {
       if (
         variable.length > 1 &&
@@ -950,8 +945,8 @@ export const parseTemplateLiteral = (
         !variables.includes(variable)
       ) {
         // Проверяем, не является ли переменная частью метода
-        const variableIndex = str.indexOf(variable)
-        const afterVariable = str.slice(variableIndex + variable.length)
+        const variableIndex = protectedExpr.indexOf(variable)
+        const afterVariable = protectedExpr.slice(variableIndex + variable.length)
         const isMethodCall = afterVariable.match(/^\s*\(/)
 
         if (!isMethodCall) {
@@ -961,20 +956,7 @@ export const parseTemplateLiteral = (
     })
 
     // Защищаем строковые литералы
-    const stringLiterals: string[] = []
-    let protectedStr = str
-      .replace(/"[^"]*"/g, (match) => {
-        stringLiterals.push(match)
-        return `__STRING_${stringLiterals.length - 1}__`
-      })
-      .replace(/'[^']*'/g, (match) => {
-        stringLiterals.push(match)
-        return `__STRING_${stringLiterals.length - 1}__`
-      })
-      .replace(/`[^`]*`/g, (match) => {
-        stringLiterals.push(match)
-        return `__STRING_${stringLiterals.length - 1}__`
-      })
+    const protectedStr = protectedExpr.replace(/`[^`]*`/g, "__STRING_TEMPLATE__")
 
     // Рекурсивно извлекаем переменные из всех ${...} выражений
     const extractFromTemplate = (content: string) => {
@@ -1028,10 +1010,9 @@ export const parseTemplateLiteral = (
   const paths = variables.map((variable: string) => resolveDataPath(variable, context))
 
   // Создаем унифицированное выражение, заменяя переменные на индексы
-  let expr = value
-
   // Защищаем строковые литералы от замены
-  const { stringLiterals } = protectStringLiterals(expr)
+  const { protectedExpr, stringLiterals } = protectStringLiterals(value)
+  let expr = protectedExpr
 
   variables.forEach((variable: string, index: number) => {
     // Заменяем переменные на индексы во всем выражении
@@ -1040,11 +1021,11 @@ export const parseTemplateLiteral = (
     expr = expr.replace(variableRegex, `${ARGUMENTS_PREFIX}[${index}]`)
   })
 
-  // Восстанавливаем строковые литералы
-  expr = restoreStringLiterals(expr, stringLiterals)
-
   // Применяем форматирование к выражению
   expr = expr.replace(WHITESPACE_PATTERN, " ").trim()
+
+  // Восстанавливаем строковые литералы после форматирования
+  expr = restoreStringLiterals(expr, stringLiterals)
 
   // Возвращаем результат в новом формате
   return {
@@ -1056,7 +1037,7 @@ export const parseTemplateLiteral = (
 export const enrichWithData = (
   hierarchy: PartsAttr,
   context: ParseContext = { pathStack: [], level: 0 }
-): NodeType[] => {
+): Node[] => {
   return hierarchy.map((node) => createNode(node, context))
 }
 // ============================================================================

@@ -108,6 +108,45 @@ describe("parse", () => {
     })
   })
 
+  it("сохраняет границу многосоставных тернарных ветвей", () => {
+    const result = parse(({html, state}) => html`
+      ${state === "ready"
+        ? html`<meta-one /><meta-two />`
+        : html`<meta-three /><meta-four />`}
+    `)
+
+    expect(result[0]).toMatchObject({
+      type: "cond",
+      data: "/state",
+      elseIndex: 2,
+      child: [
+        {type: "meta", tag: "meta-one"},
+        {type: "meta", tag: "meta-two"},
+        {type: "meta", tag: "meta-three"},
+        {type: "meta", tag: "meta-four"},
+      ],
+    })
+  })
+
+  it("сохраняет custom-element src и runtime bindings без доменной валидации", () => {
+    const result = parse(({html, value, mass, energy}) => html`
+      <meta-for
+        src="demo/${value.mode}"
+        fields=${{mode: value.mode, label: "value.mode"}}
+        mass=${mass}
+        energy=${energy} />
+    `)
+
+    expect(result[0]).toMatchObject({
+      type: "meta",
+      tag: "meta-for",
+      src: {data: "/value/mode", expr: "demo/${_[0]}"},
+      fields: {data: "/value/mode", expr: '{ mode: _[0], label: "value.mode" }'},
+      mass: {data: "/mass"},
+      energy: {data: "/energy"},
+    })
+  })
+
   it("парсит HTML с событиями и динамическими атрибутами", () => {
     const result = parse(
       ({ html, fields }) => html`

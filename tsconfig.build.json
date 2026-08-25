@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist"
+  },
+  "include": [
+    "index.ts",
+    "parser.ts",
+    "parser.t.ts",
+    "attribute/**/*.ts",
+    "node/**/*.ts"
+  ],
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "attribute/test/**",
+    "node/test/**"
+  ]
+}

@@ -5,10 +5,10 @@ import { createNodeDataMap } from "./map"
 import { createNodeDataMeta } from "./meta"
 import { parseText } from "./text"
 import { createNodeDataElement } from "./element"
-import type { NodeType, PartAttr } from "./index.t"
+import type { Node, PartAttr } from "./index.t"
 
-/** Создает Node из PartAttr. */
-export const createNode = (node: PartAttr, context: ParseContext): NodeType => {
+/** Создает публичный узел AST из внутреннего узла scanner. */
+export const createNode = (node: PartAttr, context: ParseContext): Node => {
   switch (node.type) {
     case "map":
       return createNodeDataMap(node, context)
