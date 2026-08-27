@@ -33,10 +33,40 @@ const nodes = parse(({html, value}) => html`
 `parse()` возвращает `Node[]`. Public TSDoc в исходниках описывает точную форму
 узлов, paths, expressions и ошибки parser.
 
+## Nested Style
+
+`style` принимает JavaScript-like object literal. Parser рекурсивно сохраняет
+CSS-свойства, quoted selectors и at-rules, но не проверяет их словарь и не
+придаёт им runtime-семантику:
+
+```typescript
+const nodes = parse(({html, fields}) => html`
+  <button
+    style=${{
+      display: "flex",
+      width: "100%",
+      "&:hover": {
+        color: fields.hoverColor,
+        "& .icon": {
+          transform: `translateX(${fields.offset}px)`,
+        },
+      },
+    }}>
+    Save
+  </button>
+`)
+```
+
+Статические leaves остаются строками. Простой dynamic path становится
+`{data: path}`, а ternary или template expression — `{data, expr}`. Вложенные
+объекты имеют ту же рекурсивную форму. Callback и expressions при этом не
+исполняются.
+
 ## Граница
 
 - Parser не создаёт DOM и не рендерит результат.
 - Callback и expressions не исполняются.
+- Parser не содержит allowlist CSS-свойств, selectors или at-rules.
 - Синтаксис остаётся намеренно меньше полного XML/HTML стандарта.
 - Доменная семантика и runtime validation не входят в пакет.
 

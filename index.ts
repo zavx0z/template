@@ -3,8 +3,9 @@ Browser-safe parser for the package's bounded HTML-like template syntax.
 
 The parser reads `Function.prototype.toString()` and never invokes the supplied
 callback. It owns syntax only: elements, attributes, text, template
-expressions, conditions, logical branches, maps and `meta-*` elements. Domain
-meaning and validation belong to consumers such as the MetaFor Matter DSL.
+expressions, conditions, logical branches, maps, recursive style object
+literals and `meta-*` elements. Domain meaning and validation belong to
+consumers such as the MetaFor Matter DSL.
 
 @packageDocumentation
 */
@@ -14,6 +15,8 @@ import type { Node } from "./node/index.t"
 import { extractHtmlElements } from "./parser"
 
 export type { Node } from "./node/index.t"
+export type { Attributes } from "./attribute/index.t"
+export type { ValueStyle, ValueStyleObject } from "./attribute/style.t"
 
 export type TemplateParameters<
   Fields extends object = Record<string, any>,

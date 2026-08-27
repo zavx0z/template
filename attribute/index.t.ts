@@ -3,7 +3,7 @@ import type { ValueArray } from "./array.t"
 import type { ValueBoolean } from "./boolean.t"
 import type { ValueEvent } from "./event.t"
 import type { ValueString } from "./string.t"
-import type { ValueStyle } from "./style.t"
+import type { ValueStyleObject } from "./style.t"
 
 export type ValueType = "dynamic" | "static" | "mixed"
 
@@ -18,6 +18,6 @@ export interface Attributes {
   array?: Record<string, ValueArray[]>
   /** Строковые атрибуты (id, title, alt, href и т.д.) */
   string?: Record<string, ValueString>
-  /** Стили (CSS в виде строки или объекта) */
-  style?: Record<string, ValueStyle>
+  /** Recursive style object preserved without CSS-specific validation. */
+  style?: ValueStyleObject
 }
