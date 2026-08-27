@@ -1,15 +1,11 @@
 # `@zavx0z/template`
 
-Browser-safe parser ограниченного HTML-like template syntax.
+Компилятор HTML-шаблонов в адресные операции над `@zavx0z/dom`.
 
-Пакет статически читает callback с `html\`...\`` и возвращает типизированное
-дерево, не выполняя переданную функцию. Он сохраняет авторский порядок и
-поддерживает элементы, атрибуты, текст, интерполяции, тернарные и логические
-ветви, `map()` и custom elements.
-
-Смысл тегов, допустимые expressions и преобразование дерева принадлежат
-потребителю. Например, MetaFor отдельно проверяет Matter и превращает syntax
-nodes в `MatterSchema`.
+Основной runtime-путь создаёт настоящие `Node`, `Element`, `HTMLElement` и
+`Text`. Повторное обновление меняет только связанные текст, атрибут или
+обработчик и сохраняет идентичность остальных DOM-объектов. Пакет ничего не
+знает об Engine, layout, paint, WebGPU или UI-компонентах.
 
 ## Установка
 
@@ -17,7 +13,49 @@ nodes в `MatterSchema`.
 bun add @zavx0z/template
 ```
 
-## Использование
+## Direct DOM
+
+```typescript
+import {createDocument} from "@zavx0z/dom"
+import {compile, html} from "@zavx0z/template"
+
+const document = createDocument()
+const root = document.createElement("div")
+document.appendChild(root)
+
+const counter = compile((state: {count: number; increment: () => void}) => html`
+  <button title="Increase counter" onclick=${state.increment}>
+    Count: ${state.count}
+  </button>
+`)
+
+const instance = counter.mount(root, {count: 0, increment: () => {}})
+const button = root.children[0]
+
+instance.update({count: 1, increment: () => {}})
+// button === root.children[0]
+```
+
+`instance.rootNodes` возвращает только authored root nodes. Внутренние
+`Comment`-границы остаются приватной частью адресации. `@zavx0z/dom` подключён
+как peer dependency и не встраивается в browser bundle, поэтому приложение и
+Template работают в одном DOM realm.
+
+`onclick=${handler}` подключается через стандартные
+`addEventListener`/`removeEventListener`. `title`, `class`, `disabled`, `style`
+и остальные атрибуты записываются через стандартный DOM API. Вложенные
+`html`-шаблоны обновляются на месте, а массивы пока сопоставляются по позиции.
+Динамические строки не парсятся повторно: в содержимом они становятся `Text`,
+а в атрибутах передаются напрямую в `setAttribute`.
+
+Границы первого среза и проверяемые требования находятся в
+[`requirements.md`](./requirements.md).
+
+## Статический syntax parser
+
+Отдельный `parse()` API статически читает callback с `html\`...\`` и возвращает
+типизированное syntax tree, не выполняя переданную функцию. Этот путь остаётся
+для DSL-потребителей и не участвует в DOM runtime.
 
 ```typescript
 import {parse} from "@zavx0z/template"
@@ -30,7 +68,7 @@ const nodes = parse(({html, value}) => html`
 `)
 ```
 
-`parse()` возвращает `Node[]`. Public TSDoc в исходниках описывает точную форму
+`parse()` возвращает syntax `Node[]`. Public TSDoc в исходниках описывает точную форму
 узлов, paths, expressions и ошибки parser.
 
 ## Nested Style
@@ -62,7 +100,7 @@ const nodes = parse(({html, fields}) => html`
 объекты имеют ту же рекурсивную форму. Callback и expressions при этом не
 исполняются.
 
-## Граница
+## Граница статического parser
 
 - Parser не создаёт DOM и не рендерит результат.
 - Callback и expressions не исполняются.

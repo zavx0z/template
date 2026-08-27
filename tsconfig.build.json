@@ -8,6 +8,7 @@
   },
   "include": [
     "index.ts",
+    "dom.ts",
     "parser.ts",
     "parser.t.ts",
     "attribute/**/*.ts",

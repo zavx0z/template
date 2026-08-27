@@ -1,7 +1,7 @@
 {
   "name": "@zavx0z/template",
   "version": "2.6.2",
-  "description": "Browser-safe parser ограниченного HTML-like template syntax",
+  "description": "HTML templates compiled to addressed @zavx0z/dom mutations",
   "author": "zavx0z",
   "license": "MIT",
   "packageManager": "bun@1.4.0",
@@ -29,18 +29,22 @@
   "private": false,
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "requirements.md"
   ],
   "devDependencies": {
+    "@zavx0z/dom": "file:../renderer/packages/dom",
     "@types/bun": "^1.4.0",
     "typescript": "^7.0.2"
   },
   "peerDependencies": {
+    "@zavx0z/dom": "^0.1.0",
     "typescript": "^7.0.2"
   },
   "scripts": {
     "typecheck": "tsc --project tsconfig.json --pretty false",
-    "build:js": "bun build index.ts --outdir dist --target browser --format esm",
+    "test": "bun test",
+    "build:js": "bun build index.ts --outdir dist --target browser --format esm --external @zavx0z/dom",
     "build:types": "tsc --project tsconfig.build.json --pretty false",
     "build": "bun run typecheck && bun run build:js && bun run build:types",
     "prepublishOnly": "bun run build",

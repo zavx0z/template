@@ -1,11 +1,10 @@
 /**
-Browser-safe parser for the package's bounded HTML-like template syntax.
+HTML templates compiled to addressed `@zavx0z/dom` mutations.
 
-The parser reads `Function.prototype.toString()` and never invokes the supplied
-callback. It owns syntax only: elements, attributes, text, template
-expressions, conditions, logical branches, maps, recursive style object
-literals and `meta-*` elements. Domain meaning and validation belong to
-consumers such as the MetaFor Matter DSL.
+The primary `html` and `compile` API creates real DOM nodes and preserves their
+identity across updates. The separate `parse` API reads
+`Function.prototype.toString()` without invoking the supplied callback and
+continues to own bounded syntax analysis for DSL consumers.
 
 @packageDocumentation
 */
@@ -13,6 +12,15 @@ consumers such as the MetaFor Matter DSL.
 import { createNode } from "./node"
 import type { Node } from "./node/index.t"
 import { extractHtmlElements } from "./parser"
+
+export {compile, html} from "./dom"
+export type {
+  TemplateChild,
+  TemplateInstance,
+  TemplateProgram,
+  TemplateResult,
+  TemplateView
+} from "./dom"
 
 export type { Node } from "./node/index.t"
 export type { Attributes } from "./attribute/index.t"
