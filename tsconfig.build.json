@@ -4,11 +4,16 @@
     "noEmit": false,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "rootDir": "."
   },
   "include": [
     "index.ts",
     "dom.ts",
+    "compiled.ts",
+    "jsx-runtime.ts",
+    "jsx-dev-runtime.ts",
+    "compiler/**/*.ts",
     "parser.ts",
     "parser.t.ts",
     "attribute/**/*.ts",
@@ -17,6 +22,8 @@
   "exclude": [
     "**/*.spec.ts",
     "**/*.test.ts",
+    "compiler/runtime-plugin-proof.ts",
+    "compiler/test-fixture/**",
     "attribute/test/**",
     "node/test/**"
   ]

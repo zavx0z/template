@@ -5,14 +5,17 @@
     "": {
       "name": "template",
       "devDependencies": {
-        "@zavx0z/dom": "file:../renderer/packages/dom",
         "@types/bun": "^1.4.0",
-        "typescript": "^7.0.2",
+        "@zavx0z/dom": "file:../renderer/packages/dom",
+        "typescript": "7.0.2",
       },
       "peerDependencies": {
         "@zavx0z/dom": "^0.1.0",
-        "typescript": "^7.0.2",
+        "typescript": "7.0.2",
       },
+      "optionalPeers": [
+        "typescript",
+      ],
     },
   },
   "packages": {

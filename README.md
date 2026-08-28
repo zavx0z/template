@@ -71,6 +71,112 @@ const nodes = parse(({html, value}) => html`
 `parse()` возвращает syntax `Node[]`. Public TSDoc в исходниках описывает точную форму
 узлов, paths, expressions и ошибки parser.
 
+## JSX/TSX
+
+JSX и tagged `html` принадлежат одному репозиторию и одному DOM mutation
+boundary. JSX source проходит через build-time `@zavx0z/template/compiler` и
+понижает статическую структуру в `@zavx0z/template/compiled`: один mount
+статических DOM nodes и числовые binding slots. Tagged `html` пока использует
+собственный `TemplateProgram`/dynamic-part runtime; общего внутреннего IR между
+двумя frontends ещё нет.
+
+Владелец границы разделён намеренно: Template содержит source compiler и
+`CompiledTemplate` ABI, а `@zavx0z/react` содержит только component scheduler,
+hooks и `createRoot`. Название runtime-пакета описывает привычную форму API, но
+не означает зависимость от React.
+
+```tsx
+import {createRoot, useState} from "@zavx0z/react"
+
+function Counter({initial}: Readonly<{initial: number}>) {
+  const [count, setCount] = useState(initial)
+  return <button onClick={() => setCount(value => value + 1)}>{count}</button>
+}
+
+createRoot(container).render(<Counter initial={0} />)
+```
+
+Компонентный `children` остаётся compile-time syntax, а не runtime JSX value.
+Автор типизирует принимающий prop структурным source-маркером и рендерит его
+напрямую как `props.children`:
+
+```tsx
+import type {JsxSourceElement} from "@zavx0z/template/jsx-runtime"
+
+function Child({label}: Readonly<{label: string}>) {
+  return <span>{label}</span>
+}
+
+function Pane(props: Readonly<{children: JsxSourceElement}>) {
+  return <section>{props.children}</section>
+}
+
+function Application() {
+  return <Pane><Child label="Output" /></Pane>
+}
+```
+
+Compiler превращает authored child в `@zavx0z/react` `ComponentValue`, а
+`props.children` — в один прямой retained `bindChild` range. Nullable
+`JsxSourceElement | null` использует `bindConditional`; primitive
+string/number/boolean/nullish content использует существующий `bindText`;
+`readonly JsxSourceElement[]` использует `bindKeyed`, но только когда caller
+доказуемо создаётся compiler-ом из keyed JSX `.map()` или нескольких explicit
+component children с non-null keys. Raw arrays не становятся runtime children.
+
+Compiler cache на children-heavy source проверяется командой
+`bun run bench:jsx:children`. Runtime focused test отдельно делает 1,000
+updates одного child graph и подтверждает неизменные mount/node identities.
+
+Authoring TypeScript должен сохранять JSX до Template compiler:
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "@zavx0z/template"
+  }
+}
+```
+
+Для Bun build используется `createTemplateJsxBunPlugin()` из
+`@zavx0z/template/bun`. Это тонкий adapter только для JSX-bearing расширений
+(`.tsx`, `.jsx` и их `m`/`c` variants); обычные `.ts`/`.js` modules он не
+перехватывает. Compiler session и TypeScript остаются в compiler process, а
+production output импортирует только `@zavx0z/template/compiled` и
+`@zavx0z/react`. React, Fiber, virtual DOM и runtime JSX descriptors
+отсутствуют.
+
+Тот же adapter можно подключить как test/dev preload. Для runtime
+`Bun.plugin(...)` обязателен persistent session:
+
+```typescript
+import {createTemplateJsxBunPlugin} from "@zavx0z/template/bun"
+
+Bun.plugin(createTemplateJsxBunPlugin({
+  persistent: true,
+  sourceRoots: ["./src", "./test"],
+}))
+```
+
+Профиль намеренно ограничен синхронными function declarations с одним финальным
+JSX return. Component children поддерживают один governed component,
+component-or-null, primitive text и compiler-owned keyed components;
+принимающий component в первом профиле использует exact `props.children`.
+Fragments, intrinsic elements через component boundary, explicit `children=`
+attribute, destructured receiver, arrow/default/async components, spreads,
+unkeyed и arbitrary array children завершают компиляцию точной ошибкой.
+Compiler пока не создаёт edit-aware source map обратно к authored TSX
+(`sourceMaps: false` в профиле). Caller может включить Bun `sourcemap`; такая
+карта относится к сгенерированному `onLoad` source и не считается точным
+authored-TSX mapping.
+
+`@zavx0z/template/jsx-runtime` нужен TypeScript для JSX namespace и намеренно
+падает, если JSX дошёл до runtime нескомпилированным. Скрытого fallback пути
+нет. Его public authored-JSX marker, как и public compiled ABI, структурный:
+два корректно установленных экземпляра пакета совместимы в TypeScript, а
+runtime guards используют внутренние `Symbol.for(...)` brands.
+
 ## Nested Style
 
 `style` принимает JavaScript-like object literal. Parser рекурсивно сохраняет

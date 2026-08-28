@@ -1,0 +1,189 @@
+import type {
+  Comment,
+  Document,
+  Element,
+  EventListenerOptions,
+  Node,
+  Text
+} from "@zavx0z/dom"
+
+const templateBrand = Symbol.for("@zavx0z/template/compiled-template")
+const bindingBrand = Symbol.for("@zavx0z/template/compiled-binding")
+
+export type BindingValues = unknown[]
+
+export type CompiledMount = Readonly<{
+  bindings: readonly HostBinding[]
+  nodes: readonly Node[]
+}>
+
+export type CompiledTemplateDefinition<Props> = Readonly<{
+  bindingCount: number
+  displayName?: string
+  mount(document: Document): CompiledMount
+  render(props: Readonly<Props>, values: BindingValues): void
+}>
+
+export interface CompiledTemplate<Props = unknown> {
+  readonly bindingCount: number
+  readonly displayName: string
+  mount(document: Document): CompiledMount
+  render(props: Readonly<Props>, values: BindingValues): void
+}
+
+export type TextBinding = Readonly<{
+  kind: "text"
+  target: Text
+}>
+
+export type PropertyBinding = Readonly<{
+  kind: "property"
+  name: string
+  target: Element
+}>
+
+export type StyleBinding = Readonly<{
+  kind: "style"
+  target: Element
+}>
+
+export type EventBinding = Readonly<{
+  capture: boolean
+  kind: "event"
+  target: Element
+  type: string
+}>
+
+export type RefBinding = Readonly<{
+  kind: "ref"
+  target: Node
+}>
+
+export type ChildBinding = Readonly<{
+  end: Comment
+  kind: "child"
+  start: Comment
+}>
+
+export type ConditionalBinding = Readonly<{
+  end: Comment
+  kind: "conditional"
+  start: Comment
+}>
+
+export type KeyedBinding = Readonly<{
+  end: Comment
+  kind: "keyed"
+  start: Comment
+}>
+
+export type HostBinding =
+  | TextBinding
+  | PropertyBinding
+  | StyleBinding
+  | EventBinding
+  | RefBinding
+  | ChildBinding
+  | ConditionalBinding
+  | KeyedBinding
+
+export function defineCompiledTemplate<Props>(
+  definition: CompiledTemplateDefinition<Props>
+): CompiledTemplate<Props> {
+  const bindingCount = Number(definition.bindingCount)
+  if (!Number.isSafeInteger(bindingCount) || bindingCount < 0) {
+    throw new TypeError("Compiled template bindingCount must be a non-negative safe integer")
+  }
+  if (typeof definition.mount !== "function" || typeof definition.render !== "function") {
+    throw new TypeError("Compiled template requires mount and render functions")
+  }
+  return Object.freeze({
+    [templateBrand]: true as const,
+    bindingCount,
+    displayName: definition.displayName ?? "CompiledTemplate",
+    mount: definition.mount,
+    render: definition.render
+  })
+}
+
+export function bindText(target: Text): TextBinding {
+  return Object.freeze({[bindingBrand]: true as const, kind: "text" as const, target})
+}
+
+export function bindProperty(target: Element, name: string): PropertyBinding {
+  const propertyName = String(name)
+  if (propertyName.length === 0) throw new TypeError("A host property binding requires a name")
+  return Object.freeze({
+    [bindingBrand]: true as const,
+    kind: "property" as const,
+    name: propertyName,
+    target
+  })
+}
+
+export function bindStyle(target: Element): StyleBinding {
+  return Object.freeze({[bindingBrand]: true as const, kind: "style" as const, target})
+}
+
+export function bindEvent(
+  target: Element,
+  type: string,
+  options: EventListenerOptions = {}
+): EventBinding {
+  const eventType = String(type)
+  if (eventType.length === 0) throw new TypeError("An event binding requires an event type")
+  return Object.freeze({
+    [bindingBrand]: true as const,
+    capture: options.capture ?? false,
+    kind: "event" as const,
+    target,
+    type: eventType
+  })
+}
+
+export function bindRef(target: Node): RefBinding {
+  return Object.freeze({[bindingBrand]: true as const, kind: "ref" as const, target})
+}
+
+export function bindChild(start: Comment, end: Comment): ChildBinding {
+  return rangeBinding("child", start, end)
+}
+
+export function bindConditional(start: Comment, end: Comment): ConditionalBinding {
+  return rangeBinding("conditional", start, end)
+}
+
+export function bindKeyed(start: Comment, end: Comment): KeyedBinding {
+  return rangeBinding("keyed", start, end)
+}
+
+export function writeBinding(values: BindingValues, slot: number, value: unknown): void {
+  if (!Number.isSafeInteger(slot) || slot < 0 || slot >= values.length) {
+    throw new RangeError(`Binding slot ${slot} is outside the compiled template`)
+  }
+  values[slot] = value
+}
+
+export function isCompiledTemplate(value: unknown): value is CompiledTemplate<unknown> {
+  return !!value && typeof value === "object" &&
+    (value as Record<PropertyKey, unknown>)[templateBrand] === true
+}
+
+export function isHostBinding(value: unknown): value is HostBinding {
+  return !!value && typeof value === "object" &&
+    (value as Record<PropertyKey, unknown>)[bindingBrand] === true
+}
+
+function rangeBinding<Kind extends "child" | "conditional" | "keyed">(
+  kind: Kind,
+  start: Comment,
+  end: Comment
+): Extract<HostBinding, {kind: Kind}> {
+  if (start === end) throw new TypeError("A compiled range requires distinct anchors")
+  return Object.freeze({
+    [bindingBrand]: true as const,
+    end,
+    kind,
+    start
+  }) as Extract<HostBinding, {kind: Kind}>
+}
