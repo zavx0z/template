@@ -14,11 +14,13 @@ import type {
   ReturnStatement,
   SourceFile,
 } from "typescript/unstable/ast"
+import {createHash} from "node:crypto"
 import {NodeFlags, SyntaxKind} from "typescript/unstable/ast"
 import {
   isArrowFunction,
   isBlock,
   isCallExpression,
+  isClassDeclaration,
   isBinaryExpression,
   isConditionalExpression,
   isDoStatement,
@@ -59,10 +61,15 @@ import {
   skipOuterExpressions,
 } from "typescript/unstable/ast/is"
 import {JsxCompileError} from "./errors.ts"
+import {
+  extractCompiledStyle,
+  type JsxStylePrimitiveKind,
+} from "./style.ts"
 
 type Edit = Readonly<{start: number; end: number; text: string}>
 
 type CompileContext = {
+  readonly componentName: string
   readonly components: ReadonlySet<number>
   readonly consumedJsx: Set<Node>
   readonly childrenExpressionKinds: ReadonlyMap<Node, JsxChildrenExpressionKind>
@@ -71,10 +78,14 @@ type CompileContext = {
   readonly source: string
   readonly sourceFile: SourceFile
   readonly sourcePath: string
+  readonly sourceIdentity: string
+  readonly stylePrimitiveKinds: ReadonlyMap<Node, JsxStylePrimitiveKind>
   readonly symbols: ReadonlyMap<Node, number>
+  readonly unstableStyleSymbols: ReadonlySet<number>
   readonly arrayExpressions: ReadonlySet<Node>
   readonly mount: string[]
   readonly bindings: string[]
+  readonly styleSheets: string[]
   readonly writes: string[]
   nodeIndex: number
 }
@@ -135,6 +146,21 @@ export const jsxAuthoringProfile = Object.freeze({
   }),
   customHooks: true,
   sourceMaps: false,
+  styles: Object.freeze({
+    componentLocalObjects: true,
+    conditionalStaticFragments: true,
+    dynamicBaseDeclarations: "inline-binding" as const,
+    dynamicPseudos: false,
+    staticPseudos: Object.freeze([
+      ":active",
+      ":checked",
+      ":disabled",
+      ":focus",
+      ":focus-within",
+      ":hover",
+      ":indeterminate",
+    ] as const),
+  }),
   supportedHooks,
 })
 
@@ -147,6 +173,8 @@ export type JsxTransformSymbols = Readonly<{
   dependencyPaths: ReadonlySet<string>
   importedComponents: ReadonlySet<number>
   importedCustomHooks: ReadonlySet<number>
+  sourceIdentity: string
+  stylePrimitiveKinds: ReadonlyMap<Node, JsxStylePrimitiveKind>
 }>
 
 export type JsxChildrenExpressionKind =
@@ -251,6 +279,8 @@ export function transformJsxSourceFile(
         symbols.byNode,
         symbols.arrayExpressions,
         symbols.childrenExpressionKinds,
+        symbols.sourceIdentity,
+        symbols.stylePrimitiveKinds,
         consumedJsx,
       ),
     })
@@ -343,6 +373,8 @@ function compileComponent(
   symbols: ReadonlyMap<Node, number>,
   arrayExpressions: ReadonlySet<Node>,
   childrenExpressionKinds: ReadonlyMap<Node, JsxChildrenExpressionKind>,
+  sourceIdentity: string,
+  stylePrimitiveKinds: ReadonlyMap<Node, JsxStylePrimitiveKind>,
   consumedJsx: Set<Node>,
 ): string {
   const name = declaration.name!.text
@@ -373,6 +405,7 @@ function compileComponent(
   const context: CompileContext = {
     arrayExpressions,
     childrenExpressionKinds,
+    componentName: name,
     components,
     consumedJsx,
     helper,
@@ -382,9 +415,13 @@ function compileComponent(
     source: sourceFile.text,
     sourceFile,
     sourcePath: sourceFile.fileName,
+    sourceIdentity,
+    stylePrimitiveKinds,
     symbols,
+    unstableStyleSymbols: collectUnstableStyleSymbols(declaration, sourceFile, symbols),
     mount: [],
     bindings: [],
+    styleSheets: [],
     writes: [],
     nodeIndex: 0,
   }
@@ -396,6 +433,7 @@ function compileComponent(
     `${exported}const ${name} = ${helper}Define({`,
     `  displayName: ${JSON.stringify(name)},`,
     `  bindingCount: ${context.bindings.length},`,
+    `  styleSheets: [${context.styleSheets.join(", ")}],`,
     `  mount(document) {`,
     ...context.mount.map((line) => `    ${line}`),
     `    return {`,
@@ -449,12 +487,13 @@ function compileIntrinsic(
     if (name === "class" || name === "className") {
       throw compileError(
         context.sourcePath,
-        "class-based component styling is unsupported; compose defineStyles tokens through style",
+        "class-based component styling is unsupported; declare component-local rules through style",
       )
     }
     if (name === "dangerouslySetInnerHTML") {
       throw compileError(context.sourcePath, "dangerouslySetInnerHTML is unsupported")
     }
+    if (name === "style" && compileStaticStyle(attribute, variable, context)) continue
     const value = attributeValue(attribute, context.sourceFile, context.sourcePath)
     const event = /^on[A-Z]/.test(name)
     const liveProperty = name === "value" || name === "checked" || name === "selected" ||
@@ -490,6 +529,100 @@ function compileIntrinsic(
     for (const childNode of compileChild(child, context)) context.mount.push(`${variable}.appendChild(${childNode})`)
   }
   return variable
+}
+
+function compileStaticStyle(
+  attribute: JsxAttribute,
+  target: string,
+  context: CompileContext,
+): boolean {
+  const initializer = attribute.initializer
+  if (!initializer || !isJsxExpression(initializer) || !initializer.expression) return false
+  let fragmentPosition = 0
+  const extraction = extractCompiledStyle(skipParentheses(initializer.expression), {
+    nextIdentity(source) {
+      const position = fragmentPosition
+      fragmentPosition += 1
+      const hash = createHash("sha256")
+        .update(`${context.sourceIdentity}\0${context.componentName}\0${target}\0${position}\0${source}`)
+        .digest("hex")
+        .slice(0, 24)
+      return Object.freeze({
+        attributeName: `data-z-${hash}` as const,
+        id: `@zavx0z/template/style/${hash}`,
+      })
+    },
+    primitiveKinds: context.stylePrimitiveKinds,
+    sourceFile: context.sourceFile,
+    sourcePath: context.sourcePath,
+    symbols: context.symbols,
+    unstableSymbols: context.unstableStyleSymbols,
+  })
+  for (const fragment of extraction.fragments) {
+    context.styleSheets.push(
+      `{id: ${JSON.stringify(fragment.id)}, cssText: ${fragment.cssTextExpression}}`,
+    )
+    if (fragment.condition === null) {
+      context.mount.push(
+        `${target}.setAttribute(${JSON.stringify(fragment.attributeName)}, "")`,
+      )
+      continue
+    }
+    const slot = context.bindings.length
+    context.bindings.push(
+      `${context.helper}BindProperty(${target}, ${JSON.stringify(fragment.attributeName)})`,
+    )
+    context.writes.push(
+      `${context.helper}Write(${context.helper}Values, ${slot}, Boolean(${fragment.condition}))`,
+    )
+  }
+  if (extraction.residualExpression !== null) {
+    const slot = context.bindings.length
+    context.bindings.push(`${context.helper}BindStyle(${target})`)
+    context.writes.push(
+      `${context.helper}Write(${context.helper}Values, ${slot}, ${extraction.residualExpression})`,
+    )
+  }
+  return extraction.fragments.length > 0 || extraction.residualExpression !== null
+}
+
+function collectUnstableStyleSymbols(
+  declaration: FunctionDeclaration,
+  sourceFile: SourceFile,
+  symbols: ReadonlyMap<Node, number>,
+): ReadonlySet<number> {
+  const unstable = new Set<number>()
+  const addNames = (node: Node): void => {
+    visit(node, child => {
+      if (!isIdentifier(child)) return
+      const id = symbolId(symbols, child)
+      if (id !== null) unstable.add(id)
+    })
+  }
+  for (const parameter of declaration.parameters) addNames(parameter.name)
+  if (declaration.body) {
+    visit(declaration.body, node => {
+      if (isVariableDeclaration(node)) addNames(node.name)
+      if (isFunctionDeclaration(node) && node !== declaration && node.name) addNames(node.name)
+      if (!isFunctionLikeDeclaration(node)) return
+      for (const parameter of node.parameters) addNames(parameter.name)
+    })
+  }
+  const componentStart = declaration.getStart(sourceFile)
+  for (const statement of sourceFile.statements) {
+    if (isClassDeclaration(statement) && statement.name &&
+      statement.getStart(sourceFile) > componentStart) {
+      addNames(statement.name)
+      continue
+    }
+    if (!isVariableStatement(statement)) continue
+    const stableBeforeComponent =
+      (statement.declarationList.flags & NodeFlags.Const) !== 0 &&
+      statement.getStart(sourceFile) < componentStart
+    if (stableBeforeComponent) continue
+    for (const variable of statement.declarationList.declarations) addNames(variable.name)
+  }
+  return unstable
 }
 
 function compileChild(child: JsxChild, context: CompileContext): string[] {

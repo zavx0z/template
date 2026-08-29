@@ -117,3 +117,32 @@ participate in the direct DOM update path.
 - `TEMPLATE-COMPILED-014` — updates reuse the fixed receiving range and nested
   component instances. Repeated child updates may change addressed props and
   Text but must not grow mounts, binding slots or a parallel runtime graph.
+- `TEMPLATE-COMPILED-015` — component-local intrinsic `style` object literals
+  are compiler input, not runtime owner-style objects. Module-stable base
+  declarations and supported pseudo blocks become immutable scoped
+  `CompiledStyleSheet` metadata plus generated `data-z-*` markers. A static
+  fragment guarded by `condition && {...}` uses an addressed boolean marker
+  binding; no component instance reparses that fragment.
+- `TEMPLATE-COMPILED-016` — declarations that depend on props, component locals
+  or hook state remain in the existing inline `bindStyle` channel, preserving
+  caller precedence. A pseudo declaration may not depend on instance state
+  until the platform owns a bounded dynamic-pseudo representation. Style object
+  and array spreads, computed property names, nested/unsupported pseudos and
+  non-primitive module-stable leaves fail during compilation.
+- `TEMPLATE-COMPILED-017` — compiled stylesheet metadata is immutable and
+  keyed by a non-empty deterministic id. Exact duplicate id/text pairs collapse;
+  one id with different CSS fails closed. Template owns metadata transport only;
+  the consuming Document/runtime owns registration, lifecycle and renderer
+  invalidation without scanning DOM nodes or arbitrary runtime style values.
+  Equal declarations at different intrinsic targets or style-array positions
+  intentionally keep distinct ids so authored cascade order remains exact. This
+  adds bounded metadata bytes once per reachable template, never per instance.
+- `TEMPLATE-COMPILED-018` — a pseudo declaration whose value depends on props,
+  component state or another instance-local value remains unsupported until the
+  CPU Renderer implements CSS custom-property cascade and `var()` substitution.
+  The admitted future lowering is one shared static pseudo rule such as
+  `background: var(--z-hover-background)` plus one addressed inline custom
+  property on each instance. The compiler must not generate a stylesheet/rule
+  per instance, scan mounted style objects, or emulate pseudo state with
+  JavaScript/data-state toggles. Until both CSS capabilities exist, this source
+  form fails during compilation.

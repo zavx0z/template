@@ -66,6 +66,7 @@
     "compiler/errors.ts",
     "compiler/index.ts",
     "compiler/session.ts",
+    "compiler/style.ts",
     "compiler/symbols.ts",
     "compiler/transform.ts",
     "README.md",

@@ -55,15 +55,17 @@ try {
   ].join("\n"))
   await writeFile(resolve(consumerRoot, "compiler-types.ts"), [
     'import type {JsxCompilerSessionOptions, JsxCompilerStats} from "@zavx0z/template/compiler"',
-    'import type {CompiledTemplate} from "@zavx0z/template/compiled"',
+    'import type {CompiledStyleSheet, CompiledTemplate} from "@zavx0z/template/compiled"',
     'import type {JsxSourceElement} from "@zavx0z/template/jsx-runtime"',
     "declare const options: JsxCompilerSessionOptions",
     "declare const stats: JsxCompilerStats",
     "declare const template: CompiledTemplate<Record<string, never>>",
+    "declare const styleSheet: CompiledStyleSheet",
     "declare const jsx: JsxSourceElement",
     "void options",
     "void stats",
     "void template",
+    "void styleSheet",
     "void jsx",
     "",
   ].join("\n"))

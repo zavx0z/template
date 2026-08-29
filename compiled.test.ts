@@ -83,6 +83,7 @@ describe("compiled template ABI", () => {
     const foreignTemplate: CompiledTemplate<Record<string, never>> = {
       bindingCount: 1,
       displayName: "ForeignCopy",
+      styleSheets: [],
       mount: () => ({bindings: [foreignBinding], nodes: [text]}),
       render: () => {}
     }

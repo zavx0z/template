@@ -177,6 +177,57 @@ authored-TSX mapping.
 два корректно установленных экземпляра пакета совместимы в TypeScript, а
 runtime guards используют внутренние `Symbol.for(...)` brands.
 
+## Compiled TSX styles
+
+Внутренние owner styles объявляются прямо на intrinsic element. Отдельный
+author-facing `defineStyles`, class name или экспорт CSS не требуется:
+
+```tsx
+function Button(props: Readonly<{selected?: boolean; style?: unknown}>) {
+  return <button style={[
+    {
+      display: "flex",
+      height: 22,
+      ":hover": {background: "rgb(101 101 101)"},
+      ":active": {background: "rgb(71 114 179)"},
+    },
+    props.selected === true && {background: "rgb(71 114 179)"},
+    props.style,
+  ]}>Output</button>
+}
+```
+
+Compiler выносит module-stable declarations и supported pseudos в scoped
+`CompiledStyleSheet` metadata. Unconditional marker устанавливается во время
+static mount, условный static fragment получает обычный addressed boolean
+binding. Props/state-dependent base declarations и caller `style` остаются
+inline binding и поэтому сохраняют более высокий cascade priority.
+
+Первый профиль поддерживает `:active`, `:checked`, `:disabled`, `:focus`,
+`:focus-within`, `:hover` и `:indeterminate`. Dynamic pseudo leaves, style
+spreads, computed keys и nested/unknown pseudos завершают compilation точной
+ошибкой. Это не скрытый runtime CSS-in-JS scanner: metadata строится compiler-ом,
+а downstream Document/runtime регистрирует готовые `{id, cssText}` rules.
+Одинаковый fragment на другом intrinsic target или в другой позиции массива
+сохраняет отдельный marker: небольшое увеличение bundle здесь намеренно
+сохраняет CSS precedence, а Document всё равно регистрирует metadata один раз
+на template, не на каждый instance.
+
+Если pseudo-значение должно зависеть от props/state, будущий контракт использует
+CSS custom property, а не отдельное правило на каждый компонент:
+
+```tsx
+<button style={{
+  "--z-hover-background": props.hoverColor,
+  ":hover": {background: "var(--z-hover-background)"}
+}} />
+```
+
+Static `:hover` остаётся одним общим compiled rule, а экземпляр хранит только
+своё inline `--z-hover-background`. Сейчас custom-property cascade и `var()` в
+Renderer отсутствуют, поэтому такой dynamic pseudo обязан завершиться ошибкой
+компиляции, а не скрытым runtime CSS-in-JS fallback.
+
 ## Nested Style
 
 `style` принимает JavaScript-like object literal. Parser рекурсивно сохраняет

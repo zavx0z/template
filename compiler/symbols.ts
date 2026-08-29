@@ -22,6 +22,8 @@ import {
   isFunctionDeclaration,
   isIdentifier,
   isImportDeclaration,
+  isExpression,
+  isJsxAttribute,
   isJsxElement,
   isJsxExpression,
   isJsxFragment,
@@ -39,6 +41,7 @@ import type {
   JsxChildrenExpressionKind,
   JsxTransformSymbols
 } from "./transform.ts"
+import type {JsxStylePrimitiveKind} from "./style.ts"
 
 const jsxSourceElementMarker = "@zavx0z/template/jsx-source-element"
 
@@ -64,9 +67,15 @@ export async function buildJsxTransformSymbols(
   const importedComponents = new Set<number>()
   const importedCustomHooks = new Set<number>()
   const dependencyPaths = new Set<string>()
+  const styleExpressions: Expression[] = []
   const dynamicChildren: Expression[] = []
   visit(sourceFile, node => {
     if (isJsxExpression(node) && node.expression) dynamicChildren.push(node.expression)
+    if (!isJsxAttribute(node) || node.name.getText(sourceFile) !== "style" ||
+      !node.initializer || !isJsxExpression(node.initializer) || !node.initializer.expression) return
+    visit(node.initializer.expression, child => {
+      if (isExpression(child)) styleExpressions.push(child)
+    })
   })
   const childTypes = await project.checker.getTypeAtLocation(dynamicChildren)
   const arrayExpressions = new Set<Node>()
@@ -88,6 +97,16 @@ export async function buildJsxTransformSymbols(
       classifiedTypes.set(type.id, classified)
     }
     childrenExpressionKinds.set(expression, await classified)
+  }
+  const styleTypes = await project.checker.getTypeAtLocation(styleExpressions)
+  const stylePrimitiveKinds = new Map<Node, JsxStylePrimitiveKind>()
+  for (let index = 0; index < styleExpressions.length; index += 1) {
+    const expression = skipParentheses(styleExpressions[index]!)
+    const type = styleTypes[index]
+    stylePrimitiveKinds.set(
+      expression,
+      type ? await classifyStylePrimitiveType(type) : "unsupported",
+    )
   }
   const jsxTagSymbols = new Set<number>()
   const callSymbols = new Set<number>()
@@ -186,7 +205,39 @@ export async function buildJsxTransformSymbols(
     dependencyPaths,
     importedComponents,
     importedCustomHooks,
+    sourceIdentity: jsxSourceIdentity(sourceFile.fileName, sourceRoots),
+    stylePrimitiveKinds,
   })
+}
+
+async function classifyStylePrimitiveType(type: Type): Promise<JsxStylePrimitiveKind> {
+  if (type.isErrorType() || (type.flags & (TypeFlags.Any | TypeFlags.Unknown)) !== 0) {
+    return "unsupported"
+  }
+  const parts = type.isUnionType() ? await type.getTypes() : [type]
+  let kind: JsxStylePrimitiveKind | null = null
+  for (const part of parts) {
+    const next = (part.flags & (TypeFlags.Null | TypeFlags.Undefined | TypeFlags.Void)) !== 0
+      ? "nullish"
+      : (part.flags & TypeFlags.StringLike) !== 0
+        ? "string"
+        : (part.flags & TypeFlags.NumberLike) !== 0
+          ? "number"
+          : "unsupported"
+    if (next === "unsupported" || (kind !== null && kind !== next)) return "unsupported"
+    kind = next
+  }
+  return kind ?? "unsupported"
+}
+
+function jsxSourceIdentity(sourcePath: string, roots: readonly string[]): string {
+  const candidates = roots
+    .map((root, index) => ({index, root}))
+    .filter(({root}) => inside(root, sourcePath))
+    .sort((left, right) => right.root.length - left.root.length)
+  const owner = candidates[0]
+  if (!owner) return sourcePath.replaceAll("\\", "/")
+  return `${owner.index}:${relative(owner.root, sourcePath).replaceAll("\\", "/")}`
 }
 
 async function classifyChildrenExpressionType(

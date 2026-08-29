@@ -17,9 +17,15 @@ export type CompiledMount = Readonly<{
   nodes: readonly Node[]
 }>
 
+export type CompiledStyleSheet = Readonly<{
+  id: string
+  cssText: string
+}>
+
 export type CompiledTemplateDefinition<Props> = Readonly<{
   bindingCount: number
   displayName?: string
+  styleSheets?: readonly CompiledStyleSheet[]
   mount(document: Document): CompiledMount
   render(props: Readonly<Props>, values: BindingValues): void
 }>
@@ -27,6 +33,7 @@ export type CompiledTemplateDefinition<Props> = Readonly<{
 export interface CompiledTemplate<Props = unknown> {
   readonly bindingCount: number
   readonly displayName: string
+  readonly styleSheets: readonly CompiledStyleSheet[]
   mount(document: Document): CompiledMount
   render(props: Readonly<Props>, values: BindingValues): void
 }
@@ -97,10 +104,12 @@ export function defineCompiledTemplate<Props>(
   if (typeof definition.mount !== "function" || typeof definition.render !== "function") {
     throw new TypeError("Compiled template requires mount and render functions")
   }
+  const styleSheets = compiledStyleSheets(definition.styleSheets ?? [])
   return Object.freeze({
     [templateBrand]: true as const,
     bindingCount,
     displayName: definition.displayName ?? "CompiledTemplate",
+    styleSheets,
     mount: definition.mount,
     render: definition.render
   })
@@ -172,6 +181,32 @@ export function isCompiledTemplate(value: unknown): value is CompiledTemplate<un
 export function isHostBinding(value: unknown): value is HostBinding {
   return !!value && typeof value === "object" &&
     (value as Record<PropertyKey, unknown>)[bindingBrand] === true
+}
+
+function compiledStyleSheets(source: readonly CompiledStyleSheet[]): readonly CompiledStyleSheet[] {
+  if (!Array.isArray(source)) throw new TypeError("Compiled template styleSheets must be an array")
+  const byId = new Map<string, CompiledStyleSheet>()
+  for (const value of source) {
+    if (!value || typeof value !== "object") {
+      throw new TypeError("A compiled stylesheet must be an object")
+    }
+    if (typeof value.id !== "string" || value.id.trim().length === 0) {
+      throw new TypeError("A compiled stylesheet requires a non-empty id string")
+    }
+    const id = value.id.trim()
+    if (typeof value.cssText !== "string") {
+      throw new TypeError(`Compiled stylesheet ${id} requires string cssText`)
+    }
+    const previous = byId.get(id)
+    if (previous) {
+      if (previous.cssText !== value.cssText) {
+        throw new TypeError(`Compiled stylesheet ${id} has conflicting cssText`)
+      }
+      continue
+    }
+    byId.set(id, Object.freeze({id, cssText: value.cssText}))
+  }
+  return Object.freeze([...byId.values()])
 }
 
 function rangeBinding<Kind extends "child" | "conditional" | "keyed">(
