@@ -1,0 +1,5462 @@
+{
+  "generatorVersion": "1.0.0",
+  "package": "@zavx0z/template",
+  "records": [
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Every symbol and observable behavior behind the path.",
+          "path": "package.json",
+          "proves": "The package export path exists.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "./bun",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.bun",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export exists and a bounded implementation is present, but the complete observable contract is not behaviorally covered."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "14",
+          "path": "compiler/bun.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "createTemplateJsxBunPlugin",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "createTemplateJsxBunPlugin",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.bun.symbols.createtemplatejsxbunplugin",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "6",
+          "path": "compiler/bun.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CreateTemplateJsxPluginOptions",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.bun.symbols.createtemplatejsxpluginoptions",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Every symbol and observable behavior behind the path.",
+          "path": "package.json",
+          "proves": "The package export path exists.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "./compiled",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export exists and a bounded implementation is present, but the complete observable contract is not behaviorally covered."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "148",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindChild",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindChild",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindchild",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "152",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindConditional",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindConditional",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindconditional",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "128",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindEvent",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindEvent",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindevent",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "13",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "BindingValues",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindingvalues",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "156",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindKeyed",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindKeyed",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindkeyed",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "113",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindProperty",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindProperty",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindproperty",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "144",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindRef",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindRef",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindref",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "124",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindStyle",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindStyle",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindstyle",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "109",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindText",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "bindText",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.bindtext",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "62",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "ChildBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.childbinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "15",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CompiledMount",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.compiledmount",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "27",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CompiledTemplate",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.compiledtemplate",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "20",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CompiledTemplateDefinition",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.compiledtemplatedefinition",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "68",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "ConditionalBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.conditionalbinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "90",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "defineCompiledTemplate",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "defineCompiledTemplate",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.definecompiledtemplate",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "50",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "EventBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.eventbinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "80",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "HostBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.hostbinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "167",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "isCompiledTemplate",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "isCompiledTemplate",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.iscompiledtemplate",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "172",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "isHostBinding",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "isHostBinding",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.ishostbinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "74",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "KeyedBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.keyedbinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "39",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "PropertyBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.propertybinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "57",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "RefBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.refbinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "45",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "StyleBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.stylebinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "34",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "TextBinding",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.textbinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "160",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "writeBinding",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "writeBinding",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.writebinding",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Every symbol and observable behavior behind the path.",
+          "path": "package.json",
+          "proves": "The package export path exists.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "./compiler",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export exists and a bounded implementation is present, but the complete observable contract is not behaviorally covered."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "4",
+          "path": "compiler/index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "jsxAuthoringProfile",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "jsxAuthoringProfile",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.jsxauthoringprofile",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "1",
+          "path": "compiler/index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxCompileError",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxCompileError",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.jsxcompileerror",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "2",
+          "path": "compiler/index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxCompilerSession",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxCompilerSession",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.jsxcompilersession",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "3",
+          "path": "compiler/index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxCompilerSessionOptions",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.jsxcompilersessionoptions",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "3",
+          "path": "compiler/index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxCompilerStats",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.jsxcompilerstats",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "5",
+          "path": "compiler/index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxTransformSymbols",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.jsxtransformsymbols",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "4",
+          "path": "compiler/index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "transformJsxSourceFile",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "transformJsxSourceFile",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.transformjsxsourcefile",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Every symbol and observable behavior behind the path.",
+          "path": "package.json",
+          "proves": "The package export path exists.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "./jsx-dev-runtime",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-dev-runtime",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export exists and a bounded implementation is present, but the complete observable contract is not behaviorally covered."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "1",
+          "path": "jsx-dev-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "Fragment",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-dev-runtime.symbols.fragment",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export is an explicit fail-closed unsupported path."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "3",
+          "path": "jsx-dev-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JSX",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-dev-runtime.symbols.jsx",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "1",
+          "path": "jsx-dev-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "jsxDEV",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-dev-runtime.symbols.jsxdev",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export is an explicit fail-closed unsupported path."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "2",
+          "path": "jsx-dev-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxSourceElement",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-dev-runtime.symbols.jsxsourceelement",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Every symbol and observable behavior behind the path.",
+          "path": "package.json",
+          "proves": "The package export path exists.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "./jsx-runtime",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export exists and a bounded implementation is present, but the complete observable contract is not behaviorally covered."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "12",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "Element",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.element",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "14",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "ElementChildrenAttribute",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.elementchildrenattribute",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "13",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "ElementType",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.elementtype",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "33",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "Fragment",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.fragment",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export is an explicit fail-closed unsupported path."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "17",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "IntrinsicAttributes",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.intrinsicattributes",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "20",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "IntrinsicElements",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.intrinsicelements",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "25",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "jsx",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.jsx",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export is an explicit fail-closed unsupported path."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "29",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "jsxs",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.jsxs",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export is an explicit fail-closed unsupported path."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "7",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxSourceElement",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.jsxsourceelement",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Every symbol and observable behavior behind the path.",
+          "path": "package.json",
+          "proves": "The package export path exists.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": ".",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The export exists and a bounded implementation is present, but the complete observable contract is not behaviorally covered."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "26",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "Attributes",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.attributes",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "16",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "compile",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "compile",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.compile",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "16",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "html",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "html",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.html",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "25",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "Node",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.node",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "61",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "parse",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "parse",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.parse",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "17",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "TemplateChild",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.templatechild",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "17",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "TemplateInstance",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.templateinstance",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "29",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "TemplateParameters",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.templateparameters",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "17",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "TemplateProgram",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.templateprogram",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "17",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "TemplateResult",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.templateresult",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "17",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "TemplateView",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.templateview",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "27",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "ValueStyle",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.valuestyle",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "27",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "ValueStyleObject",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.valuestyleobject",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "General arrays or complete anchor/realm validation.",
+          "path": "compiler/transform.ts",
+          "proves": "Bounded compiler/ABI branch.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "arrays",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "All general source/runtime forms.",
+          "path": "compiler/component-children-runtime.test.ts",
+          "proves": "Current keyed/fixed-slot behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "arrays",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.arrays",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Only compiler-owned keyed component maps or partial ABI validation are supported."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "arrow component rejection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "arrow component rejection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.arrow-component-rejection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "async component rejection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "async component rejection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.async-component-rejection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "General arrays or complete anchor/realm validation.",
+          "path": "compiler/transform.ts",
+          "proves": "Bounded compiler/ABI branch.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "binding range validation",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "All general source/runtime forms.",
+          "path": "compiler/component-children-runtime.test.ts",
+          "proves": "Current keyed/fixed-slot behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "binding range validation",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.binding-range-validation",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Only compiler-owned keyed component maps or partial ABI validation are supported."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "General arrays or complete anchor/realm validation.",
+          "path": "compiler/transform.ts",
+          "proves": "Bounded compiler/ABI branch.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "binding realm validation",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "All general source/runtime forms.",
+          "path": "compiler/component-children-runtime.test.ts",
+          "proves": "Current keyed/fixed-slot behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "binding realm validation",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.binding-realm-validation",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Only compiler-owned keyed component maps or partial ABI validation are supported."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "browser target build",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "browser target build",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.browser-target-build",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "callback refs",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "callback refs",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.callback-refs",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "children",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "children",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.children",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.class.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "class",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.class",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.class-name.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "class name",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.class-name",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "compiler diagnostics",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "compiler diagnostics",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.compiler-diagnostics",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "component children",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "component children",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.component-children",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "component escape rejection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "component escape rejection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.component-escape-rejection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "conditional branches",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "conditional branches",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.conditional-branches",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "custom hooks",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "custom hooks",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.custom-hooks",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dangerously set inner html rejection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dangerously set inner html rejection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.dangerously-set-inner-html-rejection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dependency invalidation",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dependency invalidation",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.dependency-invalidation",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.destructured-receivers.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "destructured receivers",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.destructured-receivers",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dynamic import rejection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dynamic import rejection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.dynamic-import-rejection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.dynamic-tags.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dynamic tags",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.dynamic-tags",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "early return rejection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "early return rejection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.early-return-rejection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "event bindings",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "event bindings",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.event-bindings",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "event capture bindings",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "event capture bindings",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.event-capture-bindings",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.explicit-children-prop.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "explicit children prop",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.explicit-children-prop",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "fixed slot abi",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "fixed slot abi",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.fixed-slot-abi",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.fragments.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "fragments",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.fragments",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "function components",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "function components",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.function-components",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.generic-components.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "generic components",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.generic-components",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "hook order validation",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "hook order validation",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.hook-order-validation",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "intrinsic elements",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "intrinsic elements",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.intrinsic-elements",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "keyed component map",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "keyed component map",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.keyed-component-map",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "General arrays or complete anchor/realm validation.",
+          "path": "compiler/transform.ts",
+          "proves": "Bounded compiler/ABI branch.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "keys",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "All general source/runtime forms.",
+          "path": "compiler/component-children-runtime.test.ts",
+          "proves": "Current keyed/fixed-slot behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "keys",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.keys",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Only compiler-owned keyed component maps or partial ABI validation are supported."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "General arrays or complete anchor/realm validation.",
+          "path": "compiler/transform.ts",
+          "proves": "Bounded compiler/ABI branch.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "map",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "All general source/runtime forms.",
+          "path": "compiler/component-children-runtime.test.ts",
+          "proves": "Current keyed/fixed-slot behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "map",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.map",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Only compiler-owned keyed component maps or partial ABI validation are supported."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "memo components",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "memo components",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.memo-components",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "multiple keyed children",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "multiple keyed children",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.multiple-keyed-children",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.namespace-tags.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "namespace tags",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.namespace-tags",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "nested components",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "nested components",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.nested-components",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "object refs",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "object refs",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.object-refs",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "primitive children",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "primitive children",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.primitive-children",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "property bindings",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "property bindings",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.property-bindings",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "props",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "props",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.props",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "react import rejection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "react import rejection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.react-import-rejection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "refs",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "refs",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.refs",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "root render",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "root render",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.root-render",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "runtime jsx fail closed",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "runtime jsx fail closed",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.runtime-jsx-fail-closed",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "General arrays or complete anchor/realm validation.",
+          "path": "compiler/transform.ts",
+          "proves": "Bounded compiler/ABI branch.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "same parent anchor validation",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "All general source/runtime forms.",
+          "path": "compiler/component-children-runtime.test.ts",
+          "proves": "Current keyed/fixed-slot behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "same parent anchor validation",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.same-parent-anchor-validation",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Only compiler-owned keyed component maps or partial ABI validation are supported."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.semantic-diagnostics.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "semantic diagnostics",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.semantic-diagnostics",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.source-maps.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "source maps",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.source-maps",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "source roots",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "source roots",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.source-roots",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.compiler.spreads.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "spreads",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.compiler.spreads",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The governed TSX compiler rejects this syntax or does not provide the requested diagnostic/source-map contract."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "style bindings",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "style bindings",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.style-bindings",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Syntax outside the project profile.",
+          "path": "compiler/transform.ts",
+          "proves": "Governed TSX-to-fixed-slot ABI transform or explicit rejection.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "symbol resolution",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Downstream host behavior unless covered by integration tests.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Accepted/rejected syntax, symbol resolution, cache invalidation, and emitted ABI.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "symbol resolution",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.compiler.symbol-resolution",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "arrays",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "arrays",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.arrays",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "attributes",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "attributes",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.attributes",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "boolean remove semantics",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "boolean remove semantics",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.boolean-remove-semantics",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.tagged-html.comments.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "comments",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.tagged-html.comments",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The tagged-html parser fails closed or intentionally omits this grammar/reconciliation capability."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "disposal",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "disposal",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.disposal",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.tagged-html.doctypes.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "doctypes",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.tagged-html.doctypes",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The tagged-html parser fails closed or intentionally omits this grammar/reconciliation capability."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.tagged-html.dynamic-tags.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dynamic tags",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.tagged-html.dynamic-tags",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The tagged-html parser fails closed or intentionally omits this grammar/reconciliation capability."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dynamic values",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "dynamic values",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.dynamic-values",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "events",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "events",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.events",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable implementation behavior.",
+          "path": "requirements.md",
+          "proves": "The owner contract or public export claims this bounded capability.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "failure rollback",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.tagged-html.failure-rollback",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Document.transaction gives one mutation batch, but no Template-owned rollback test proves restoration after a later part throws."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.tagged-html.keyed-behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "keyed behavior",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.tagged-html.keyed-behavior",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The tagged-html parser fails closed or intentionally omits this grammar/reconciliation capability."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.tagged-html.namespace-tags.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "namespace tags",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.tagged-html.namespace-tags",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The tagged-html parser fails closed or intentionally omits this grammar/reconciliation capability."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "nested templates",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "nested templates",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.nested-templates",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "positional reconciliation",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "positional reconciliation",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.positional-reconciliation",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "requirements.md",
+          "proves": "The pinned project inventory contains tsx.tagged-html.raw-text-elements.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "raw text elements",
+          "type": "requirement"
+        }
+      ],
+      "id": "tsx.tagged-html.raw-text-elements",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The tagged-html parser fails closed or intentionally omits this grammar/reconciliation capability."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "security injection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "security injection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.security-injection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "static element names",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "static element names",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.static-element-names",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "WHATWG parsing and keyed reconciliation.",
+          "path": "dom.ts",
+          "proves": "Direct semantic DOM tagged-template implementation.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "transaction boundaries",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Failure rollback and unsupported grammar.",
+          "path": "dom.test.ts",
+          "proves": "Observable mount/update/identity/disposal/security behavior.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "transaction boundaries",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.tagged-html.transaction-boundaries",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#angle-bracket-assertion-rejection",
+          "proves": "The pinned reference inventory contains tsx.typescript.angle-bracket-assertion-rejection.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "angle bracket assertion rejection",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "angle bracket assertion rejection",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.angle-bracket-assertion-rejection",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#attribute-type-checking",
+          "proves": "The pinned reference inventory contains tsx.typescript.attribute-type-checking.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "attribute type checking",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "attribute type checking",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.attribute-type-checking",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#automatic-runtime",
+          "proves": "The pinned reference inventory contains tsx.typescript.automatic-runtime.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "automatic runtime",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "automatic runtime",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.automatic-runtime",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#children-type-checking",
+          "proves": "The pinned reference inventory contains tsx.typescript.children-type-checking.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "children type checking",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "children type checking",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.children-type-checking",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#classic-runtime",
+          "proves": "The pinned reference inventory contains tsx.typescript.classic-runtime.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        }
+      ],
+      "id": "tsx.typescript.classic-runtime",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The syntax exists in TypeScript JSX but is rejected or not emitted by the project compiler profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#development-runtime",
+          "proves": "The pinned reference inventory contains tsx.typescript.development-runtime.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "development runtime",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "development runtime",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.development-runtime",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#expression-children",
+          "proves": "The pinned reference inventory contains tsx.typescript.expression-children.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "expression children",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "expression children",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.expression-children",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#fragments",
+          "proves": "The pinned reference inventory contains tsx.typescript.fragments.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        }
+      ],
+      "id": "tsx.typescript.fragments",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The syntax exists in TypeScript JSX but is rejected or not emitted by the project compiler profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#generic-components",
+          "proves": "The pinned reference inventory contains tsx.typescript.generic-components.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        }
+      ],
+      "id": "tsx.typescript.generic-components",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The syntax exists in TypeScript JSX but is rejected or not emitted by the project compiler profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#intrinsic-elements",
+          "proves": "The pinned reference inventory contains tsx.typescript.intrinsic-elements.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "intrinsic elements",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "intrinsic elements",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.intrinsic-elements",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#jsx-namespace",
+          "proves": "The pinned reference inventory contains tsx.typescript.jsx-namespace.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "jsx namespace",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "jsx namespace",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.jsx-namespace",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#namespaced-names",
+          "proves": "The pinned reference inventory contains tsx.typescript.namespaced-names.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        }
+      ],
+      "id": "tsx.typescript.namespaced-names",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The syntax exists in TypeScript JSX but is rejected or not emitted by the project compiler profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#source-maps",
+          "proves": "The pinned reference inventory contains tsx.typescript.source-maps.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        }
+      ],
+      "id": "tsx.typescript.source-maps",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The syntax exists in TypeScript JSX but is rejected or not emitted by the project compiler profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "none",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#spread-attributes",
+          "proves": "The pinned reference inventory contains tsx.typescript.spread-attributes.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        }
+      ],
+      "id": "tsx.typescript.spread-attributes",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "The syntax exists in TypeScript JSX but is rejected or not emitted by the project compiler profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unsupported"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#tsx-file-syntax",
+          "proves": "The pinned reference inventory contains tsx.typescript.tsx-file-syntax.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "tsx file syntax",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "tsx file syntax",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.tsx-file-syntax",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "adapted",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Runtime implementation or observable conformance.",
+          "path": "typescript-jsx#value-elements",
+          "proves": "The pinned reference inventory contains tsx.typescript.value-elements.",
+          "repository": "external",
+          "revision": "TypeScript 7.0.2",
+          "type": "external-spec"
+        },
+        {
+          "doesNotProve": "TypeScript-wide JSX runtime semantics or compiler acceptance.",
+          "path": "jsx-runtime.ts",
+          "proves": "Type namespace/runtime boundary used by the project compiler.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "value elements",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "Every TypeScript-accepted JSX program.",
+          "path": "compiler/compiler.test.ts",
+          "proves": "Current compiler typing/transform profile.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "value elements",
+          "type": "unit-test"
+        }
+      ],
+      "id": "tsx.typescript.value-elements",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "TypeScript typing is intentionally broader than the project compiler's accepted source profile."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "partial"
+    }
+  ],
+  "repository": "template",
+  "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+  "schemaVersion": 1,
+  "verificationDate": "2026-08-29"
+}
