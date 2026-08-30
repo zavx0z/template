@@ -1,9 +1,9 @@
 import {API, type Snapshot} from "typescript/unstable/async"
 import {createHash} from "node:crypto"
-import {realpathSync} from "node:fs"
 import {readFile} from "node:fs/promises"
-import {relative, resolve, sep} from "node:path"
+import {resolve} from "node:path"
 import {JsxCompileError} from "./errors.ts"
+import {GovernedFiles} from "./governed-paths.ts"
 import {transformJsxSourceFile} from "./transform.ts"
 import {buildJsxTransformSymbols} from "./symbols.ts"
 
@@ -16,9 +16,14 @@ export type JsxCompilerStats = Readonly<{
 export type JsxCompilerSessionOptions = Readonly<{
   cwd: string
   sourceRoots: readonly string[]
+  styleSourceRootIds?: readonly string[]
 }>
 
-type DependencyFingerprint = Readonly<{path: string; hash: string}>
+type DependencyFingerprint = Readonly<{
+  authorization: string
+  hash: string
+  path: string
+}>
 type CachedTransform = Readonly<{
   code: string
   dependencies: readonly DependencyFingerprint[]
@@ -28,6 +33,7 @@ type CachedTransform = Readonly<{
 export class JsxCompilerSession {
   private readonly api: API
   private readonly cache = new Map<string, CachedTransform>()
+  private readonly governedFiles: GovernedFiles
   private readonly hashes = new Map<string, string>()
   private readonly opened = new Set<string>()
   private snapshot: Snapshot | null = null
@@ -38,6 +44,7 @@ export class JsxCompilerSession {
   private closed = false
   readonly cwd: string
   readonly sourceRoots: readonly string[]
+  readonly styleSourceRootIds: readonly string[] | null
 
   constructor(options: JsxCompilerSessionOptions) {
     this.cwd = resolve(options.cwd)
@@ -45,6 +52,11 @@ export class JsxCompilerSession {
     if (this.sourceRoots.length === 0) {
       throw new TypeError("JSX compiler session requires at least one source root")
     }
+    this.styleSourceRootIds = normalizeStyleSourceRootIds(
+      options.styleSourceRootIds,
+      this.sourceRoots.length,
+    )
+    this.governedFiles = new GovernedFiles(this.sourceRoots)
     this.api = new API({cwd: this.cwd})
   }
 
@@ -121,8 +133,13 @@ export class JsxCompilerSession {
         absolute,
       )
     }
-    const symbols = await buildJsxTransformSymbols(sourceFile, project, this.sourceRoots)
-    const code = transformJsxSourceFile(sourceFile, symbols)
+    const symbols = await buildJsxTransformSymbols(sourceFile, project, this.governedFiles)
+    const styleSourceModuleId = this.styleSourceModuleId(absolute)
+    const code = transformJsxSourceFile(
+      sourceFile,
+      symbols,
+      styleSourceModuleId === undefined ? {} : {styleSourceModuleId},
+    )
     const dependencies = await this.fingerprintDependencies(symbols.dependencyPaths)
     this.cache.set(absolute, Object.freeze({hash, code, dependencies}))
     this.cacheMisses += 1
@@ -136,6 +153,15 @@ export class JsxCompilerSession {
     await this.snapshot?.dispose()
     this.snapshot = null
     await this.api.close()
+  }
+
+  private styleSourceModuleId(sourcePath: string): string | undefined {
+    if (this.styleSourceRootIds === null) return undefined
+    const owner = this.governedFiles.matchFile(sourcePath)
+    if (!owner) return undefined
+    const relativePath = owner.relativePath.replaceAll("\\", "/")
+    const rootId = this.styleSourceRootIds[owner.rootIndex]!
+    return relativePath === "" ? rootId : `${rootId}/${relativePath}`
   }
 
   private exclusive<Result>(callback: () => Promise<Result>): Promise<Result> {
@@ -155,6 +181,7 @@ export class JsxCompilerSession {
 
   private async refreshFilesLocked(sourcePaths: readonly string[]): Promise<void> {
     if (this.closed) throw new Error("JSX compiler session is closed")
+    this.governedFiles.refresh()
     const files = [...new Set(sourcePaths.map(sourcePath => this.requireGoverned(resolve(sourcePath))))]
     const hashes = await Promise.all(files.map(async sourcePath => {
       const text = await readFile(sourcePath, "utf8")
@@ -187,7 +214,10 @@ export class JsxCompilerSession {
       const text = await readFile(dependency.path, "utf8")
       const hash = sourceHash(text)
       this.hashes.set(dependency.path, hash)
-      if (hash !== dependency.hash) changed.push(dependency.path)
+      const authorization = this.governedFiles.authorizationKey(dependency.path)
+      if (hash !== dependency.hash || authorization !== dependency.authorization) {
+        changed.push(dependency.path)
+      }
     }
     return changed
   }
@@ -199,34 +229,37 @@ export class JsxCompilerSession {
     for (const path of [...dependencyPaths].sort()) {
       const text = await readFile(path, "utf8")
       const hash = sourceHash(text)
+      const authorization = this.governedFiles.authorizationKey(path)
+      if (authorization === null) {
+        throw new JsxCompileError("dependency is outside the governed JSX roots", path)
+      }
       this.hashes.set(path, hash)
-      dependencies.push(Object.freeze({path, hash}))
+      dependencies.push(Object.freeze({authorization, hash, path}))
     }
     return Object.freeze(dependencies)
   }
 
   private requireGoverned(sourcePath: string): string {
-    if (this.sourceRoots.some(root => inside(root, sourcePath))) return sourcePath
+    if (this.governedFiles.matchFile(sourcePath) !== null) return sourcePath
     throw new JsxCompileError("source is outside the governed JSX roots", sourcePath)
   }
 }
 
-function inside(root: string, path: string): boolean {
-  const child = relative(comparablePath(root), comparablePath(path))
-  return child === "" || (child !== ".." && !child.startsWith(`..${sep}`) && !child.startsWith(sep))
-}
-
-function comparablePath(path: string): string {
-  const resolved = resolve(path)
-  let absolute = resolved
-  try {
-    absolute = realpathSync.native(resolved)
-  } catch {
-    // Keep the resolved spelling so deleted files still fail closed.
+function normalizeStyleSourceRootIds(
+  source: readonly string[] | undefined,
+  expectedLength: number,
+): readonly string[] | null {
+  if (source === undefined) return null
+  if (!Array.isArray(source) || source.length !== expectedLength) {
+    throw new TypeError("styleSourceRootIds must match sourceRoots")
   }
-  return process.platform === "darwin" || process.platform === "win32"
-    ? absolute.toLowerCase()
-    : absolute
+  const ids = source.map(id => {
+    if (typeof id !== "string" || id.trim() === "") {
+      throw new TypeError("styleSourceRootIds require non-empty strings")
+    }
+    return id.trim().replace(/\/$/, "")
+  })
+  return Object.freeze(ids)
 }
 
 function sourceHash(source: string): string {

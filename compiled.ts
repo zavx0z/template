@@ -6,6 +6,11 @@ import type {
   Node,
   Text
 } from "@zavx0z/dom"
+export {
+  decodeCompiledStyleText,
+  encodeCompiledStyleText
+} from "./style-codec.ts"
+import {decodeCompiledStyleText} from "./style-codec.ts"
 
 const templateBrand = Symbol.for("@zavx0z/template/compiled-template")
 const bindingBrand = Symbol.for("@zavx0z/template/compiled-binding")
@@ -19,6 +24,14 @@ export type CompiledMount = Readonly<{
 
 export type CompiledStyleSheet = Readonly<{
   id: string
+  cssText: string
+  source?: CompiledStyleSheetSource
+}>
+
+export type CompiledStyleSheetSource = Readonly<{
+  kind: "authored-css"
+  moduleId: string
+  componentName: string
   cssText: string
 }>
 
@@ -36,6 +49,19 @@ export interface CompiledTemplate<Props = unknown> {
   readonly styleSheets: readonly CompiledStyleSheet[]
   mount(document: Document): CompiledMount
   render(props: Readonly<Props>, values: BindingValues): void
+}
+
+/** Materializes one compact compiler transport into the ordinary stylesheet ABI. */
+export function compiledStyleSheet(
+  id: string,
+  encodedCssText: string,
+  source?: CompiledStyleSheetSource,
+): CompiledStyleSheet {
+  return Object.freeze({
+    id,
+    cssText: decodeCompiledStyleText(encodedCssText),
+    ...(source === undefined ? {} : {source})
+  })
 }
 
 export type TextBinding = Readonly<{
@@ -197,17 +223,58 @@ function compiledStyleSheets(source: readonly CompiledStyleSheet[]): readonly Co
     if (typeof value.cssText !== "string") {
       throw new TypeError(`Compiled stylesheet ${id} requires string cssText`)
     }
+    const styleSource = compiledStyleSheetSource(id, value.source)
     const previous = byId.get(id)
     if (previous) {
       if (previous.cssText !== value.cssText) {
         throw new TypeError(`Compiled stylesheet ${id} has conflicting cssText`)
       }
+      if (!sameCompiledStyleSheetSource(previous.source, styleSource)) {
+        throw new TypeError(`Compiled stylesheet ${id} has conflicting source metadata`)
+      }
       continue
     }
-    byId.set(id, Object.freeze({id, cssText: value.cssText}))
+    byId.set(id, Object.freeze({
+      id,
+      cssText: value.cssText,
+      ...(styleSource === undefined ? {} : {source: styleSource})
+    }))
   }
   return Object.freeze([...byId.values()])
 }
+
+function compiledStyleSheetSource(
+  id: string,
+  source: CompiledStyleSheetSource | undefined
+): CompiledStyleSheetSource | undefined {
+  if (source === undefined) return undefined
+  if (!source || typeof source !== "object" || source.kind !== "authored-css") {
+    throw new TypeError(`Compiled stylesheet ${id} has invalid source metadata`)
+  }
+  if (
+    typeof source.moduleId !== "string" || source.moduleId.trim() === "" ||
+    typeof source.componentName !== "string" || source.componentName.trim() === "" ||
+    typeof source.cssText !== "string"
+  ) throw new TypeError(`Compiled stylesheet ${id} has invalid authored CSS source`)
+  return Object.freeze({
+    kind: "authored-css",
+    moduleId: source.moduleId.trim(),
+    componentName: source.componentName.trim(),
+    cssText: source.cssText
+  })
+}
+
+const sameCompiledStyleSheetSource = (
+  left: CompiledStyleSheetSource | undefined,
+  right: CompiledStyleSheetSource | undefined
+): boolean =>
+  left === right || (
+    left !== undefined && right !== undefined &&
+    left.kind === right.kind &&
+    left.moduleId === right.moduleId &&
+    left.componentName === right.componentName &&
+    left.cssText === right.cssText
+  )
 
 function rangeBinding<Kind extends "child" | "conditional" | "keyed">(
   kind: Kind,

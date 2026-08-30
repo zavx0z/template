@@ -8,6 +8,22 @@ export type JsxSourceElement = Readonly<{
   readonly "@zavx0z/template/jsx-source-element": true
 }>
 
+import type {
+  CssSourceValue,
+  CssTemplateValue
+} from "./css.ts"
+
+export interface CssCompilerIntrinsic {
+  readonly "@zavx0z/template/css-compiler-intrinsic": true
+  (strings: TemplateStringsArray, ...values: readonly CssTemplateValue[]): CssSourceValue & string
+}
+
+declare global {
+  /** Build-time scoped CSS intrinsic supplied by the Template JSX profile. */
+  var css: CssCompilerIntrinsic
+  interface CssStyle extends CssSourceValue {}
+}
+
 export namespace JSX {
   export type Element = JsxSourceElement
   export type ElementType = string | ((props: any) => Element)

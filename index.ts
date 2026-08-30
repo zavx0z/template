@@ -1,10 +1,14 @@
 /**
-HTML templates compiled to addressed `@zavx0z/dom` mutations.
+HTML templates and scoped CSS authoring compiled to addressed DOM/style
+operations.
 
 The primary `html` and `compile` API creates real DOM nodes and preserves their
 identity across updates. The separate `parse` API reads
 `Function.prototype.toString()` without invoking the supplied callback and
 continues to own bounded syntax analysis for DSL consumers.
+
+The `css` tag captures real scoped CSS template shapes and ordered primitive
+values for the JSX compiler. It is not a global stylesheet registration API.
 
 @packageDocumentation
 */
@@ -13,6 +17,14 @@ import { createNode } from "./node"
 import type { Node } from "./node/index.t"
 import { extractHtmlElements } from "./parser"
 
+export {css, isCssTemplateResult} from "./css.ts"
+export type {
+  CssDeclarationValue,
+  CssSourceValue,
+  CssStyleValue,
+  CssTemplateResult,
+  CssTemplateValue
+} from "./css.ts"
 export {compile, html} from "./dom"
 export type {
   TemplateChild,

@@ -354,7 +354,7 @@ const extractBaseAndCall = (variable: string): { base: string; methodName?: stri
 
   const m = shielded.match(/\.([A-Za-z_$][\w$]*)\s*\(([^()]*)\)\s*$/)
   if (m) {
-    const methodName = m[1]
+    const methodName = m[1]!
     const args = m[2] ?? ""
     const callSuffix = `(${args})` // всегда с круглыми скобками
     const base = extractBaseVariable(variable.replace(m[0], ""))

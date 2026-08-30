@@ -7,11 +7,18 @@ import {
   type Document,
   type EventListener
 } from "@zavx0z/dom"
+import {
+  containsTaggedTemplateMarker,
+  getTaggedTemplateShape,
+  joinTaggedTemplateSource,
+  parseTaggedTemplateSegments,
+  type TaggedTemplateSegment,
+  type TaggedTemplateSlotSegment,
+} from "./tagged-template.ts"
 
 const templateResultType = Symbol("@zavx0z/template/result")
-const markerOpen = "\uE000"
-const markerClose = "\uE001"
 const templateAnchors = new WeakSet<Comment>()
+const htmlBlueprintFrontend = Symbol("@zavx0z/template/html-blueprint")
 
 const voidElements = new Set([
   "area",
@@ -145,17 +152,8 @@ export function compile<State>(view: TemplateView<State>): TemplateProgram<State
   })
 }
 
-type StaticSegment = {
-  readonly type: "static"
-  readonly value: string
-}
-
-type SlotSegment = {
-  readonly type: "slot"
-  readonly index: number
-}
-
-type Segment = StaticSegment | SlotSegment
+type Segment = TaggedTemplateSegment
+type SlotSegment = TaggedTemplateSlotSegment
 
 type TextBlueprint = {
   readonly type: "text"
@@ -194,8 +192,6 @@ interface DynamicPart {
   update(values: readonly unknown[]): void
   dispose(): void
 }
-
-const blueprintCache = new WeakMap<TemplateStringsArray, TemplateBlueprint>()
 
 class InternalTemplateInstance {
   readonly strings: TemplateStringsArray
@@ -530,23 +526,11 @@ function instantiateAttributes(
 }
 
 function getBlueprint(strings: TemplateStringsArray): TemplateBlueprint {
-  const cached = blueprintCache.get(strings)
-  if (cached) return cached
-  const blueprint = parseBlueprint(strings)
-  blueprintCache.set(strings, blueprint)
-  return blueprint
+  return getTaggedTemplateShape(strings, htmlBlueprintFrontend, parseBlueprint)
 }
 
 function parseBlueprint(strings: TemplateStringsArray): TemplateBlueprint {
-  for (const value of strings) {
-    if (value.includes(markerOpen) || value.includes(markerClose)) {
-      throw new Error("Template source contains reserved compiler marker characters")
-    }
-  }
-
-  const source = strings.map((value, index) =>
-    index < strings.length - 1 ? `${value}${marker(index)}` : value
-  ).join("")
+  const source = joinTaggedTemplateSource(strings)
 
   const root: ParseFrame = {tagName: null, children: []}
   const stack: ParseFrame[] = [root]
@@ -612,7 +596,7 @@ function parseOpeningTag(
   const nameStart = cursor
   while (cursor < source.length && !/[\s/>]/.test(source[cursor]!)) cursor += 1
   const tagName = source.slice(nameStart, cursor).toLowerCase()
-  if (!isStaticName(tagName) || tagName.includes(markerOpen)) {
+  if (!isStaticName(tagName) || containsTaggedTemplateMarker(tagName)) {
     throw new Error("Element names must be static valid HTML names")
   }
 
@@ -634,7 +618,7 @@ function parseOpeningTag(
     const attributeStart = cursor
     while (cursor < source.length && !/[\s=/]/.test(source[cursor]!)) cursor += 1
     const attributeName = source.slice(attributeStart, cursor).toLowerCase()
-    if (!isStaticName(attributeName) || attributeName.includes(markerOpen)) {
+    if (!isStaticName(attributeName) || containsTaggedTemplateMarker(attributeName)) {
       throw new Error(`Attribute names in <${tagName}> must be static`)
     }
     if (attributeName.startsWith(".") || attributeName.startsWith("?") || attributeName.startsWith("@")) {
@@ -685,33 +669,7 @@ function appendTextBlueprints(target: BlueprintNode[], source: string, slotCount
 }
 
 function parseSegments(source: string, slotCount: number): Segment[] {
-  const result: Segment[] = []
-  let cursor = 0
-
-  while (cursor < source.length) {
-    const markerIndex = source.indexOf(markerOpen, cursor)
-    if (markerIndex === -1) {
-      const value = decodeEntities(source.slice(cursor))
-      if (value !== "") result.push({type: "static", value})
-      break
-    }
-
-    if (markerIndex > cursor) {
-      result.push({type: "static", value: decodeEntities(source.slice(cursor, markerIndex))})
-    }
-
-    const markerEnd = source.indexOf(markerClose, markerIndex + markerOpen.length)
-    if (markerEnd === -1) throw new Error("Invalid template compiler marker")
-    const slotText = source.slice(markerIndex + markerOpen.length, markerEnd)
-    const index = Number(slotText)
-    if (!Number.isInteger(index) || index < 0 || index >= slotCount) {
-      throw new Error(`Invalid template slot ${slotText}`)
-    }
-    result.push({type: "slot", index})
-    cursor = markerEnd + markerClose.length
-  }
-
-  return result
+  return parseTaggedTemplateSegments(source, slotCount, decodeEntities)
 }
 
 function findTagEnd(source: string, start: number): number {
@@ -735,10 +693,6 @@ function currentFrame(stack: readonly ParseFrame[]): ParseFrame {
   const frame = stack.at(-1)
   if (!frame) throw new Error("Invalid template parser state")
   return frame
-}
-
-function marker(index: number): string {
-  return `${markerOpen}${index}${markerClose}`
 }
 
 function createTemplateAnchor(document: Document, data: string): Comment {

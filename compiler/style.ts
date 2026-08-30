@@ -26,14 +26,27 @@ import {
   isStringLiteral,
 } from "typescript/unstable/ast/is"
 import {JsxCompileError} from "./errors.ts"
+import {encodeCompiledStyleText} from "../style-codec.ts"
+import type {
+  CssTemplateDeclaration,
+  CssTemplateRule,
+  CssTemplateShape,
+} from "../css-shape.ts"
+import type {TaggedTemplateSegment} from "../tagged-template.ts"
 
-export type JsxStylePrimitiveKind = "nullish" | "number" | "string" | "unsupported"
+export type JsxStylePrimitiveKind = "bigint" | "nullish" | "number" | "string" | "unsupported"
+
+export type CompiledCssTemplateSource = Readonly<{
+  expressions: readonly Expression[]
+  shape: CssTemplateShape
+}>
 
 export type CompiledStyleFragment = Readonly<{
   attributeName: `data-z-${string}`
   condition: string | null
   cssTextExpression: string
   id: string
+  sourceCssTextExpression: string | null
 }>
 
 export type CompiledStyleExtraction = Readonly<{
@@ -47,19 +60,35 @@ export type StyleExtractionContext = Readonly<{
     id: string
   }>
   primitiveKinds: ReadonlyMap<Node, JsxStylePrimitiveKind>
+  isPassThrough(expression: Expression): boolean
+  resolveCssTemplate?(expression: Expression): CompiledCssTemplateSource | null
+  styleEncoder: string
   sourceFile: SourceFile
   sourcePath: string
   symbols: ReadonlyMap<Node, number>
   unstableSymbols: ReadonlySet<number>
 }>
 
-type CssValue = Readonly<{code: string; empty: boolean}>
+export type ComponentStyleExtractionContext = Readonly<{
+  primitiveKinds: ReadonlyMap<Node, JsxStylePrimitiveKind>
+  isPassThrough(expression: Expression): boolean
+  resolveCssTemplate(expression: Expression): CompiledCssTemplateSource | null
+  styleEncoder: string
+  sourceFile: SourceFile
+  sourcePath: string
+}>
+
+type CssValue = Readonly<{code: string; encodedCode: string; empty: boolean}>
 type CssDeclaration = Readonly<{property: string; value: CssValue}>
 type CssRule = Readonly<{declarations: readonly CssDeclaration[]; pseudo: string}>
 type ObjectExtraction = Readonly<{
   rules: readonly CssRule[]
   residualExpression: string | null
 }>
+type CssValueContext = Pick<
+  StyleExtractionContext | ComponentStyleExtractionContext,
+  "primitiveKinds" | "sourceFile" | "sourcePath" | "styleEncoder"
+>
 
 const supportedPseudos: ReadonlySet<string> = new Set([
   ":active",
@@ -76,11 +105,258 @@ export function extractCompiledStyle(
   context: StyleExtractionContext,
 ): CompiledStyleExtraction {
   const value = unwrap(expression)
-  if (isArrayLiteralExpression(value)) return extractArray(value.elements, context)
-  const conditional = logicalStaticObject(value)
-  if (conditional) return extractObject(conditional.object, conditional.condition, context)
-  if (isObjectLiteralExpression(value)) return extractObject(value, null, context)
-  return Object.freeze({fragments: Object.freeze([]), residualExpression: value.getText(context.sourceFile)})
+  const cssTemplate = context.resolveCssTemplate?.(value) ?? null
+  if (cssTemplate) return extractCssTemplate(cssTemplate, null, context)
+  if (isObjectLiteralExpression(value) || isArrayLiteralExpression(value) || logicalStaticObject(value)) {
+    throw compileError(context, "style objects and arrays are unsupported; author css tagged templates")
+  }
+  if (context.isPassThrough(value)) {
+    return Object.freeze({fragments: Object.freeze([]), residualExpression: value.getText(context.sourceFile)})
+  }
+  throw compileError(context, "intrinsic style authoring requires a css tagged template or direct props.style")
+}
+
+/** Lowers one caller-facing component style prop to base-only inline CSS. */
+export function extractComponentStyle(
+  expression: Expression,
+  context: ComponentStyleExtractionContext,
+): string {
+  const value = unwrap(expression)
+  const cssTemplate = context.resolveCssTemplate(value)
+  if (cssTemplate) return componentCssTemplateExpression(cssTemplate, context)
+  if (isObjectLiteralExpression(value) || isArrayLiteralExpression(value) || logicalStaticObject(value)) {
+    throw componentCompileError(context, "component style objects and arrays are unsupported; author one css tagged template")
+  }
+  if (context.isPassThrough(value)) return value.getText(context.sourceFile)
+  throw componentCompileError(context, "component style prop requires css tagged template or direct props.style")
+}
+
+function extractCssTemplate(
+  source: CompiledCssTemplateSource,
+  condition: string | null,
+  context: StyleExtractionContext,
+): CompiledStyleExtraction {
+  const fragments: CompiledStyleFragment[] = []
+  const residual: string[] = []
+  let rules: CssRule[] = []
+  const flushRules = (): void => {
+    if (!rules.some(rule => rule.declarations.length > 0)) {
+      rules = []
+      return
+    }
+    const identity = context.nextIdentity(serializeRules("data-z-style-scope", rules))
+    fragments.push(Object.freeze({
+      ...identity,
+      condition,
+      cssTextExpression: serializeRules(identity.attributeName, rules),
+      sourceCssTextExpression: serializeAuthoredRules(rules),
+    }))
+    rules = []
+  }
+
+  for (let itemIndex = 0; itemIndex < source.shape.items.length; itemIndex += 1) {
+    const item = source.shape.items[itemIndex]!
+    if (item.type === "fragment") {
+      flushRules()
+      const nested = extractNestedCssFragment(
+        source.expressions[item.index]!,
+        condition,
+        itemIndex === source.shape.items.length - 1,
+        context,
+      )
+      fragments.push(...nested.fragments)
+      if (nested.residualExpression !== null) residual.push(nested.residualExpression)
+      continue
+    }
+    const rule = item as CssTemplateRule
+    const declarations: CssDeclaration[] = []
+    for (const declaration of rule.declarations) {
+      const expressions = declaration.segments
+        .filter(segment => segment.type === "slot")
+        .map(segment => source.expressions[segment.index]!)
+      const stable = expressions.every(expression => isModuleStable(expression, context))
+      if (!stable) {
+        if (rule.pseudo !== "") {
+          throw compileError(
+            context,
+          `style selector &${rule.pseudo} declaration ${declaration.property} cannot depend on props or component state`,
+          )
+        }
+        residual.push(cssInlineDeclarationExpression(declaration, source.expressions, context))
+        continue
+      }
+      const value = cssTemplateValue(declaration.segments, source.expressions, context)
+      if (!value.empty) declarations.push(Object.freeze({property: declaration.property, value}))
+    }
+    rules.push(Object.freeze({pseudo: rule.pseudo, declarations: Object.freeze(declarations)}))
+  }
+  flushRules()
+  return Object.freeze({
+    fragments: Object.freeze(fragments),
+    residualExpression: residual.length === 0
+      ? null
+      : condition === null
+        ? `[${residual.join(", ")}]`
+        : `(${condition}) && [${residual.join(", ")}]`,
+  })
+}
+
+function extractNestedCssFragment(
+  expression: Expression,
+  condition: string | null,
+  final: boolean,
+  context: StyleExtractionContext,
+): CompiledStyleExtraction {
+  const value = unwrap(expression)
+  if (isNullLiteral(value) || isFalseLiteral(value) || isUndefinedIdentifier(value)) {
+    return Object.freeze({fragments: Object.freeze([]), residualExpression: null})
+  }
+  const nested = context.resolveCssTemplate?.(value) ?? null
+  if (nested !== null) return extractCssTemplate(nested, condition, context)
+  const conditional = logicalCssTemplate(value, context)
+  if (conditional !== null) {
+    return extractCssTemplate(
+      conditional.source,
+      combineConditions(condition, conditional.condition),
+      context,
+    )
+  }
+  if (context.isPassThrough(value)) {
+    if (!final) throw compileError(context, "props.style CSS fragment must be final")
+    return Object.freeze({
+      fragments: Object.freeze([]),
+      residualExpression: value.getText(context.sourceFile)
+    })
+  }
+  throw compileError(
+    context,
+    "CSS rule fragments require nested css, condition && css, false, null, undefined, or final props.style",
+  )
+}
+
+function combineConditions(left: string | null, right: string): string {
+  return left === null ? right : `(${left}) && (${right})`
+}
+
+function componentCssTemplateExpression(
+  source: CompiledCssTemplateSource,
+  context: ComponentStyleExtractionContext,
+): string {
+  const values: string[] = []
+  for (let itemIndex = 0; itemIndex < source.shape.items.length; itemIndex += 1) {
+    const item = source.shape.items[itemIndex]!
+    if (item.type === "rule") {
+      if (item.pseudo !== "") {
+        throw componentCompileError(context, `component style prop rejects selector &${item.pseudo}`)
+      }
+      for (const declaration of item.declarations) {
+        values.push(cssInlineDeclarationExpression(declaration, source.expressions, context))
+      }
+      continue
+    }
+    const expression = unwrap(source.expressions[item.index]!)
+    if (isNullLiteral(expression) || isFalseLiteral(expression) || isUndefinedIdentifier(expression)) continue
+    const nested = context.resolveCssTemplate(expression)
+    if (nested !== null) {
+      values.push(componentCssTemplateExpression(nested, context))
+      continue
+    }
+    const conditional = componentLogicalCssTemplate(expression, context)
+    if (conditional !== null) {
+      values.push(`(${conditional.condition}) && ${componentCssTemplateExpression(conditional.source, context)}`)
+      continue
+    }
+    if (context.isPassThrough(expression)) {
+      if (itemIndex !== source.shape.items.length - 1) {
+        throw componentCompileError(context, "props.style CSS fragment must be final")
+      }
+      values.push(expression.getText(context.sourceFile))
+      continue
+    }
+    throw componentCompileError(
+      context,
+      "component CSS fragments require nested css, condition && css, false, null, undefined, or final props.style",
+    )
+  }
+  return `[${values.join(", ")}]`
+}
+
+function componentLogicalCssTemplate(
+  expression: Expression,
+  context: ComponentStyleExtractionContext,
+): Readonly<{condition: string; source: CompiledCssTemplateSource}> | null {
+  if (!isBinaryExpression(expression) ||
+    expression.operatorToken.kind !== SyntaxKind.AmpersandAmpersandToken) return null
+  const source = context.resolveCssTemplate(unwrap(expression.right))
+  return source === null
+    ? null
+    : Object.freeze({condition: expression.left.getText(context.sourceFile), source})
+}
+
+function cssTemplateValue(
+  segments: readonly TaggedTemplateSegment[],
+  expressions: readonly Expression[],
+  context: CssValueContext,
+): CssValue {
+  const parts: string[] = []
+  const encodedParts: string[] = []
+  for (const segment of segments) {
+    if (segment.type === "static") {
+      appendStatic(parts, segment.value)
+      appendStatic(encodedParts, encodeCompiledStyleText(segment.value))
+      continue
+    }
+    const expression = expressions[segment.index]!
+    const value = unwrap(expression)
+    const kind = context.primitiveKinds.get(value) ?? "unsupported"
+    if (kind === "nullish") {
+      if (segments.length === 1) {
+        return Object.freeze({
+          code: JSON.stringify(""),
+          encodedCode: JSON.stringify(""),
+          empty: true
+        })
+      }
+      throw compileError(context, "nullish CSS interpolation must occupy the complete declaration value")
+    }
+    if (kind !== "string" && kind !== "number" && kind !== "bigint") {
+      throw compileError(context, "CSS template interpolation must resolve to a primitive value")
+    }
+    const code = `String(${value.getText(context.sourceFile)})`
+    parts.push(code)
+    encodedParts.push(`${context.styleEncoder}(${code})`)
+  }
+  return Object.freeze({
+    code: parts.length === 0 ? JSON.stringify("") : parts.join(" + "),
+    encodedCode: encodedParts.length === 0 ? JSON.stringify("") : encodedParts.join(" + "),
+    empty: parts.length === 0,
+  })
+}
+
+function cssInlineDeclarationExpression(
+  declaration: CssTemplateDeclaration,
+  expressions: readonly Expression[],
+  context: CssValueContext,
+): string {
+  const value = cssTemplateValue(declaration.segments, expressions, context)
+  return `${JSON.stringify(`${declaration.property}: `)} + ${value.code}`
+}
+
+function withCondition(
+  extraction: CompiledStyleExtraction,
+  condition: string,
+): CompiledStyleExtraction {
+  return Object.freeze({
+    fragments: Object.freeze(extraction.fragments.map(fragment => Object.freeze({
+      ...fragment,
+      condition: fragment.condition === null
+        ? condition
+        : `(${condition}) && (${fragment.condition})`,
+    }))),
+    residualExpression: extraction.residualExpression === null
+      ? null
+      : `(${condition}) && ${extraction.residualExpression}`,
+  })
 }
 
 function extractArray(
@@ -119,6 +395,7 @@ function extractObject(
       ...identity,
       condition,
       cssTextExpression: serializeRules(identity.attributeName, parsed.rules),
+      sourceCssTextExpression: serializeAuthoredRules(parsed.rules),
     }))
   }
   return Object.freeze({
@@ -215,27 +492,40 @@ function cssValue(
 ): CssValue {
   const value = unwrap(expression)
   if (isStringLiteral(value) || isNoSubstitutionTemplateLiteral(value)) {
-    return Object.freeze({code: JSON.stringify(value.text), empty: value.text.length === 0})
+    return Object.freeze({
+      code: JSON.stringify(value.text),
+      encodedCode: JSON.stringify(encodeCompiledStyleText(value.text)),
+      empty: value.text.length === 0
+    })
   }
   if (isNumericLiteral(value)) {
     const number = Number(value.text)
     const serialized = number === 0 || unitless(property) || property.startsWith("--")
       ? String(number)
       : `${number}px`
-    return Object.freeze({code: JSON.stringify(serialized), empty: false})
+    return Object.freeze({
+      code: JSON.stringify(serialized),
+      encodedCode: JSON.stringify(encodeCompiledStyleText(serialized)),
+      empty: false
+    })
   }
   if (isNullLiteral(value) || isUndefinedIdentifier(value)) {
-    return Object.freeze({code: JSON.stringify(""), empty: true})
+    return Object.freeze({code: JSON.stringify(""), encodedCode: JSON.stringify(""), empty: true})
   }
   const kind = context.primitiveKinds.get(value) ?? "unsupported"
-  if (kind === "nullish") return Object.freeze({code: JSON.stringify(""), empty: true})
+  if (kind === "nullish") {
+    return Object.freeze({code: JSON.stringify(""), encodedCode: JSON.stringify(""), empty: true})
+  }
   if (kind === "string") {
-    return Object.freeze({code: `String(${value.getText(context.sourceFile)})`, empty: false})
+    const code = `String(${value.getText(context.sourceFile)})`
+    return Object.freeze({code, encodedCode: `${context.styleEncoder}(${code})`, empty: false})
   }
   if (kind === "number") {
     const source = `String(${value.getText(context.sourceFile)})`
+    const code = unitless(property) || property.startsWith("--") ? source : `${source} + "px"`
     return Object.freeze({
-      code: unitless(property) || property.startsWith("--") ? source : `${source} + "px"`,
+      code,
+      encodedCode: `${context.styleEncoder}(${code})`,
       empty: false,
     })
   }
@@ -246,7 +536,23 @@ function serializeRules(attributeName: string, rules: readonly CssRule[]): strin
   const parts: string[] = []
   for (const rule of rules) {
     if (rule.declarations.length === 0) continue
-    appendStatic(parts, `[${attributeName}]${rule.pseudo}{`)
+    appendStatic(parts, encodeCompiledStyleText(`[${attributeName}]${rule.pseudo}{`))
+    for (let index = 0; index < rule.declarations.length; index += 1) {
+      const declaration = rule.declarations[index]!
+      if (index > 0) appendStatic(parts, encodeCompiledStyleText(";"))
+      appendStatic(parts, encodeCompiledStyleText(`${declaration.property}:`))
+      parts.push(declaration.value.encodedCode)
+    }
+    appendStatic(parts, encodeCompiledStyleText("}"))
+  }
+  return parts.length === 0 ? JSON.stringify("") : parts.join(" + ")
+}
+
+function serializeAuthoredRules(rules: readonly CssRule[]): string {
+  const parts: string[] = []
+  for (const rule of rules) {
+    if (rule.declarations.length === 0) continue
+    appendStatic(parts, `&${rule.pseudo}{`)
     for (let index = 0; index < rule.declarations.length; index += 1) {
       const declaration = rule.declarations[index]!
       if (index > 0) appendStatic(parts, ";")
@@ -299,6 +605,18 @@ function logicalStaticObject(
   return Object.freeze({condition: expression.left.getText(expression.getSourceFile()), object: right})
 }
 
+function logicalCssTemplate(
+  expression: Expression,
+  context: StyleExtractionContext,
+): Readonly<{condition: string; source: CompiledCssTemplateSource}> | null {
+  if (!isBinaryExpression(expression) ||
+    expression.operatorToken.kind !== SyntaxKind.AmpersandAmpersandToken) return null
+  const right = unwrap(expression.right)
+  const source = context.resolveCssTemplate?.(right) ?? null
+  if (!source) return null
+  return Object.freeze({condition: expression.left.getText(context.sourceFile), source})
+}
+
 function isModuleStable(expression: Expression, context: StyleExtractionContext): boolean {
   let stable = true
   visit(expression, node => {
@@ -327,6 +645,13 @@ function visit(node: Node, callback: (node: Node) => void): void {
   })
 }
 
-function compileError(context: StyleExtractionContext, message: string): JsxCompileError {
+function compileError(context: Readonly<{sourcePath: string}>, message: string): JsxCompileError {
   return new JsxCompileError(message, context.sourcePath)
+}
+
+function componentCompileError(
+  context: ComponentStyleExtractionContext,
+  message: string,
+): JsxCompileError {
+  return compileError(context, message)
 }

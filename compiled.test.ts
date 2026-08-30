@@ -112,6 +112,14 @@ describe("compiled template ABI", () => {
     await Promise.all([
       copyFile(resolve(import.meta.dir, "compiled.ts"), resolve(first, "compiled.ts")),
       copyFile(resolve(import.meta.dir, "compiled.ts"), resolve(second, "compiled.ts")),
+      copyFile(resolve(import.meta.dir, "style-codec.ts"), resolve(first, "style-codec.ts")),
+      copyFile(resolve(import.meta.dir, "style-codec.ts"), resolve(second, "style-codec.ts")),
+      copyFile(resolve(import.meta.dir, "css.ts"), resolve(first, "css.ts")),
+      copyFile(resolve(import.meta.dir, "css.ts"), resolve(second, "css.ts")),
+      copyFile(resolve(import.meta.dir, "css-shape.ts"), resolve(first, "css-shape.ts")),
+      copyFile(resolve(import.meta.dir, "css-shape.ts"), resolve(second, "css-shape.ts")),
+      copyFile(resolve(import.meta.dir, "tagged-template.ts"), resolve(first, "tagged-template.ts")),
+      copyFile(resolve(import.meta.dir, "tagged-template.ts"), resolve(second, "tagged-template.ts")),
       copyFile(resolve(import.meta.dir, "jsx-runtime.ts"), resolve(first, "jsx-runtime.ts")),
       copyFile(resolve(import.meta.dir, "jsx-runtime.ts"), resolve(second, "jsx-runtime.ts")),
       symlink(

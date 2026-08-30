@@ -43,7 +43,7 @@ try {
   await writeFile(resolve(consumerRoot, "app.tsx"), [
     'import type {JsxSourceElement} from "@zavx0z/template/jsx-runtime"',
     "function Child() {",
-    "  return <span>Package proof</span>",
+    "  return <span style={css`& { color: red; }`}>Package proof</span>",
     "}",
     "function Pane(props: Readonly<{children: JsxSourceElement}>) {",
     "  return <section>{props.children}</section>",
@@ -56,17 +56,34 @@ try {
   await writeFile(resolve(consumerRoot, "compiler-types.ts"), [
     'import type {JsxCompilerSessionOptions, JsxCompilerStats} from "@zavx0z/template/compiler"',
     'import type {CompiledStyleSheet, CompiledTemplate} from "@zavx0z/template/compiled"',
+    'import type {CssDeclarationValue, CssSourceValue, CssStyleValue, CssTemplateResult, CssTemplateValue} from "@zavx0z/template"',
     'import type {JsxSourceElement} from "@zavx0z/template/jsx-runtime"',
     "declare const options: JsxCompilerSessionOptions",
     "declare const stats: JsxCompilerStats",
     "declare const template: CompiledTemplate<Record<string, never>>",
     "declare const styleSheet: CompiledStyleSheet",
     "declare const jsx: JsxSourceElement",
+    "declare const cssResult: CssTemplateResult",
+    "declare const cssSource: CssSourceValue",
+    "declare const cssDeclaration: CssDeclarationValue",
+    "declare const cssStyle: CssStyleValue",
+    "declare const cssValue: CssTemplateValue",
     "void options",
     "void stats",
     "void template",
     "void styleSheet",
     "void jsx",
+    "void cssResult",
+    "void cssSource",
+    "void cssDeclaration",
+    "void cssStyle",
+    "void cssValue",
+    "",
+  ].join("\n"))
+  await writeFile(resolve(consumerRoot, "global-css.tsx"), [
+    "export function GlobalCssOnly() {",
+    "  return <span style={css`& { color: red; }`}>Global CSS</span>",
+    "}",
     "",
   ].join("\n"))
   await writeFile(resolve(consumerRoot, "tsconfig.json"), JSON.stringify({
@@ -80,7 +97,7 @@ try {
       strict: true,
       target: "ESNext",
     },
-    files: ["app.tsx", "compiler-types.ts"],
+    files: ["app.tsx", "compiler-types.ts", "global-css.tsx"],
   }))
   await writeFile(resolve(consumerRoot, "build-proof.ts"), [
     'import {createTemplateJsxBunPlugin} from "@zavx0z/template/bun"',
@@ -97,6 +114,7 @@ try {
     'const output = await result.outputs[0].text()',
     'if (output.includes("<span") || output.includes("<Pane")) throw new Error("JSX survived package build")',
     'if (!output.includes("bindChild")) throw new Error("component children did not use the compiled ABI")',
+    'if (!output.includes("styleSheets") || output.includes("css`")) throw new Error("scoped css did not use compiled metadata")',
     "",
   ].join("\n"))
 

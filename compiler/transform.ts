@@ -13,6 +13,7 @@ import type {
   ParenthesizedExpression,
   ReturnStatement,
   SourceFile,
+  TaggedTemplateExpression,
 } from "typescript/unstable/ast"
 import {createHash} from "node:crypto"
 import {NodeFlags, SyntaxKind} from "typescript/unstable/ast"
@@ -43,6 +44,7 @@ import {
   isJsxSpreadAttribute,
   isJsxText,
   isNamedImports,
+  isNoSubstitutionTemplateLiteral,
   isNullLiteral,
   isParenthesizedExpression,
   isPostfixUnaryExpression,
@@ -51,6 +53,8 @@ import {
   isReturnStatement,
   isStringLiteral,
   isSwitchStatement,
+  isTaggedTemplateExpression,
+  isTemplateExpression,
   isTryStatement,
   isVariableDeclaration,
   isVariableDeclarationList,
@@ -62,16 +66,23 @@ import {
 } from "typescript/unstable/ast/is"
 import {JsxCompileError} from "./errors.ts"
 import {
+  extractComponentStyle,
   extractCompiledStyle,
+  type CompiledCssTemplateSource,
+  type CompiledStyleFragment,
   type JsxStylePrimitiveKind,
 } from "./style.ts"
+import {parseCssTemplateShape} from "../css-shape.ts"
 
 type Edit = Readonly<{start: number; end: number; text: string}>
 
 type CompileContext = {
   readonly componentName: string
   readonly components: ReadonlySet<number>
+  readonly consumedCss: Set<Node>
   readonly consumedJsx: Set<Node>
+  readonly cssTagSymbols: ReadonlySet<number>
+  readonly cssTemplates: ReadonlyMap<number, TaggedTemplateExpression>
   readonly childrenExpressionKinds: ReadonlyMap<Node, JsxChildrenExpressionKind>
   readonly helper: string
   readonly propsSymbol: number | null
@@ -79,13 +90,14 @@ type CompileContext = {
   readonly sourceFile: SourceFile
   readonly sourcePath: string
   readonly sourceIdentity: string
+  readonly styleSourceModuleId: string | null
   readonly stylePrimitiveKinds: ReadonlyMap<Node, JsxStylePrimitiveKind>
   readonly symbols: ReadonlyMap<Node, number>
   readonly unstableStyleSymbols: ReadonlySet<number>
   readonly arrayExpressions: ReadonlySet<Node>
   readonly mount: string[]
   readonly bindings: string[]
-  readonly styleSheets: string[]
+  readonly styleFragments: CompiledStyleFragment[]
   readonly writes: string[]
   nodeIndex: number
 }
@@ -101,15 +113,20 @@ type ComponentExpressionContext = Readonly<{
   arrayExpressions: ReadonlySet<Node>
   childrenExpressionKinds: ReadonlyMap<Node, JsxChildrenExpressionKind>
   components: ReadonlySet<number>
+  consumedCss: Set<Node>
   consumedJsx: Set<Node>
+  cssTagSymbols: ReadonlySet<number>
+  cssTemplates: ReadonlyMap<number, TaggedTemplateExpression>
   helper: string
   propsSymbol: number | null
   sourceFile: SourceFile
   sourcePath: string
+  stylePrimitiveKinds: ReadonlyMap<Node, JsxStylePrimitiveKind>
   symbols: ReadonlyMap<Node, number>
 }>
 
 type RuntimeImportBindings = Readonly<{
+  css: ReadonlySet<number>
   createRoot: ReadonlySet<number>
   hooks: ReadonlyMap<number, Readonly<{name: string; supported: boolean}>>
   memo: ReadonlySet<number>
@@ -147,10 +164,15 @@ export const jsxAuthoringProfile = Object.freeze({
   customHooks: true,
   sourceMaps: false,
   styles: Object.freeze({
-    componentLocalObjects: true,
-    conditionalStaticFragments: true,
+    cssTaggedTemplates: true,
+    componentLocalObjects: false,
+    conditionalStaticFragments: "nested-css" as const,
+    globalCssIntrinsic: true,
+    componentStyleProps: "base-only-inline" as const,
     dynamicBaseDeclarations: "inline-binding" as const,
     dynamicPseudos: false,
+    scopedCssSelectors: "owner-and-pseudos" as const,
+    scopedAttributeSelectors: true,
     staticPseudos: Object.freeze([
       ":active",
       ":checked",
@@ -170,6 +192,7 @@ export type JsxTransformSymbols = Readonly<{
   arrayExpressions: ReadonlySet<Node>
   byNode: ReadonlyMap<Node, number>
   childrenExpressionKinds: ReadonlyMap<Node, JsxChildrenExpressionKind>
+  cssIntrinsicSymbols: ReadonlySet<number>
   dependencyPaths: ReadonlySet<string>
   importedComponents: ReadonlySet<number>
   importedCustomHooks: ReadonlySet<number>
@@ -184,16 +207,33 @@ export type JsxChildrenExpressionKind =
   | "text"
   | "unsupported"
 
+export type JsxTransformOptions = Readonly<{
+  styleSourceModuleId?: string
+}>
+
 /** Lowers the bounded component TSX profile into the shared compiled-template ABI. */
 export function transformJsxSourceFile(
   sourceFile: SourceFile,
   symbols: JsxTransformSymbols,
+  options: JsxTransformOptions = {},
 ): string {
   const source = sourceFile.text
   const sourcePath = sourceFile.fileName
+  const styleSourceModuleId = normalizedStyleSourceModuleId(options.styleSourceModuleId)
   const helper = uniqueHelperPrefix(source)
   const edits: Edit[] = []
-  const runtimeBindings = runtimeImportBindings(sourceFile, symbols.byNode, sourcePath)
+  const runtimeBindings = runtimeImportBindings(
+    sourceFile,
+    symbols.byNode,
+    symbols.cssIntrinsicSymbols,
+    sourcePath,
+  )
+  const cssTemplates = collectCssTemplateConstants(
+    sourceFile,
+    runtimeBindings.css,
+    symbols.byNode,
+    sourcePath,
+  )
   const componentDeclarations = sourceFile.statements.filter(
     (statement): statement is FunctionDeclaration =>
       isFunctionDeclaration(statement) &&
@@ -206,6 +246,7 @@ export function transformJsxSourceFile(
       isFunctionDeclaration(statement) && statement.name !== undefined &&
       /^use[A-Z0-9]/.test(statement.name.text),
   )
+  const consumedCss = new Set<Node>()
   const consumedJsx = new Set<Node>()
   let needsCompiledRuntime = false
   const componentSymbols = new Set(symbols.importedComponents)
@@ -280,7 +321,11 @@ export function transformJsxSourceFile(
         symbols.arrayExpressions,
         symbols.childrenExpressionKinds,
         symbols.sourceIdentity,
+        styleSourceModuleId,
         symbols.stylePrimitiveKinds,
+        runtimeBindings.css,
+        cssTemplates,
+        consumedCss,
         consumedJsx,
       ),
     })
@@ -290,6 +335,15 @@ export function transformJsxSourceFile(
     start: declaration.getStart(sourceFile),
     end: declaration.getEnd(),
   }))
+  for (const statement of removableCssTemplateStatements(
+    sourceFile,
+    runtimeBindings.css,
+    symbols.byNode,
+    consumedCss,
+    componentRanges,
+  )) {
+    edits.push({start: statement.getStart(sourceFile), end: statement.getEnd(), text: ""})
+  }
   const componentRoots = componentRootBindings(
     sourceFile,
     runtimeBindings.createRoot,
@@ -313,10 +367,14 @@ export function transformJsxSourceFile(
       childrenExpressionKinds: symbols.childrenExpressionKinds,
       components: componentSymbols,
       consumedJsx,
+      consumedCss,
+      cssTagSymbols: runtimeBindings.css,
+      cssTemplates,
       helper,
       propsSymbol: null,
       sourceFile,
       sourcePath,
+      stylePrimitiveKinds: symbols.stylePrimitiveKinds,
       symbols: symbols.byNode,
     })
     needsCompiledRuntime = true
@@ -336,6 +394,17 @@ export function transformJsxSourceFile(
     )
   })
 
+  const declaredCssTemplates = new Set(cssTemplates.values())
+  visit(sourceFile, node => {
+    if (!isTaggedTemplateExpression(node) ||
+      !isExactCssTag(node, runtimeBindings.css, symbols.byNode)) return
+    if (consumedCss.has(node) || declaredCssTemplates.has(node)) return
+    throw compileError(
+      sourcePath,
+      "css templates are supported only by an intrinsic style or same-module const attached there",
+    )
+  })
+
   if (needsCompiledRuntime) {
     edits.push({
       start: importInsertionOffset(source),
@@ -350,7 +419,9 @@ export function transformJsxSourceFile(
         `  bindRef as ${helper}BindRef,`,
         `  bindStyle as ${helper}BindStyle,`,
         `  bindText as ${helper}BindText,`,
+        `  compiledStyleSheet as ${helper}StyleSheet,`,
         `  defineCompiledTemplate as ${helper}Define,`,
+        `  encodeCompiledStyleText as ${helper}EncodeStyle,`,
         `  writeBinding as ${helper}Write`,
         `} from "@zavx0z/template/compiled"`,
         `import {`,
@@ -374,7 +445,11 @@ function compileComponent(
   arrayExpressions: ReadonlySet<Node>,
   childrenExpressionKinds: ReadonlyMap<Node, JsxChildrenExpressionKind>,
   sourceIdentity: string,
+  styleSourceModuleId: string | null,
   stylePrimitiveKinds: ReadonlyMap<Node, JsxStylePrimitiveKind>,
+  cssTagSymbols: ReadonlySet<number>,
+  cssTemplates: ReadonlyMap<number, TaggedTemplateExpression>,
+  consumedCss: Set<Node>,
   consumedJsx: Set<Node>,
 ): string {
   const name = declaration.name!.text
@@ -407,7 +482,10 @@ function compileComponent(
     childrenExpressionKinds,
     componentName: name,
     components,
+    consumedCss,
     consumedJsx,
+    cssTagSymbols,
+    cssTemplates,
     helper,
     propsSymbol: declaration.parameters[0] && isIdentifier(declaration.parameters[0].name)
       ? symbolId(symbols, declaration.parameters[0].name)
@@ -416,16 +494,18 @@ function compileComponent(
     sourceFile,
     sourcePath: sourceFile.fileName,
     sourceIdentity,
+    styleSourceModuleId,
     stylePrimitiveKinds,
     symbols,
     unstableStyleSymbols: collectUnstableStyleSymbols(declaration, sourceFile, symbols),
     mount: [],
     bindings: [],
-    styleSheets: [],
+    styleFragments: [],
     writes: [],
     nodeIndex: 0,
   }
   const rootNodes = compileJsx(skipParentheses(returned.expression), context)
+  const styleSheets = componentStyleSheets(context)
   const exported = declaration.modifiers?.some((modifier) => modifier.getText(sourceFile) === "export")
     ? "export "
     : ""
@@ -433,7 +513,7 @@ function compileComponent(
     `${exported}const ${name} = ${helper}Define({`,
     `  displayName: ${JSON.stringify(name)},`,
     `  bindingCount: ${context.bindings.length},`,
-    `  styleSheets: [${context.styleSheets.join(", ")}],`,
+    `  styleSheets: ${styleSheets},`,
     `  mount(document) {`,
     ...context.mount.map((line) => `    ${line}`),
     `    return {`,
@@ -545,23 +625,27 @@ function compileStaticStyle(
       fragmentPosition += 1
       const hash = createHash("sha256")
         .update(`${context.sourceIdentity}\0${context.componentName}\0${target}\0${position}\0${source}`)
-        .digest("hex")
-        .slice(0, 24)
+        .digest("base64url")
+        .slice(0, 16)
       return Object.freeze({
         attributeName: `data-z-${hash}` as const,
         id: `@zavx0z/template/style/${hash}`,
       })
     },
     primitiveKinds: context.stylePrimitiveKinds,
+    isPassThrough: expression => isDirectPropsStyleExpression(expression, context),
+    resolveCssTemplate: expression => resolveCompiledCssTemplate(expression, context),
+    styleEncoder: `${context.helper}EncodeStyle`,
     sourceFile: context.sourceFile,
     sourcePath: context.sourcePath,
     symbols: context.symbols,
     unstableSymbols: context.unstableStyleSymbols,
   })
   for (const fragment of extraction.fragments) {
-    context.styleSheets.push(
-      `{id: ${JSON.stringify(fragment.id)}, cssText: ${fragment.cssTextExpression}}`,
-    )
+    if (context.styleFragments.some(current => current.attributeName === fragment.attributeName)) {
+      throw compileError(context.sourcePath, `compiled style marker collision: ${fragment.attributeName}`)
+    }
+    context.styleFragments.push(fragment)
     if (fragment.condition === null) {
       context.mount.push(
         `${target}.setAttribute(${JSON.stringify(fragment.attributeName)}, "")`,
@@ -584,6 +668,150 @@ function compileStaticStyle(
     )
   }
   return extraction.fragments.length > 0 || extraction.residualExpression !== null
+}
+
+function componentStyleSheets(context: CompileContext): string {
+  if (context.styleFragments.length === 0) return "[]"
+  const identity = context.styleFragments.map(fragment => fragment.id).join("\0")
+  const hash = createHash("sha256")
+    .update(`${context.sourceIdentity}\0${context.componentName}\0execution-sheet\0${identity}`)
+    .digest("base64url")
+    .slice(0, 16)
+  const cssText = concatenateStyleExpressions(
+    context.styleFragments.map(fragment => fragment.cssTextExpression),
+  )
+  const authored = context.styleFragments.flatMap(fragment =>
+    fragment.sourceCssTextExpression === null ? [] : [fragment.sourceCssTextExpression]
+  )
+  const source = context.styleSourceModuleId === null || authored.length === 0
+    ? ""
+    : `, {kind: "authored-css", moduleId: ${JSON.stringify(context.styleSourceModuleId)}, componentName: ${JSON.stringify(context.componentName)}, cssText: ${concatenateStyleExpressions(authored)}}`
+  return `[${context.helper}StyleSheet(${JSON.stringify(`z:${hash}`)}, ${cssText}${source})]`
+}
+
+function concatenateStyleExpressions(expressions: readonly string[]): string {
+  return expressions.join(` + ${JSON.stringify("\n")} + `)
+}
+
+function resolveCompiledCssTemplate(
+  expression: Expression,
+  context: CompileContext | ComponentExpressionContext,
+): CompiledCssTemplateSource | null {
+  const value = skipParentheses(expression)
+  let tagged: TaggedTemplateExpression | undefined
+  if (isTaggedTemplateExpression(value) && isExactCssTag(value, context.cssTagSymbols, context.symbols)) {
+    tagged = value
+  } else if (isIdentifier(value)) {
+    const id = symbolId(context.symbols, value)
+    if (id !== null) tagged = context.cssTemplates.get(id)
+  }
+  if (!tagged) return null
+  context.consumedCss.add(tagged)
+  const parts = cssTemplateParts(tagged, context.sourceFile, context.sourcePath)
+  try {
+    return Object.freeze({
+      expressions: Object.freeze(parts.expressions),
+      shape: parseCssTemplateShape(parts.strings),
+    })
+  } catch (error) {
+    throw compileError(
+      context.sourcePath,
+      `invalid scoped css template: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
+}
+
+function normalizedStyleSourceModuleId(value: string | undefined): string | null {
+  if (value === undefined) return null
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new TypeError("styleSourceModuleId must be a non-empty string")
+  }
+  return value.trim()
+}
+
+function collectCssTemplateConstants(
+  sourceFile: SourceFile,
+  cssTagSymbols: ReadonlySet<number>,
+  symbols: ReadonlyMap<Node, number>,
+  sourcePath: string,
+): ReadonlyMap<number, TaggedTemplateExpression> {
+  const templates = new Map<number, TaggedTemplateExpression>()
+  for (const statement of sourceFile.statements) {
+    if (!isVariableStatement(statement)) continue
+    const constant = (statement.declarationList.flags & NodeFlags.Const) !== 0
+    for (const declaration of statement.declarationList.declarations) {
+      if (!declaration.initializer || !isTaggedTemplateExpression(declaration.initializer) ||
+        !isExactCssTag(declaration.initializer, cssTagSymbols, symbols)) continue
+      if (!constant || !isIdentifier(declaration.name)) {
+        throw compileError(sourcePath, "module css templates require one immutable identifier const")
+      }
+      const id = symbolId(symbols, declaration.name)
+      if (id !== null) templates.set(id, declaration.initializer)
+    }
+  }
+  return templates
+}
+
+function removableCssTemplateStatements(
+  sourceFile: SourceFile,
+  cssTagSymbols: ReadonlySet<number>,
+  symbols: ReadonlyMap<Node, number>,
+  consumedCss: ReadonlySet<Node>,
+  componentRanges: readonly Readonly<{start: number; end: number}>[],
+): readonly import("typescript/unstable/ast").VariableStatement[] {
+  const removable: import("typescript/unstable/ast").VariableStatement[] = []
+  for (const statement of sourceFile.statements) {
+    if (!isVariableStatement(statement) || statement.declarationList.declarations.length !== 1 ||
+      statement.modifiers?.some(modifier => modifier.getText(sourceFile) === "export")) continue
+    const declaration = statement.declarationList.declarations[0]!
+    if (!isIdentifier(declaration.name) || !declaration.initializer ||
+      !isTaggedTemplateExpression(declaration.initializer) ||
+      !isExactCssTag(declaration.initializer, cssTagSymbols, symbols) ||
+      !consumedCss.has(declaration.initializer)) continue
+    const id = symbolId(symbols, declaration.name)
+    if (id === null) continue
+    let outsideCompiledComponent = false
+    visit(sourceFile, node => {
+      if (outsideCompiledComponent || !isIdentifier(node) || symbolId(symbols, node) !== id) return
+      const start = node.getStart(sourceFile)
+      if (start >= statement.getStart(sourceFile) && start < statement.getEnd()) return
+      if (componentRanges.some(range => start >= range.start && start < range.end)) return
+      outsideCompiledComponent = true
+    })
+    if (!outsideCompiledComponent) removable.push(statement)
+  }
+  return removable
+}
+
+function cssTemplateParts(
+  tagged: TaggedTemplateExpression,
+  sourceFile: SourceFile,
+  sourcePath: string,
+): Readonly<{strings: readonly string[]; expressions: readonly Expression[]}> {
+  if (isNoSubstitutionTemplateLiteral(tagged.template)) {
+    return Object.freeze({strings: Object.freeze([tagged.template.text]), expressions: Object.freeze([])})
+  }
+  if (!isTemplateExpression(tagged.template)) {
+    throw compileError(sourcePath, "css requires an ordinary untagged template literal body")
+  }
+  const strings: string[] = [tagged.template.head.text]
+  const expressions: Expression[] = []
+  for (const span of tagged.template.templateSpans) {
+    expressions.push(span.expression)
+    strings.push(span.literal.text)
+  }
+  if (strings.length !== expressions.length + 1) {
+    throw compileError(sourcePath, `css template shape is invalid in ${sourceFile.fileName}`)
+  }
+  return Object.freeze({strings: Object.freeze(strings), expressions: Object.freeze(expressions)})
+}
+
+function isExactCssTag(
+  tagged: TaggedTemplateExpression,
+  cssTagSymbols: ReadonlySet<number>,
+  symbols: ReadonlyMap<Node, number>,
+): boolean {
+  return isIdentifier(tagged.tag) && cssTagSymbols.has(symbolId(symbols, tagged.tag) ?? -1)
 }
 
 function collectUnstableStyleSymbols(
@@ -839,6 +1067,10 @@ function componentProps(
         "class-based component styling is unsupported; pass one style prop",
       )
     }
+    if (name === "style") {
+      properties.push(`${JSON.stringify(name)}: ${componentStyleAttributeExpression(attribute, context)}`)
+      continue
+    }
     const value = attributeValue(attribute, context.sourceFile, context.sourcePath)
     const expressionValue = value.staticValue !== undefined
       ? JSON.stringify(value.staticValue)
@@ -849,6 +1081,24 @@ function componentProps(
   const children = componentChildrenValue(expression, context)
   if (children !== null) properties.push(`${JSON.stringify("children")}: ${children}`)
   return Object.freeze({props: `{${properties.join(", ")}}`, key})
+}
+
+function componentStyleAttributeExpression(
+  attribute: JsxAttribute,
+  context: ComponentExpressionContext,
+): string {
+  const initializer = attribute.initializer
+  if (!initializer || !isJsxExpression(initializer) || !initializer.expression) {
+    throw compileError(context.sourcePath, "component style prop requires a JSX css expression")
+  }
+  return extractComponentStyle(skipParentheses(initializer.expression), {
+    primitiveKinds: context.stylePrimitiveKinds,
+    isPassThrough: expression => isDirectPropsStyleExpression(expression, context),
+    resolveCssTemplate: expression => resolveCompiledCssTemplate(expression, context),
+    styleEncoder: `${context.helper}EncodeStyle`,
+    sourceFile: context.sourceFile,
+    sourcePath: context.sourcePath,
+  })
 }
 
 function componentChildrenValue(
@@ -1033,13 +1283,26 @@ function attributeName(name: string): string {
 function runtimeImportBindings(
   sourceFile: SourceFile,
   symbols: ReadonlyMap<Node, number>,
+  cssIntrinsicSymbols: ReadonlySet<number>,
   sourcePath: string,
 ): RuntimeImportBindings {
+  const css = new Set<number>(cssIntrinsicSymbols)
   const createRoot = new Set<number>()
   const hooks = new Map<number, Readonly<{name: string; supported: boolean}>>()
   const memo = new Set<number>()
   for (const statement of sourceFile.statements) {
     if (!isImportDeclaration(statement) || !isStringLiteral(statement.moduleSpecifier)) continue
+    if (statement.moduleSpecifier.text === "@zavx0z/template") {
+      const named = statement.importClause?.namedBindings
+      if (named && !isNamedImports(named)) {
+        throw compileError(sourcePath, "@zavx0z/template namespace imports are unsupported for css")
+      }
+      for (const specifier of named?.elements ?? []) {
+        if ((specifier.propertyName?.text ?? specifier.name.text) !== "css") continue
+        throw compileError(sourcePath, "governed TSX uses the global css compiler intrinsic; remove the css import")
+      }
+      continue
+    }
     if (statement.moduleSpecifier.text !== "@zavx0z/react") continue
     if (statement.importClause?.name) {
       throw compileError(sourcePath, "@zavx0z/react has no default compiler import")
@@ -1070,7 +1333,7 @@ function runtimeImportBindings(
       }
     }
   }
-  return Object.freeze({createRoot, hooks, memo})
+  return Object.freeze({css, createRoot, hooks, memo})
 }
 
 function validateHookCalls(
@@ -1196,6 +1459,17 @@ function isDirectPropsChildrenExpression(
   return context.propsSymbol !== null &&
     isPropertyAccessExpression(expression) &&
     expression.name.text === "children" &&
+    isIdentifier(expression.expression) &&
+    symbolId(context.symbols, expression.expression) === context.propsSymbol
+}
+
+function isDirectPropsStyleExpression(
+  expression: Expression,
+  context: Pick<CompileContext, "propsSymbol" | "symbols">,
+): boolean {
+  return context.propsSymbol !== null &&
+    isPropertyAccessExpression(expression) &&
+    expression.name.text === "style" &&
     isIdentifier(expression.expression) &&
     symbolId(context.symbols, expression.expression) === context.propsSymbol
 }

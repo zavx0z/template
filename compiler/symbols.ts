@@ -1,5 +1,5 @@
-import {relative, resolve, sep} from "node:path"
-import {realpathSync} from "node:fs"
+import {basename, resolve} from "node:path"
+import {readFileSync} from "node:fs"
 import {
   SymbolFlags,
   TypeFlags,
@@ -32,11 +32,14 @@ import {
   isParenthesizedExpression,
   isReturnStatement,
   isStringLiteral,
+  isTaggedTemplateExpression,
+  isTemplateExpression,
   isVariableDeclaration,
   isVariableDeclarationList,
 } from "typescript/unstable/ast/is"
 import {skipOuterExpressions, SyntaxKind} from "typescript/unstable/ast"
 import {JsxCompileError} from "./errors.ts"
+import {GovernedFiles, sameRegularFile} from "./governed-paths.ts"
 import type {
   JsxChildrenExpressionKind,
   JsxTransformSymbols
@@ -44,11 +47,12 @@ import type {
 import type {JsxStylePrimitiveKind} from "./style.ts"
 
 const jsxSourceElementMarker = "@zavx0z/template/jsx-source-element"
+const cssCompilerIntrinsicMarker = "@zavx0z/template/css-compiler-intrinsic"
 
 export async function buildJsxTransformSymbols(
   sourceFile: SourceFile,
   project: Project,
-  sourceRoots: readonly string[],
+  governedFiles: GovernedFiles,
 ): Promise<JsxTransformSymbols> {
   const identifiers: Identifier[] = []
   visit(sourceFile, node => {
@@ -67,10 +71,19 @@ export async function buildJsxTransformSymbols(
   const importedComponents = new Set<number>()
   const importedCustomHooks = new Set<number>()
   const dependencyPaths = new Set<string>()
+  const cssIntrinsicSymbols = new Set<number>()
+  for (const symbol of new Set(objects.values())) {
+    if (await isBrandedCssCompilerIntrinsic(symbol, project)) {
+      cssIntrinsicSymbols.add(symbol.id)
+    }
+  }
   const styleExpressions: Expression[] = []
   const dynamicChildren: Expression[] = []
   visit(sourceFile, node => {
     if (isJsxExpression(node) && node.expression) dynamicChildren.push(node.expression)
+    if (isTaggedTemplateExpression(node) && isTemplateExpression(node.template)) {
+      for (const span of node.template.templateSpans) styleExpressions.push(span.expression)
+    }
     if (!isJsxAttribute(node) || node.name.getText(sourceFile) !== "style" ||
       !node.initializer || !isJsxExpression(node.initializer) || !node.initializer.expression) return
     visit(node.initializer.expression, child => {
@@ -161,7 +174,7 @@ export async function buildJsxTransformSymbols(
         const valid = await hasGovernedComponentDeclaration(
           target,
           project,
-          sourceRoots,
+          governedFiles,
           dependencyPaths,
           new Set(),
         )
@@ -178,7 +191,7 @@ export async function buildJsxTransformSymbols(
         const valid = await hasGovernedCustomHookDeclaration(
           target,
           project,
-          sourceRoots,
+          governedFiles,
           dependencyPaths,
         )
         if (!valid) {
@@ -194,7 +207,7 @@ export async function buildJsxTransformSymbols(
   }
 
   for (const dependencyPath of dependencyPaths) {
-    if (comparablePath(dependencyPath) === comparablePath(sourceFile.fileName)) {
+    if (sameRegularFile(dependencyPath, sourceFile.fileName)) {
       dependencyPaths.delete(dependencyPath)
     }
   }
@@ -202,12 +215,41 @@ export async function buildJsxTransformSymbols(
     arrayExpressions,
     byNode,
     childrenExpressionKinds,
+    cssIntrinsicSymbols,
     dependencyPaths,
     importedComponents,
     importedCustomHooks,
-    sourceIdentity: jsxSourceIdentity(sourceFile.fileName, sourceRoots),
+    sourceIdentity: jsxSourceIdentity(sourceFile.fileName, governedFiles),
     stylePrimitiveKinds,
   })
+}
+
+async function isBrandedCssCompilerIntrinsic(
+  symbol: TypeScriptSymbol,
+  project: Project,
+): Promise<boolean> {
+  const {checker} = project
+  const type = await checker.getTypeOfSymbol(symbol)
+  if (!type) return false
+  const marker = await checker.getPropertyOfType(type, cssCompilerIntrinsicMarker)
+  if (!marker) return false
+  const markerType = await checker.getTypeOfSymbol(marker)
+  if (markerType?.isBooleanLiteralType() !== true || markerType.value !== true) return false
+  for (const declaration of symbol.declarations) {
+    if (!/^jsx-runtime(?:\.d)?\.ts$/.test(basename(declaration.path))) continue
+    const metadata = await project.program.getSourceFileMetadata(declaration.path)
+    const packageDirectory = metadata?.packageJsonDirectory
+    if (!packageDirectory) continue
+    try {
+      const manifest = JSON.parse(readFileSync(resolve(packageDirectory, "package.json"), "utf8")) as {
+        name?: unknown
+      }
+      if (manifest.name === "@zavx0z/template") return true
+    } catch {
+      // An unreadable package identity cannot authorize the compiler intrinsic.
+    }
+  }
+  return false
 }
 
 async function classifyStylePrimitiveType(type: Type): Promise<JsxStylePrimitiveKind> {
@@ -223,6 +265,8 @@ async function classifyStylePrimitiveType(type: Type): Promise<JsxStylePrimitive
         ? "string"
         : (part.flags & TypeFlags.NumberLike) !== 0
           ? "number"
+          : (part.flags & TypeFlags.BigIntLike) !== 0
+            ? "bigint"
           : "unsupported"
     if (next === "unsupported" || (kind !== null && kind !== next)) return "unsupported"
     kind = next
@@ -230,14 +274,10 @@ async function classifyStylePrimitiveType(type: Type): Promise<JsxStylePrimitive
   return kind ?? "unsupported"
 }
 
-function jsxSourceIdentity(sourcePath: string, roots: readonly string[]): string {
-  const candidates = roots
-    .map((root, index) => ({index, root}))
-    .filter(({root}) => inside(root, sourcePath))
-    .sort((left, right) => right.root.length - left.root.length)
-  const owner = candidates[0]
+function jsxSourceIdentity(sourcePath: string, files: GovernedFiles): string {
+  const owner = files.matchFile(sourcePath)
   if (!owner) return sourcePath.replaceAll("\\", "/")
-  return `${owner.index}:${relative(owner.root, sourcePath).replaceAll("\\", "/")}`
+  return `${owner.rootIndex}:${owner.relativePath.replaceAll("\\", "/")}`
 }
 
 async function classifyChildrenExpressionType(
@@ -315,14 +355,14 @@ async function isReadonlyArrayType(type: Type): Promise<boolean> {
 async function hasGovernedComponentDeclaration(
   symbol: TypeScriptSymbol,
   project: Project,
-  roots: readonly string[],
+  governedFiles: GovernedFiles,
   dependencyPaths: Set<string>,
   visitedSymbols: Set<number>,
 ): Promise<boolean> {
   if (visitedSymbols.has(symbol.id)) return false
   visitedSymbols.add(symbol.id)
   for (const handle of symbol.declarations) {
-    if (!roots.some(root => inside(root, handle.path))) continue
+    if (governedFiles.matchFile(handle.path) === null) continue
     dependencyPaths.add(resolve(handle.path))
     const declaration = await handle.resolve(project)
     if (declaration && isSupportedFunctionComponent(declaration)) return true
@@ -331,7 +371,7 @@ async function hasGovernedComponentDeclaration(
       await isGovernedMemoComponent(
         declaration,
         project,
-        roots,
+        governedFiles,
         dependencyPaths,
         visitedSymbols,
       )
@@ -343,7 +383,7 @@ async function hasGovernedComponentDeclaration(
 async function isGovernedMemoComponent(
   declaration: VariableDeclaration,
   project: Project,
-  roots: readonly string[],
+  governedFiles: GovernedFiles,
   dependencyPaths: Set<string>,
   visitedSymbols: Set<number>,
 ): Promise<boolean> {
@@ -362,7 +402,7 @@ async function isGovernedMemoComponent(
   return hasGovernedComponentDeclaration(
     base,
     project,
-    roots,
+    governedFiles,
     dependencyPaths,
     visitedSymbols,
   )
@@ -392,11 +432,11 @@ async function isExactRuntimeMemo(identifier: Identifier, project: Project): Pro
 async function hasGovernedCustomHookDeclaration(
   symbol: TypeScriptSymbol,
   project: Project,
-  roots: readonly string[],
+  governedFiles: GovernedFiles,
   dependencyPaths: Set<string>,
 ): Promise<boolean> {
   for (const handle of symbol.declarations) {
-    if (!roots.some(root => inside(root, handle.path))) continue
+    if (governedFiles.matchFile(handle.path) === null) continue
     dependencyPaths.add(resolve(handle.path))
     const declaration = await handle.resolve(project)
     if (!declaration || !isFunctionDeclaration(declaration) || !declaration.name ||
@@ -428,26 +468,6 @@ function skipParentheses(expression: Expression): Expression {
   let current = expression
   while (isParenthesizedExpression(current)) current = current.expression
   return skipOuterExpressions(current)
-}
-
-function inside(root: string, path: string): boolean {
-  const metadata = relative(comparablePath(root), comparablePath(path))
-  return metadata === "" || (
-    metadata !== ".." && !metadata.startsWith(`..${sep}`) && !metadata.startsWith(sep)
-  )
-}
-
-function comparablePath(path: string): string {
-  const resolved = resolve(path)
-  let absolute = resolved
-  try {
-    absolute = realpathSync.native(resolved)
-  } catch {
-    // TypeScript can report a deleted declaration while the snapshot is updating.
-  }
-  return process.platform === "darwin" || process.platform === "win32"
-    ? absolute.toLowerCase()
-    : absolute
 }
 
 function isReactRuntimeModule(moduleName: string): boolean {

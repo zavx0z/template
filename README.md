@@ -159,6 +159,13 @@ Bun.plugin(createTemplateJsxBunPlugin({
 }))
 ```
 
+`sourceRoots` — точная owner-граница, а не рекурсивное разрешение компилировать
+все зависимости внутри project directory. Adapter выбирает наиболее
+специфичный root и не перехватывает вложенный `node_modules`; физический
+hard-link mirror допустим только при совпадении inode и относительной public
+source identity. Явно переданный package root, который сам расположен под
+`node_modules`, остаётся обычным owner root.
+
 Профиль намеренно ограничен синхронными function declarations с одним финальным
 JSX return. Component children поддерживают один governed component,
 component-or-null, primitive text и compiler-owned keyed components;
@@ -183,21 +190,20 @@ runtime guards используют внутренние `Symbol.for(...)` brand
 author-facing `defineStyles`, class name или экспорт CSS не требуется:
 
 ```tsx
-function Button(props: Readonly<{selected?: boolean; style?: unknown}>) {
-  return <button style={[
-    {
-      display: "flex",
-      height: 22,
-      ":hover": {background: "rgb(101 101 101)"},
-      ":active": {background: "rgb(71 114 179)"},
-    },
-    props.selected === true && {background: "rgb(71 114 179)"},
-    props.style,
-  ]}>Output</button>
+function Button(props: Readonly<{selected?: boolean; style?: CssStyle}>) {
+  return <button style={css`
+    & { display: flex; height: 22px; }
+    &[aria-pressed="true"] { background: rgb(71 114 179); }
+    &:hover { background: rgb(101 101 101); }
+    &:active { background: rgb(71 114 179); }
+    ${props.style}
+  `}>Output</button>
 }
 ```
 
-Compiler выносит module-stable declarations и supported pseudos в scoped
+`css` — typed global compiler intrinsic из exact `jsxImportSource`; импорт и
+runtime global assignment не создаются. JavaScript style objects, camelCase,
+author arrays и raw strings rejected. Compiler выносит module-stable declarations и supported selectors в scoped
 `CompiledStyleSheet` metadata. Unconditional marker устанавливается во время
 static mount, условный static fragment получает обычный addressed boolean
 binding. Props/state-dependent base declarations и caller `style` остаются
@@ -208,29 +214,100 @@ inline binding и поэтому сохраняют более высокий ca
 spreads, computed keys и nested/unknown pseudos завершают compilation точной
 ошибкой. Это не скрытый runtime CSS-in-JS scanner: metadata строится compiler-ом,
 а downstream Document/runtime регистрирует готовые `{id, cssText}` rules.
-Одинаковый fragment на другом intrinsic target или в другой позиции массива
+
+### Scoped CSS tagged templates
+
+Тот же style pipeline принимает scoped tagged template без runtime import:
+
+```tsx
+function Button(props: Readonly<{
+  hoverColor: string
+  style?: CssStyle
+  width: number
+}>) {
+  return <button style={css`
+    & {
+      display: flex;
+      --hover-color: ${props.hoverColor};
+      width: ${props.width}px;
+    }
+    &:hover { background: var(--hover-color); }
+    ${props.style}
+  `}>Output</button>
+}
+```
+
+`css` tag не является `String.raw`: он сохраняет cooked `TemplateStringsArray`
+и ordered primitive values, а static shape использует тот же identity cache,
+marker encoding и segment parser, что и `html``. Compiler связывает exact
+checker-branded global `css` symbol с конкретным intrinsic target и понижает rules в существующие
+`CompiledStyleSheet`, marker и `bindStyle` operations.
+
+Первый selector profile намеренно мал: `&`, static `&[attr]`,
+`&[attr="value"]`, repeated attributes и optional suffix `&:active`, `&:checked`,
+`&:disabled`, `&:focus`, `&:focus-within`, `&:hover`, `&:indeterminate`.
+Интерполяции разрешены только внутри declaration value. Instance-dependent
+values допустимы только в `&`; внутри pseudo они остаются compiler error.
+Selectors, property names, whole declarations/rules, at-rules, globals,
+descendants/combinators и nested rules не могут быть dynamic и пока не входят в
+профиль.
+
+Static owner template можно вынести в same-module immutable const и приложить к
+intrinsic element. Такой const всё равно остаётся scoped, не становится global
+theme sheet и удаляется из production bundle, когда после lowering больше не
+нужен. Передача `css` template через component `style` prop пока запрещена:
+compiler не ищет скрытый intrinsic target.
+
+Source-oriented tools могут явно передать compiler-у `styleSourceRootIds`.
+Тогда, и только тогда, compiled sheet сохраняет public module id, component
+name и обычный нормализованный CSS всех static object/`css`` fragments в
+authored order без tag/backticks/TypeScript interpolation
+для root-scoped documentation projection. Dynamic base declarations видны как
+inline style в HTML source. Обычная production сборка не эмитит эти source
+bytes; runtime cascade всегда исполняет тот же compiled `id + cssText`.
+
+Production compiler собирает все static fragments одного Component в один
+ordered execution sheet, сохраняя отдельный `data-z-*` marker каждого fragment.
+В bundle CSS может находиться в product-neutral compact transport; перед
+публикацией `CompiledStyleSheet` он синхронно восстанавливается в обычный exact
+CSS. Dictionary содержит только generic CSS syntax и не знает UI/theme tokens.
+Canonical и physical-mirror roots могут передать одинаковый public root id:
+оба проецируются в один package/module identity без искусственного suffix.
+
+Обычное имя tag повышает шанс существующей CSS-in-JS language injection в IDE,
+но TypeScript не проверяет CSS grammar и пакет не обещает editor plugin,
+highlighting или completion. Legacy `parse()`/`attribute/style.ts` здесь не
+участвуют: они остаются отдельным source-analysis DSL.
+
+Если pseudo должен использовать per-instance значение, автор явно называет CSS
+custom property; compiler не придумывает переменную:
+
+```tsx
+<button style={css`
+  & { --hover-color: ${props.hoverColor}; }
+  &:hover {
+    background: var(--hover-color);
+    color: var(--hover-text, rgb(255 255 255));
+  }
+`} />
+```
+
+`--hover-color` остаётся в addressed inline `bindStyle`, а static pseudo rule и
+fallback text переносятся в `CompiledStyleSheet` без изменений. Прямой
+`props.hoverColor` внутри `:hover` по-прежнему является compiler error.
+Template не вычисляет `var()`; cascade, inheritance, substitution и fallback
+принадлежат Renderer CSS semantics.
+
+Одинаковый fragment на другом intrinsic target или в другой authored позиции
 сохраняет отдельный marker: небольшое увеличение bundle здесь намеренно
 сохраняет CSS precedence, а Document всё равно регистрирует metadata один раз
 на template, не на каждый instance.
 
-Если pseudo-значение должно зависеть от props/state, будущий контракт использует
-CSS custom property, а не отдельное правило на каждый компонент:
-
-```tsx
-<button style={{
-  "--z-hover-background": props.hoverColor,
-  ":hover": {background: "var(--z-hover-background)"}
-}} />
-```
-
-Static `:hover` остаётся одним общим compiled rule, а экземпляр хранит только
-своё inline `--z-hover-background`. Сейчас custom-property cascade и `var()` в
-Renderer отсутствуют, поэтому такой dynamic pseudo обязан завершиться ошибкой
-компиляции, а не скрытым runtime CSS-in-JS fallback.
-
 ## Nested Style
 
-`style` принимает JavaScript-like object literal. Parser рекурсивно сохраняет
+Этот раздел относится только к legacy source-analysis `parse()` и не является
+authoring API governed TSX compiler. В этом parser `style` принимает
+JavaScript-like object literal. Parser рекурсивно сохраняет
 CSS-свойства, quoted selectors и at-rules, но не проверяет их словарь и не
 придаёт им runtime-семантику:
 

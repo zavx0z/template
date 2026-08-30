@@ -29,6 +29,7 @@
     "noPropertyAccessFromIndexSignature": false
   },
   "exclude": [
-    "compiler/test-fixture/**"
+    "compiler/test-fixture/**",
+    "dist/**"
   ]
 }

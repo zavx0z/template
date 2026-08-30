@@ -29,6 +29,11 @@
 - `TEMPLATE-DOM-010` — `@zavx0z/dom` is an external peer. Template never
   bundles a second DOM implementation, so producer, consumer and compiler share
   one class realm and `instanceof Node` remains exact.
+- `TEMPLATE-DOM-011` — `html` and `css` use one shared cooked
+  `TemplateStringsArray` identity cache, reserved marker encoding and ordered
+  static/slot segment parser. Each frontend owns its grammar, but neither uses
+  `String.raw`, reparses interpolation order independently or reads function
+  source text.
 
 ## Deliberate first-slice limits
 
@@ -91,12 +96,21 @@ participate in the direct DOM update path.
 - `TEMPLATE-COMPILED-009` — every authored source and relative component or
   custom-hook declaration must remain within an explicitly governed canonical
   source root. Exact file roots and multiple roots are valid; an escaping
-  declaration is not loaded as uncompiled JSX.
+  declaration is not loaded as uncompiled JSX. Ownership canonicalizes the
+  root and candidate parent chain but never asks the OS to choose a spelling
+  for the final regular file: a lexical regular non-symlink stays owned even on
+  filesystems that report another hard-link path. A physical mirror is admitted
+  only when device, inode and public relative source identity match an exact
+  governed owner. Final-file and parent-directory symlink escapes fail closed.
 - `TEMPLATE-COMPILED-010` — the Bun adapter intercepts only JSX-bearing source
   extensions. Build registration owns start/end lifecycle; direct
   `Bun.plugin(...)` registration requires `persistent: true`. Caller source-map
   output is allowed, but the compiler explicitly reports `sourceMaps: false`
-  until edits carry exact original-source mappings.
+  until edits carry exact original-source mappings. For overlapping roots the
+  adapter uses the most-specific match. A `node_modules` segment relative to
+  that selected root is never transformed; an explicitly supplied physical
+  owner root located under `node_modules` remains valid because its own
+  relative source path starts below that boundary.
 - `TEMPLATE-COMPILED-011` — authored component children are lowered directly
   into existing `@zavx0z/react` composition values. A single governed component
   uses one `ComponentValue`/`bindChild` range; component-or-null uses
@@ -117,32 +131,95 @@ participate in the direct DOM update path.
 - `TEMPLATE-COMPILED-014` — updates reuse the fixed receiving range and nested
   component instances. Repeated child updates may change addressed props and
   Text but must not grow mounts, binding slots or a parallel runtime graph.
-- `TEMPLATE-COMPILED-015` — component-local intrinsic `style` object literals
-  are compiler input, not runtime owner-style objects. Module-stable base
-  declarations and supported pseudo blocks become immutable scoped
+- `TEMPLATE-COMPILED-015` — component-local intrinsic `style` accepts only the
+  typed global `css`` compiler intrinsic supplied by the exact Template JSX
+  profile. JavaScript objects, camelCase declarations, author arrays and raw
+  strings fail compilation. Module-stable base declarations and supported
+  selector blocks become immutable scoped
   `CompiledStyleSheet` metadata plus generated `data-z-*` markers. A static
   fragment guarded by `condition && {...}` uses an addressed boolean marker
   binding; no component instance reparses that fragment.
-- `TEMPLATE-COMPILED-016` — declarations that depend on props, component locals
+- `TEMPLATE-COMPILED-016` — declaration values that depend on props, component locals
   or hook state remain in the existing inline `bindStyle` channel, preserving
-  caller precedence. A pseudo declaration may not depend on instance state
-  until the platform owns a bounded dynamic-pseudo representation. Style object
-  and array spreads, computed property names, nested/unsupported pseudos and
-  non-primitive module-stable leaves fail during compilation.
+  caller precedence. A non-base selector declaration may not directly depend on instance
+  state; the explicit custom-property bridge in `TEMPLATE-COMPILED-016A` is the
+  only admitted dynamic path. Nested `css``/`condition && css`` fragments flatten
+  in exact authored order; `false`, `null` and `undefined` disappear, while one
+  final `${props.style}` remains the caller inline fragment.
+- `TEMPLATE-COMPILED-016A` — an author may explicitly bridge one dynamic base
+  value into a static pseudo rule with a named CSS custom property, for example
+  `css` source `& { --hover-color: ${props.hoverColor}; }` plus
+  `&:hover { background: var(--hover-color); }`. Template keeps the named
+  custom property in the addressed inline binding and preserves `var(...)`,
+  including fallback text, unchanged in compiled CSS. It never synthesizes a
+  variable name or per-instance stylesheet. CSS variable inheritance and
+  substitution are Renderer-owned behavior, not Template evaluation.
 - `TEMPLATE-COMPILED-017` — compiled stylesheet metadata is immutable and
   keyed by a non-empty deterministic id. Exact duplicate id/text pairs collapse;
   one id with different CSS fails closed. Template owns metadata transport only;
   the consuming Document/runtime owns registration, lifecycle and renderer
-  invalidation without scanning DOM nodes or arbitrary runtime style values.
-  Equal declarations at different intrinsic targets or style-array positions
-  intentionally keep distinct ids so authored cascade order remains exact. This
-  adds bounded metadata bytes once per reachable template, never per instance.
-- `TEMPLATE-COMPILED-018` — a pseudo declaration whose value depends on props,
-  component state or another instance-local value remains unsupported until the
-  CPU Renderer implements CSS custom-property cascade and `var()` substitution.
-  The admitted future lowering is one shared static pseudo rule such as
-  `background: var(--z-hover-background)` plus one addressed inline custom
-  property on each instance. The compiler must not generate a stylesheet/rule
-  per instance, scan mounted style objects, or emulate pseudo state with
-  JavaScript/data-state toggles. Until both CSS capabilities exist, this source
-  form fails during compilation.
+  invalidation without scanning DOM nodes or arbitrary runtime style values. One
+  compiled Component with any static rules owns exactly one ordered execution
+  sheet; every intrinsic target/style-array fragment keeps its distinct
+  `data-z-*` marker, conditional binding and position inside that sheet so
+  authored cascade order remains exact. This adds bounded metadata bytes once
+  per reachable template, never per instance.
+- `TEMPLATE-COMPILED-018` — direct props/state expressions inside a pseudo block
+  remain a compiler error by design. The supported dynamic authoring path is an
+  explicitly author-named custom property in the base declarations plus a
+  static `var(--author-name[, fallback])` pseudo value. Compiler output keeps
+  one shared static rule and one addressed inline custom property per instance;
+  it never synthesizes a variable name or stylesheet/rule per instance, scans
+  mounted style objects, or emulates pseudo state in JavaScript. Template
+  transports the authored `var()` text but does not evaluate CSS substitution;
+  that observable cascade/inheritance/fallback behavior belongs to Renderer.
+- `TEMPLATE-COMPILED-019` — the low-level public `css` tag returns a branded immutable
+  `CssTemplateResult` carrying the exact `TemplateStringsArray` and ordered
+  declaration primitive values and typed nested CSS fragments. Its static shape
+  is parsed once per callsite identity. Governed TSX does not import this runtime
+  function: its global callable intrinsic is type-only, checker-branded, erased
+  by compilation and never assigned on `globalThis`. Local or fake `css`
+  declarations are ordinary symbols and are not recognized.
+  Generic runtime style consumption fails explicitly; the result is never
+  coerced with `String.raw`, `String()` or object-style enumeration.
+- `TEMPLATE-COMPILED-020` — the global `css` intrinsic may be attached to an
+  intrinsic `style` directly or through one same-module immutable const. `&`,
+  bounded static attribute compounds (`&[attr]`, `&[attr="value"]`, repeated
+  attributes) and an admitted native pseudo suffix lower into the existing
+  `CompiledStyleSheet`/marker IR. Selector interpolation, combinators and general
+  selector grammar remain rejected.
+  Module-stable value slots enter static metadata; instance-dependent slots are
+  allowed only in base `&` declarations and remain addressed inline values.
+- `TEMPLATE-COMPILED-021` — css interpolation is restricted to declaration
+  values. Selector/property/rule interpolation, unscoped/global selectors,
+  at-rules, descendant/combinator selectors, nested rules and instance-dependent
+  pseudo slots fail during compilation. A component `style` prop accepts one
+  base-only css fragment and lowers it to inline CSS; attribute/pseudo rules in
+  caller style fail closed. Non-exported module css consts used only
+  by compiled components are removed from production output; no global theme
+  owner or editor-plugin contract is introduced.
+- `TEMPLATE-COMPILED-022` — source-oriented builds may opt in with one public
+  source id per governed compiler root. Only in that mode each compiled
+  Component sheet carries immutable `authored-css` provenance containing
+  the public module id, component name and normalized scoped CSS text. The
+  source projection concatenates every compiler-extracted `css`` fragment in
+  authored order and contains no tag/backticks or TypeScript interpolation: dynamic
+  base declarations stay represented by their exact inline HTML style, while
+  static declarations and pseudos remain syntax-highlightable CSS. Ordinary
+  production builds omit this metadata and its bytes. Runtime execution uses
+  only deterministic sheet id and compiled `cssText`; provenance is a read-only
+  Storybook/source projection and never a second stylesheet owner.
+  Distinct physical roots may intentionally use the same public source id for
+  canonical/mirror package identity; most-specific root selection remains
+  deterministic and no synthetic path suffix is added.
+- `TEMPLATE-COMPILED-023` — compiler output may compact execution CSS with a
+  fixed product-neutral dictionary containing only generic CSS selector,
+  property, function and value syntax. Static and module-stable dynamic segments
+  use the same escape-safe codec; `CompiledStyleSheet.cssText` is fully decoded
+  before ABI validation, Document adoption or Renderer parsing. Reserved Unicode
+  transport characters round-trip exactly and no UI/theme vocabulary is owned
+  by Template. Markers and sheet ids use deterministic 96-bit base64url content
+  hashes. At one million generated identities the birthday collision bound is
+  approximately `6.3e-18`. Marker collisions remain probabilistically bounded;
+  a realized execution-sheet id collision with different CSS additionally fails
+  closed through the existing ABI/Document collision checks.

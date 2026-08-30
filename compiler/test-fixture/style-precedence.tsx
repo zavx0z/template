@@ -1,14 +1,14 @@
-import {createRoot, type StyleValue} from "@zavx0z/react"
+import {createRoot} from "@zavx0z/react"
 
 export function Label(props: Readonly<{
   hidden: boolean
-  style?: StyleValue
+  style?: CssStyle
 }>) {
-  return <span style={[
-    {display: "inline", color: "rgb(230 230 230)"},
-    props.hidden && {display: "none"},
-    props.style,
-  ]}>Label</span>
+  return <span style={css`
+    & { display: inline; color: rgb(230 230 230); }
+    ${props.hidden && css`& { display: none; }`}
+    ${props.style}
+  `}>Label</span>
 }
 
 declare const container: Parameters<typeof createRoot>[0]

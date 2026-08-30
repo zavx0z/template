@@ -1,6 +1,11 @@
-import {realpathSync, statSync} from "node:fs"
+import {statSync} from "node:fs"
 import {stat} from "node:fs/promises"
-import {dirname, extname, relative, resolve, sep} from "node:path"
+import {dirname, extname, resolve, sep} from "node:path"
+import {
+  GovernedFiles,
+  lexicallyInside,
+  selectGovernedCompilerSource,
+} from "./governed-paths.ts"
 import {JsxCompilerSession} from "./session.ts"
 
 export type CreateTemplateJsxPluginOptions = Readonly<{
@@ -9,6 +14,8 @@ export type CreateTemplateJsxPluginOptions = Readonly<{
   /** Keep the TypeScript session across incremental dev-server rebuilds. */
   persistent?: boolean
   sourceRoots: readonly string[]
+  /** Opt-in public root ids for authored CSS source provenance. */
+  styleSourceRootIds?: readonly string[]
 }>
 
 export function createTemplateJsxBunPlugin(
@@ -17,9 +24,13 @@ export function createTemplateJsxBunPlugin(
   const configuredCwd = resolve(options.cwd ?? process.cwd())
   const roots = options.sourceRoots.map((root) => resolve(configuredCwd, root))
   if (roots.length === 0) throw new TypeError("Template JSX plugin requires at least one source root")
+  const governedFiles = new GovernedFiles(roots)
   const session = new JsxCompilerSession({
     cwd: options.cwd === undefined ? commonCwd(roots) : configuredCwd,
-    sourceRoots: roots
+    sourceRoots: roots,
+    ...(options.styleSourceRootIds === undefined
+      ? {}
+      : {styleSourceRootIds: options.styleSourceRootIds}),
   })
   let refresh = Promise.resolve()
   return {
@@ -34,12 +45,13 @@ export function createTemplateJsxBunPlugin(
       }
       if (hasBuildLifecycle) {
         builder.onStart(() => {
+          governedFiles.refresh()
           refresh = discoverSourceFiles(roots).then(files => session.refreshFiles(files))
           return refresh
         })
       }
       builder.onLoad({filter: /\.(?:[cm]?jsx|[cm]?tsx)$/}, async ({path}) => {
-        if (!roots.some((root) => inside(root, path))) return undefined
+        if (selectGovernedCompilerSource(governedFiles, path) === null) return undefined
         await refresh
         const code = await session.transformFile(path)
         return {contents: code, loader: sourceLoader(extname(path))}
@@ -66,27 +78,9 @@ const discoverSourceFiles = async (roots: readonly string[]): Promise<readonly s
   return Object.freeze(files)
 }
 
-const inside = (root: string, path: string): boolean => {
-  const child = relative(comparablePath(root), comparablePath(path))
-  return child === "" || (!child.startsWith(`..${sep}`) && child !== ".." && !child.startsWith(sep))
-}
-
-const comparablePath = (path: string): string => {
-  const resolved = resolve(path)
-  let absolute = resolved
-  try {
-    absolute = realpathSync.native(resolved)
-  } catch {
-    // A missing source will be reported by the owning compiler operation.
-  }
-  return process.platform === "darwin" || process.platform === "win32"
-    ? absolute.toLowerCase()
-    : absolute
-}
-
 const commonCwd = (roots: readonly string[]): string => {
   let candidate = statSync(roots[0]!).isDirectory() ? roots[0]! : dirname(roots[0]!)
-  while (!roots.every(root => inside(candidate, root))) {
+  while (!roots.every(root => lexicallyInside(candidate, root))) {
     const parent = dirname(candidate)
     if (parent === candidate) return candidate
     candidate = parent
@@ -95,7 +89,7 @@ const commonCwd = (roots: readonly string[]): string => {
 }
 
 const sourceLoader = (extension: string): "js" | "jsx" | "ts" | "tsx" => {
-  if (extension === ".jsx") return "jsx"
+  if (extension === ".jsx") return "tsx"
   if (extension === ".tsx") return "tsx"
   if (extension.endsWith("js")) return "js"
   return "ts"

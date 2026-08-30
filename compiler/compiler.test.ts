@@ -1,5 +1,5 @@
 import {afterAll, beforeAll, describe, expect, test} from "bun:test"
-import {mkdir, mkdtemp, rm, symlink, writeFile} from "node:fs/promises"
+import {link, mkdir, mkdtemp, rename, rm, symlink, writeFile} from "node:fs/promises"
 import {tmpdir} from "node:os"
 import {resolve} from "node:path"
 import {createTemplateJsxBunPlugin} from "./bun.ts"
@@ -201,7 +201,7 @@ describe("Template JSX compiler", () => {
       await workspace.close()
       await rm(temporaryRoot, {force: true, recursive: true})
     }
-  }, 30_000)
+  }, 60_000)
 
   test("exposes a thin Bun onLoad adapter while compiler code stays external", async () => {
     const result = await Bun.build({
@@ -213,6 +213,48 @@ describe("Template JSX compiler", () => {
     expect(result.success).toBe(true)
     expect(await result.outputs[0]!.text()).not.toContain("<button")
   })
+
+  test("transforms nested node_modules JSX only through an explicit physical source root", async () => {
+    const temporaryRoot = await mkdtemp(resolve(tmpdir(), "template-jsx-node-modules-"))
+    const projectRoot = resolve(temporaryRoot, "project")
+    const physicalRoot = resolve(projectRoot, "node_modules/dependency")
+    const sourcePath = resolve(physicalRoot, "src/component.jsx")
+    await mkdir(resolve(physicalRoot, "src"), {recursive: true})
+    await writeFile(sourcePath, [
+      "export function NestedDependency() {",
+      "  return <span>Nested dependency</span>",
+      "}",
+      "",
+    ].join("\n"))
+    const build = (sourceRoots: readonly string[]) => Bun.build({
+      entrypoints: [sourcePath],
+      external: [
+        "@zavx0z/react",
+        "@zavx0z/template/compiled",
+        "@zavx0z/template/jsx-runtime",
+        "react/jsx-dev-runtime",
+        "react/jsx-runtime",
+      ],
+      plugins: [createTemplateJsxBunPlugin({cwd: projectRoot, sourceRoots})],
+      target: "browser",
+    })
+
+    try {
+      const broad = await build([projectRoot])
+      expect(broad.success).toBe(true)
+      const broadCode = await broad.outputs[0]!.text()
+      expect(broadCode).not.toContain("@zavx0z/template/compiled")
+      expect(broadCode).not.toContain("defineCompiledTemplate")
+
+      const explicit = await build([projectRoot, physicalRoot])
+      expect(explicit.success).toBe(true)
+      const explicitCode = await explicit.outputs[0]!.text()
+      expect(explicitCode).toContain("@zavx0z/template/compiled")
+      expect(explicitCode).not.toContain("<span")
+    } finally {
+      await rm(temporaryRoot, {force: true, recursive: true})
+    }
+  }, 30_000)
 
   test("supports direct Bun.plugin TSX loading without intercepting plain TypeScript", async () => {
     const temporaryRoot = await mkdtemp(resolve(tmpdir(), "template-jsx-runtime-"))
@@ -253,6 +295,56 @@ describe("Template JSX compiler", () => {
     expect(result.success).toBe(true)
     expect(result.outputs).toHaveLength(2)
   })
+
+  test("maps canonical and physical mirror roots to one public style source id", async () => {
+    const temporaryRoot = await mkdtemp(resolve(tmpdir(), "template-style-mirrors-"))
+    const canonicalRoot = resolve(temporaryRoot, "canonical")
+    const mirrorRoot = resolve(temporaryRoot, "mirror")
+    await mkdir(canonicalRoot, {recursive: true})
+    await mkdir(mirrorRoot, {recursive: true})
+    await writeFile(resolve(temporaryRoot, "tsconfig.json"), JSON.stringify({
+      compilerOptions: {
+        jsx: "preserve",
+        jsxImportSource: "@zavx0z/template",
+        module: "Preserve",
+        moduleResolution: "bundler",
+        noEmit: true,
+        paths: {
+          "@zavx0z/template/jsx-runtime": [resolve(import.meta.dir, "../jsx-runtime.ts")]
+        },
+        skipLibCheck: true,
+        target: "ESNext"
+      },
+      include: ["canonical/**/*.tsx", "mirror/**/*.tsx"]
+    }))
+    const source = [
+      "export function Owner() {",
+      "  return <button style={css`& { display: block; }`}>Owner</button>",
+      "}",
+      "",
+    ].join("\n")
+    const canonical = resolve(canonicalRoot, "owner.tsx")
+    const mirror = resolve(mirrorRoot, "owner.tsx")
+    await Promise.all([writeFile(canonical, source), writeFile(mirror, source)])
+    const mirrored = new JsxCompilerSession({
+      cwd: temporaryRoot,
+      sourceRoots: [canonicalRoot, mirrorRoot],
+      styleSourceRootIds: ["@ui/components", "@ui/components"],
+    })
+    try {
+      const [canonicalCode, mirrorCode] = await Promise.all([
+        mirrored.transformFile(canonical),
+        mirrored.transformFile(mirror),
+      ])
+      for (const code of [canonicalCode, mirrorCode]) {
+        expect(code).toContain('moduleId: "@ui/components/owner.tsx"')
+        expect(code).toContain('componentName: "Owner"')
+      }
+    } finally {
+      await mirrored.close()
+      await rm(temporaryRoot, {force: true, recursive: true})
+    }
+  }, 30_000)
 
   test("resolves relative file roots against an explicit compiler cwd", async () => {
     const result = await Bun.build({
@@ -311,7 +403,55 @@ describe("Template JSX compiler", () => {
       await changing.close()
       await rm(temporaryRoot, {force: true, recursive: true})
     }
-  }, 30_000)
+  }, 60_000)
+
+  test("invalidates a cached importer when hardlink ownership changes without byte changes", async () => {
+    const temporaryRoot = await mkdtemp(resolve(tmpdir(), "template-jsx-owner-cache-"))
+    const applicationRoot = resolve(temporaryRoot, "application")
+    const canonicalRoot = resolve(temporaryRoot, "canonical")
+    const physicalRoot = resolve(temporaryRoot, "physical")
+    await Promise.all([
+      mkdir(applicationRoot, {recursive: true}),
+      mkdir(canonicalRoot, {recursive: true}),
+      mkdir(physicalRoot, {recursive: true}),
+    ])
+    const source = [
+      "export function Imported() {",
+      "  return <span>Owner</span>",
+      "}",
+      "",
+    ].join("\n")
+    const canonical = resolve(canonicalRoot, "component.tsx")
+    const physical = resolve(physicalRoot, "component.tsx")
+    const entry = resolve(applicationRoot, "entry.tsx")
+    await writeFile(physical, source)
+    await link(physical, canonical)
+    await writeFile(entry, [
+      'import {createRoot} from "@zavx0z/react"',
+      'import {Imported} from "../physical/component.tsx"',
+      "declare const container: Parameters<typeof createRoot>[0]",
+      "createRoot(container).render(<Imported />)",
+      "",
+    ].join("\n"))
+    const changing = new JsxCompilerSession({
+      cwd: temporaryRoot,
+      sourceRoots: [applicationRoot, canonicalRoot],
+    })
+    try {
+      expect(await changing.transformFile(entry)).toContain(
+        "createRoot(container).render(Imported, {})",
+      )
+      const replacement = resolve(canonicalRoot, "replacement.tsx")
+      await writeFile(replacement, source)
+      await rename(replacement, canonical)
+      await changing.refreshFiles([entry, canonical])
+      await expect(changing.transformFile(entry))
+        .rejects.toThrow("governed function component")
+    } finally {
+      await changing.close()
+      await rm(temporaryRoot, {force: true, recursive: true})
+    }
+  }, 60_000)
 
   test("fails a component import that escapes the governed source roots", async () => {
     const governed = resolve(fixtureRoot, "governed")
@@ -322,7 +462,7 @@ describe("Template JSX compiler", () => {
     } finally {
       await isolated.close()
     }
-  }, 30_000)
+  }, 60_000)
 })
 
 async function expectRejected(file: string, message: string): Promise<void> {

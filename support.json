@@ -41,7 +41,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "14",
+          "lines": "16",
           "path": "compiler/bun.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -143,7 +143,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "157",
+          "lines": "183",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -182,7 +182,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "161",
+          "lines": "187",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -221,7 +221,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "137",
+          "lines": "163",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -260,7 +260,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "13",
+          "lines": "18",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -292,7 +292,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "165",
+          "lines": "191",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -331,7 +331,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "122",
+          "lines": "148",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -370,7 +370,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "153",
+          "lines": "179",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -409,7 +409,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "133",
+          "lines": "159",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -448,7 +448,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "118",
+          "lines": "144",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -487,7 +487,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "69",
+          "lines": "95",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -519,7 +519,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "15",
+          "lines": "20",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -546,21 +546,60 @@
     {
       "blockedBy": [],
       "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "55",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "compiledStyleSheet",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "compiledStyleSheet",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.compiledstylesheet",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
       "conformance": "unknown",
       "consumers": [],
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "20",
+          "lines": "31",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
           "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
-          "symbol": "CompiledStyleSheet",
+          "symbol": "CompiledStyleSheetSource",
           "type": "implementation"
         }
       ],
-      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.compiledstylesheet",
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.compiledstylesheetsource",
       "lastVerified": {
         "date": "2026-08-29",
         "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
@@ -583,7 +622,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "33",
+          "lines": "46",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -615,7 +654,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "25",
+          "lines": "38",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -647,7 +686,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "75",
+          "lines": "101",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -679,7 +718,46 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "97",
+          "lines": "9",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "decodeCompiledStyleText",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "decodeCompiledStyleText",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.decodecompiledstyletext",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "123",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -713,12 +791,51 @@
     {
       "blockedBy": [],
       "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "9",
+          "path": "compiled.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "encodeCompiledStyleText",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "encodeCompiledStyleText",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiled.symbols.encodecompiledstyletext",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
       "conformance": "unknown",
       "consumers": [],
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "57",
+          "lines": "83",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -750,7 +867,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "87",
+          "lines": "113",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -782,7 +899,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "176",
+          "lines": "202",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -821,7 +938,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "181",
+          "lines": "207",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -860,7 +977,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "81",
+          "lines": "107",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -892,7 +1009,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "46",
+          "lines": "72",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -924,7 +1041,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "64",
+          "lines": "90",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -956,7 +1073,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "52",
+          "lines": "78",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -988,7 +1105,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "41",
+          "lines": "67",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1020,7 +1137,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "169",
+          "lines": "195",
           "path": "compiled.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1249,6 +1366,38 @@
         }
       ],
       "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.jsxcompilerstats",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "5",
+          "path": "compiler/index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "JsxTransformOptions",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.compiler.symbols.jsxtransformoptions",
       "lastVerified": {
         "date": "2026-08-29",
         "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
@@ -1532,7 +1681,39 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "12",
+          "lines": "16",
+          "path": "jsx-runtime.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CssCompilerIntrinsic",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.jsx-runtime.symbols.csscompilerintrinsic",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "28",
           "path": "jsx-runtime.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1564,7 +1745,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "14",
+          "lines": "30",
           "path": "jsx-runtime.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1596,7 +1777,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "13",
+          "lines": "29",
           "path": "jsx-runtime.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1628,7 +1809,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "33",
+          "lines": "49",
           "path": "jsx-runtime.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1660,7 +1841,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "17",
+          "lines": "33",
           "path": "jsx-runtime.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1692,7 +1873,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "20",
+          "lines": "36",
           "path": "jsx-runtime.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1724,7 +1905,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "25",
+          "lines": "41",
           "path": "jsx-runtime.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1756,7 +1937,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "29",
+          "lines": "45",
           "path": "jsx-runtime.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1851,7 +2032,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "26",
+          "lines": "38",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1883,7 +2064,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "16",
+          "lines": "28",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1922,7 +2103,206 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "16",
+          "lines": "20",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "css",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "css",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.css",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "21",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CssDeclarationValue",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.cssdeclarationvalue",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "21",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CssSourceValue",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.csssourcevalue",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "21",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CssStyleValue",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.cssstylevalue",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "21",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CssTemplateResult",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.csstemplateresult",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "unknown",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "21",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "CssTemplateValue",
+          "type": "implementation"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.csstemplatevalue",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [
+        "Export/type presence is not behavioral evidence."
+      ],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "unverified"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "28",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1956,12 +2336,51 @@
     {
       "blockedBy": [],
       "blocks": [],
+      "conformance": "extension",
+      "consumers": [],
+      "evidence": [
+        {
+          "doesNotProve": "Observable runtime behavior or semantic conformance.",
+          "lines": "20",
+          "path": "index.ts",
+          "proves": "The public export exists at the pinned revision.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "isCssTemplateResult",
+          "type": "implementation"
+        },
+        {
+          "doesNotProve": "External-standard compatibility unless separately mapped.",
+          "path": "compiled.test.ts",
+          "proves": "The bounded project API has behavioral coverage.",
+          "repository": "template",
+          "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
+          "symbol": "isCssTemplateResult",
+          "type": "unit-test"
+        }
+      ],
+      "id": "platform.at-zavx0z-template.export-paths.root.symbols.iscsstemplateresult",
+      "lastVerified": {
+        "date": "2026-08-29",
+        "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90"
+      },
+      "limitations": [],
+      "owner": {
+        "package": "@zavx0z/template",
+        "repository": "template",
+        "stage": "compiler"
+      },
+      "status": "implemented"
+    },
+    {
+      "blockedBy": [],
+      "blocks": [],
       "conformance": "unknown",
       "consumers": [],
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "25",
+          "lines": "37",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -1993,7 +2412,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "61",
+          "lines": "73",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -2032,7 +2451,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "17",
+          "lines": "29",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -2064,7 +2483,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "17",
+          "lines": "29",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -2096,7 +2515,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "29",
+          "lines": "41",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -2128,7 +2547,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "17",
+          "lines": "29",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -2160,7 +2579,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "17",
+          "lines": "29",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -2192,7 +2611,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "17",
+          "lines": "29",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -2224,7 +2643,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "27",
+          "lines": "39",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -2256,7 +2675,7 @@
       "evidence": [
         {
           "doesNotProve": "Observable runtime behavior or semantic conformance.",
-          "lines": "27",
+          "lines": "39",
           "path": "index.ts",
           "proves": "The public export exists at the pinned revision.",
           "repository": "template",
@@ -4122,12 +4541,12 @@
       "consumers": [],
       "evidence": [
         {
-          "doesNotProve": "Dynamic pseudo values, style spreads, computed keys and general CSS nesting.",
+          "doesNotProve": "Dynamic non-base selector values, general selectors and CSS nesting.",
           "path": "compiler/style.ts",
-          "proves": "Module-stable base declarations, supported pseudos and conditional static fragments become scoped compiled stylesheet metadata and addressed markers.",
+          "proves": "Global css intrinsic rules, bounded attribute/pseudo selectors and nested fragments become one ordered compiled sheet with addressed markers.",
           "repository": "template",
           "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
-          "symbol": "component-local static style extraction",
+          "symbol": "component-local css extraction",
           "type": "implementation"
         },
         {
@@ -4142,7 +4561,7 @@
         {
           "doesNotProve": "Downstream Document/Renderer lifecycle.",
           "path": "compiler/style-compiler.test.ts",
-          "proves": "Golden lowering, module-stable expressions, authored precedence, residual caller style and exact fail-closed diagnostics.",
+          "proves": "Global intrinsic identity, css-only lowering, authored precedence, component base styles, residual caller style and exact fail-closed diagnostics.",
           "repository": "template",
           "revision": "87d0ec3d2a9f19c3750d567ee20dc4bace995e90",
           "symbol": "static-style-extraction",
